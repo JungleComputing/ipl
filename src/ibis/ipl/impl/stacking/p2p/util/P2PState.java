@@ -544,17 +544,6 @@ public class P2PState {
 			addRoutingTableNode(node);
 			addNeighborNode(node);
 		}
-
-		/*
-		 * if (stateInfo.isSendBack()) { P2PMessageHeader msg = new
-		 * P2PMessageHeader(null, P2PMessageHeader.STATE_RESPONSE); P2PStateInfo
-		 * myStateInfo = new P2PStateInfo(myID, getRoutingTable(), getLeafSet(),
-		 * getNeighborhoodSet(), false); // send my state
-		 * source.connect(baseIbis.createSendPort(P2PConfig.portType));
-		 * source.sendObjects(msg, myStateInfo); }
-		 */
-
-		// printSets();
 	}
 
 	public synchronized P2PNode[][] getRoutingTable() {
@@ -810,8 +799,9 @@ public class P2PState {
 	}
 
 	public synchronized ArrayList<P2PNode> getLeafSet(int type) {
-		P2PNode[] repairLeafSet = new P2PNode[P2PConfig.LEAF_SIZE / 2];
+		//P2PNode[] repairLeafSet = new P2PNode[P2PConfig.LEAF_SIZE / 2];
 
+		/*
 		if (type == P2PStateRepairThread.LEAF_LEFT) {
 			// failed node is on the left side, send right part of the leaf set
 			System.arraycopy(leafSet, P2PConfig.LEAF_SIZE / 2, repairLeafSet,
@@ -820,13 +810,26 @@ public class P2PState {
 			// failed node is on the right side, send left part of the leaf set
 			System.arraycopy(leafSet, 0, repairLeafSet, 0,
 					P2PConfig.LEAF_SIZE / 2);
-		}
+		}*/
 
-		return new ArrayList<P2PNode>(Arrays.asList(repairLeafSet));
+		int start, end;
+		ArrayList<P2PNode> leafSet = new ArrayList<P2PNode>();
+		if (type == P2PStateRepairThread.LEAF_LEFT) {
+			start = P2PConfig.LEAF_SIZE / 2;
+			end = P2PConfig.LEAF_SIZE;
+		} else {
+			start = 0;
+			end = P2PConfig.LEAF_SIZE / 2;
+		}
+		
+		for (int i = start; i < end; i++) {
+			leafSet.add(this.leafSet[i]); 
+		}
+		return leafSet;
 	}
 
 	public synchronized void repairNeighborhoodSet(P2PNode[] neighborhoodSet,
-			int position) {
+			int position) throws IOException {
 		double minDiff = Double.MAX_VALUE;
 		P2PNode replacement = null;
 		for (P2PNode neighbor : neighborhoodSet) {
@@ -840,6 +843,8 @@ public class P2PState {
 		}
 
 		this.neighborhoodSet[position] = replacement;
+		replacement.connect(baseIbis.createSendPort(P2PConfig.portType));
+		
 		minDiff = myID.vivaldiDistance(minNeighbor);
 		double maxDiff = myID.vivaldiDistance(maxNeighbor);
 		double newDiff = myID.vivaldiDistance(replacement);
@@ -853,12 +858,12 @@ public class P2PState {
 		}
 	}
 
-	public synchronized void repairLeafSet(P2PNode[] leafSet, int position) {
+	public synchronized void repairLeafSet(ArrayList<P2PNode> leafList, int position) throws IOException {
 		P2PNode replacement = null;
 		BigInteger minDiff = P2PConfig.MAX;
-		for (P2PNode leaf : leafSet) {
+		for (P2PNode leaf : leafList) {
 			if (leaf != null && !leaf.equals(myID)
-					&& !leaf.equals(leafSet[position])) {
+					&& !leaf.equals(this.leafSet[position])) {
 				BigInteger newDiff = myID.idDistance(leaf);
 				if (newDiff.compareTo(minDiff) < 0) {
 					minDiff = newDiff;
@@ -868,7 +873,8 @@ public class P2PState {
 		}
 
 		leafSet[position] = replacement;
-
+		replacement.connect(baseIbis.createSendPort(P2PConfig.portType));
+		
 		if (replacement.compareTo(minLeaf) < 0) {
 			minLeaf = replacement;
 		}
@@ -876,14 +882,44 @@ public class P2PState {
 			maxLeaf = replacement;
 		}
 	}
-
+	
 	public synchronized void repairRoutingEntry(P2PNode entry, int prefix,
-			int digit) {
+			int digit) throws IOException {
 		double oldDiff = myID.vivaldiDistance(routingTable[prefix][digit]);
 		double newDiff = myID.vivaldiDistance(entry);
 
 		if (!entry.equals(routingTable[prefix][digit]) && newDiff < oldDiff) {
 			routingTable[prefix][digit] = entry;
+			entry.connect(baseIbis.createSendPort(P2PConfig.portType));
 		}
+	}
+	
+	public synchronized void trackState() {
+		int leafCount = 0;
+		for (int i = 0; i < leafSet.length; i++) {
+			if (leafSet[i] != null && !leafSet[i].isFailed()) {
+				leafCount++;
+			}
+		}
+
+		int neighborCount = 0;
+		for (int i = 0; i < neighborhoodSet.length; i++) {
+			if (neighborhoodSet[i] != null && !neighborhoodSet[i].isFailed()) {
+				neighborCount++;
+			}
+		}
+
+		int routingCount = 0;
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
+				if (routingTable[i][j] != null && !routingTable[i][j].isFailed()) {
+					routingCount++;
+				}
+			}
+		}
+		
+		System.out.println(leafCount);
+		System.out.println(neighborCount);
+		System.out.println(routingCount);
 	}
 }

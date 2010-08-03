@@ -74,7 +74,6 @@ public class P2PGoBackNSender extends Thread {
 
 	public synchronized void processAck(ReceivePortIdentifier rid, int ackNum) {
 		logger.debug("ack from " + rid);
-		System.err.println("ack from " + rid);
 		
 		P2PSenderConnectionHandler window = windows.get(rid);
 		window.processAck(ackNum);

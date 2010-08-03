@@ -98,12 +98,11 @@ public class P2PJoinThread extends Thread {
 				nextHop.connect(baseIbis.createSendPort(P2PConfig.portType));
 				nextHop.sendObjects(msg, path);
 
-				// remember to whom it was forwarded
-				logger.debug("Request " + path.get(NEW_NODE).getIbisID()
-						+ " forwarded to " + nextHop.getIbisID());
+				//logger.debug("Request " + path.get(NEW_NODE).getIbisID()
+						//+ " forwarded to " + nextHop.getIbisID());
 			} else {
 				// process message, reverse message direction and append state
-				logger.debug("Request is reverted!");
+				//logger.debug("Request is reverted!");
 				reverseJoinDirection(path);
 			}
 
@@ -186,7 +185,7 @@ public class P2PJoinThread extends Thread {
 					.readObject();
 			readMessage.finish();
 
-			logger.debug("I received a join response...!");
+			//logger.debug("I received a join response...!");
 			state.parseSets(path, routingTables, leafSet, neighborhoodSet);
 
 			// received join response, wake main thread
@@ -279,15 +278,15 @@ public class P2PJoinThread extends Thread {
 				queue.put(oldRequest);
 				setProcessNext(true);
 
-				logger.debug("Request " + currentRequestSource.getP2pID()
-						+ " preempted by " + newRequestSource.getP2pID());
+				//logger.debug("Request " + currentRequestSource.getP2pID()
+						//+ " preempted by " + newRequestSource.getP2pID());
 			}
 		}
 
 		queue.put(request);
 
-		logger.debug("Queued request from " + newRequestSource.getIbisID()
-				+ " " + newRequest);
+		//logger.debug("Queued request from " + newRequestSource.getIbisID()
+				//+ " " + newRequest);
 	}
 
 	public synchronized void setProcessNext(P2PNode source, boolean processNext) {
@@ -299,9 +298,9 @@ public class P2PJoinThread extends Thread {
 				notifyAll();
 			}
 
-			logger.debug("Received state update from " + source
-					+ " and current request is "
-					+ getCurrentRequest().get(NEW_NODE));
+			//logger.debug("Received state update from " + source
+				//	+ " and current request is "
+				//	+ getCurrentRequest().get(NEW_NODE));
 		}
 	}
 

@@ -144,8 +144,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 					getState());
 			stateUpdaterThread.start();
 
-			// stateRepairThread = new P2PStateRepairThread(getState());
-			// stateRepairThread.start();
+			stateRepairThread = new P2PStateRepairThread(getState());
+			stateRepairThread.start();
 
 			joinThread = new P2PJoinThread(this);
 			joinThread.start();
@@ -303,6 +303,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 
 	@Override
 	public IbisIdentifier identifier() {
+		state.trackState();
 		return getMyID().getIbisID();
 	}
 
@@ -384,20 +385,20 @@ public class P2PIbis implements Ibis, MessageUpcall {
 	private P2PNode route(P2PNode dest) {
 		P2PNode nextDest;
 
-		logger.debug("Routing node with Ibis ID: " + dest.getIbisID().name()
-				+ " and P2PID: " + dest);
+		//logger.debug("Routing node with Ibis ID: " + dest.getIbisID().name()
+			//	+ " and P2PID: " + dest);
 		if (dest.equals(getMyID())) {
-			logger.debug("[myself]Next dest for " + dest.getIbisID().name()
-					+ " is: " + dest.getIbisID().name());
+			//logger.debug("[myself]Next dest for " + dest.getIbisID().name()
+				//	+ " is: " + dest.getIbisID().name());
 			return dest;
 		}
 
 		// search within leaf set
 		nextDest = getState().findLeafNode(dest);
 		if (nextDest != null && !nextDest.isFailed()) {
-			logger.debug("[leafset]Next dest for " + dest.getIbisID().name()
-					+ " " + dest + " is: " + nextDest.getIbisID().name() + " "
-					+ nextDest);
+			//logger.debug("[leafset]Next dest for " + dest.getIbisID().name()
+					//+ " " + dest + " is: " + nextDest.getIbisID().name() + " "
+					//+ nextDest);
 
 			return nextDest;
 		} else {
@@ -409,19 +410,19 @@ public class P2PIbis implements Ibis, MessageUpcall {
 
 			// find node rare case if entry is empty or node is failed
 			if (nextDest == null || nextDest.isFailed()) {
-				logger.debug("Finding node rare case for: "
-						+ dest.getIbisID().name() + " " + dest);
+				//logger.debug("Finding node rare case for: "
+					//	+ dest.getIbisID().name() + " " + dest);
 
 				nextDest = getState().findNodeRareCase(dest, prefix);
 
-				logger.debug("Rare case node for: " + dest.getIbisID().name()
-						+ " " + dest + " is: " + nextDest.getIbisID().name()
-						+ " " + nextDest);
+				//logger.debug("Rare case node for: " + dest.getIbisID().name()
+					//	+ " " + dest + " is: " + nextDest.getIbisID().name()
+						//+ " " + nextDest);
 			}
 		}
 
-		logger.debug("Next dest for " + dest.getIbisID().name() + " " + dest
-				+ " is: " + nextDest.getIbisID().name() + " " + nextDest);
+		//logger.debug("Next dest for " + dest.getIbisID().name() + " " + dest
+			//	+ " is: " + nextDest.getIbisID().name() + " " + nextDest);
 
 		return nextDest;
 	}
@@ -436,7 +437,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 				ArrayList<P2PNode> currDests = destinations.get(nextDest);
 				currDests.add(dests.get(i));
 			} else {
-				// create new entry in hashmap
+				// create new entry in hash map
 				Vector<P2PNode> currDests = new Vector<P2PNode>();
 				currDests.add(dests.get(i));
 				destinations.put(nextDest, dests);
@@ -559,6 +560,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		// get replacement
 		P2PNode replacement = getState().getEntryAt(prefix, digit);
 
+		logger.debug("route request.");
+		
 		// send replacement only if is valid
 		if (replacement != null) {
 			P2PMessageHeader msg = new P2PMessageHeader(null,
@@ -585,8 +588,9 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		Integer position = (Integer) readMessage.readObject();
 		readMessage.finish();
 
-		P2PNode[] leafSet = (P2PNode[]) leafList.toArray();
-		getState().repairLeafSet(leafSet, position);
+		logger.debug("Leaf response." + position);
+		
+		getState().repairLeafSet(leafList, position);
 	}
 
 	private void handleLeafRequest(ReadMessage readMessage) throws IOException,
@@ -596,8 +600,10 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		Integer position = (Integer) readMessage.readObject();
 		readMessage.finish();
 
-		ArrayList<P2PNode> leafSet = getState().getLeafSet(side);
-
+		logger.debug("Leaf Request." + position);
+		
+		ArrayList<P2PNode> leafSet = state.getLeafSet(side);
+		
 		P2PMessageHeader msg = new P2PMessageHeader(null,
 				P2PMessageHeader.LEAF_RESPONSE);
 		P2PNode node = route(source);
@@ -627,6 +633,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		Integer position = (Integer) readMessage.readObject();
 		readMessage.finish();
 
+		logger.debug("Received neighborhood request.");
+		
 		ArrayList<P2PNode> neighborhoodSet = getState().getNeighborhoodSet();
 
 		P2PMessageHeader msg = new P2PMessageHeader(null,
@@ -648,8 +656,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		Integer j = (Integer) readMessage.readObject();
 		readMessage.finish();
 
-		// logger.debug("Ping response of type " + type + " for " + i + " " +
-		// j);
+		logger.debug("Ping response of type " + type + " for " + i + " " + j);
 
 		getState().handlePing(type, i, j);
 

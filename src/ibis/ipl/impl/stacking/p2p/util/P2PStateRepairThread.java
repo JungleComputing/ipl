@@ -32,20 +32,22 @@ public class P2PStateRepairThread extends Thread {
 	public void run() {
 		try {
 			while (!isInterrupted()) {
-				//state.printSets();
 				state.pingNodes();
 				state.checkNodes();
 
 				logger.debug("Checked nodes...");
 				
-				Thread.sleep(10000);
+				Thread.sleep(5000);
 			}
 		} catch (SocketException ex) {
 			// ignore
+			ex.printStackTrace();
 		} catch (IOException ex) {
 			// ignore
+			ex.printStackTrace();
 		} catch (InterruptedException e) {
 			// ignore
+			e.printStackTrace();
 		}
 	}
 }
