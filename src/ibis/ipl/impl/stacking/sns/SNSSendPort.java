@@ -14,7 +14,6 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -22,34 +21,12 @@ public class SNSSendPort implements SendPort {
     
     private SendPort base;
 	static SNSIbis ibis;
-	
-//    private static final class DisconnectUpcaller
-//            implements SendPortDisconnectUpcall {
-//        SNSSendPort port;
-//        SendPortDisconnectUpcall upcaller;
-//
-//        public DisconnectUpcaller(SNSSendPort port,
-//                SendPortDisconnectUpcall upcaller) {
-//            this.port = port;
-//            this.upcaller = upcaller;
-//        }
-//
-//        public void lostConnection(SendPort me,
-//                ReceivePortIdentifier johnDoe, Throwable reason) {
-//            upcaller.lostConnection(port, johnDoe, reason);
-//        }
-//    }
-    
+	   
     public SNSSendPort(PortType type, SNSIbis ibis, String name,
-            SendPortDisconnectUpcall connectUpcall, Properties props) throws IOException {
-   	
-//        if (connectUpcall != null) {
-//            connectUpcall = new DisconnectUpcaller(this, connectUpcall);
-            base = ibis.mIbis.createSendPort(type, name, connectUpcall, props);
-            this.ibis = ibis;
-//        } else {
-//            base = ibis.mIbis.createSendPort(type, name, null, props);
-//        }
+        SendPortDisconnectUpcall connectUpcall, Properties props) throws IOException {
+
+        base = ibis.mIbis.createSendPort(type, name, connectUpcall, props);
+        this.ibis = ibis;
     }
     
     public void close() throws IOException {
@@ -78,7 +55,6 @@ public class SNSSendPort implements SendPort {
 		} else {
 			throw new ConnectionFailedException("SNSIbis: Unauthorized Receiveport", id, name);
     	}
-
     }
 
     public void connect(ReceivePortIdentifier[] ports) throws ConnectionsFailedException {
@@ -88,8 +64,7 @@ public class SNSSendPort implements SendPort {
     public void connect(ReceivePortIdentifier[] ports, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
 		if(!ibis.allowedIbisIdent.containsAll(Arrays.asList(ports))){
 			throw new ConnectionsFailedException("SNSIbis: Unauthorized Receiveport");
-		}
-    	
+		}    	
         base.connect(ports, timeoutMillis, fillTimeout);        
     }
 
@@ -101,7 +76,6 @@ public class SNSSendPort implements SendPort {
 		if(!ibis.allowedIbisIdent.containsAll(ports.keySet()) ){
 			throw new ConnectionsFailedException("SNSIbis: Unauthorized Receiveport");
 		}
-    	
         return base.connect(ports, timeoutMillis, fillTimeout);
     }
 
@@ -122,7 +96,7 @@ public class SNSSendPort implements SendPort {
     }
 
     public SendPortIdentifier identifier() {
-            return base.identifier();
+    	return base.identifier();
     }
 
     public ReceivePortIdentifier[] lostConnections() {
@@ -130,7 +104,7 @@ public class SNSSendPort implements SendPort {
     }
 
     public String name() {
-            return base.name();
+    	return base.name();
     }
 
     public WriteMessage newMessage() throws IOException {    	

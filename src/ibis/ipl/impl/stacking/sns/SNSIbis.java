@@ -16,7 +16,6 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.stacking.sns.util.SNS;
-import ibis.ipl.impl.stacking.sns.util.SNSEncryption;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,19 +37,22 @@ import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Starting point to create SNS Ibis
+ */
 public class SNSIbis implements Ibis{
     Ibis mIbis;
     PortType[] portTypes;
     IbisCapabilities capabilities, refinedcapabilities; 
-    SNSEncryption encryption;  
   
     ArrayList<IbisIdentifier> allowedIbisIdent = new ArrayList<IbisIdentifier>();
-	
 	HashMap<String, SNS> SNSList = new HashMap<String,SNS>();
-	//HashMap<String, String> snsUserIDs = new HashMap<String,String>();
-	//HashMap<String, String> snsUniqueKeys = new HashMap<String,String>();
 
-	String snsAppTag;
+	String SNSTag;
+    SNSIbisApplicationTag SNSIbisTag;
+    String keystoreName;
+    String keystorePassword;
+    String keystoreAlias;
 	
     static final IbisCapabilities SNSibisCapabilities = new IbisCapabilities(
         SNSIbisCapabilities.SNS_AUTHENTICATED_FRIENDS_ONLY,
@@ -67,100 +69,61 @@ public class SNSIbis implements Ibis{
             SNSIbisStarter snsIbisStarter)
             throws IbisCreationFailedException {
     	
-        if (logger.isDebugEnabled()) {
-            logger.debug("SNSIbis: Creating SNSIbis");
-        }
     	
     	if (specifiedSubImplementation == null) {
             throw new IbisCreationFailedException("SNSIbis: child Ibis implementation not specified");
         }
     	
-        EventHandler h = null;
-        if (registryEventHandler != null) {
-            h = new EventHandler(registryEventHandler, this);
-        }
-        else {
-        	h = new EventHandler(null, this);
-        }
-
     	if (capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY) ||
-    		capabilities.hasCapability(SNSIbisCapabilities.SNS_AUTHENTICATED_FRIENDS_ONLY) ||
-    		capabilities.hasCapability(SNSIbisCapabilities.SNS_FRIENDS_ONLY)) {
-    		
-    		this.capabilities = capabilities;    	
+        		capabilities.hasCapability(SNSIbisCapabilities.SNS_AUTHENTICATED_FRIENDS_ONLY) ||
+        		capabilities.hasCapability(SNSIbisCapabilities.SNS_FRIENDS_ONLY)) {
+        		
+    		this.capabilities = capabilities;
 	    	String[] caps = (capabilities.unmatchedCapabilities(SNSibisCapabilities)).getCapabilities();
-	    	refinedcapabilities = new IbisCapabilities(caps);    	
-    	}
-    	else {
+	    	refinedcapabilities = new IbisCapabilities(caps);
+    	} else if ((capabilities.getCapabilitiesWithPrefix(SNSProperties.PREFIX)).getCapabilities().length > 1) {
+    		throw new IbisCreationFailedException("SNSIbis: more than one SNS capabilities is specified");
+    	} else {
     		throw new IbisCreationFailedException("SNSIbis: SNS capabilities is not specified"); 
     	}
-    	                
-        String SNSImplementation = userProperties.getProperty(SNSProperties.IMPLEMENTATION);        
-        if (SNSImplementation != null) {
-            String[] snsNames = SNSImplementation.split(",");
-
-            for (String snsName : snsNames){
-            	SNS sns = SNSFactory.createSNS(snsName, userProperties);
-            	
-            	if(sns != null){
-            		SNSList.put(snsName, sns);
-            		
-            		//snsUserIDs.put(snsName, sns.SNSUID());
-            		
-            		//String uniquekey = UUID.randomUUID().toString();
-            		//snsUniqueKeys.put(snsName, uniquekey);
-           		
-            		//PUT THE SNS CREDENTIALS IN IBIS APPLICATION TAG
-            		if (snsAppTag == null) {
-            			snsAppTag = snsName + ":" + sns.UserID() + ":" + sns.UniqueID();
-            		}
-            		else {
-            			snsAppTag = "," + snsName + ":" + sns.UserID() + ":" + sns.UniqueID();
-            		}            		
-            	}
-            	else {
-            		throw new IbisCreationFailedException("SNSIbis: SNS implementation is not found"); 
-            	}
-            }
-        }
-        else {
-    		throw new IbisCreationFailedException("SNSIbis: SNS implementation is not specified"); 
-    	}
+    	
+    	//Build SNS Objects
+    	initializeSNS(userProperties, applicationTag);
         
-        if (applicationTag != null){
-        	logger.warn("SNSIbis: Applicationtag is suppressed");
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("SNSIbis: SNSTag " + snsAppTag);
-        }                
-        
-    	//PUT REFINED IBIS CAPS AND OVERWRITE IBIS APPLICATION TAG
-        mIbis = factory.createIbis(h, refinedcapabilities, userProperties, credentials, snsAppTag.getBytes(), portTypes, specifiedSubImplementation);
-
+    	//Create Ibis Instance
+    	try {
+			mIbis = factory.createIbis(new EventHandler(registryEventHandler, this), refinedcapabilities, userProperties, credentials, SNSIbisTag.getBytes(), portTypes, specifiedSubImplementation);
+		} catch (IOException e) {
+			throw new IbisCreationFailedException("SNSIbis: Failed to create SNS Ibis");
+		}
+		
+		//Initialize Keystore 
         if (capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("SNSIbis: Preparing KeyStore");
             }
-        	            
-            char[] password = "password".toCharArray();
+            
+        	keystoreName = userProperties.getProperty(SNSProperties.KEYSTORE_NAME);
+        	keystorePassword = userProperties.getProperty(SNSProperties.KEYSTORE_PASSWORD);
+        	keystoreAlias = userProperties.getProperty(SNSProperties.KEYSTORE_ALIAS);
+        	
         	KeyStore ks;
-		  	File from_file = new File("KEYSTORE");
+		  	File from_file = new File(keystoreName);
 		    if (!from_file.exists()) {			  	
 				try {
 					ks = KeyStore.getInstance("JCEKS");
-				    ks.load(null, password);
+				    ks.load(null, keystorePassword.toCharArray());
 				    
 				    KeyGenerator kg = KeyGenerator.getInstance("DES");
 				    kg.init(new SecureRandom());
 				    SecretKey mySecretKey = kg.generateKey();
 				    
 				    SecretKeyEntry skEntry = new SecretKeyEntry(mySecretKey);
-				    PasswordProtection keyStorePassword = new PasswordProtection(password);
-				    ks.setEntry("ALIAS", skEntry, keyStorePassword);
+				    PasswordProtection keyStorePassword = new PasswordProtection(keystorePassword.toCharArray());
+				    ks.setEntry(keystoreAlias, skEntry, keyStorePassword);
 				    	    
-				    FileOutputStream fos = new FileOutputStream("KEYSTORE");
-				    ks.store(fos, password);
+				    FileOutputStream fos = new FileOutputStream(keystoreName);
+				    ks.store(fos, keystorePassword.toCharArray());
 				    fos.close();
 				} catch (Exception e) {
 					throw new IbisCreationFailedException("SNSIbis: Failed to create new KeyStore");
@@ -169,14 +132,14 @@ public class SNSIbis implements Ibis{
 		    	try {
 					ks = KeyStore.getInstance("JCEKS");
 					
-			    	FileInputStream fis = new FileInputStream("KEYSTORE");
-				    ks.load(fis, password);
+			    	FileInputStream fis = new FileInputStream(keystoreName);
+				    ks.load(fis, keystorePassword.toCharArray());
 				    fis.close();
 				    
-				    PasswordProtection keyStorePassword = new PasswordProtection(password);
-				    SecretKeyEntry skEntry = (SecretKeyEntry) ks.getEntry("ALIAS", keyStorePassword);
+				    PasswordProtection keyStorePassword = new PasswordProtection(keystorePassword.toCharArray());
+				    SecretKeyEntry skEntry = (SecretKeyEntry) ks.getEntry(keystoreAlias, keyStorePassword);
 				    SecretKey key = skEntry.getSecretKey();
-
+			    
 				} catch (Exception e) {
 					throw new IbisCreationFailedException("SNSIbis: Failed to load existing KeyStore");
 				}
@@ -187,83 +150,133 @@ public class SNSIbis implements Ibis{
         
     }    
 	
+    /**
+     * This method initializes SNS objects based on the Ibis properties
+     * @exception IbisCreationFailedException is thrown when an SNS object cannot be created.
+     */
+	private void initializeSNS(Properties userProperties, byte[] applicationTag ) throws IbisCreationFailedException {
+        String SNSImplementation = userProperties.getProperty(SNSProperties.IMPLEMENTATION);        
+        if (SNSImplementation != null) {
+            String[] snsNames = SNSImplementation.split(",");
+
+            for (String snsName : snsNames){
+            	SNS sns = SNSFactory.createSNS(snsName, userProperties);
+            	
+            	if(sns != null){
+            		SNSList.put(snsName, sns);
+                  	
+            		if (SNSTag == null) {
+            			SNSTag = snsName + ":" + sns.UserID() + ":" + sns.UniqueID();
+            		}
+            		else {
+            			SNSTag = "," + snsName + ":" + sns.UserID() + ":" + sns.UniqueID();
+            		}            		
+            	}
+            	else {
+            		throw new IbisCreationFailedException("SNSIbis: SNS implementation is not found"); 
+            	}
+            }
+            
+            SNSIbisTag = new SNSIbisApplicationTag(SNSTag.getBytes(), applicationTag);
+            
+            if (logger.isDebugEnabled()) {
+                logger.debug("SNSIbis: SNSTag " + SNSTag);
+            }            
+        }
+        else {
+    		throw new IbisCreationFailedException("SNSIbis: SNS implementation is not specified"); 
+    	}
+		
+	}
+
+    /**
+     * Class to handle Registry events
+     * In case of join event, an SNSAuthenticator thread is created to do the authentication  
+     */
 	public class EventHandler implements RegistryEventHandler {
-        RegistryEventHandler h;
+        RegistryEventHandler REHandler;
         SNSIbis ibis;
 
-        EventHandler(RegistryEventHandler h, SNSIbis ibis) {
-            this.h = h;
+        EventHandler(RegistryEventHandler handler, SNSIbis ibis) {
+            this.REHandler = handler;
             this.ibis = ibis;
         }        
 
         public void joined(IbisIdentifier id) {
             if (logger.isDebugEnabled()) {
-            	logger.debug("SNSIbis: my Ibis " + ibis.identifier().tagAsString());
-                logger.debug("SNSIbis: new Ibis " + id.tagAsString() + "has joined");
+            	logger.debug("SNSIbis: my Ibis " + ibis.identifier().name());
+                logger.debug("SNSIbis: new Ibis " + id.name() + " has joined");
             }
         	
-			if (id.compareTo(ibis.identifier()) == 0) { 
+//			if (id.compareTo(ibis.identifier()) == 0) { 
+			if (ibis.identifier().equals(id)) { 
 				//DONT NEED TO AUTHENTICATE MYSELF	
 				synchronized(allowedIbisIdent) {
 					allowedIbisIdent.add(id);
 				}
 				
-				synchronized (h) {
-				    if (h != null) {
-				    	h.joined(id);
+				if (REHandler != null) {
+					synchronized (REHandler) {
+						REHandler.joined(id);
 				    }
 				}
 			}
 			else {
-				Thread SNSAuthThread = new Thread(new SNSAuthenticator(id, ibis, h));
+				if (REHandler != null) {
+					synchronized (REHandler) {
+						REHandler.joined(id);
+				    }
+				}
+
+				Thread SNSAuthThread = new Thread(new SNSAuthenticator(id, ibis, REHandler));
 				SNSAuthThread.start();
 			}
         }
 
         public void left(IbisIdentifier id) {
             if (logger.isDebugEnabled()) {
-                logger.debug("SNSIbis: new Ibis " + id.tagAsString() + "has left");
+                logger.debug("SNSIbis: new Ibis " + id.tagAsString() + " has left");
             }
         	
     		synchronized(allowedIbisIdent){
     			allowedIbisIdent.remove(id);
     		}
     		
-    		synchronized (h) {
-	            if (h != null) {
-	                h.left(id);
+    		if (REHandler != null) {
+    			synchronized (REHandler) {
+    				REHandler.left(id);
 	            }
     		}
         }
 
         public void died(IbisIdentifier id) {
             if (logger.isDebugEnabled()) {
-                logger.debug("SNSIbis: new Ibis " + id.tagAsString() + "has died");
+                logger.debug("SNSIbis: new Ibis " + id.tagAsString() + " has died");
             }
             
     		synchronized(allowedIbisIdent){
     			allowedIbisIdent.remove(id);
     		}
    
-    		synchronized (h) {
-	            if (h != null) {
-	                h.died(id);
+    		if (REHandler != null) {
+    			synchronized (REHandler) {
+    				REHandler.died(id);
 	            }
     		}
         }
 
         public void gotSignal(String s, IbisIdentifier id) {   
-    		synchronized (h) {
-	            if (h != null) {
-	                h.gotSignal(s, id);
+        	if (REHandler != null) {
+        		synchronized (REHandler) {
+        			REHandler.gotSignal(s, id);
 	            }
     		}
         }
 
         public void electionResult(String electionName, IbisIdentifier winner) {
-    		synchronized (h) {
-	            if (h != null) {
-	                h.electionResult(electionName, winner);
+        	if (REHandler != null) {
+        		synchronized (REHandler) {
+        			REHandler.electionResult(electionName, winner);
 	            }
     		}
         }
@@ -273,9 +286,9 @@ public class SNSIbis implements Ibis{
     			allowedIbisIdent.clear();
     		}
     		
-    		synchronized (h) {
-	        	if (h != null) {
-	                h.poolClosed();
+    		if (REHandler != null) {
+    			synchronized (REHandler) {
+    				REHandler.poolClosed();
 	            }
     		}
         }
@@ -285,9 +298,9 @@ public class SNSIbis implements Ibis{
     			allowedIbisIdent.clear();
     		}
         	
-    		synchronized (h) {
-	        	if (h != null) {
-	                h.poolTerminated(source);
+    		if (REHandler != null) {
+    			synchronized (REHandler) {
+    				REHandler.poolTerminated(source);
 	            }
     		}
         }
@@ -332,7 +345,6 @@ public class SNSIbis implements Ibis{
 	@Override
 	public SendPort createSendPort(PortType portType, String portName, SendPortDisconnectUpcall sendPortDisconnectUpcall, Properties properties) 
 			throws IOException {
-
         return new SNSSendPort(portType, this, portName, sendPortDisconnectUpcall, properties);
 	}
 
@@ -348,7 +360,7 @@ public class SNSIbis implements Ibis{
 
 	@Override
 	public IbisIdentifier identifier() {		
-		return mIbis.identifier();
+		return new SNSIbisIdentifier(mIbis.identifier());
 	}
 
 	@Override
@@ -365,6 +377,9 @@ public class SNSIbis implements Ibis{
 	@Override
 	public Registry registry() {
 		return mIbis.registry();
+		
+//		USED FOR BENCHMARK
+//		return new SNSRegistry(this);
 	}
 
 	@Override
@@ -398,12 +413,12 @@ public class SNSIbis implements Ibis{
 
 	@Override
 	public KeyStore keystore() {
-		// TODO Auto-generated method stub
-		return null;
+		return mIbis.keystore();
 	}
 
 	@Override
 	public void setKeystore(KeyStore k) {
-		// TODO Auto-generated method stub		
+		mIbis.setKeystore(k);
 	}
 }
+

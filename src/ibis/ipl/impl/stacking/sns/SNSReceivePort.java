@@ -18,7 +18,7 @@ import java.util.Properties;
 public class SNSReceivePort implements ReceivePort{
 	
 	final ReceivePort base;
-	static SNSIbis ibis;
+	SNSIbis ibis;
 	
     public SNSReceivePort(PortType type, SNSIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
@@ -28,16 +28,13 @@ public class SNSReceivePort implements ReceivePort{
         if (connectUpcall != null) {
             connectUpcall = new ConnectUpcaller(this, connectUpcall);
         }        
-//        else
-//        	connectUpcall = new ConnectUpcaller(this);
        
         this.ibis = ibis;
        
         base = ibis.mIbis.createReceivePort(type, name, upcall, connectUpcall, properties);
-//        base = ibis.mIbis.createReceivePort(type, name, upcall, null, properties);
     }
 	
-    private static final class ConnectUpcaller implements ReceivePortConnectUpcall {
+    private final class ConnectUpcaller implements ReceivePortConnectUpcall {
 		SNSReceivePort port;
 		ReceivePortConnectUpcall upcaller;
 		
@@ -46,10 +43,6 @@ public class SNSReceivePort implements ReceivePort{
 		    this.port = snsReceivePort;
 		    this.upcaller = upcaller;
 		}
-		
-//		public ConnectUpcaller(SNSReceivePort snsReceivePort) {
-//		    this.port = snsReceivePort;
-//		}
 		
 		public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
 			IbisIdentifier id = applicant.ibisIdentifier();
@@ -113,8 +106,7 @@ public class SNSReceivePort implements ReceivePort{
 	}
 
 	@Override
-	public ReceivePortIdentifier identifier() {
-		
+	public ReceivePortIdentifier identifier() {		
 		return base.identifier();
 	}
 
@@ -147,13 +139,10 @@ public class SNSReceivePort implements ReceivePort{
 		return receive(0);
 	}
 
+	//TO DO : Downcall is not really supported
+	@Override
 	public ReadMessage receive(long timeoutMillis) throws IOException {
-		ReadMessage rm = new SNSReadMessage(base.receive(timeoutMillis), this);
-		if(ibis.allowedIbisIdent.contains(rm.origin().ibisIdentifier()) ){
-			return new SNSReadMessage(base.receive(timeoutMillis), this);
-		} else {
-			throw new IOException("SNSIbis: Unauthorized SendPort");
-		}
+		return new SNSReadMessage(base.receive(timeoutMillis), this);
 	}
 
 	@Override

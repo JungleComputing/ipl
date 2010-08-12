@@ -26,13 +26,6 @@ public interface SNS {
 	public String UniqueID();
 	
 	public boolean isFriend(String uid);
-	//public String isFriend(String uid);
-	//public String[] isFriend(String[] uids);
-	//public void sendAuthenticationRequest(String UID, String key);
-	//public String getAuthenticationRequest(String UID);
-	
-	//public void sendSecretKey(String otherUID, String string);
-	//public String getSecretKey(String otherUID);
 	
 	public void sendMessage(String UID, String content);
 	public void sendMessage(String[] UID, String content);

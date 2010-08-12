@@ -1,23 +1,28 @@
 package ibis.ipl.impl.stacking.sns;
 
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.impl.stacking.sns.util.SNS;
+
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.KeyStore.PasswordProtection;
 import java.security.KeyStore.SecretKeyEntry;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.SecretKey;
-
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.impl.stacking.sns.util.SNS;
 
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * A thread class that handles all the authentication process including the key exhange through SNS site
+ */
 public class SNSAuthenticator implements Runnable {
 	IbisIdentifier applicantID;
 	SNSIbis ibis;
@@ -33,7 +38,12 @@ public class SNSAuthenticator implements Runnable {
 	
 	@Override
 	public void run() {
-		String applicantSNSID = applicantID.tagAsString();
+        if (logger.isDebugEnabled()) {
+            logger.debug("SNSAuthenticator: starting SNS Authenticator for ibis " + applicantID.name());
+        }
+        
+		SNSIbisApplicationTag applicantSNSTag = new SNSIbisApplicationTag(applicantID.tag());
+		String applicantSNSID = applicantSNSTag.SNSTagAsString();
 		
 		String[] snsIDPairs = applicantSNSID.split(",");
 		
@@ -75,7 +85,12 @@ public class SNSAuthenticator implements Runnable {
 								                logger.debug("SNSAuthenticator: selected capability " + SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY);
 								            }
 										
-											handleGroupKey(sns, snsUID);						
+											try {
+												handleGroupKey(sns, snsUID);
+											} catch (Exception e) {
+												throw new RuntimeException("SNSIbis: Failed to handle secret key exchange");
+											}
+				
 											break;
 										}
 										else if (ibis.capabilities.hasCapability(SNSIbisCapabilities.SNS_AUTHENTICATED_FRIENDS_ONLY)) {
@@ -104,33 +119,30 @@ public class SNSAuthenticator implements Runnable {
 		}
 	}
 
-	public void handleGroupKey(SNS sns, String otherUID) {
+	public void handleGroupKey(SNS sns, String otherUID) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException {
 		IbisIdentifier master = null;
 		String groupKey;	
+		SecretKeyEntry secretKeyEntry;
+		SecretKey secretKey;
+		
+	    PasswordProtection keyStorePassword = new PasswordProtection(ibis.keystorePassword.toCharArray());
 		
 		try {
-			master = ibis.mIbis.registry().getElectionResult("GroupKeyManager", 10000);
+			master = ibis.registry().getElectionResult("GroupKeyManager", 10000);
 			while (master == null) {
-				master = ibis.mIbis.registry().elect("GroupKeyManager");
+				master = ibis.registry().elect("GroupKeyManager");
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		if (master.compareTo(ibis.identifier()) == 0) {		
-			//ibis.mIbis.keystore()
-			char[] password = "password".toCharArray();
-		    PasswordProtection keyStorePassword = new PasswordProtection(password);
-		    SecretKeyEntry skEntry;
+		if (master.compareTo(ibis.identifier()) == 0) {			    
 			try {
-				skEntry = (SecretKeyEntry) ibis.mIbis.keystore().getEntry("ALIAS", keyStorePassword);
-			    SecretKey secretKey = skEntry.getSecretKey();
-			    
-				//SecretKey secretKey = ibis.encryption.getSecretKey();
+				secretKeyEntry = (SecretKeyEntry) ibis.keystore().getEntry(ibis.keystoreAlias, keyStorePassword);
+				secretKey = secretKeyEntry.getSecretKey();
 				groupKey = new String(Base64.encodeBase64(secretKey.getEncoded()));
 				
-				System.out.println("Sending key : " + groupKey + " to newly joined Ibis");
 				sns.sendMessage(otherUID, SNSProperties.KEY_EXCHANGE_MSG, groupKey);
 			} catch (NoSuchAlgorithmException e) {
 				// TODO Auto-generated catch block
@@ -146,16 +158,19 @@ public class SNSAuthenticator implements Runnable {
 			returnCallBack();
 		}
 		else {
-			System.out.println("receiving key");
 			for (int retry = 0; retry < 10; retry++) {
 				String secretKeyString = sns.readMessage(otherUID, SNSProperties.KEY_EXCHANGE_MSG);	
 				
 				if(secretKeyString != null)  {
 					byte[] encodedKey = Base64.decodeBase64(secretKeyString.getBytes());	
-					ibis.encryption.initialize(encodedKey);
-
-					System.out.println("Received secret key : " + secretKeyString + " from the manager");
 					
+				    javax.crypto.spec.DESKeySpec ks = new javax.crypto.spec.DESKeySpec(encodedKey);
+				    javax.crypto.SecretKeyFactory skf = javax.crypto.SecretKeyFactory.getInstance("DES");
+				    secretKey = skf.generateSecret(ks);
+				    secretKeyEntry = new SecretKeyEntry(secretKey);
+				    
+				    ibis.keystore().setEntry(ibis.keystoreAlias, secretKeyEntry, keyStorePassword);
+				    
 					returnCallBack();						
 					break;
 				}

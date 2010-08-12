@@ -161,7 +161,6 @@ public class Facebook implements SNS{
 			for(int i = 0; i < notes.length(); i ++){
 				JSONObject note = notes.getJSONObject(i);
 				
-				//System.out.println("note = " + note.toString());
 				String noteTitle = note.getString("title");
 				String[] pair = noteTitle.split(FacebookProperties.DELIMITER);
 				if (pair.length == 2) {
@@ -192,97 +191,3 @@ public class Facebook implements SNS{
 		return authKey;
 	}
 }
-
-/*
-@Override
-public boolean isFriend(String otherUID) {	
-
-}
-
-@Override
-public void sendAuthenticationRequest(String otherUID, String content) {
-
-}
-
-@Override
-public String getAuthenticationRequest(String otherUID) {
-
-}
-
-@Override
-public void sendSecretKey(String otherUID, String content) {
-	List <NameValuePair> Params = new ArrayList <NameValuePair>();
-	Params.add(new BasicNameValuePair("uid", UID));
-	Params.add(new BasicNameValuePair("title", FacebookVariables.MESSAGE_SECRETKEY + FacebookVariables.DELIMITER + otherUID));
-	Params.add(new BasicNameValuePair("content", content));
-	
-	try {
-		responseObject = FPM.JSONcall("Notes.create", Params);
-	} catch (ParseException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (JSONException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-}
-
-@Override
-public String getSecretKey(String otherUID) {
-	long timestamp = 0;
-	String secretKey = null;
-	String query = "SELECT uid,created_time,title,content FROM note WHERE uid="+otherUID;
-	
-    List <NameValuePair> Params = new ArrayList <NameValuePair>();
-	Params.add(new BasicNameValuePair("query", query ));
-	
-	try {
-		responseObject = FPM.JSONcall("Fql.query", Params);
-		JSONArray notes = responseObject.getJSONArray("returnValue");
-
-		for(int i = 0; i < notes.length(); i ++){
-			JSONObject note = notes.getJSONObject(i);
-			
-			System.out.println("note = " + note.toString());
-			
-			String noteTitle = note.getString("title");
-			String[] pair = noteTitle.split(FacebookVariables.DELIMITER);
-			if (pair.length == 2) {
-				String messageKey = pair[0];
-				String recipientUID = pair[1];				
-				
-				if (messageKey.equals(FacebookVariables.MESSAGE_SECRETKEY) && recipientUID.equals(UID)){					
-					if (secretKey == null || timestamp < note.getLong("created_time")){
-						timestamp = note.getLong("created_time");
-						secretKey = note.getString("content");
-					}				
-				}
-			}
-		}
-
-	} catch (ParseException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (JSONException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-	
-	return secretKey;
-}
-
-@Override
-public String SNSName() {
-	
-}
-
-@Override
-public String SNSUID() {
-}
-*/

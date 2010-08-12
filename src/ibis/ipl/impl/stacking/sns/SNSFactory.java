@@ -9,6 +9,9 @@ import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.impl.stacking.sns.facebook.Facebook;
 import ibis.ipl.impl.stacking.sns.util.SNS;
 
+/**
+ * A factory to initialize the SNS objects
+ */
 public final class SNSFactory {
 	private static final Logger logger = LoggerFactory.getLogger(SNSFactory.class);
 	
@@ -16,24 +19,17 @@ public final class SNSFactory {
     	
 		if(name.equals(SNSProperties.FACEBOOK)) {			
             if (logger.isDebugEnabled()) {
-                logger.debug("SNSFactory: SNS " + SNSProperties.FACEBOOK + " is chosen ");
+                logger.debug("SNSFactory: SNS " + SNSProperties.FACEBOOK + " is selected ");
             }
             
-            //String sessionKey = properties.getProperty("sns.facebook.sessionkey");
-    		//String secretGenerated = properties.getProperty("sns.facebook.secretGenerated");
-    		//String uid = properties.getProperty("sns.facebook.uid");
-    		//String appName = properties.getProperty(SNSProperties.APPLICATION_NAME);
- 		
-    		//if (sessionKey != null && secretGenerated != null && uid != null) {    		
-    			//return new Facebook(uid, sessionKey, secretGenerated);
 			SNS facebook = new Facebook(properties);
 			
     		return facebook;
-    		//}
-    		//else {
-    			//throw new IbisCreationFailedException("SNSIbis: SNS implementation cannot be created"); 
-    		//}
     	}
+		
+		if(name.equals(SNSProperties.HYVES)) {
+			//TO DO
+		}
 		
 		return null;
 		

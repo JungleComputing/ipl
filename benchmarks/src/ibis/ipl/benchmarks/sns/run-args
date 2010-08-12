@@ -1,0 +1,3 @@
+ibis.ipl.benchmarks.Latency -uu -repeat 100 5000
+
+ibis.ipl.benchmarks.Throughput 1000 1024

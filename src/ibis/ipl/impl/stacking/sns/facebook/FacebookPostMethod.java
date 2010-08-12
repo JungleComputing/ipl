@@ -64,11 +64,7 @@ public class FacebookPostMethod{
 	    else{
 	    	//generate error
 	    }
-	    /*
-	    else{
-		    signature = sign(SECRET, nvp);
-	    }
-	    */
+
 	    nvp.add(new BasicNameValuePair("sig", signature));
 	    
 		post.setEntity(new UrlEncodedFormEntity(nvp, HTTP.UTF_8));

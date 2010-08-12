@@ -2,8 +2,6 @@ package ibis.ipl.impl.stacking.sns;
 
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.sns.util.SNSEncryption;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,7 +12,6 @@ public class SNSWriteMessage implements WriteMessage {
     
     final WriteMessage base;
     final SNSSendPort port;
-    SNSEncryption encryption;
     
     ByteArrayOutputStream baos;
     CipherOutputStream cos;

@@ -15,11 +15,10 @@ import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.impl.stacking.sns.SNSProperties;
 import ibis.util.TypedProperties;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.KeyStore;
 import java.security.KeyStore.PasswordProtection;
 import java.security.KeyStore.SecretKeyEntry;
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ import java.util.Properties;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
@@ -321,37 +319,30 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             serialization = "byte";
         }
         
-        if (ibis.encryptedStream) {
-            if (logger.isDebugEnabled()) {
+        if (ibis.encryptedStream) {        	
+        	if (logger.isDebugEnabled()) {
                 logger.debug("Building encrypted stream");
             }
         	BufferedArrayOutputStream encryptedDataOut;
         	CipherOutputStream cos;
-	        KeyGenerator keyGen;
+	        
 			try {
-//	        	char[] password = "password".toCharArray();
-//	        	KeyStore ks;
-//				ks = KeyStore.getInstance("JCEKS");
-//		    	FileInputStream fis = new FileInputStream("KEYSTORE");
-//			    ks.load(fis, password);
-//			    fis.close();			    
-//			    PasswordProtection keyStorePassword = new PasswordProtection(password);
-//			    SecretKeyEntry skEntry = (SecretKeyEntry) ks.getEntry("ALIAS", keyStorePassword);
-//			    SecretKey key = skEntry.getSecretKey();
-
-				char[] password = "password".toCharArray();
-			    PasswordProtection keyStorePassword = new PasswordProtection(password);
-			    SecretKeyEntry skEntry = (SecretKeyEntry) ibis.keyStore.getEntry("ALIAS", keyStorePassword);
+	        	Properties p = ibis.properties();
+	        	String keystorePassword = p.getProperty(SNSProperties.KEYSTORE_PASSWORD);
+	        	String keystoreAlias = p.getProperty(SNSProperties.KEYSTORE_ALIAS);
+	        	
+			    PasswordProtection keyStorePassword = new PasswordProtection(keystorePassword.toCharArray());
+			    SecretKeyEntry skEntry = (SecretKeyEntry) ibis.keyStore.getEntry(keystoreAlias, keyStorePassword);
 			    SecretKey key = skEntry.getSecretKey();
-				
+			    
 			    Cipher eCipher = Cipher.getInstance("DES/CFB8/NoPadding");
 			    eCipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(new byte[8]));
-								
+	        		    
 	        	cos = new CipherOutputStream(dataOut, eCipher);
 	        	encryptedDataOut = new BufferedArrayOutputStream(cos);
-	        	
+        	
 		        out = SerializationFactory.createSerializationOutput(serialization,
-		        		encryptedDataOut);  
+		        		(DataOutputStream) encryptedDataOut);  
 		        
 			} catch (Exception e) {
 				throw new IOException("SNSIbis: Failed to create outgoing encrypted stream");

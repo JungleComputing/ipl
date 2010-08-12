@@ -121,7 +121,7 @@
         </jar>
 
         <!-- TCP -->
-
+<!--
         <property name="tcp.files" value="ibis/ipl/impl/tcp/**/*.class" />
 
         <checksum totalproperty="tcp.checksum">
@@ -139,9 +139,9 @@
                 <attribute name="Ibis-NickName" value="tcp" />
             </manifest>
         </jar>
-
+-->
         <!-- NIO -->
-
+<!--
         <property name="nio.files" value="ibis/ipl/impl/nio/**/*.class" />
 
         <checksum totalproperty="nio.checksum">
@@ -158,7 +158,7 @@
                 <attribute name="Ibis-NickName" value="nio" />
             </manifest>
         </jar>
-
+-->
         <!-- DUMMY -->
 <!--
         <property name="dummy.files" value="ibis/ipl/impl/stacking/dummy/**/*.class" />
@@ -241,13 +241,13 @@
 	    support.version=${support.checksum}
 	    implementation.version=${implementation.checksum}
 
-	    implementations=smartsockets,tcp,nio,sns <!--,dummy,lrmc -->
+	    implementations=smartsockets,sns<!--,tcp,nio,dummy,lrmc -->
 
 	    #smartsockets
 	    smartsockets.starter.class=ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter
 	    smartsockets.ipl.version=${version}
 	    smartsockets.version=${smartsockets.checksum}
-
+<!--
 	    #tcp
 	    tcp.starter.class=ibis.ipl.impl.tcp.TcpIbisStarter
 	    tcp.ipl.version=${version}
@@ -257,7 +257,7 @@
 	    nio.starter.class=ibis.ipl.impl.nio.NioIbisStarter
 	    nio.ipl.version=${version}
 	    nio.version=${nio.checksum}
-<!--
+
 	    #dummy
 	    dummy.starter.class=ibis.ipl.impl.stacking.dummy.StackingIbisStarter
 	    dummy.ipl.version=${version}

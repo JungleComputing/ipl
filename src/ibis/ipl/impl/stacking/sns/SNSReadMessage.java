@@ -3,13 +3,10 @@ package ibis.ipl.impl.stacking.sns;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.sns.util.SNSEncryption;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import javax.crypto.CipherInputStream;
 
@@ -17,7 +14,7 @@ public class SNSReadMessage implements ReadMessage {
     
     final ReadMessage base;
     final SNSReceivePort port;
-    SNSEncryption encryption;
+
     
     ByteArrayInputStream baos;
     CipherInputStream cis;

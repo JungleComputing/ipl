@@ -1,0 +1,10 @@
+ibis.sns.facebook.sessionkey=6c600f3ea03d64320fc5d57f-100000178414029
+ibis.sns.facebook.secret=b7bf778fed754758cd3ee395366d3664
+ibis.sns.facebook.uid=00000178414029
+
+ibis.sns.applicationname=benchmark
+ibis.sns.implementation=facebook
+
+ibis.sns.keystorename=KEYSTORE
+ibis.sns.keystorepassword=password
+ibis.sns.keystorealias=ALIAS
