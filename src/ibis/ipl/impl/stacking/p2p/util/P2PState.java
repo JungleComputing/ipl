@@ -7,13 +7,15 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * implements the state maintained at each peer
+ * @author delia
+ *
+ */
 public class P2PState {
 	private P2PNode[] leafSet;
 	private P2PNode[] neighborhoodSet;
@@ -354,6 +356,13 @@ public class P2PState {
 		return nextDest;
 	}
 
+	/**
+	 * find an entry numerically closer to the message key than the current node
+	 * used if entry in the routing table is failed or empty
+	 * @param node
+	 * @param prefix
+	 * @return
+	 */
 	public synchronized P2PNode findNodeRareCase(P2PNode node, int prefix) {
 		P2PNode[] nextNodes = new P2PNode[4];
 		nextNodes[0] = findNodeWithPrefix(leafSet, node, 0,
@@ -365,13 +374,7 @@ public class P2PState {
 		nextNodes[3] = findRoutingNode(node, prefix);
 
 		P2PNode nextDest = myID;
-
-		logger.debug("Finding rare case node for:" + node);
-
-		// FIXME: not ok, shouldn't forward to myself if I am not the
-		// destination...
-		// change find node rare case for normal messages
-		// add flag to indicate normal or internal p2p message
+		
 		BigInteger minDiff = myID.idDistance(node).abs();
 
 		for (int i = 0; i < nextNodes.length; i++) {
@@ -438,9 +441,6 @@ public class P2PState {
 		// nearby node is the
 		P2PNode nearbyNode = path.get(1);
 
-		logger.debug("Leaf node:" + leafNode.getIbisID().name());
-		logger.debug("Nearby node:" + nearbyNode.getIbisID().name());
-
 		// update routing table
 		for (int i = 0; i < routingTables.size(); i++) {
 			// read state info
@@ -467,8 +467,6 @@ public class P2PState {
 		// parse path
 		for (int i = 1; i < pathSize; i++) {
 			addRoutingTableNode(path.get(i));
-			logger.debug("Path element " + i + ":"
-					+ path.get(i).getIbisID().name());
 		}
 
 		// add neighbor node the nearby node
@@ -509,18 +507,20 @@ public class P2PState {
 			element.connect(baseIbis.createSendPort(P2PConfig.portType));
 			element.sendObjects(msg, myStateInfo);
 		}
-		// printSets();
 	}
 
+	/**
+	 * parse a state update message
+	 * replace entries only if new ones are closer
+	 * @param stateInfo
+	 * @throws IOException
+	 */
 	public synchronized void updateState(P2PStateInfo stateInfo)
 			throws IOException {
 		P2PNode source = stateInfo.getSource();
 		P2PNode[][] routingTable = stateInfo.getRoutingTable();
 		ArrayList<P2PNode> leafSet = stateInfo.getLeafSet();
 		ArrayList<P2PNode> neighborhoodSet = stateInfo.getNeighborhoodSet();
-
-		// logger.debug("State update received from " + source
-		// + source.getIbisID().name());
 
 		int prefix = myID.prefixLength(source);
 
@@ -587,6 +587,12 @@ public class P2PState {
 		}
 	}
 
+	/**
+	 * find in state a nearby node - return closest node in terms of
+	 * network proximity to target
+	 * @param source
+	 * @return
+	 */
 	public P2PNode findNearbyNode(P2PNode source) {
 		P2PNode nearbyNode = myID;
 		double minDistance = myID.vivaldiDistance(source);
@@ -627,6 +633,11 @@ public class P2PState {
 		return nearbyNode;
 	}
 
+	/**
+	 * ping nodes from time to time
+	 * if no answer is received within a known delay, consider entry failed
+	 * @throws IOException
+	 */
 	public synchronized void pingNodes() throws IOException {
 		P2PMessageHeader msg = new P2PMessageHeader(null,
 				P2PMessageHeader.PING_REQUEST);
@@ -691,7 +702,6 @@ public class P2PState {
 			if (leafSet[i] != null
 					&& leafSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
 				// replace leaf entry
-				logger.debug("Replacing a failed leaf entry at " + i);
 				replaceLeafEntry(i);
 			}
 		}
@@ -700,7 +710,6 @@ public class P2PState {
 			if (neighborhoodSet[i] != null
 					&& neighborhoodSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
 				// repair neighbor entry
-				logger.debug("Replacing a failed neighborhood entry at " + i);
 				replaceNeighBorEntry(i);
 			}
 		}
@@ -710,8 +719,6 @@ public class P2PState {
 				if (routingTable[i][j] != null
 						&& routingTable[i][j].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
 					// repair routing entry
-					logger.debug("Replacing a failed routing table entry at "
-							+ i + " " + j);
 					replaceRoutingEntry(i, j);
 				}
 			}
@@ -799,19 +806,6 @@ public class P2PState {
 	}
 
 	public synchronized ArrayList<P2PNode> getLeafSet(int type) {
-		//P2PNode[] repairLeafSet = new P2PNode[P2PConfig.LEAF_SIZE / 2];
-
-		/*
-		if (type == P2PStateRepairThread.LEAF_LEFT) {
-			// failed node is on the left side, send right part of the leaf set
-			System.arraycopy(leafSet, P2PConfig.LEAF_SIZE / 2, repairLeafSet,
-					0, P2PConfig.LEAF_SIZE / 2);
-		} else {
-			// failed node is on the right side, send left part of the leaf set
-			System.arraycopy(leafSet, 0, repairLeafSet, 0,
-					P2PConfig.LEAF_SIZE / 2);
-		}*/
-
 		int start, end;
 		ArrayList<P2PNode> leafSet = new ArrayList<P2PNode>();
 		if (type == P2PStateRepairThread.LEAF_LEFT) {
@@ -828,6 +822,12 @@ public class P2PState {
 		return leafSet;
 	}
 
+	/**
+	 * replace a failed entry from the neighborhood set
+	 * @param neighborhoodSet
+	 * @param position
+	 * @throws IOException
+	 */
 	public synchronized void repairNeighborhoodSet(P2PNode[] neighborhoodSet,
 			int position) throws IOException {
 		double minDiff = Double.MAX_VALUE;
@@ -858,6 +858,12 @@ public class P2PState {
 		}
 	}
 
+	/**
+	 * replace a failed entry from the leaf set
+	 * @param leafList
+	 * @param position
+	 * @throws IOException
+	 */
 	public synchronized void repairLeafSet(ArrayList<P2PNode> leafList, int position) throws IOException {
 		P2PNode replacement = null;
 		BigInteger minDiff = P2PConfig.MAX;
@@ -882,7 +888,14 @@ public class P2PState {
 			maxLeaf = replacement;
 		}
 	}
-	
+
+	/**
+	 * replace a failed entry at (prefix,digit) from the routing table
+	 * @param entry
+	 * @param prefix
+	 * @param digit
+	 * @throws IOException
+	 */
 	public synchronized void repairRoutingEntry(P2PNode entry, int prefix,
 			int digit) throws IOException {
 		double oldDiff = myID.vivaldiDistance(routingTable[prefix][digit]);
@@ -894,6 +907,10 @@ public class P2PState {
 		}
 	}
 	
+	/**
+	 * count entries from the leaf set, neighborhood set, routing table
+	 * used for measuring the quality of the state
+	 */
 	public synchronized void trackState() {
 		int leafCount = 0;
 		for (int i = 0; i < leafSet.length; i++) {
