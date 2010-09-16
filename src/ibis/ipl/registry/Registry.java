@@ -94,8 +94,8 @@ public abstract class Registry implements ibis.ipl.Registry {
             return (Registry) c.getConstructor(
                     new Class[] { IbisCapabilities.class,
                             RegistryEventHandler.class, Properties.class,
-                            byte[].class, byte[].class, Credentials.class }).newInstance(
-                    new Object[] { capabilities, handler, properties, data, implementationVersion, credentials});
+                            byte[].class, String.class, Credentials.class, byte[].class }).newInstance(
+                    new Object[] { capabilities, handler, properties, data, implementationVersion, credentials, tag});
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }
