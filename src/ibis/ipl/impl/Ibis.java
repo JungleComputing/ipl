@@ -214,11 +214,15 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             receivedBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
         }
 
-        try {
-            managementClient = new ManagementClient(properties, this);
-        } catch (Exception e) {
-            throw new IbisCreationFailedException(
-                    "Could not create management client", e);
+        if (properties.getBooleanProperty("ibis.managementclient")) {
+            try {
+                managementClient = new ManagementClient(properties, this);
+            } catch (Throwable e) {
+                throw new IbisCreationFailedException(
+                        "Could not create management client", e);
+            }
+        } else {
+            managementClient = null;
         }
 
         /*
