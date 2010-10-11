@@ -209,9 +209,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             vivaldiClient = null;
         }
         
-        logger.debug("Pre-if check"); //System.out.println("pre-if check");
-        if (properties.getBooleanProperty("ibis.bytescount")) {
-        	logger.debug("In-if check"); //System.out.println("if ... check");
+        if (properties.getBooleanProperty("ibis.bytescount")) {        	
             sentBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
             receivedBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
         }
