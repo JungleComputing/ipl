@@ -1,19 +1,12 @@
 package ibis.ipl.util.rpc;
 
+import java.io.IOException;
+import java.util.Date;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.ReceivePort;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
-import ibis.ipl.WriteMessage;
-import ibis.ipl.examples.ClientServer;
-
-import java.io.IOException;
-import java.util.Date;
 
 public class Example {
 
@@ -21,6 +14,16 @@ public class Example {
             IbisCapabilities.ELECTIONS_STRICT);
 
     private final Ibis myIbis;
+
+    public interface ExampleInterface {
+        public String function();
+    }
+
+    public class ExampleClass implements ExampleInterface {
+        public String function() {
+            return new Date().toString();
+        }
+    }
 
     /**
      * Constructor. Actually does all the work too :)
@@ -45,23 +48,27 @@ public class Example {
         myIbis.end();
     }
 
+    private void client(IbisIdentifier server) throws Exception {
+        
+        ExampleInterface interfaceObject = (ExampleInterface) RPC.createProxy(ExampleInterface.class, server, "my great object", myIbis);
+        
+        System.err.println(interfaceObject.function());
 
+    }
 
-    private void client(IbisIdentifier server) {
-		// TODO Auto-generated method stub
-		
-	}
+    private void server() throws Exception {
 
+        ExampleClass object = new ExampleClass();
 
+        RemoteObject remoteObject = new RemoteObject(myIbis, "my great object",
+                object, ExampleInterface.class);
+        
+        Thread.sleep(100000);
+        
+        remoteObject.unexport();
+    }
 
-	private void server() {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-
-	public static void main(String args[]) {
+    public static void main(String args[]) {
         try {
             new Example();
         } catch (Exception e) {

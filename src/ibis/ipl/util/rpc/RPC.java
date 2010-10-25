@@ -1,6 +1,11 @@
 package ibis.ipl.util.rpc;
 
+import java.lang.reflect.Proxy;
+
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
+import ibis.ipl.ReceivePortIdentifier;
 
 public class RPC {
 	
@@ -21,9 +26,32 @@ public class RPC {
     public static final PortType[] rpcPortTypes = {rpcRequestPortType, rpcReplyPortType};
 
    
-
     
+    //FIXME: try to return correct class, not generic Object...
+    public static Object createProxy(Class<?> interfaceClass, ReceivePortIdentifier address, Ibis ibis) {
+
+        RPCInvocationHandler handler = new RPCInvocationHandler(interfaceClass, address, ibis);
+        
+
+    Object proxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+            new Class[] { interfaceClass }, handler);
   
+    
+    return proxy;
+    
+    }
 
+  //FIXME: try to return correct class, not generic Object...
+    public static Object createProxy(Class<?> interfaceClass, IbisIdentifier ibisIdentifier, String name, Ibis ibis) {
 
+    RPCInvocationHandler handler = new RPCInvocationHandler(interfaceClass, ibisIdentifier, name, ibis);
+        
+
+    Object proxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+            new Class[] { interfaceClass }, handler);
+  
+    
+    return proxy;
+    
+    }
 }
