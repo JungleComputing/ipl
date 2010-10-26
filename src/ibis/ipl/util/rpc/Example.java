@@ -1,6 +1,5 @@
 package ibis.ipl.util.rpc;
 
-import java.io.IOException;
 import java.util.Date;
 
 import ibis.ipl.Ibis;
@@ -10,69 +9,75 @@ import ibis.ipl.IbisIdentifier;
 
 public class Example {
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT);
+	IbisCapabilities ibisCapabilities = new IbisCapabilities(
+			IbisCapabilities.ELECTIONS_STRICT);
 
-    private final Ibis myIbis;
+	private final Ibis myIbis;
 
-    public interface ExampleInterface {
-        public String function();
-    }
+	public interface ExampleInterface {
+		
+		// Converts epoch time to date string.
+		public String millisToString(long millis) throws RemoteException, Exception;
+	}
 
-    public class ExampleClass implements ExampleInterface {
-        public String function() {
-            return new Date().toString();
-        }
-    }
+	public class ExampleClass implements ExampleInterface {
+		
+		public String millisToString(long millis) throws RemoteException, Exception {
+			return "rpc example result = " + new Date(millis).toString();
+		}
+	}
 
-    /**
-     * Constructor. Actually does all the work too :)
-     */
-    private Example() throws Exception {
-        // Create an ibis instance.
-        // Notice createIbis uses varargs for its parameters.
-        myIbis = IbisFactory.createIbis(ibisCapabilities, null,
-                RPC.rpcPortTypes);
+	/**
+	 * Constructor. Actually does all the work too :)
+	 */
+	private Example() throws Exception {
+		// Create an ibis instance.
+		myIbis = IbisFactory.createIbis(ibisCapabilities, null,
+				RPC.rpcPortTypes);
 
-        // Elect a server
-        IbisIdentifier server = myIbis.registry().elect("Server");
+		// Elect a server
+		IbisIdentifier server = myIbis.registry().elect("Server");
 
-        // If I am the server, run server, else run client.
-        if (server.equals(myIbis.identifier())) {
-            server();
-        } else {
-            client(server);
-        }
+		// If I am the server, run server, else run client.
+		if (server.equals(myIbis.identifier())) {
+			server();
+		} else {
+			client(server);
+		}
 
-        // End ibis.
-        myIbis.end();
-    }
+		// End ibis.
+		myIbis.end();
+	}
 
-    private void client(IbisIdentifier server) throws Exception {
-        
-        ExampleInterface interfaceObject = (ExampleInterface) RPC.createProxy(ExampleInterface.class, server, "my great object", myIbis);
-        
-        System.err.println(interfaceObject.function());
+	private void server() throws Exception {
 
-    }
+		ExampleClass object = new ExampleClass();
 
-    private void server() throws Exception {
+		RemoteObject<ExampleInterface> remoteObject = RPC.exportObject(
+				ExampleInterface.class, object, "my great object", myIbis);
 
-        ExampleClass object = new ExampleClass();
+		Thread.sleep(100000);
 
-        RemoteObject remoteObject = new RemoteObject(myIbis, "my great object",
-                object, ExampleInterface.class);
-        
-        Thread.sleep(100000);
-        
-        remoteObject.unexport();
-    }
+		remoteObject.unexport();
+	}
+	
+	private void client(IbisIdentifier server) throws Exception {
 
-    public static void main(String args[]) {
-        try {
-            new Example();
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-        }
-    }
+		//create proxy to remote object"
+		ExampleInterface interfaceObject = RPC.createProxy(
+				ExampleInterface.class, server, "my great object", myIbis);
+
+		//call remote object, print result
+		System.err.println(interfaceObject.millisToString(System.currentTimeMillis()));
+
+	}
+
+
+	public static void main(String args[]) {
+		try {
+			new Example();
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
+		}
+	}
 }
