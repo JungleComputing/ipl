@@ -43,10 +43,10 @@ public class RPC {
 
 	@SuppressWarnings("unchecked")
 	public static <InterfaceType extends Object> InterfaceType createProxy(
-			Class<InterfaceType> interfaceClass, IbisIdentifier ibisIdentifier,
+			Class<InterfaceType> interfaceClass, IbisIdentifier address,
 			String name, Ibis ibis) {
 
-		RPCInvocationHandler handler = new RPCInvocationHandler(ibisIdentifier,
+		RPCInvocationHandler handler = new RPCInvocationHandler(address,
 				name, ibis);
 
 		InterfaceType result = (InterfaceType) Proxy.newProxyInstance(
