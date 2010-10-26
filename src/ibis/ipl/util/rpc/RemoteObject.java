@@ -51,23 +51,23 @@ class RemoteObject<InterfaceType> implements MessageUpcall {
 		this.theObject = theObject;
 		this.ibis = ibis;
 
-		try {
-
-			for (Method method : interfaceClass.getDeclaredMethods()) {
-				boolean found = false;
-				for (Class<?> clazz : method.getExceptionTypes()) {
-					if (clazz.equals(RemoteException.class)) {
-						found = true;
-					}
-				}
-				if (!found) {
-					throw new RemoteException(
-							"required RemoteException not thrown"
-									+ " by remote method \"" + method.getName()
-									+ "\" in remote object interface \"" + interfaceClass.getName() + "\"");
+		// check if all methods of given interface throw a RemoteException
+		for (Method method : interfaceClass.getDeclaredMethods()) {
+			boolean found = false;
+			for (Class<?> clazz : method.getExceptionTypes()) {
+				if (clazz.equals(RemoteException.class)) {
+					found = true;
 				}
 			}
+			if (!found) {
+				throw new RemoteException("required RemoteException not thrown"
+						+ " by remote method \"" + method.getName()
+						+ "\" in remote object interface \""
+						+ interfaceClass.getName() + "\"");
+			}
+		}
 
+		try {
 			receivePort = ibis.createReceivePort(RPC.rpcRequestPortType, name,
 					this);
 			// enable connections
@@ -81,8 +81,6 @@ class RemoteObject<InterfaceType> implements MessageUpcall {
 
 			logger.debug("remote object " + this + " created");
 
-		} catch (RemoteException e) {
-			throw e;
 		} catch (IOException e) {
 			throw new RemoteException(
 					"cannot create receive port for remote object", e);
@@ -107,7 +105,7 @@ class RemoteObject<InterfaceType> implements MessageUpcall {
 		Class<?>[] parameterTypes = (Class<?>[]) message.readObject();
 		Object[] args = (Object[]) message.readObject();
 		message.finish();
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("received invocation for remote object. name = "
 					+ name + ", method name =  " + methodName);
@@ -131,7 +129,7 @@ class RemoteObject<InterfaceType> implements MessageUpcall {
 			result = exception;
 			success = false;
 		}
-		
+
 		// send reply message
 		WriteMessage reply = replyPort.newMessage();
 		reply.writeBoolean(success);
