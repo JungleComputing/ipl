@@ -2,6 +2,7 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.ObjectStreamClass;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,19 @@ import org.slf4j.LoggerFactory;
 abstract class JavaDependantStuff {
 
     private static ClassLoader customClassLoader;
+    
+    private static HashMap<String, Class<?>> primitiveTypes = new HashMap<String, Class<?>>();
+    
+    static {
+        primitiveTypes.put("byte", Byte.TYPE);
+        primitiveTypes.put("short", Short.TYPE);
+        primitiveTypes.put("int", Integer.TYPE);
+        primitiveTypes.put("long", Long.TYPE);
+        primitiveTypes.put("void", Void.TYPE);
+        primitiveTypes.put("char", Character.TYPE);
+        primitiveTypes.put("float", Float.TYPE);
+        primitiveTypes.put("double", Double.TYPE);
+    };
 
     static final Logger logger = LoggerFactory
             .getLogger(JavaDependantStuff.class);
@@ -58,6 +72,10 @@ abstract class JavaDependantStuff {
      */
     static Class<?> getClassFromName(String typeName)
             throws ClassNotFoundException {
+        Class<?> cl = primitiveTypes.get(typeName);
+        if (cl != null) {
+            return cl;
+        }
         try {
             return Class.forName(typeName);
         } catch (ClassNotFoundException e) {
