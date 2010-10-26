@@ -548,6 +548,9 @@ public abstract class ReceivePort extends Manageable
             }
             logger.error("Got unexpected exception in upcall, continuing ...", e);
         } catch(ClassNotFoundException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Got exception from upcall", e);
+            }
             if (! msg.isFinished()) {
                 IOException ioex =
                     new IOException("Got ClassNotFoundException: "
