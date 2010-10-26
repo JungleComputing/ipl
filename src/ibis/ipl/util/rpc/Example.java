@@ -21,7 +21,6 @@ public class Example {
 	}
 
 	public class ExampleClass implements ExampleInterface {
-		
 		public String millisToString(long millis) throws RemoteException, Exception {
 			return "rpc example result = " + new Date(millis).toString();
 		}
@@ -51,19 +50,23 @@ public class Example {
 
 	private void server() throws Exception {
 
+		//create object we want to make remotely accessible
 		ExampleClass object = new ExampleClass();
 
+		//make object remotely accessible
 		RemoteObject<ExampleInterface> remoteObject = RPC.exportObject(
 				ExampleInterface.class, object, "my great object", myIbis);
 
+		//wait for a bit
 		Thread.sleep(100000);
 
+		//cleanup, object no longer remotely accessible
 		remoteObject.unexport();
 	}
 	
 	private void client(IbisIdentifier server) throws Exception {
 
-		//create proxy to remote object"
+		//create proxy to remote object
 		ExampleInterface interfaceObject = RPC.createProxy(
 				ExampleInterface.class, server, "my great object", myIbis);
 
