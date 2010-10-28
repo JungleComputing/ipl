@@ -147,7 +147,7 @@ public class Ibisc {
         temp.delete();
         if (dest.exists() && ! dest.renameTo(temp)) {
             throw new IOException("Could not rename "
-                    + dest.getName() + " to temporary");
+                    + dest.getName() + " to temporary " + temp.getName());
         }
         if (! src.renameTo(dest)) {
             if (temp.exists()) {
