@@ -90,6 +90,14 @@ public class Ibisc {
             System.err.println("Ibisc: warning: could not read jarfile "
                     + fileName);
             return;
+        } finally {
+            if (jf != null) {
+                try {
+                    jf.close();
+                } catch (IOException e) {
+                    // ignored
+                }
+            }
         }
         jarFiles.add(jarInfo);
         // jarInfo.modified = true;        // for testing ...
