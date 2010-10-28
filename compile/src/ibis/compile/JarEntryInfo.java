@@ -70,6 +70,7 @@ public class JarEntryInfo {
                 Bos.write(buf, 0, cnt);
             }
         } while (cnt >= 0);
+        in.close();
         buf = Bos.toByteArray();
         return buf;
     }

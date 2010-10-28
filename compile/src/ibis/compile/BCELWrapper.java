@@ -10,9 +10,10 @@ import java.util.List;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
+/*
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
-
+*/
 
 /**
  * BCEL implementation of the <code>ByteCodeWrapper</code> interface.
@@ -27,6 +28,7 @@ public class BCELWrapper implements ByteCodeWrapper {
      * @param args list of classpath elements.
      */
     public BCELWrapper(List<String> args) {
+        /*
         String classPath = ClassPath.getClassPath();
         String sep = System.getProperty("path.separator");
         for (String arg : args) {
@@ -35,6 +37,7 @@ public class BCELWrapper implements ByteCodeWrapper {
         SyntheticRepository rep = SyntheticRepository.getInstance(
                 new ClassPath(classPath));
         Repository.setRepository(rep);
+        */
     }
 
     public ClassInfo getInfo(Object o) {
@@ -50,7 +53,8 @@ public class BCELWrapper implements ByteCodeWrapper {
     }
 
     public ClassInfo parseClassFile(String fileName) throws IOException {
-        JavaClass cl = new ClassParser(fileName).parse();
+        ClassParser parser = new ClassParser(fileName);
+        JavaClass cl = parser.parse();
         Repository.addClass(cl);
         String name = cl.getClassName();
         BCELClassInfo e = javaClasses.get(name);
@@ -66,6 +70,7 @@ public class BCELWrapper implements ByteCodeWrapper {
     public ClassInfo parseInputStream(InputStream in, String fileName)
             throws IOException {
         JavaClass cl = new ClassParser(in, fileName).parse();
+        in.close();
         Repository.addClass(cl);
         String name = cl.getClassName();
         BCELClassInfo e = javaClasses.get(name);
