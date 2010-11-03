@@ -67,8 +67,8 @@ class RPCInvocationHandler implements InvocationHandler {
 			reply.finish();
 
 			if (logger.isDebugEnabled()) {
-				logger.debug("remote object " + name + ", method, " + method
-						+ " result = " + result);
+				logger.debug("remote object \"" + name + "\", method \"" + method.getName()
+						+ "\" result = " + result);
 			}
 
 			// Close ports.

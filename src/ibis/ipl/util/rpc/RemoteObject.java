@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class RemoteObject<InterfaceType> implements MessageUpcall {
+public class RemoteObject<InterfaceType> implements MessageUpcall {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(RemoteObject.class);
