@@ -54,7 +54,13 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                     // don't really want that. So, we have a thread that only
                     // checks every second.
                     for (;;) {
-                        Thread.sleep(1000);
+                        synchronized(this) {
+                            try {
+                                wait(1000);
+                            } catch(InterruptedException e) {
+                                // ignored
+                            }
+                        }
                         synchronized(port) {
                             // If there is a reader, or a message is active,
                             // continue.
@@ -299,4 +305,16 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         // But this method was synchronized!!! Fixed (Ceriel).
         conn.run();
     }
+    
+    public synchronized void closePort(long timeout) {
+        ReceivePortConnectionInfo conns[] = connections();
+        if (lazy_connectionhandler_thread && conns.length > 0) {
+            // Wakeup connection handler thread, otherwise this may take a second ...
+            synchronized(conns[0]) {
+                conns[0].notifyAll();
+            }
+        }
+        super.closePort(timeout);
+    }
+
 }
