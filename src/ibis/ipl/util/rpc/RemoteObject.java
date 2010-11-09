@@ -10,6 +10,7 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.rmi.RemoteException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

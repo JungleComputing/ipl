@@ -10,11 +10,11 @@ import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.statistics.Statistics;
-import ibis.ipl.support.RemoteException;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;

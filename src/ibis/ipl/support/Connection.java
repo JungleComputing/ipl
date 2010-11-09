@@ -13,6 +13,7 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.HashMap;
 
 import org.slf4j.Logger;

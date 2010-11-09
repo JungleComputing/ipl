@@ -1,5 +1,6 @@
 package ibis.ipl.util.rpc;
 
+import java.rmi.RemoteException;
 import java.util.Date;
 
 import ibis.ipl.Ibis;
