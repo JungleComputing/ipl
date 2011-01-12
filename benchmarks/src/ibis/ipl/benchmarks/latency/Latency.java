@@ -14,7 +14,6 @@ import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import org.slf4j.Logger;
