@@ -16,7 +16,7 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
-class Throughput extends Thread {
+public class Throughput {
 
     int count = 1000;
 
@@ -35,7 +35,7 @@ class Throughput extends Thread {
     byte[] data;
 
     public static void main(String[] args) {
-        new Throughput(args).start();
+        new Throughput(args).run();
     }
 
     void send() throws IOException {
