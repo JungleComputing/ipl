@@ -159,9 +159,6 @@ public class Throughput {
             sport.close();
             rport.close();
             ibis.end();
-
-            System.exit(0);
-
         } catch (Exception e) {
             System.out.println("Got exception " + e);
             System.out.println("StackTrace:");
