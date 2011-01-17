@@ -62,8 +62,8 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                             if (reader_busy || ((TcpReceivePort)port).getPortMessage() != null) {
                                 continue;
                             }
-                            if (in == null) {
-                                return;
+			    if (closed) {
+				return;
                             }
                             reader_busy = true;
                         }

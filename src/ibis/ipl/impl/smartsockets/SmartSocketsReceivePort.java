@@ -47,7 +47,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         }
 
         public void run() {
-            logger.info("Started connection handler thread");
+            logger.info("Started connection handler thread, in = " + in);
             try {
                 if (lazy_connectionhandler_thread) {
                     // For disconnects, there must be a reader thread, but we
@@ -67,7 +67,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                             if (reader_busy || ((SmartSocketsReceivePort)port).getPortMessage() != null) {
                                 continue;
                             }
-                            if (in == null) {
+			    if (closed) {
                                 return;
                             }
                             reader_busy = true;
