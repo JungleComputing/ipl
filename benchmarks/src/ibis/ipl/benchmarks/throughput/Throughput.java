@@ -107,7 +107,7 @@ public class Throughput {
                     IbisCapabilities.ELECTIONS_STRICT
                     );
             PortType t = new PortType(
-                    PortType.SERIALIZATION_OBJECT,
+                    PortType.SERIALIZATION_BYTE,
                     PortType.CONNECTION_ONE_TO_ONE,
                     PortType.COMMUNICATION_RELIABLE,
                     PortType.RECEIVE_EXPLICIT);
