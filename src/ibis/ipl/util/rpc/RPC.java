@@ -92,10 +92,6 @@ public class RPC {
 	 * @param ibis
 	 *            the ibis used to connect to the remote object
 	 * @return a proxy to the remote object.
-	 * @throws IOException
-	 *             if creating the receive port failed
-	 * @throws RemoteException
-	 *             if the given interface does not meet the requirements.
 	 */
 	public static <InterfaceType extends Object> InterfaceType createProxy(
 			Class<InterfaceType> interfaceClass, ReceivePortIdentifier address,
@@ -125,10 +121,6 @@ public class RPC {
 	 * @param ibis
 	 *            the ibis used to connect to the remote object
 	 * @return a proxy to the remote object.
-	 * @throws IOException
-	 *             if creating the receive port failed
-	 * @throws RemoteException
-	 *             if the given interface does not meet the requirements.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <InterfaceType extends Object> InterfaceType createProxy(
