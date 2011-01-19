@@ -55,6 +55,8 @@ public class Throughput {
                 w = windowSize;
             }
         }
+        ReadMessage readMessage = rport.receive();
+        readMessage.finish();
     }
 
     void rcve() throws IOException {
@@ -72,6 +74,8 @@ public class Throughput {
                 w = windowSize;
             }
         }
+        WriteMessage writeMessage = sport.newMessage();
+        writeMessage.finish();
     }
 
     Throughput(String[] args) {
