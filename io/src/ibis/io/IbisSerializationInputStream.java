@@ -9,6 +9,7 @@ import java.io.NotActiveException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.io.StreamCorruptedException;
+import java.lang.reflect.Field;
 import java.util.Hashtable;
 
 import org.slf4j.Logger;
@@ -1018,74 +1019,106 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     + t.clazz.getName());
         }
         for (int i = 0; i < t.double_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldDouble(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldDouble(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setDouble(ref, readDouble());
+        	double d = readDouble();
+        	if (f != null) {
+        	    f.setDouble(ref, d);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.long_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldLong(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldLong(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setLong(ref, readLong());
+        	long d = readLong();
+        	if (f != null) {
+        	    f.setLong(ref, d);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.float_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldFloat(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldFloat(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setFloat(ref, readFloat());
+        	float d = readFloat();
+        	if (f != null) {
+        	    f.setFloat(ref, d);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.int_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldInt(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldInt(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setInt(ref, readInt());
+        	int d = readInt();
+        	if (f != null) {
+        	    f.setInt(ref, d);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.short_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldShort(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldShort(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setShort(ref, readShort());
+        	short s = readShort();
+        	if (f != null) {
+        	    f.setShort(ref, s);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.char_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldChar(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldChar(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setChar(ref, readChar());
+        	char c = readChar();
+        	if (f != null) {
+        	    f.setChar(ref, c);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.byte_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldByte(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldByte(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setByte(ref, readByte());
+        	byte b = readByte();
+        	if (f != null) {
+        	    f.setByte(ref, b);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.boolean_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                readFieldBoolean(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
+                readFieldBoolean(ref, f.getName(), t.clazz.getName());
             } else {
-                t.serializable_fields[temp].setBoolean(ref, readBoolean());
+        	boolean b = readBoolean();
+        	if (f != null) {
+        	    f.setBoolean(ref, b);
+        	}
             }
             temp++;
         }
         for (int i = 0; i < t.reference_count; i++) {
+            Field f = t.serializable_fields[temp];
             if (t.fields_final[temp]) {
-                String fieldname = t.serializable_fields[temp].getName();
-                String fieldtype
-                        = t.serializable_fields[temp].getType().getName();
+                String fieldname = f.getName();
+                String fieldtype = f.getType().getName();
 
                 if (fieldtype.startsWith("[")) {
                     // do nothing
@@ -1099,17 +1132,19 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                 readFieldObject(ref, fieldname, t.clazz.getName(), fieldtype);
             } else {
                 Object o = doReadObject(false);
-                if (DEBUG && logger.isDebugEnabled()) {
-                    if (o == null) {
-                        logger.debug("Assigning null to field "
-                                + t.serializable_fields[temp].getName());
-                    } else {
-                        logger.debug("Assigning an object of type "
-                                + o.getClass().getName() + " to field "
-                                + t.serializable_fields[temp].getName());
+                if (f != null) {
+                    if (DEBUG && logger.isDebugEnabled()) {
+                	if (o == null) {
+                	    logger.debug("Assigning null to field "
+                		    + f.getName());
+                	} else {
+                	    logger.debug("Assigning an object of type "
+                		    + o.getClass().getName() + " to field "
+                		    + f.getName());
+                	}
                     }
+                    f.set(ref, o);
                 }
-                t.serializable_fields[temp].set(ref, o);
             }
             temp++;
         }
