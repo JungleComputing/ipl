@@ -99,10 +99,14 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
     protected void markRewritten(JavaClass clazz, JavaClass instgen) {
         if (isFromIbisc()) {
             setModified(wrapper.getInfo(clazz));
-            addEntry(wrapper.getInfo(instgen), clazz.getClassName());
+            if (instgen != null) {
+        	addEntry(wrapper.getInfo(instgen), clazz.getClassName());
+            }
         }
         addSave(clazz);
-        addSave(instgen);
+        if (instgen != null) {
+            addSave(instgen);
+        }
     }
 
     public IOGenerator(boolean verbose, boolean local, boolean file,

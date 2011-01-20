@@ -66,6 +66,8 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
     boolean is_jme_externalizable;
 
+    boolean is_jme_abstract;
+
     boolean has_jme_serial_persistent_fields;
 
     JMECodeGenerator(IOGenerator generator, JavaClass cl) {
@@ -75,6 +77,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         super_is_jme_serializable = JMESerializationInfo.isJMESerializable(super_class);
         super_is_jme_rewritten = JMESerializationInfo.isJMERewritten(super_class);
         is_jme_externalizable = JMESerializationInfo.isJMEExternalizable(cl);
+        is_jme_abstract = cl.isAbstract();
         super_has_jme_constructor = JMESerializationInfo.hasJMEConstructor(super_class);
         has_jme_serial_persistent_fields = JMESerializationInfo.hasJMESerialPersistentFields(fields);
         if (generator.isVerbose()) {
@@ -1314,7 +1317,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
          5       invokespecial DITree(ibis.io.IbisSerializationInputStream)
          8       areturn
          */
-
+        
         MethodGen method = new MethodGen(
                 Constants.ACC_FINAL | Constants.ACC_PUBLIC, Type.OBJECT,
                 jme_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
@@ -1410,11 +1413,13 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
         Repository.removeClass(classname);
         Repository.addClass(clazz);
-
-        JavaClass instgen = generateInstanceGenerator();
-
-        Repository.addClass(instgen);
-
+        
+        JavaClass instgen = null;
+        
+        if (! is_jme_abstract) {
+            instgen = generateInstanceGenerator();
+            Repository.addClass(instgen);
+        }
         generator.markRewritten(clazz, instgen);
     }
 

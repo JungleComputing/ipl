@@ -91,6 +91,8 @@ class CodeGenerator implements RewriterConstants {
 
     protected IOGenerator generator;
 
+    private boolean is_abstract;
+
     CodeGenerator(IOGenerator generator, JavaClass cl) {
         this.generator = generator;
         clazz = cl;
@@ -113,6 +115,7 @@ class CodeGenerator implements RewriterConstants {
 
         super_is_serializable = SerializationInfo.isSerializable(super_class);
         is_externalizable = SerializationInfo.isExternalizable(cl);
+        is_abstract = cl.isAbstract();
         super_is_ibis_serializable = SerializationInfo.isIbisSerializable(super_class);
         super_has_ibis_constructor = SerializationInfo.hasIbisConstructor(super_class);
         has_serial_persistent_fields = SerializationInfo.hasSerialPersistentFields(fields);
@@ -1382,7 +1385,7 @@ class CodeGenerator implements RewriterConstants {
          5       invokespecial DITree(ibis.io.IbisSerializationInputStream)
          8       areturn
          */
-
+        
         MethodGen method = new MethodGen(
                 Constants.ACC_FINAL | Constants.ACC_PUBLIC, Type.OBJECT,
                 ibis_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
@@ -1431,11 +1434,13 @@ class CodeGenerator implements RewriterConstants {
 
         Repository.removeClass(classname);
         Repository.addClass(clazz);
-
-        JavaClass instgen = generateInstanceGenerator();
-
-        Repository.addClass(instgen);
-
+        
+        JavaClass instgen = null;
+        
+        if (! is_abstract) {
+            instgen = generateInstanceGenerator();
+            Repository.addClass(instgen);
+        }
         generator.markRewritten(clazz, instgen);
     }
 
