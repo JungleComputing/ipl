@@ -32,7 +32,7 @@ public class Throughput {
 
     SendPort sport;
 
-    byte[] data;
+    byte[] data = null;
 
     public static void main(String[] args) {
         new Throughput(args).run();
@@ -41,16 +41,20 @@ public class Throughput {
     void send() throws IOException {
         int w = windowSize;
 
-        System.err.println("count = " + count + " len = " + data.length);
+        System.err.println("count = " + count + " len = " + transferSize);
         for (int i = 0; i < count; i++) {
             WriteMessage writeMessage = sport.newMessage();
-            writeMessage.writeArray(data);
+	    if (data != null) {
+                writeMessage.writeArray(data);
+	    }
             writeMessage.finish();
 
             if (--w == 0) {
                 System.err.println("EEEEEEEEEEEK");
                 ReadMessage readMessage = rport.receive();
-                readMessage.readArray(data);
+		if (data != null) {
+		    readMessage.readArray(data);
+		}
                 readMessage.finish();
                 w = windowSize;
             }
@@ -63,13 +67,17 @@ public class Throughput {
         int w = windowSize;
         for (int i = 0; i < count; i++) {
             ReadMessage readMessage = rport.receive();
-            readMessage.readArray(data);
+	    if (data != null) {
+	        readMessage.readArray(data);
+	    }
             readMessage.finish();
 
             if (--w == 0) {
                 System.err.println("EEEEEEEEEEEK");
                 WriteMessage writeMessage = sport.newMessage();
-                writeMessage.writeArray(data);
+		if (data != null) {
+                    writeMessage.writeArray(data);
+		}
                 writeMessage.finish();
                 w = windowSize;
             }
@@ -102,7 +110,9 @@ public class Throughput {
             System.exit(11);
         }
 
-        data = new byte[transferSize];
+	if (transferSize >= 0) {
+	    data = new byte[transferSize];
+	}
     }
 
     public void run() {
@@ -146,14 +156,16 @@ public class Throughput {
                 send();
                 time = System.currentTimeMillis() - time;
                 double speed = (time * 1000.0) / count;
-                double dataSent = ((double) transferSize * (count + count
-                        / windowSize))
-                        / (1024.0 * 1024.0);
                 System.out.print("Latency: " + count + " calls took "
                         + (time / 1000.0) + " seconds, time/call = " + speed
                         + " micros, ");
-                System.out.println("Throughput: "
-                        + (dataSent / (time / 1000.0)) + " MByte/s");
+		if (data != null) {
+                    double dataSent = ((double) transferSize * (count + count
+                            / windowSize))
+                            / (1024.0 * 1024.0);
+                    System.out.println("Throughput: "
+                            + (dataSent / (time / 1000.0)) + " MByte/s");
+		}
             } else {
                 rcve();
                 rcve();
