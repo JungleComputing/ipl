@@ -307,7 +307,16 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         int result;
         if (rp == null) {
             result = ReceivePort.NOT_PRESENT;
-        } else {
+            out.write(result);
+            out.close();
+            in.close();
+            s.close();
+            return;
+            
+        }
+
+        synchronized(rp) {
+            rp.waitForNoDisconnects();
             result = rp.connectionAllowed(send, sp);
         }
 
@@ -387,14 +396,6 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 }
 
                 ThreadPool.createNew(this, "SmartSocketsIbis Accept Thread");
-
-                // Try to get the accept thread into an accept call. (Ceriel)
-                // Thread.currentThread().yield();
-                //
-                // Yield is evil. It breaks the whole concept of starting a
-                // replacement thread and handling the incoming request
-                // ourselves. -- Jason
-
                 handleConnectionRequest(s);
             } catch (Throwable e) {
                 try {

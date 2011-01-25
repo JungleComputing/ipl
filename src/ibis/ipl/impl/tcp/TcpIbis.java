@@ -242,7 +242,10 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         if (rp == null) {
             result = ReceivePort.NOT_PRESENT;
         } else {
-            result = rp.connectionAllowed(send, sp);
+            synchronized(rp) {
+                rp.waitForNoDisconnects();
+                result = rp.connectionAllowed(send, sp);
+            }
         }
 
         if (logger.isDebugEnabled()) {
