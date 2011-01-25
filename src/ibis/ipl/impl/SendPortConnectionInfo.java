@@ -29,5 +29,5 @@ public abstract class SendPortConnectionInfo {
     /**
      * Should close this particular connection.
      */
-    public abstract void closeConnection() throws java.io.IOException;
+    public abstract void closeConnection();
 }

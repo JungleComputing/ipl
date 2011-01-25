@@ -672,6 +672,21 @@ public abstract class ReceivePort extends Manageable
         }
     }
     
+    /**
+     * Called in case an Ibis died or left. The connections originating from it must be
+     * removed.
+     * @param id the IbisIdentifier of the Ibis that left/died.
+     */
+    protected synchronized void killConnectionsWith(ibis.ipl.IbisIdentifier id) {
+	for (SendPortIdentifier s : connections.keySet()) {
+	    if (s.ibisIdentifier().equals(id)) {
+		connections.get(s).close(new ConnectionClosedException("Connection origin died or left"));
+		removeInfo(s);
+	    }
+	}
+	    
+    }
+    
     protected synchronized void updateProperties() {
         setProperty("Bytes", "" + bytes);
         setProperty("ClosedConnections", "" + nClosedConnections);

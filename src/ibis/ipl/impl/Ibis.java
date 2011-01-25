@@ -232,6 +232,30 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
          * } catch (Exception e) { logger.warn("cannot registry MBean", e); }
          */
     }
+    
+    void died(ibis.ipl.IbisIdentifier corpse) {
+	killConnections(corpse);
+    }
+    
+    void left(ibis.ipl.IbisIdentifier leftIbis) {
+	killConnections(leftIbis);
+    }
+    
+    protected void killConnections(ibis.ipl.IbisIdentifier corpse) {
+	SendPort[] sps;
+	ReceivePort[] rps;
+    
+	synchronized(this) {
+	    sps = sendPorts.values().toArray(new SendPort[sendPorts.size()]);
+	    rps = receivePorts.values().toArray(new ReceivePort[receivePorts.size()]);
+	}
+	for (SendPort s : sps) {
+	    s.killConnectionsWith(corpse);
+	}
+	for (ReceivePort p : rps) {
+	    p.killConnectionsWith(corpse);
+	}
+    }
 
     /**
      * Returns the current Ibis version.

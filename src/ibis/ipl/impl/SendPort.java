@@ -726,6 +726,20 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
+     * Called in case an Ibis died or left. The connections to it must be
+     * removed.
+     * @param id the IbisIdentifier of the Ibis that left/died.
+     */
+    protected synchronized void killConnectionsWith(ibis.ipl.IbisIdentifier id) {
+	for (ReceivePortIdentifier r : receivers.keySet()) {
+	    if (r.ibisIdentifier().equals(id)) {
+		receivers.get(r).closeConnection();
+		removeInfo(r);
+	    }
+	}
+    }
+    
+    /**
      * Returns the connection information for the specified receiveport
      * identifier.
      * @param id the identification of the receiveport.

@@ -78,10 +78,10 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection {
     }
 
     // synchronized void waitUntilEmpty() throws IOException {
-    public synchronized void closeConnection() throws IOException {
+    public synchronized void closeConnection(){
         while (!empty()) {
             if (error != null) {
-                throw error;
+                // throw error;
             }
             if (!sending) {
                 sendReceiveThread.enableWriting(key);
