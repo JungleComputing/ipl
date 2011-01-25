@@ -132,6 +132,9 @@ public abstract class ReceivePort extends Manageable
     private long nLostConnections = 0;
     private long nClosedConnections = 0;
 
+    private int outstanding;    // For connections that have been allowed but are not
+                                // actually present yet.
+
     /**
      * Constructs a <code>ReceivePort</code> with the specified parameters.
      * Note that all property checks are already performed in the
@@ -335,7 +338,7 @@ public abstract class ReceivePort extends Manageable
             retval = TYPE_MISMATCH;
         } else if (! connectionsEnabled) {
             retval = DISABLED;
-        } else if (connections.size() != 0 &&
+        } else if ((outstanding != 0 || connections.size() != 0) &&
             ! (type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)
                 || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
             retval = NO_MANY_TO_X;
@@ -357,6 +360,9 @@ public abstract class ReceivePort extends Manageable
         if (logger.isDebugEnabled()) {
             logger.debug("Connection attempt from " + id + ": "
                     + getString(retval));
+        }
+        if (retval == ACCEPTED) {
+            outstanding++;
         }
         return retval;
     }
@@ -445,6 +451,7 @@ public abstract class ReceivePort extends Manageable
             ReceivePortConnectionInfo info) {
         nConnections++;
         connections.put(id, info);
+        outstanding--;
         notifyAll();
     }
 
