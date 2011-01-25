@@ -187,7 +187,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
         try {
             registry = Registry.createRegistry(this.capabilities,
-                    registryHandler, properties, getData(),
+                    new RegistryEventHandlerWrapper(registryHandler, this), properties, getData(),
                     getImplementationVersion(), applicationTag, credentials);
         } catch (IbisConfigurationException e) {
             throw e;
