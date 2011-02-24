@@ -8,7 +8,7 @@ package ibis.ipl;
  * that an input or output operation has been terminated because
  * the connection was broken.
  */
-public class ConnectionClosedException extends java.io.IOException {
+public class ConnectionClosedException extends IbisIOException {
     private static final long serialVersionUID = 1L;
 
     /**

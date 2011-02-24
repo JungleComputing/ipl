@@ -3,7 +3,7 @@ package ibis.ipl;
 /**
  * Container class for a single connection failure.
  */
-public class ConnectionFailedException extends java.io.IOException {
+public class ConnectionFailedException extends IbisIOException {
 
     private static final long serialVersionUID = 1L;
     private final ReceivePortIdentifier receivePortIdentifier;

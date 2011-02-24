@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Signals a failure to connect to one or more ReceivePorts. Besides 
  * failed connections, also has a list of succeeded connection attempts.
  */
-public class ConnectionsFailedException extends java.io.IOException {
+public class ConnectionsFailedException extends IbisIOException {
     
     private static final long serialVersionUID = 1L;
     

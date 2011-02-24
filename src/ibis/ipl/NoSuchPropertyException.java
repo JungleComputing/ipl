@@ -8,7 +8,7 @@ package ibis.ipl;
  * that an illegal property name was used in one of the methods from
  * the {@link Manageable} interface.
  */
-public class NoSuchPropertyException extends Exception {
+public class NoSuchPropertyException extends IbisException {
 
     private static final long serialVersionUID = 0x1L;
 

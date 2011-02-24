@@ -492,6 +492,19 @@ public final class Server implements ServerInterface {
             System.exit(1);
         }
 
+        System.out.println("Server started");
+        server.end(0);
+        System.out.println("Server stopped");
+        try {
+            server = new Server(properties);
+        } catch (Throwable t) {
+            System.err.println("Could not start Server");
+            t.printStackTrace();
+
+            System.exit(1);
+        }
+        System.out.println("Server started");
+
         // register shutdown hook
         try {
             Runtime.getRuntime().addShutdownHook(new Shutdown(server));

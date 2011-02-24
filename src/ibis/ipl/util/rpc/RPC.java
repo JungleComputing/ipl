@@ -2,7 +2,6 @@ package ibis.ipl.util.rpc;
 
 import java.io.IOException;
 import java.lang.reflect.Proxy;
-import java.rmi.RemoteException;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
