@@ -3,6 +3,7 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 /**
@@ -207,6 +208,24 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
+            } catch (IOException e2) {
+                e = handleException(e, e2, i);
+                if (removeOnException)
+                    i--;
+            }
+        }
+
+        if (e != null)
+            throw e;
+    }
+    
+    public void writeByteBuffer(ByteBuffer b) throws IOException {
+        SplitterException e = null;
+        
+        bytesWritten += b.limit() - b.position();
+        for (int i = 0; i < out.size(); i++) {
+            try {
+                out.get(i).writeByteBuffer(b);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)

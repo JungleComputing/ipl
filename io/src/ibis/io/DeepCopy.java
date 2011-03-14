@@ -2,8 +2,8 @@
 
 package ibis.io;
 
-import java.io.IOException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Hashtable;
 
 /**
@@ -1289,6 +1289,12 @@ public class DeepCopy {
         public int read(byte[] b, int off, int len) {
             return buf.get(b, off, len);
         }
+        
+        public void readByteBuffer(ByteBuffer b) {
+            byte[] f = new byte[b.limit() - b.position()];
+            readArray(f, 0, f.length);
+            b.put(f);
+        }
 
         public long bytesRead() {
             return 0L;
@@ -1298,11 +1304,11 @@ public class DeepCopy {
         	// not implemented
         }
 
-        public int available() throws IOException {
+        public int available() {
             return 0;
         }
 
-        public void close() throws IOException {
+        public void close() {
         	// nothing here
         }
     }
@@ -1363,39 +1369,45 @@ public class DeepCopy {
             buf.put(b, off, len);
         }
 
-        public void writeArray(boolean[] a, int off, int len) throws IOException {
+        public void writeArray(boolean[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void writeArray(byte[] a, int off, int len) throws IOException {
+        public void writeArray(byte[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void writeArray(short[] a, int off, int len) throws IOException {
+        public void writeArray(short[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void writeArray(char[] a, int off, int len) throws IOException {
+        public void writeArray(char[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void writeArray(int[] a, int off, int len) throws IOException {
+        public void writeArray(int[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void writeArray(long[] a, int off, int len) throws IOException {
+        public void writeArray(long[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void writeArray(float[] a, int off, int len) throws IOException {
+        public void writeArray(float[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void writeArray(double[] a, int off, int len) throws IOException {
+        public void writeArray(double[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
-        public void flush() throws IOException {
+        public void writeByteBuffer(ByteBuffer b) {
+            byte[] f = new byte[b.limit() - b.position()];
+            b.get(f);
+            writeArray(f, 0, f.length);
+        }
+
+        public void flush() {
         	// nothing to flush
         }
 
@@ -1403,11 +1415,11 @@ public class DeepCopy {
             return true;
         }
 
-        public void finish() throws IOException {
+        public void finish() {
         	// nothing to finish
         }
 
-        public void close() throws IOException {
+        public void close() {
             buf.close();
         }
 

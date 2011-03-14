@@ -2,6 +2,8 @@ package ibis.io;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,5 +274,17 @@ public class SingleBufferArrayInputStream extends DataInputStream {
 
     public int bufferSize() {
         return BUF_SIZE;
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+	
+	int len = value.limit() - value.position();
+	
+        checkAvailable(len);
+        
+        // enough data in the buffer
+        value.put(buffer, index, len);
+        index += len;	
     }
 }

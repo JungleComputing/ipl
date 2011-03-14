@@ -8,6 +8,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 
@@ -207,6 +208,11 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 
     public void writeString(String value) throws IOException {
         out.writeString(value);
+    }
+
+    @Override
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	out.writeByteBuffer(value);	
     }
 
 

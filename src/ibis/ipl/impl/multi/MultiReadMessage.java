@@ -7,6 +7,8 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 public class MultiReadMessage implements ReadMessage {
 
@@ -161,6 +163,12 @@ public class MultiReadMessage implements ReadMessage {
 
     public int size() throws IOException {
         return base.size();
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+	base.readByteBuffer(value);
+	
     }
 
 }

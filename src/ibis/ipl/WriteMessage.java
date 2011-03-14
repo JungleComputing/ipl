@@ -3,6 +3,7 @@
 package ibis.ipl;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /** 
  * A message used to write data from a {@link SendPort} to one or more
@@ -582,4 +583,16 @@ public interface WriteMessage {
      */
     public void writeArray(Object[] value, int offset, int length)
             throws IOException;
+    
+    /**
+     * Writes the contents of the byte buffer (between its current position and its
+     * limit). This method is allowed for all serialization types, even
+     * {@link PortType#SERIALIZATION_BYTE}.
+     * @param value
+     * 		the byte buffer from which data is to be written
+     * @exception IOException
+     *          an error occurred
+     */
+    public void writeByteBuffer(ByteBuffer value)
+    		throws IOException;
 }

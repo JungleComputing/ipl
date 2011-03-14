@@ -2,7 +2,10 @@
 
 package ibis.io;
 
+import ibis.ipl.PortType;
+
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * The <code>DataOutput</code> interface provides methods to write data.
@@ -200,4 +203,16 @@ public interface DataOutput {
      * @exception IOException	on an IO error
      */
     public void writeArray(double[] source) throws IOException;
+    
+    /**
+     * Writes the contents of the byte buffer (between its current position and its
+     * limit). This method is allowed for all serialization types, even
+     * {@link PortType#SERIALIZATION_BYTE}.
+     * @param value
+     * 		the byte buffer from which data is to be written
+     * @exception IOException
+     *          an error occurred
+     */
+    public void writeByteBuffer(ByteBuffer value)
+    		throws IOException;
 }

@@ -1,6 +1,7 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,5 +254,15 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
 
     public int bufferSize() {
         return BUF_SIZE;
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	
+	int len = value.limit() - value.position();
+	
+        checkFreeSpace(len);
+        
+        value.get(buffer, index, len);
+        index += len;	
     }
 }

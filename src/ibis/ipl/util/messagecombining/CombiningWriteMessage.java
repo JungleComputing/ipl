@@ -9,6 +9,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class CombiningWriteMessage implements WriteMessage {
 
@@ -301,5 +302,9 @@ public class CombiningWriteMessage implements WriteMessage {
 
     public int remaining() throws IOException {
         return -1;
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	out.writeByteBuffer(value);	
     }
 }

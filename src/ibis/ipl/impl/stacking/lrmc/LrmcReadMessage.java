@@ -9,6 +9,8 @@ import ibis.ipl.impl.stacking.lrmc.io.LrmcInputStream;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 public class LrmcReadMessage implements ReadMessage {
 
@@ -239,6 +241,12 @@ public class LrmcReadMessage implements ReadMessage {
     public long sequenceNumber() {
         // Not supported.
         return 0;
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+        checkNotFinished();
+        in.readByteBuffer(value);	
     }
 
   

@@ -4,6 +4,7 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -340,5 +341,41 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
     
     public int bufferSize() {
         return BUF_SIZE;
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+
+	int len = value.limit() - value.position();
+	
+        if (len > (BUF_SIZE - index)) {
+
+            if (index > 0) {
+                bytes += index;
+                out.write(buffer, 0, index);
+                index = 0;
+            }
+            
+            if (len >= BUF_SIZE) {
+                if (value.hasArray()) {
+                    bytes += len;
+                    out.write(value.array(), value.arrayOffset(), len);
+                } else {
+                    while (len >= BUF_SIZE) {
+                	bytes += BUF_SIZE;
+                	value.get(buffer, 0, BUF_SIZE);
+                	out.write(buffer, 0, BUF_SIZE);
+                	len -= BUF_SIZE;
+                    }
+                    value.get(buffer, 0, len);
+                    index = len;
+                }
+            } else {
+        	value.get(buffer, 0, len);
+                index = len;
+            }
+        } else {
+            value.get(buffer, index, len);
+            index += len;
+        }	
     }
 }

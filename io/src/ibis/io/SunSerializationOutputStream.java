@@ -4,6 +4,7 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
  * The <code>SunSerializationOutputStream</code> class is the "glue" between
@@ -311,5 +312,16 @@ public final class SunSerializationOutputStream
             obj = replacer.replace(obj);
         }
         return obj;
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	int len = value.limit() - value.position();
+	if (value.hasArray()) {
+	    writeArray(value.array(), value.arrayOffset(), len);
+	} else {
+	    byte[] temp = new byte[len];
+	    value.get(temp);
+	    writeArray(temp);
+	}	
     }
 }

@@ -4,6 +4,7 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * The <code>SunSerializationInputStream</code> class is the "glue" between
@@ -118,6 +119,21 @@ public final class SunSerializationInputStream
         } catch (ClassNotFoundException f) {
             throw new SerializationError("class 'byte[]' not found", f);
         }
+    }
+    
+    public void readByteBuffer(ByteBuffer b) throws IOException {
+	int len = b.limit() - b.position();
+	byte[] temp;
+	try {
+            temp = (byte[]) readObject();
+            if (temp.length != len) {
+                throw new ArrayIndexOutOfBoundsException(
+                        "Received sub array has wrong len");
+            }
+	} catch (ClassNotFoundException f) {
+            throw new SerializationError("class 'byte[]' not found", f);
+        }
+	b.put(temp);
     }
 
     /**

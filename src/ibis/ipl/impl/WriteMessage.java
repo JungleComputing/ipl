@@ -5,6 +5,7 @@ package ibis.ipl.impl;
 import ibis.io.SerializationOutput;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Implementation of the {@link ibis.ipl.WriteMessage} interface.
@@ -384,6 +385,15 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
 
         isFinished = true;
         port.finishMessage(this, e);
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeByteBuffer(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
 

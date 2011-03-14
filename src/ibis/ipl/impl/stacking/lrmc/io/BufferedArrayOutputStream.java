@@ -6,6 +6,7 @@ import ibis.io.Conversion;
 import ibis.io.DataOutputStream;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * This is a complete implementation of <code>DataOutputStream</code>. It is
@@ -365,5 +366,33 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
     public void close() throws IOException {
         flush();
         out.close();
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	
+	int len = value.limit() - value.position();
+	
+        while (len > (BUF_SIZE - index)) {
+
+            int space = BUF_SIZE - index;
+
+            // System.err.println(" ______ copying " + space + " bytes");
+
+            value.get(buffer, index, space);
+
+            index += space;
+            len -= space;
+
+            // force flush
+            flush(BUF_SIZE + 1, false);
+        }
+
+        if (len > 0) {
+
+            // System.err.println(" ______* copying " + len + " bytes");
+
+            value.get(buffer, index, len);
+            index += len;
+        }	
     }
 }

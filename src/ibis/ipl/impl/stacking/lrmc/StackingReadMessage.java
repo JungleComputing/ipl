@@ -5,6 +5,8 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 public class StackingReadMessage implements ReadMessage {
 
@@ -169,6 +171,11 @@ public class StackingReadMessage implements ReadMessage {
 
     public long sequenceNumber() {
         return base.sequenceNumber();
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+	base.readByteBuffer(value);	
     }
 
     

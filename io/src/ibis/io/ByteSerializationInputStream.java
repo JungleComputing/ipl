@@ -4,6 +4,7 @@ package ibis.io;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * The <code>ByteSerializationInputStream</code> class can be used when 
@@ -123,6 +124,10 @@ public class ByteSerializationInputStream implements SerializationInput {
             return;
         }
         throw new IOException("Illegal data type read");
+    }
+    
+    public void readByteBuffer(ByteBuffer b) throws IOException {
+	in.readByteBuffer(b);
     }
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {

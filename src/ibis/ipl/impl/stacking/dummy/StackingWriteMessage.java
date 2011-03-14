@@ -4,6 +4,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class StackingWriteMessage implements WriteMessage {
     
@@ -165,6 +166,10 @@ public class StackingWriteMessage implements WriteMessage {
 
     public void writeString(String val) throws IOException {
         base.writeString(val);
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	base.writeByteBuffer(value);
     }
 
     

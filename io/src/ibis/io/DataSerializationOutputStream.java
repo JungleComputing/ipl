@@ -3,6 +3,7 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -265,6 +266,31 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             addStatSendArray(ref, Constants.TYPE_BYTE, len);
         }
     }
+    
+    public void internalWriteByteBuffer(ByteBuffer value) throws IOException {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeByteBuffer(value);
+        } else {
+            int len = value.limit() - value.position();
+            if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
+
+        	for (int i = 0; i < len; i++) {
+        	    writeByte(value.get());
+        	}
+            } else {
+        	if (array_index == ARRAY_BUFFER_SIZE) {
+        	    internalFlush();
+        	}
+        	array[array_index].type = Constants.TYPE_BYTE;
+        	array[array_index].offset = 0;
+        	array[array_index].len = len;
+        	array[array_index].array = value;
+        	array_index++;
+
+        	addStatSendArray(value, Constants.TYPE_BYTE, len);
+            }
+        }
+    }
 
     /**
      * Method to put a char array in the "array cache". If the cache is full
@@ -524,7 +550,11 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
                     out.writeArray((boolean[]) a.array, a.offset, a.len);
                     break;
                 case Constants.TYPE_BYTE:
-                    out.writeArray((byte[]) a.array, a.offset, a.len);
+                    if (a.array instanceof ByteBuffer) {
+                	out.writeByteBuffer((ByteBuffer) a.array);
+                    } else {
+                	out.writeArray((byte[]) a.array, a.offset, a.len);
+                    }
                     break;
                 case Constants.TYPE_CHAR:
                     out.writeArray((char[]) a.array, a.offset, a.len);
@@ -971,6 +1001,17 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             timer.stop();
         }
     }
+    
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+        if (TIME_DATA_SERIALIZATION) {
+            timer.start();
+        }
+        internalWriteByteBuffer(value);
+        if (TIME_DATA_SERIALIZATION) {
+            timer.stop();
+        }
+    }
+
 
     public void writeArray(short[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {

@@ -7,11 +7,13 @@ import ibis.io.DataInputStream;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 /**
  * This is a complete implementation of <code>DataInputStream</code>. It is
  * built on top of an <code>InputStream</code>. There is no need to put any
- * buffering inbetween. This implementation does all the buffering needed.
+ * buffering in between. This implementation does all the buffering needed.
  */
 public final class BufferedArrayInputStream extends DataInputStream {
 
@@ -631,5 +633,44 @@ public final class BufferedArrayInputStream extends DataInputStream {
 
     public void close() throws IOException {
         in.close();
+    }
+
+    @Override
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+
+	int len = value.limit() - value.position();
+	
+        if (buffered_bytes >= len) {
+            value.put(buffer, index, len);
+            index += len;
+            buffered_bytes -= len;
+        } else {
+            if (buffered_bytes != 0) {
+        	value.put(buffer, index, buffered_bytes);
+        	len -= buffered_bytes;
+        	buffered_bytes = 0;
+            }
+            index = 0;
+            if (value.hasArray()) {
+        	in.read(value.array(), value.arrayOffset(), len);
+        	value.position(value.limit());
+        	bytes += len;
+            } else {
+        	do {
+        	    int toread = Math.min(len, BUF_SIZE);
+        	    fillBuffer(toread);
+        	    if (len < buffered_bytes) {
+        		toread = len;
+        	    } else {
+        		toread = buffered_bytes;
+        	    }
+        	    value.put(buffer, index, toread);
+        	    len -= toread;
+        	    index += toread;
+        	    buffered_bytes -= toread;
+        	} while (len > 0);
+            }
+        }	
     }
 }

@@ -5,6 +5,8 @@ package ibis.ipl.util.messagecombining;
 import ibis.ipl.ReadMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 /**
  * Extends InputStream with read of array of primitives and readSingleInt
@@ -296,5 +298,14 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
 
     public void close() throws IOException {
     	// nothing to do here
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+	int len = value.limit() - value.position();
+        read += len;
+        count -= len;
+        value.put(byte_store, byte_count, len);
+        byte_count += len;	
     }
 }

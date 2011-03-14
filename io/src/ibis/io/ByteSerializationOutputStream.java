@@ -3,6 +3,7 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * The <code>ByteSerializationOutputStream</code> class can be used when 
@@ -196,5 +197,9 @@ public class ByteSerializationOutputStream implements SerializationOutput {
 
     public void writeString(String obj) throws IOException {
         throw new IOException("Illegal data type written");
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	out.writeByteBuffer(value);
     }
 }

@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.io.StreamCorruptedException;
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 import java.util.Hashtable;
 
 import org.slf4j.Logger;
@@ -220,6 +221,26 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             throw new SerializationError("require byte[]", e);
         }
         readByteArray(ref, off, len);
+        if (TIME_IBIS_SERIALIZATION) {
+            timer.stop();
+        }
+    }
+    
+    public void readByteBuffer(ByteBuffer value) throws IOException {
+	int len = value.limit() - value.position();
+        if (TIME_IBIS_SERIALIZATION) {
+            timer.start();
+        }
+        try {
+            readArrayHeader(Constants.classByteArray, len);
+        } catch (ClassNotFoundException e) {
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("Caught exception, rethrow as SerializationError",
+                        e);
+            }
+            throw new SerializationError("require byte[]", e);
+        }
+        internalReadByteBuffer(value);
         if (TIME_IBIS_SERIALIZATION) {
             timer.stop();
         }

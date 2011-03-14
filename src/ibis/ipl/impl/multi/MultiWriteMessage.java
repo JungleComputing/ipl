@@ -6,6 +6,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class MultiWriteMessage implements WriteMessage {
 
@@ -167,6 +168,10 @@ public class MultiWriteMessage implements WriteMessage {
 
     public int remaining() throws IOException {
         return base.capacity();
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	base.writeByteBuffer(value);
     }
 
 }

@@ -3,6 +3,8 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 /**
  * The <code>DataInput</code> interface provides methods to read data.
@@ -79,7 +81,7 @@ public interface DataInput {
             int length) throws IOException;
 
     /**
-     * Reads a (slice of) an array of booleans.
+     * Reads a (slice of) an array of bytes.
      * @param	destination	The array to write to.
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
@@ -196,4 +198,18 @@ public interface DataInput {
      * @exception IOException	on an IO error
      */
     public void readArray(double[] source) throws IOException;
+    
+    /**
+     * Reads into the contents of the byte buffer (between its current position and its
+     * limit). This method is allowed for all serialization types, even
+     * {@link PortType#SERIALIZATION_BYTE}.
+     * @param value
+     * 		the byte buffer from which data is to be written
+     * @exception IOException
+     *          an error occurred
+     * @exception ReadOnlyBufferException
+     *          is thrown when the buffer is read-only.
+     */
+    public void readByteBuffer(ByteBuffer value)
+    		throws IOException, ReadOnlyBufferException;
 }

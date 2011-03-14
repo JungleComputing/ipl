@@ -9,6 +9,8 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 
@@ -243,6 +245,12 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 
     public long sequenceNumber() {
         return 0;
+    }
+
+    @Override
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+	in.readByteBuffer(value);
     }
 
 

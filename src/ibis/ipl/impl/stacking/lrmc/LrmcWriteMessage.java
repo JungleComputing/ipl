@@ -5,6 +5,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class LrmcWriteMessage implements WriteMessage {
 
@@ -242,8 +243,6 @@ public class LrmcWriteMessage implements WriteMessage {
                 port.notifyAll();
             }
         }
-        // TODO Auto-generated method stub
-
     }
 
     public int capacity() throws IOException {
@@ -254,4 +253,8 @@ public class LrmcWriteMessage implements WriteMessage {
         return (int) (om.bout.bufferSize() - om.bout.bytesWritten());
     }
 
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+        checkNotFinished();
+        out.writeByteBuffer(value);	
+    }
 }

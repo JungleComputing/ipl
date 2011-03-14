@@ -4,6 +4,7 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.UTFDataFormatException;
+import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -417,6 +418,25 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
         }
     }
+    
+    protected void internalReadByteBuffer(ByteBuffer value)  throws IOException {
+	if (NO_ARRAY_BUFFERS) {
+	    in.readByteBuffer(value);
+	} else {
+	    int len = value.limit() - value.position();
+	    if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
+		while (array_index == max_array_index) {
+		    receive();
+		}
+		array_index++;
+		in.readByteBuffer(value);
+	    } else {
+		for (int i = 0; i < len; i++) {
+		    value.put(readByte());
+		}
+	    }
+	}
+    }
 
     /**
      * Reads (part of) an array of chars.
@@ -573,6 +593,16 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             timer.start();
         }
         readBooleanArray(ref, off, len);
+        if (TIME_DATA_SERIALIZATION) {
+            timer.stop();
+        }
+    }
+    
+    public void readByteBuffer(ByteBuffer value) throws IOException {
+        if (TIME_DATA_SERIALIZATION) {
+            timer.start();
+        }
+        internalReadByteBuffer(value);
         if (TIME_DATA_SERIALIZATION) {
             timer.stop();
         }

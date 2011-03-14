@@ -7,6 +7,7 @@ import java.io.NotActiveException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
+import java.nio.ByteBuffer;
 import java.util.Hashtable;
 
 import org.slf4j.Logger;
@@ -396,6 +397,19 @@ public class IbisSerializationOutputStream
         }
         if (writeArrayHeader(ref, Constants.classByteArray, len, false)) {
             writeArrayByte(ref, off, len);
+        }
+        if (TIME_IBIS_SERIALIZATION) {
+            timer.stop();
+        }
+    }
+    
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+        if (TIME_IBIS_SERIALIZATION) {
+            timer.start();
+        }
+        int len = value.limit() - value.position();
+        if (writeArrayHeader(value, Constants.classByteArray, len, false)) {
+            internalWriteByteBuffer(value);
         }
         if (TIME_IBIS_SERIALIZATION) {
             timer.stop();

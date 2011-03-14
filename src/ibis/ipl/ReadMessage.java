@@ -3,6 +3,8 @@
 package ibis.ipl;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 /** 
  * The Ibis abstraction for data to be read.
@@ -549,4 +551,18 @@ public interface ReadMessage {
      */
     public void readArray(Object[] destination, int offset, int size)
             throws IOException, ClassNotFoundException;
+    
+    /**
+     * Reads into the contents of the byte buffer (between its current position and its
+     * limit). This method is allowed for all serialization types, even
+     * {@link PortType#SERIALIZATION_BYTE}.
+     * @param value
+     * 		the byte buffer from which data is to be written
+     * @exception IOException
+     *          an error occurred
+     * @exception ReadOnlyBufferException
+     *          is thrown when the buffer is read-only.
+     */
+    public void readByteBuffer(ByteBuffer value)
+    		throws IOException, ReadOnlyBufferException;
 }
