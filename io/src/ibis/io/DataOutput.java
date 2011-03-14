@@ -2,8 +2,6 @@
 
 package ibis.io;
 
-import ibis.ipl.PortType;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -206,8 +204,7 @@ public interface DataOutput {
     
     /**
      * Writes the contents of the byte buffer (between its current position and its
-     * limit). This method is allowed for all serialization types, even
-     * {@link PortType#SERIALIZATION_BYTE}.
+     * limit).
      * @param value
      * 		the byte buffer from which data is to be written
      * @exception IOException
