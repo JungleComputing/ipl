@@ -16,16 +16,22 @@ import java.nio.ByteBuffer;
  * When a message is alive and a new message is requested, the requester
  * is blocked until the live message is finished.
  * <p>
- * For all write methods in this class, the invariant is that the reads must
- * match the writes one by one. The only exception to this rule is that an
- * array written with any of the <code>writeArray</code> methods can be
- * read by {@link ReadMessage#readObject ReadMessage.readObject}.
+ * For all read methods in this class, the invariant is that the reads must
+ * match the writes one by one. An exception to this rule is that an
+ * array written with any of the <code>writeArray</code> methods of
+ * {@link WriteMessage} can be read by {@link #readObject}. Likewise, an
+ * array written with the {@link WriteMessage#writeByteBuffer} method can be read
+ * by {@link #readObject} (resulting in a byte array), and also by the
+ * {@link #readArray(byte[])} method.
  * <strong>
- * In particular, an array written with {@link #writeObject writeObject}
+ * In contrast, an array written with
+ * {@link WriteMessage#writeObject writeObject}
  * cannot be read with <code>readArray</code>, because
- * {@link #writeObject writeObject} does duplicate detection, and may
- * have written only a handle.
+ * {@link WriteMessage#writeObject writeObject} does duplicate detection,
+ * and may have written only a handle.
  * </strong>
+ * However, an array written with {@link WriteMessage#writeArray(byte[]) can be
+ * read with {@link #readByteBuffer(ByteBuffer)}. 
  * <p>
  * The {@link #writeObject(Object)} and {@link #writeString(String)} methods
  * do duplicate checks if the underlying serialization stream is an object
