@@ -246,7 +246,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
             addRewriteClass(((ArrayType) t).getBasicType(), clazz);
         } else if (t instanceof ObjectType) {
             String name = ((ObjectType) t).getClassName();
-            JavaClass c = Repository.lookupClass(name);
+            JavaClass c = CodeGenerator.lookupClass(name);
             if (c != null) {
                 if (!local
                         || clazz.getPackageName().equals(c.getPackageName())) {
@@ -302,7 +302,13 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
         if (!classes_to_rewrite.contains(clazz)) {
 
-            JavaClass super_classes[] = Repository.getSuperClasses(clazz);
+            JavaClass super_classes[];
+            
+            try {
+                super_classes = Repository.getSuperClasses(clazz);
+            } catch(ClassNotFoundException e) {
+                super_classes = null;
+            }
 
             if (super_classes != null) {
                 for (int i = 0; i < super_classes.length; i++) {
@@ -449,7 +455,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
             JavaClass clazz = null;
             if (!file) {
-                clazz = Repository.lookupClass(className);
+                clazz = CodeGenerator.lookupClass(className);
                 if (clazz == null) {
                     System.err.println("Warning: could not load class "
                             + className + ". Please check your classpath.");

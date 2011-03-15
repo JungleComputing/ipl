@@ -124,11 +124,14 @@ public class BT_Analyzer {
 
     boolean findSpecialInterfaces(String inter, Vector<JavaClass> si) {
         boolean result = false;
-        JavaClass interf = Repository.lookupClass(inter);
 
-        if (interf == null) {
+        JavaClass interf = null;
+
+        try {
+            interf = Repository.lookupClass(inter);
+        } catch(ClassNotFoundException e) {
             System.err.println("interface " + inter + " not found.");
-            System.exit(1);
+            throw new Error(e);
         }
 
         if (inter.equals(specialInterface.getClassName())) {
@@ -173,7 +176,15 @@ public class BT_Analyzer {
     void findSpecialInterfaces2(JavaClass inter, Vector<JavaClass> si) {
 //        boolean result = false;
 
-        JavaClass[] interfaces = inter.getAllInterfaces();
+        JavaClass[] interfaces;
+        
+        try {
+            interfaces = inter.getAllInterfaces();
+        } catch(ClassNotFoundException e) {
+            System.err.println("Got exception " + e);
+            e.printStackTrace(System.err);
+            throw new Error(e);
+        }
 
         for (int i = 0; i < interfaces.length; i++) {
             if (! si.contains(interfaces[i])) {
@@ -189,18 +200,25 @@ public class BT_Analyzer {
     Vector<JavaClass> findSpecialInterfaces2() {
         Vector<JavaClass> si = new Vector<JavaClass>();
 
-        if (!subject.isClass()) {
-            if (subject.implementationOf(specialInterface)) {
-                findSpecialInterfaces2(subject, si);
-            }
-        } else {
-            JavaClass[] interfaces = subject.getInterfaces();
-
-            for (int i = 0; i < interfaces.length; i++) {
-                if (interfaces[i].implementationOf(specialInterface)) {
-                    findSpecialInterfaces2(interfaces[i], si);
+        try {
+            if (!subject.isClass()) {
+                if (subject.implementationOf(specialInterface)) {
+                    findSpecialInterfaces2(subject, si);
                 }
-            }
+            } else {
+                JavaClass[] interfaces;
+                interfaces = subject.getInterfaces();
+
+                for (int i = 0; i < interfaces.length; i++) {
+                    if (interfaces[i].implementationOf(specialInterface)) {
+                        findSpecialInterfaces2(interfaces[i], si);
+                    }
+                }
+            }   
+        } catch(ClassNotFoundException e) {
+            System.err.println("Got exception " + e);
+            e.printStackTrace(System.err);
+            throw new Error(e);
         }
 
         return si;

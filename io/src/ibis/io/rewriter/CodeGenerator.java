@@ -93,13 +93,22 @@ class CodeGenerator implements RewriterConstants {
 
     private boolean is_abstract;
 
+    public static JavaClass lookupClass(String name) {
+        try {
+            return Repository.lookupClass(name);
+        } catch(ClassNotFoundException e) {
+            System.err.println("Warning: class " + name + " not found");
+            return null;
+        }
+    }
+
     CodeGenerator(IOGenerator generator, JavaClass cl) {
         this.generator = generator;
         clazz = cl;
         gen = new ClassGen(clazz);
         classname = clazz.getClassName();
         super_classname = clazz.getSuperclassName();
-        super_class = Repository.lookupClass(super_classname);
+        super_class = lookupClass(super_classname);
         fields = gen.getFields();
         methods = gen.getMethods();
         factory = new InstructionFactory(gen);
@@ -184,7 +193,7 @@ class CodeGenerator implements RewriterConstants {
         if (!SerializationInfo.isSerializable(cl)) {
             return 0;
         }
-        return 1 + getClassDepth(Repository.lookupClass(
+        return 1 + getClassDepth(lookupClass(
                 cl.getSuperclassName()));
     }
 
@@ -375,7 +384,7 @@ class CodeGenerator implements RewriterConstants {
         }
 
         if (field_type instanceof ObjectType) {
-            field_class = Repository.lookupClass(
+            field_class = lookupClass(
                     ((ObjectType) field_type).getClassName());
             if (field_class != null && field_class.isFinal()) {
                 isfinal = true;
@@ -384,7 +393,7 @@ class CodeGenerator implements RewriterConstants {
             isarray = true;
             Type el_type = ((ArrayType) field_type).getElementType();
             if (el_type instanceof ObjectType) {
-                field_class = Repository.lookupClass(
+                field_class = lookupClass(
                         ((ObjectType) el_type).getClassName());
                 if (field_class != null && field_class.isFinal()) {
                     isfinal = true;
@@ -825,7 +834,7 @@ class CodeGenerator implements RewriterConstants {
         }
 
         if (field_type instanceof ObjectType) {
-            field_class = Repository.lookupClass(
+            field_class = lookupClass(
                     ((ObjectType) field_type).getClassName());
             if (field_class != null && field_class.isFinal()) {
                 isfinal = true;
@@ -834,7 +843,7 @@ class CodeGenerator implements RewriterConstants {
             isarray = true;
             Type el_type = ((ArrayType) field_type).getElementType();
             if (el_type instanceof ObjectType) {
-                field_class = Repository.lookupClass(
+                field_class = lookupClass(
                         ((ObjectType) el_type).getClassName());
                 if (field_class != null && field_class.isFinal()) {
                     isfinal = true;

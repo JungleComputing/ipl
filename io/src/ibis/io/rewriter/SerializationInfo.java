@@ -136,7 +136,7 @@ class SerializationInfo implements RewriterConstants {
         if (n.equals(TYPE_JAVA_LANG_OBJECT)) {
             return false;
         }
-        return SerializationInfo.predecessor(c1, Repository.lookupClass(n));
+        return SerializationInfo.predecessor(c1, CodeGenerator.lookupClass(n));
     }
 
     static boolean isFinal(Type t) {
@@ -148,7 +148,7 @@ class SerializationInfo implements RewriterConstants {
         }
         if (t instanceof ObjectType) {
             String name = ((ObjectType) t).getClassName();
-            JavaClass c = Repository.lookupClass(name);
+            JavaClass c = CodeGenerator.lookupClass(name);
             if (c == null) {
                 return false;
             }
@@ -162,11 +162,19 @@ class SerializationInfo implements RewriterConstants {
     }
 
     static boolean isExternalizable(JavaClass clazz) {
-        return Repository.implementationOf(clazz, TYPE_JAVA_IO_EXTERNALIZABLE);
+        try {
+            return Repository.implementationOf(clazz, TYPE_JAVA_IO_EXTERNALIZABLE);
+        } catch(ClassNotFoundException e) {
+            throw new Error(e);
+        }
     }
 
     static boolean isSerializable(JavaClass clazz) {
-        return Repository.implementationOf(clazz, TYPE_JAVA_IO_SERIALIZABLE);
+        try {
+            return Repository.implementationOf(clazz, TYPE_JAVA_IO_SERIALIZABLE);
+        } catch(ClassNotFoundException e) {
+            throw new Error(e);
+        }
     }
 
     static boolean hasSerialPersistentFields(Field[] fields) {

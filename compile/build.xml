@@ -7,6 +7,7 @@
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />
     <property name="lib" location="../lib" />
+    <property name="external" location="external" />
     <property name="javadoc" location="../javadoc/compile" />
     <property name="sources" value="../sources" />
 
@@ -19,14 +20,14 @@
         <fileset dir="${lib}">
             <include name="*.jar" />
         </fileset>
+	<fileset dir="${external}">
+	    <include name="*.jar" />
+	</fileset>
     </path>
 
     <target name="build">
         <!-- Create the time stamp -->
         <tstamp />
-
-        <!-- build bcel-fixed first -->
-        <ant dir="bcel-5.1-fixed" inheritAll="false" target="build" />
 
         <!-- Create the build directory structure used by compile -->
         <delete dir="${tmp}" />
@@ -43,6 +44,10 @@
         <jar jarfile="${jar}" basedir="${tmp}">
             <metainf dir=".." includes="LICENSE.txt" />
         </jar>
+
+	<copy todir="${lib}">
+	    <fileset dir="external" includes="*.jar" />
+	</copy>
 
         <!-- create a zip file with the sources -->
         <zip destfile="${sources}/${sources-filename}.zip">
@@ -69,7 +74,6 @@
     <target name="clean" description="clean up">
         <delete dir="${tmp}" />
         <delete dir="${javadoc}" />
-        <ant dir="bcel-5.1-fixed" inheritAll="false" target="clean" />
     </target>
 
 </project>

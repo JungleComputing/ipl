@@ -27,16 +27,29 @@ class JMESerializationInfo extends SerializationInfo implements JMERewriterConst
     }
 
     static boolean isJMESerializable(JavaClass clazz) {
-        return  Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_SERIALIZABLE);
+        try {
+            return  Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_SERIALIZABLE);
+        } catch(ClassNotFoundException e) {
+            throw new Error(e);
+        }
     }
 
     static boolean isJMERewritten(JavaClass clazz) {
-        return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_JMESERIALIZABLE);
+        try {
+            return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_JMESERIALIZABLE);
+        } catch(ClassNotFoundException e) {
+            throw new Error(e);
+        }
+
     }
 
 
     static boolean isJMEExternalizable(JavaClass clazz) {
-        return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_EXTERNALIZABLE);
+        try {
+            return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_EXTERNALIZABLE);
+        } catch(ClassNotFoundException e) {
+            throw new Error(e);
+        }
     }
 
     static boolean hasJMESerialPersistentFields(Field[] fields) {

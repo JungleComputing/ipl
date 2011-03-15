@@ -70,15 +70,22 @@ public class CheckNativeMethods {
                     clazz[clazz.length - 1] = p.parse();
                 } catch (Exception e) {
                     System.err.println("Error for arg " + args[i] + ": " + e);
+                    e.printStackTrace(System.err);
+                    System.exit(1);
                 }
             } else {
                 clazz = increase_one(clazz);
                 int index = args[i].lastIndexOf('.');
-                if (args[i].substring(index + 1).equals("class")) {
-                    clazz[clazz.length - 1]
-                          = Repository.lookupClass(args[i].substring(0, index));
-                } else {
-                    clazz[clazz.length - 1] = Repository.lookupClass(args[i]);
+                try {
+                    if (args[i].substring(index + 1).equals("class")) {
+                        clazz[clazz.length - 1]
+                              = Repository.lookupClass(args[i].substring(0, index));
+                    } else {
+                        clazz[clazz.length - 1] = Repository.lookupClass(args[i]);
+                    }
+                } catch(ClassNotFoundException e) {
+                    System.err.println("Error: class " + args[i] + " not found");
+                    System.exit(1);
                 }
             }
         }

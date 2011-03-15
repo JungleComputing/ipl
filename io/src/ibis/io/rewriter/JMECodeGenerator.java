@@ -70,6 +70,15 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
     boolean has_jme_serial_persistent_fields;
 
+    public static JavaClass lookupClass(String name) {
+        try {
+            return Repository.lookupClass(name);
+        } catch(ClassNotFoundException e) {
+            System.err.println("Warning: class " + name + " not found");
+            return null;
+        }
+    }
+
     JMECodeGenerator(IOGenerator generator, JavaClass cl) {
         super(generator, cl);
 
@@ -116,7 +125,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         if (cl.getClassName().equals("java.lang.Object") || !JMESerializationInfo.isJMESerializable(cl)) {
             return 0;
         }
-        return 1 + getClassDepth(Repository.lookupClass(
+        return 1 + getClassDepth(lookupClass(
                 cl.getSuperclassName()));
     }
 
@@ -307,7 +316,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         }
 
         if (field_type instanceof ObjectType) {
-            field_class = Repository.lookupClass(
+            field_class = lookupClass(
                     ((ObjectType) field_type).getClassName());
             if (field_class != null && field_class.isFinal()) {
                 isfinal = true;
@@ -316,7 +325,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
             isarray = true;
             Type el_type = ((ArrayType) field_type).getElementType();
             if (el_type instanceof ObjectType) {
-                field_class = Repository.lookupClass(
+                field_class = lookupClass(
                         ((ObjectType) el_type).getClassName());
                 if (field_class != null && field_class.isFinal()) {
                     isfinal = true;
@@ -757,7 +766,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         }
 
         if (field_type instanceof ObjectType) {
-            field_class = Repository.lookupClass(
+            field_class = lookupClass(
                     ((ObjectType) field_type).getClassName());
             if (field_class != null && field_class.isFinal()) {
                 isfinal = true;
@@ -766,7 +775,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
             isarray = true;
             Type el_type = ((ArrayType) field_type).getElementType();
             if (el_type instanceof ObjectType) {
-                field_class = Repository.lookupClass(
+                field_class = lookupClass(
                         ((ObjectType) el_type).getClassName());
                 if (field_class != null && field_class.isFinal()) {
                     isfinal = true;
