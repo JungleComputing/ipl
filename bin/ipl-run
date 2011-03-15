@@ -13,7 +13,7 @@ if [ -z "$IPL_HOME" ];  then
     exit 1
 fi
 
-AFFINITY="taskset -c 0"
+# AFFINITY="taskset -c 0"
 
 # Run ...
 # Note: this requires Java 6
