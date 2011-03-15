@@ -601,18 +601,18 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
                 }
             }
 
-            waitingForMessage++;
             while (aMessageIsAlive) {
+                waitingForMessage++;
                 try {
                     wait();
                 } catch(InterruptedException e) {
                     // ignored
                 }
-            }
-            waitingForMessage--;
-            // We waited, so the port may be closed now ...
-            if (closed) {
-                throw new IOException("newMessage call on closed sendport");
+                waitingForMessage--;
+                // We waited, so the port may be closed now ...
+                if (closed) {
+                    throw new IOException("newMessage call on closed sendport");
+                }
             }
             aMessageIsAlive = true;
         }

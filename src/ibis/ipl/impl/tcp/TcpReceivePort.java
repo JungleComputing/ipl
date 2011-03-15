@@ -42,7 +42,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
 
         public void run() {
-            logger.info("Started connection handler thread");
+            logger.info("Started "
+		 + (lazy_connectionhandler_thread ? "lazy " : "")
+		 + "connection handler thread");
             try {
                 if (lazy_connectionhandler_thread) {
                     // For disconnects, there must be a reader thread, but we
