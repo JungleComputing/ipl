@@ -4,15 +4,20 @@
 # classpath for the IPL given the location of a IPL installation,
 # specified in the $IPL_HOME environment variable.
 
+# export LD_PRELOAD=/usr/lib64/libsdp.so
+# export LIBSDP_CONFIG_FILE=$HOME/libsdp.conf
+
 # Check setting of IPL_HOME
 if [ -z "$IPL_HOME" ];  then
     echo "please set IPL_HOME to the location of your Ibis installation" 1>&2
     exit 1
 fi
 
+AFFINITY="taskset -c 0"
+
 # Run ...
 # Note: this requires Java 6
-exec java \
+exec $AFFINITY java \
     -classpath "$CLASSPATH:$IPL_HOME/lib/"'*' \
     -Dlog4j.configuration=file:$IPL_HOME/log4j.properties \
     "$@"
