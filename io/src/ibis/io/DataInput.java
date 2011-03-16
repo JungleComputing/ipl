@@ -201,8 +201,7 @@ public interface DataInput {
     
     /**
      * Reads into the contents of the byte buffer (between its current position and its
-     * limit). This method is allowed for all serialization types, even
-     * {@link PortType#SERIALIZATION_BYTE}.
+     * limit).
      * @param value
      * 		the byte buffer from which data is to be written
      * @exception IOException

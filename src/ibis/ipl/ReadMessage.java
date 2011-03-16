@@ -32,7 +32,7 @@ import java.nio.ReadOnlyBufferException;
  * {@link WriteMessage#writeObject writeObject} does duplicate detection,
  * and may have written only a handle.
  * </strong>
- * However, an array written with {@link WriteMessage#writeArray(byte[]) can be
+ * However, an array written with {@link WriteMessage#writeArray(byte[])} can be
  * read with {@link #readByteBuffer(ByteBuffer)}. 
  **/
 
