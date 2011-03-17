@@ -492,6 +492,7 @@ public final class Server implements ServerInterface {
             System.exit(1);
         }
 
+        /* Don't remember what this was for. Maybe just a test?
         System.out.println("Server started");
         server.end(0);
         System.out.println("Server stopped");
@@ -504,6 +505,7 @@ public final class Server implements ServerInterface {
             System.exit(1);
         }
         System.out.println("Server started");
+        */
 
         // register shutdown hook
         try {
