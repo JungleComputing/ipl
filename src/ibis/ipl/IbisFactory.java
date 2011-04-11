@@ -511,7 +511,7 @@ public final class IbisFactory {
         // and pass the rest to the ibis we create
         String specifiedSubImplementation = null;
         if (specifiedImplementation != null) {
-            String[] parts = specifiedImplementation.split(",", 2);
+            String[] parts = specifiedImplementation.split(",|;", 2);
 
             specifiedImplementation = parts[0];
 
