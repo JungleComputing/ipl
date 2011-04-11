@@ -103,7 +103,7 @@ public final class IbisProperties {
                 { LOCATION, null,
                     "Set the location of Ibis. Specified as multiple levels, "
                             + "seperated by a '@', e.g. machine@cluster@site@grid@world."
-                            + " Defaults to a single level location with the hostname of the machine" },
+                            + " Defaults to a multi level location based on the FQDN of the machine" },
 
                 { LOCATION_POSTFIX, null,
                     "Set a string that will be appended to the automatically generated location." },
