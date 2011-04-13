@@ -67,13 +67,6 @@ public final class IbisProperties {
     /** Property name for location color. */
     public static final String LOCATION_COLOR = PREFIX + "location.color";
 
-
-    /**
-     * Property name for specifying a postfix for an automatically generated location.
-     */
-    public static final String LOCATION_POSTFIX =
-        PREFIX + "location.postfix";
-
     /** List of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties. */
     private static final String[][] propertiesList =
             new String[][] {
@@ -104,9 +97,6 @@ public final class IbisProperties {
                     "Set the location of Ibis. Specified as multiple levels, "
                             + "seperated by a '@', e.g. machine@cluster@site@grid@world."
                             + " Defaults to a multi level location based on the FQDN of the machine" },
-
-                { LOCATION_POSTFIX, null,
-                    "Set a string that will be appended to the automatically generated location." },
                     
                 { LOCATION_COLOR, null,
                         "Color code (in html color notation e.g #545432) for this ibis."},
