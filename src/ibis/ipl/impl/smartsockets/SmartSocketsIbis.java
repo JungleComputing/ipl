@@ -90,7 +90,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                                     .getProperty(IbisProperties.LOCATION_COLOR);
                 }
 
-                sl.registerProperty("smartsockets.viz", "I^" + ident.name()
+                sl.registerProperty("smartsockets.viz", "I^" + ident.name() + "^" + ident.name()
                         + "," + ident.location().toString() + colorString);
 
             }

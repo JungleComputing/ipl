@@ -132,7 +132,7 @@ public final class Server implements ServerInterface {
 
         } else {
             if (vizInfo == null) {
-                vizInfo = "S^Ibis Server";
+                vizInfo = "S^Ibis Server^Ibis Server";
             }
 
             smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO, vizInfo);
