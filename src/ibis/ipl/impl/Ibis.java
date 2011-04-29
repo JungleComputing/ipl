@@ -341,12 +341,12 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         }
     }
     
-    synchronized void addSentPerIbis(long cnt, SendPort port) {
+    synchronized void addSentPerIbis(long cnt, ibis.ipl.ReceivePortIdentifier[] idents) {
         if (sentBytesPerIbis == null) {
             return;
         }
-        for (SendPortConnectionInfo sp : port.receivers.values()) {
-            ibis.ipl.IbisIdentifier i = sp.target.ibis;
+        for (ibis.ipl.ReceivePortIdentifier rp : idents) {
+            ibis.ipl.IbisIdentifier i = rp.ibisIdentifier();
             Long oldval = sentBytesPerIbis.get(i);
             if (oldval != null) {
                 cnt += oldval.longValue();
@@ -356,12 +356,12 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     }
     
     
-    synchronized void addReceivedPerIbis(long cnt, ReceivePort port) {
+    synchronized void addReceivedPerIbis(long cnt, ibis.ipl.SendPortIdentifier[] idents) {
         if (receivedBytesPerIbis == null) {
             return;
         }
-        for (ReceivePortConnectionInfo rp : port.connections.values()) {
-            ibis.ipl.IbisIdentifier i = rp.origin.ibis;
+        for (ibis.ipl.SendPortIdentifier sp : idents) {
+            ibis.ipl.IbisIdentifier i = sp.ibisIdentifier();
             Long oldval = receivedBytesPerIbis.get(i);
             if (oldval != null) {
                 cnt += oldval.longValue();

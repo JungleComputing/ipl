@@ -789,9 +789,11 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      */
     protected void finishMessage(WriteMessage w, long cnt)
             throws IOException {
+	ibis.ipl.ReceivePortIdentifier[] ports = null;
         try {
             synchronized(this) {
                 aMessageIsAlive = false;
+                ports = connectedTo();
                 if (waitingForMessage > 0) {
                     // NotifyAll, because we don't know who is waiting, and what for.
                     notifyAll();
@@ -806,7 +808,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
                 }
             }
         } finally {
-            ibis.addSentPerIbis(cnt, this);
+            ibis.addSentPerIbis(cnt, ports);
         }
     }
 

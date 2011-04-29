@@ -610,7 +610,9 @@ public abstract class ReceivePort extends Manageable
      * @param cnt the byte count of this message.
      */
     public void finishMessage(ReadMessage r, long cnt) {
+	ibis.ipl.SendPortIdentifier[] ports;
         synchronized(this) {
+            ports = connectedTo();
             nMessages++;
             messageBytes += cnt;
             message = null;
@@ -618,7 +620,7 @@ public abstract class ReceivePort extends Manageable
             notifyAll();
         }
         // This outside the lock, otherwise deadlock.
-        ibis.addReceivedPerIbis(cnt, this);
+        ibis.addReceivedPerIbis(cnt, ports);
     }
 
     /**
