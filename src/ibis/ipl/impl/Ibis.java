@@ -185,9 +185,15 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
 
+        if (registryHandler != null) {
+            // Only install wrapper if user actually has an event handler.
+            // Otherwise, registry downcalls won't work. There needs to be another
+            // way to let an Ibis know of died Ibises. --Ceriel
+            registryHandler = new RegistryEventHandlerWrapper(registryHandler, this);
+        }
         try {
             registry = Registry.createRegistry(this.capabilities,
-                    new RegistryEventHandlerWrapper(registryHandler, this), properties, getData(),
+                    registryHandler, properties, getData(),
                     getImplementationVersion(), applicationTag, credentials);
         } catch (IbisConfigurationException e) {
             throw e;
