@@ -680,7 +680,8 @@ public abstract class ReceivePort extends Manageable
      * @param id the IbisIdentifier of the Ibis that left/died.
      */
     protected synchronized void killConnectionsWith(ibis.ipl.IbisIdentifier id) {
-	for (SendPortIdentifier s : connections.keySet()) {
+	SendPortIdentifier[] keys = connections.keySet().toArray(new SendPortIdentifier[connections.size()]);
+	for (SendPortIdentifier s : keys) {
 	    if (s.ibisIdentifier().equals(id)) {
 		connections.get(s).close(new ConnectionClosedException("Connection origin died or left"));
 		removeInfo(s);

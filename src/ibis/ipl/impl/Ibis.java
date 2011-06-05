@@ -256,10 +256,24 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 	    rps = receivePorts.values().toArray(new ReceivePort[receivePorts.size()]);
 	}
 	for (SendPort s : sps) {
-	    s.killConnectionsWith(corpse);
+	    try {
+		s.killConnectionsWith(corpse);
+	    } catch (Throwable e) {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Got exception from killConnectionsWith", e);
+		    
+		}
+	    }
 	}
 	for (ReceivePort p : rps) {
-	    p.killConnectionsWith(corpse);
+	    try {
+		p.killConnectionsWith(corpse);
+	    } catch (Throwable e) {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Got exception from killConnectionsWith", e);
+		    
+		}
+	    }
 	}
     }
 
