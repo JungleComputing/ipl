@@ -85,7 +85,6 @@ public class ManagementClient implements Runnable {
         return ibis.getManagementProperty(name);
     }
 
-    @SuppressWarnings("unchecked")
     private void handleGetMonitorInfo(Connection connection) throws IOException {
         int length = connection.in().readInt();
 
@@ -104,16 +103,16 @@ public class ManagementClient implements Runnable {
         Object[] result = new Object[descriptions.length];
 
         try {
-            Class factoryClass = Class
+            Class<?> factoryClass = Class
                     .forName("java.lang.management.ManagementFactory");
 
-            Class beanServerClass = Class
+            Class<?> beanServerClass = Class
                     .forName("javax.management.MBeanServer");
 
-            Class objectNameClass = Class
+            Class<?> objectNameClass = Class
                     .forName("javax.management.ObjectName");
 
-            Constructor objectNameClassConstructor = objectNameClass
+            Constructor<?> objectNameClassConstructor = objectNameClass
                     .getConstructor(String.class);
 
             Method getAttributeMethod = beanServerClass.getMethod(

@@ -64,7 +64,6 @@ public final class Server implements ServerInterface {
     /**
      * Create a server with the given server properties.
      */
-    @SuppressWarnings("unchecked")
     public Server(Properties properties, ControlPolicy policy) throws Exception {
         services = new HashMap<String, Service>();
 
@@ -204,7 +203,7 @@ public final class Server implements ServerInterface {
             // create user specified services
 
             ClassLister classLister = ClassLister.getClassLister(null);
-            Class[] serviceClassList;
+            Class<?>[] serviceClassList;
             if (typedProperties.containsKey(ServerProperties.SERVICES)) {
                 String[] services = typedProperties
                         .getStringList(ServerProperties.SERVICES);

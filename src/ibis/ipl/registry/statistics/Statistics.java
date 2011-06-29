@@ -272,7 +272,7 @@ public final class Statistics implements Runnable {
 	}
 
 	public synchronized void printCommStats(Formatter out) {
-		long totalTraffic = 0;
+		// long totalTraffic = 0;
 
 		out.format("#communication statistics\n");
 		out
@@ -280,7 +280,7 @@ public final class Statistics implements Runnable {
 		out
 				.format("#                                                                (sec)       (ms)\n");
 		for (byte i = 0; i < opcodes.length; i++) {
-			totalTraffic += bytesIn[i] + bytesOut[i];
+			// totalTraffic += bytesIn[i] + bytesOut[i];
 
 			double average = totalTimes[i]
 					/ (incomingRequestCounter[i] + outgoingRequestCounter[i]);

@@ -164,7 +164,8 @@ final class AlternativeTypeInfo {
 
     @SuppressWarnings("unchecked")
     private static class EnumReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        @SuppressWarnings("rawtypes")
+	Object readObject(IbisSerializationInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             String o = in.readUTF();
