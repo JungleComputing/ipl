@@ -140,7 +140,7 @@ public class MultiReceivePort implements ReceivePort {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public MultiReceivePort(PortType type, MultiIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)

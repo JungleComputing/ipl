@@ -238,7 +238,7 @@ public class MultiSendPort implements SendPort {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public MultiSendPort(PortType type, MultiIbis ibis, String name,
             SendPortDisconnectUpcall connectUpcall, Properties props) throws IOException {
 

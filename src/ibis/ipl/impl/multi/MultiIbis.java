@@ -73,7 +73,7 @@ public class MultiIbis implements Ibis {
 
     final HashMap<String, MultiRegistryEventHandler> registryHandlerMap = new HashMap<String, MultiRegistryEventHandler>();
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public MultiIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,

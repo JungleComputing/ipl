@@ -33,7 +33,7 @@ public class MultiRegistry implements Registry{
     final Map<MultiIbisIdentifier, MultiIbisIdentifier>died = Collections.synchronizedMap(new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>());
     final Map<String, MultiIbisIdentifier>elected = Collections.synchronizedMap(new HashMap<String, MultiIbisIdentifier>());
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public MultiRegistry(MultiIbis multiIbis) {
         this.ibis = multiIbis;
         subRegistries = new HashMap<String, Registry>();
