@@ -418,6 +418,25 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
             }
         }
     }
+    
+    public void writeByteBuffer(ByteBuffer b) throws IOException {
+        try {
+            bytes.put(b);
+        } catch (BufferOverflowException e) {
+            // do this the hard way
+            int len = b.limit() - b.position();
+            while (len > 0) {
+                if (!bytes.hasRemaining()) {
+                    send();
+                }
+
+                int size = Math.min(len, bytes.remaining());
+                b.limit(b.position() + size);
+                b.put(b);
+                len -= size;
+            }
+        }
+    }
 
     abstract NioAccumulatorConnection newConnection(
             GatheringByteChannel channel, ReceivePortIdentifier peer)

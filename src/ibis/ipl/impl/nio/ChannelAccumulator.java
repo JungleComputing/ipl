@@ -201,4 +201,10 @@ public final class ChannelAccumulator extends DataOutputStream {
             writeDouble(source[i]);
         }
     }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+        for (int i = value.position(); i < value.limit(); i++) {
+            writeByte(value.get());
+        }	
+    }
 }

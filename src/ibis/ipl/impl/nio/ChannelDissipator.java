@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.ReadOnlyBufferException;
 import java.nio.channels.ReadableByteChannel;
 
 /**
@@ -207,5 +208,12 @@ public final class ChannelDissipator extends DataInputStream {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readDouble();
         }
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+	for (int i = value.position(); i < value.limit(); i++) {
+	    value.put(readByte());
+	}
     }
 }

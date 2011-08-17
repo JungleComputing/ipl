@@ -185,6 +185,12 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
 
+        if (registryHandler != null) {
+            // Only install wrapper if user actually has an event handler.
+            // Otherwise, registry downcalls won't work. There needs to be another
+            // way to let an Ibis know of died Ibises. --Ceriel
+            registryHandler = new RegistryEventHandlerWrapper(registryHandler, this);
+        }
         try {
             registry = Registry.createRegistry(this.capabilities,
                     registryHandler, properties, getData(),
@@ -209,7 +215,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             vivaldiClient = null;
         }
         
-        if (properties.getBooleanProperty("ibis.bytescount")) {        	
+        if (properties.getBooleanProperty("ibis.bytescount")) {
             sentBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
             receivedBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
         }
@@ -231,6 +237,44 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
          * ObjectName("ibis.ipl.impl:type=Ibis"); mbs.registerMBean(this, name);
          * } catch (Exception e) { logger.warn("cannot registry MBean", e); }
          */
+    }
+    
+    void died(ibis.ipl.IbisIdentifier corpse) {
+	killConnections(corpse);
+    }
+    
+    void left(ibis.ipl.IbisIdentifier leftIbis) {
+	killConnections(leftIbis);
+    }
+    
+    protected void killConnections(ibis.ipl.IbisIdentifier corpse) {
+	SendPort[] sps;
+	ReceivePort[] rps;
+    
+	synchronized(this) {
+	    sps = sendPorts.values().toArray(new SendPort[sendPorts.size()]);
+	    rps = receivePorts.values().toArray(new ReceivePort[receivePorts.size()]);
+	}
+	for (SendPort s : sps) {
+	    try {
+		s.killConnectionsWith(corpse);
+	    } catch (Throwable e) {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Got exception from killConnectionsWith", e);
+		    
+		}
+	    }
+	}
+	for (ReceivePort p : rps) {
+	    try {
+		p.killConnectionsWith(corpse);
+	    } catch (Throwable e) {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Got exception from killConnectionsWith", e);
+		    
+		}
+	    }
+	}
     }
 
     /**
@@ -317,12 +361,12 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         }
     }
     
-    synchronized void addSentPerIbis(long cnt, SendPort port) {
+    synchronized void addSentPerIbis(long cnt, ibis.ipl.ReceivePortIdentifier[] idents) {
         if (sentBytesPerIbis == null) {
             return;
         }
-        for (SendPortConnectionInfo sp : port.receivers.values()) {
-            ibis.ipl.IbisIdentifier i = sp.target.ibis;
+        for (ibis.ipl.ReceivePortIdentifier rp : idents) {
+            ibis.ipl.IbisIdentifier i = rp.ibisIdentifier();
             Long oldval = sentBytesPerIbis.get(i);
             if (oldval != null) {
                 cnt += oldval.longValue();
@@ -332,12 +376,12 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     }
     
     
-    synchronized void addReceivedPerIbis(long cnt, ReceivePort port) {
+    synchronized void addReceivedPerIbis(long cnt, ibis.ipl.SendPortIdentifier[] idents) {
         if (receivedBytesPerIbis == null) {
             return;
         }
-        for (ReceivePortConnectionInfo rp : port.connections.values()) {
-            ibis.ipl.IbisIdentifier i = rp.origin.ibis;
+        for (ibis.ipl.SendPortIdentifier sp : idents) {
+            ibis.ipl.IbisIdentifier i = sp.ibisIdentifier();
             Long oldval = receivedBytesPerIbis.get(i);
             if (oldval != null) {
                 cnt += oldval.longValue();

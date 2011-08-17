@@ -39,6 +39,8 @@ public class ReceivePortConnectionInfo {
      */
     public DataInputStream dataIn;
 
+    protected boolean closed = false;
+
     private long cnt = 0;
 
     /**
@@ -107,6 +109,7 @@ public class ReceivePortConnectionInfo {
         } catch(Throwable z) {
             // ignore
         }
+	closed = true;
         in = null;
         if (logger.isDebugEnabled()) {
             logger.debug(port.name + ": connection with " + origin

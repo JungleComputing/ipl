@@ -1,0 +1,24 @@
+Grun can be used to conveniently run Ibis jobs in a Globus Grid environment.
+Grun is written in Python so in addition to Globus, it requires the
+installation of the "pyGlobus" Python interface to the Globus job
+submission API.
+
+By default Grun assumes that pyGlobus is installed in directory
+$GLOBUS_LOCATION/python.  Otherwise, pyGlobus will have to be added to
+PYTHONPATH by the user.
+If the script "grun" is run from $PATH, the support Python source files
+globus_support.py and griddefs.py should be installed from in
+the same directory as grun, or the directory containing them
+should be added to PYTHONPATH so that Python can find them.
+
+Note that the grun README file assumes that grun is installed
+in /usr/local/package/grun.  In case the version distributed with
+Ibis is used, the paths referred to (e.g., the grun "etc" directory
+containing Ibis support scripts) changes accordingly.
+
+Grun has been tested to work with:
+- Python version 1.5.2 and 2.2.3
+- Globus versions 2.2.4 and 3.2 (see http://www.globus.org)
+- pyGlobus version 2.2.x-1.0.2 (with Globus 2.2.4)
+  and the snapshot version from CVS (with Globus 3.2).
+  For more information on pyGlobus, see http://www.cogkit.org.

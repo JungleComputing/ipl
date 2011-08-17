@@ -6,6 +6,7 @@ import ibis.io.DataOutputStream;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 final class StoreArrayOutputStream extends DataOutputStream {
     
@@ -436,5 +437,17 @@ final class StoreArrayOutputStream extends DataOutputStream {
         double_count = 0;
         
         count = 0;               
+    }
+
+    public void writeByteBuffer(ByteBuffer value) throws IOException {
+	
+	int len = value.limit() - value.position();
+        
+        if (byte_count + len > byte_store.length) {     
+            resize_byte(byte_count+len);
+        } 
+        value.get(byte_store, byte_count, len);
+        byte_count += len;
+        count += len;	
     }
 }

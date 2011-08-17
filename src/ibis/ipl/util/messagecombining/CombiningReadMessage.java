@@ -15,6 +15,8 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 public class CombiningReadMessage implements ReadMessage {
 
@@ -281,5 +283,10 @@ public class CombiningReadMessage implements ReadMessage {
 
     public int size() throws IOException {
         return -1;
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+	in.readByteBuffer(value);	
     }
 }

@@ -105,7 +105,11 @@ class NioAccumulatorConnection extends SendPortConnectionInfo {
         return true;
     }
 
-    public void closeConnection() throws IOException {
-        channel.close();
+    public void closeConnection() {
+	try {
+	    channel.close();
+	} catch(Throwable e) {
+	    // ignored
+	}
     }
 }

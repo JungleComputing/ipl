@@ -11,6 +11,7 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -185,59 +186,101 @@ public final class Location implements ibis.ipl.Location {
      * @return the default location of this machine.
      */
     public static Location defaultLocation(Properties props, InetAddress [] adds) {
-        TypedProperties p = new TypedProperties(props);
-        String s = p.getProperty(IbisProperties.LOCATION);
-        if (s != null) {
-            return new Location(appendPostFix(p, s.split("@")));
-        }
 
         // If the user has specified one or more preferred IP addresses, we'll 
         // try to resolve those first.
-        if (adds != null && adds.length >= 0) {
-        	for (InetAddress a : adds) { 
-        		s = a.getCanonicalHostName();
-            		
-        		if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
-        			return new Location(appendPostFix(p, s.split("\\.")));
-        		}
-        	}	
-        }
-        	
+	
+	String fullHostName = null;
+	if (adds != null && adds.length >= 0) {
+	    for (InetAddress a : adds) {
+		fullHostName = a.getCanonicalHostName();
+		if (fullHostName.length() > 0 && Character.isJavaIdentifierStart(fullHostName.charAt(0))) {
+		    break;
+		}
+		fullHostName = null;
+	    }	
+	}
+	
         // NOTE: This may result in a unusable location when the hostname 
         // of the machine is set to a crappy value (as on DAS-3). 
-        try {
+        if (fullHostName == null) {
+            try {
         	InetAddress a = InetAddress.getLocalHost();
-        	s = a.getCanonicalHostName();
-        	if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
-        		return new Location(appendPostFix(p, s.split("\\.")));
+        	fullHostName = a.getCanonicalHostName();
+            } catch(IOException e) {
+        	fullHostName = "Unknown location";
+            }
+        }
+        
+	String[] split = fullHostName.split("\\.");
+        
+        TypedProperties p = new TypedProperties(props);
+
+        String s = p.getProperty(IbisProperties.LOCATION);
+        if (s == null) {
+            s = DEFAULT_LOCATION;
+        }
+        char[] buf = s.toCharArray();
+        StringBuffer b = new StringBuffer();
+        
+        // Find words between '%' delimiters, and replace them with the required value.
+        // If the word is not recognized, it is left untouched (including the
+        // '%').
+        for (int i = 0; i < buf.length; i++) {
+            if (buf[i] != '%') {
+        	b.append(buf[i]);
+            } else if (i == buf.length-1) {
+        	b.append('%');
+            } else if (buf[i+1] == '%') {
+        	b.append('%');
+        	i++;
+            } else {
+        	StringBuffer keyBuffer = new StringBuffer();
+        	String key = null;
+        	for (int j = i+1; j < buf.length; j++) {
+        	    if (buf[j] != '%') {
+        		keyBuffer.append(buf[j]);
+        	    } else {
+        		key = keyBuffer.toString();
+        		i = j;
+        		break;
+        	    }       	    
+        	}
+        	if (key == null) {
+        	    b.append('%');
+        	    b.append(keyBuffer);
+        	    i = buf.length - 1;
+        	    break;
         	}
 
-        	String postFix = p.getProperty(IbisProperties.LOCATION_POSTFIX);
-        	if(postFix == null) {
-        		return new Location(s);
+        	if (key.equals("HOSTNAME")) {
+        	    b.append(split[0]);
+        	} else if (key.equals("DOMAIN") || key.equals("FLAT_DOMAIN")) {
+        	    for (int j = 1; j < split.length; j++) {
+        		b.append(split[j]);
+        		if (j < split.length-1) {
+        		    b.append(key.equals("DOMAIN") ? SEPARATOR : ':');
+        		}
+        	    }
+        	} else if (key.equals("PID")) {
+        	    int pid = -1;
+        	    try {
+        		pid = Integer.parseInt(( new File("/proc/self")).getCanonicalFile().getName());
+        	    } catch (Throwable e) {
+        		// ignore. No pid available.
+        	    }
+        	    b.append(pid);
         	} else {
-        		return new Location(s + postFix);
+        	    // Unrecognized key, just leave it alone.
+        	    b.append('%');
+        	    b.append(key);
+        	    b.append('%');
         	}
-        } catch(IOException e) {
-        	return new Location("Unknown location");
+            }
         }
+        return new Location(b.toString());
     }
 
-    private static String[] appendPostFix(TypedProperties p, String[] components) {
-        String postFix =  p.getProperty(IbisProperties.LOCATION_POSTFIX);
-        if(postFix == null) {
-            return components;
-        }
-
-        int count = components.length;
-        String[] res = new String[count+1];
-        for(int i=0;i<count; i++) {
-            res[i] = components[i];
-        }
-        res[count] = postFix;
-        return res;
-    }
-    
     public String toString() {
         String retval = "";
         for (int i = 0; i < levelNames.length; i++) {

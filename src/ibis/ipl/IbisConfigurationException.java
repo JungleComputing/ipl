@@ -9,7 +9,7 @@ package ibis.ipl;
  * for instance because a method was invoked that requires capabilities
  * that were not configured.
  */
-public class IbisConfigurationException extends RuntimeException {
+public class IbisConfigurationException extends IbisRuntimeException {
     private static final long serialVersionUID = 1L;
 
     /**

@@ -3,6 +3,7 @@
 package ibis.ipl;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /** 
  * A message used to write data from a {@link SendPort} to one or more
@@ -15,16 +16,22 @@ import java.io.IOException;
  * When a message is alive and a new message is requested, the requester
  * is blocked until the live message is finished.
  * <p>
- * For all write methods in this class, the invariant is that the reads must
- * match the writes one by one. The only exception to this rule is that an
+ * For all read methods in this class, the invariant is that the reads must
+ * match the writes one by one. An exception to this rule is that an
  * array written with any of the <code>writeArray</code> methods can be
- * read by {@link ReadMessage#readObject ReadMessage.readObject}.
+ * read by {@link ReadMessage#readObject}. Likewise, an
+ * array written with the {@link WriteMessage#writeByteBuffer} method can be read
+ * by {@link ReadMessage#readObject} (resulting in a byte array), and also by the
+ * {@link ReadMessage#readArray(byte[])} method.
  * <strong>
- * In particular, an array written with {@link #writeObject writeObject}
+ * In contrast, an array written with
+ * {@link #writeObject writeObject}
  * cannot be read with <code>readArray</code>, because
- * {@link #writeObject writeObject} does duplicate detection, and may
- * have written only a handle.
+ * {@link #writeObject writeObject} does duplicate detection,
+ * and may have written only a handle.
  * </strong>
+ * However, an array written with {@link #writeArray(byte[])} can be
+ * read with {@link ReadMessage#readByteBuffer(ByteBuffer)}. 
  * <p>
  * The {@link #writeObject(Object)} and {@link #writeString(String)} methods
  * do duplicate checks if the underlying serialization stream is an object
@@ -582,4 +589,16 @@ public interface WriteMessage {
      */
     public void writeArray(Object[] value, int offset, int length)
             throws IOException;
+    
+    /**
+     * Writes the contents of the byte buffer (between its current position and its
+     * limit). This method is allowed for all serialization types, even
+     * {@link PortType#SERIALIZATION_BYTE}.
+     * @param value
+     * 		the byte buffer from which data is to be written
+     * @exception IOException
+     *          an error occurred
+     */
+    public void writeByteBuffer(ByteBuffer value)
+    		throws IOException;
 }

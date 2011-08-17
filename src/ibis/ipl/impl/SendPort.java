@@ -601,18 +601,18 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
                 }
             }
 
-            waitingForMessage++;
             while (aMessageIsAlive) {
+                waitingForMessage++;
                 try {
                     wait();
                 } catch(InterruptedException e) {
                     // ignored
                 }
-            }
-            waitingForMessage--;
-            // We waited, so the port may be closed now ...
-            if (closed) {
-                throw new IOException("newMessage call on closed sendport");
+                waitingForMessage--;
+                // We waited, so the port may be closed now ...
+                if (closed) {
+                    throw new IOException("newMessage call on closed sendport");
+                }
             }
             aMessageIsAlive = true;
         }
@@ -726,6 +726,21 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
+     * Called in case an Ibis died or left. The connections to it must be
+     * removed.
+     * @param id the IbisIdentifier of the Ibis that left/died.
+     */
+    protected synchronized void killConnectionsWith(ibis.ipl.IbisIdentifier id) {
+	ReceivePortIdentifier[] keys = receivers.keySet().toArray(new ReceivePortIdentifier[receivers.size()]);
+	for (ReceivePortIdentifier r : keys) {
+	    if (r.ibisIdentifier().equals(id)) {
+		receivers.get(r).closeConnection();
+		removeInfo(r);
+	    }
+	}
+    }
+    
+    /**
      * Returns the connection information for the specified receiveport
      * identifier.
      * @param id the identification of the receiveport.
@@ -775,9 +790,11 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      */
     protected void finishMessage(WriteMessage w, long cnt)
             throws IOException {
+	ibis.ipl.ReceivePortIdentifier[] ports = null;
         try {
             synchronized(this) {
                 aMessageIsAlive = false;
+                ports = connectedTo();
                 if (waitingForMessage > 0) {
                     // NotifyAll, because we don't know who is waiting, and what for.
                     notifyAll();
@@ -792,7 +809,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
                 }
             }
         } finally {
-            ibis.addSentPerIbis(cnt, this);
+            ibis.addSentPerIbis(cnt, ports);
         }
     }
 

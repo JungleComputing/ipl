@@ -1,0 +1,344 @@
+#!/bin/sh
+
+#
+# (c) Copyright 2004 by the Vrije Universiteit, Amsterdam, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Grun distribution.
+#
+# Author: Kees Verstoep (versto@cs.vu.nl)
+#
+
+# Assume a default Ibis release is set up in $HOME
+IBIS_HOME=${IBIS_HOME:-$HOME/ibis}
+PROG="runit.ibis"
+
+# TODO: Update CONFIG_FILE processing for non-GridLab sites:
+CONFIG_FILE_SYS_DIR=/etc
+CONFIG_FILE=gridlab.conf
+
+if [ -f ./$CONFIG_FILE ]; then
+    # Several sites might not have a $CONFIG_FILE on compute nodes,
+    # which is unfortunate since they often DO have a working Java :-(
+    # First try a $CONFIG_FILE in our HOME directory that we put there
+    # ourselves.
+    . ./$CONFIG_FILE
+elif [ -f $CONFIG_FILE_SYS_DIR/$CONFIG_FILE ]; then
+    . $CONFIG_FILE_SYS_DIR/$CONFIG_FILE
+    # Also copy $CONFIG_FILE to $HOME to make sure it is available
+    # during the run phase.  Yes this is a HACK.
+    if [ "$GRUN_PHASE" = stagein ]; then
+	cp $CONFIG_FILE_SYS_DIR/$CONFIG_FILE $CONFIG_FILE.copy
+    fi
+elif [ -f ./$CONFIG_FILE.copy ]; then
+    # Take the version we copied to our home directory during stagein
+    . ./$CONFIG_FILE.copy
+else
+    # Probably non-GridLab host. Finding java may involve additional trickery.
+    echo $PROG: No $CONFIG_FILE found >&2
+fi
+if [ -z "$JAVA_HOME" ]; then
+    if [ ! -z "$JAVA_DIR" ]; then
+        JAVA_HOME="$JAVA_DIR"
+	export JAVA_HOME
+    fi
+fi
+if [ -z "$JAVA_HOME" ]; then
+    # Last resort: just hope that java and jar are on the default path
+    JAVA_BINARY=java
+    JAR=jar
+else
+    JAVA_BINARY=$JAVA_HOME/bin/java
+    JAR=$JAVA_HOME/bin/jar
+fi
+
+# debug stuff
+if [ -z "$GRUN_VERBOSE" ]; then
+    GRUN_VERBOSE=0
+fi
+if [ $GRUN_VERBOSE -ge 2 ]; then
+    echo $PROG: JAVA_HOME $JAVA_HOME
+    echo $PROG: JAVA_DIR $JAVA_HOME
+    echo $PROG: PATH $PATH
+    echo $PROG: JAVA_BINARY $JAVA_BINARY
+fi
+if [ ! -z "$GRUN_DEBUG" ]; then
+    # Find out about possible IP connectivity problems:
+    /bin/uname -a
+    ( PATH=$PATH:/sbin:/usr/sbin; ifconfig -a )
+fi
+
+# sanity checks:
+if [ -z "$GLOBUS_LOCATION" ]; then
+    echo "$PROG: No GLOBUS_LOCATION in environment" >&2; exit 1
+fi
+if [ -z "$GRUN_TOKEN" ]; then
+    echo "$PROG: No GRUN_TOKEN in environment" >&2; exit 1
+fi
+if [ -z "$GRUN_NUMNODES" ]; then
+    echo "$PROG: No GRUN_NUMNODES in environment" >&2; exit 1
+fi
+if [ -z "$GRUN_PHASE" ]; then
+    echo "$PROG: No GRUN_PHASE in environment" >&2; exit 1
+fi
+if [ -z "$GRUN_SANDBOX" ]; then
+    echo "$PROG: No GRUN_SANDBOX in environment" >&2; exit 1
+fi
+
+if [ -z "$IBIS_NAMESVR_HOST" ]; then
+    # use default nameserver:
+    IBIS_NAMESVR_HOST=fs0.das2.cs.vu.nl
+fi
+if [ -z "$IBIS_POOLSVR_HOST" ]; then
+    # use default poolserver:
+    IBIS_POOLSVR_HOST=$IBIS_NAMESVR_HOST
+fi
+if [ -z "$IBIS_POOLSVR_PORT" ]; then
+    IBIS_POOLSVR_PORT_OPT=""
+else
+    IBIS_POOLSVR_PORT_OPT="-Dibis.pool.server.port=$IBIS_POOLSVR_PORT"
+fi
+
+if [ "$GRUN_PHASE" = run ]; then
+    if [ -z "$IBIS_NAMESVR_PORT" ]; then
+        echo "$PROG: No IBIS_NAMESVR_PORT in environment" >&2; exit 1
+    fi
+
+    # run-phase specific argument processing:
+    while [ $# -gt 2 ]; do
+	case $1 in
+	-*)
+	    echo "$PROG: Unrecognized option $1" >&2
+	    exit 1
+	    ;;
+	*)
+	    break
+	    ;;
+	esac
+    done
+    if [ $# -lt 2 ]; then
+	echo $PROG: 'usage: runit.ibis [options] <classdir> <classname> [<args>]' >&2
+	exit 1
+    fi
+    APPDIR=$1
+    shift
+
+    ibisclasspath="$IBIS_HOME:$IBIS_HOME/classlibs:$IBIS_HOME/build"
+    # Add the application directory to classpath "as is" (i.e., don't
+    # prefix it with $HOME).
+    # This way the job can refer to directory tree transferred to the sandbox,
+    # to a pre-installed tree outside the sandbox (since ../.. gets you back
+    # to the site-depedent home directory), or an absolute installation path.
+    # But the latter typically gives problems with site dependencies, so in
+    # this case symlinks should typically be used to make sites look alike.
+    classpath="$ibisclasspath:$APPDIR"
+fi
+
+PATH=$GLOBUS_LOCATION/bin:$PATH
+# Work around GASS bug for the moment:
+URL_COPY_OPTS="-bs 131072"
+
+# Construct subjob-specific file suffix (only needed for
+# splitting output per cpu):
+job="job-$GRUN_TOKEN"
+host=`hostname`
+pid=$$
+cpusuffix="$job-$host-$pid"
+
+# Sandbox: private directory for job to play around in:
+prevdir=`pwd`
+mkdir -p $GRUN_SANDBOX
+cd $GRUN_SANDBOX
+if [ $GRUN_VERBOSE -ge 1 ]; then
+    echo $PROG: Running in `pwd`
+fi
+
+# Following filenames and options could be passed as parameter/environment.
+# PBS restriction: environment values cannot have spaces, so files
+# should be colon seperated.
+GRUN_INFILES=`echo ${GRUN_INFILES:-""} | sed 's/:/ /g'`
+GRUN_STAGEDINFILES=`echo ${GRUN_STAGEDINFILES:-""} | sed 's/:/ /g'`
+GRUN_OUTFILES=`echo ${GRUN_OUTFILES:-""} | sed 's/:/ /g'`
+GRUN_STAGEDOUTFILES=`echo ${GRUN_STAGEDOUTFILES:-""} | sed 's/:/ /g'`
+#IBIS_JAVA_OPTS=`echo ${IBIS_JAVA_OPTS:-""} | sed 's/:/ /g'`
+# Hack: allow "::" (or "|") to specify ":", sometimes useful in JAVA_OPTS
+IBIS_JAVA_OPTS=`echo ${IBIS_JAVA_OPTS:-""} | sed 's/::/|/g;s/:/ /g;s/|/:/g'`
+
+if [ "$GRUN_PHASE" = stagein ]; then
+    if [ -z "$GRUN_GASS" ]; then
+	echo "$PROG: No GASS server: parameters passed by cmdline/environment"
+    else
+	# NOTE: can only run globus-url-copy on compute nodes if they
+	# have access to /etc/grid-security/certificates!  True on GridLab,
+	# but not necessarily elsewhere...
+	for i in $GRUN_INFILES; do
+	    if [ $GRUN_VERBOSE -ge 2 ]; then
+		echo "$PROG: Transferring $i by separate globus-url-copy"
+	    fi
+	    globus-url-copy $URL_COPY_OPTS $GRUN_GASS/./$i file:`pwd`/$i
+	    err=$?
+	    if [ $err != 0 ]; then
+		echo $PROG: Stage-in of $GRUN_GASS/./$i failed, err $err >&2
+		exit 1
+	    fi
+	    case $i in
+	    *-tree.jar)
+		if [ $GRUN_VERBOSE -ge 2 ]; then
+		    echo "$PROG: Unpacking jar file $i using $JAR"
+		fi
+		$JAR xf $i
+		;;
+	    *-tree.tar)
+		if [ $GRUN_VERBOSE -ge 2 ]; then
+		    echo "$PROG: Unpacking tar file $i"
+		fi
+		tar xf $i
+		;;
+	    esac
+	done
+    fi
+fi
+
+# Check that all input files (staged in via Globus/RSL or via the separate
+# stagein phase) are now actually available.  Especially necessary in the
+# latter case since GRAM doesn't report the exit status of a job back! :-(
+for i in $GRUN_STAGEDINFILES; do
+    if [ -f $prevdir/$i ]; then
+	 : # echo "$PROG: File $i correctly staged in to $prevdir"
+    else
+	 echo "$PROG: File $i NOT staged in to $prevdir" >&2
+	 exit 1
+    fi
+done
+for i in $GRUN_INFILES; do
+    if [ -f $i ]; then
+	 : # echo "$PROG: File $i available in sandbox"
+    else
+	 echo "$PROG: File $i NOT available in sandbox $GRUN_SANDBOX" >&2
+	 exit 1
+    fi
+done
+
+if [ "$GRUN_PHASE" = run ]; then
+    # The actual work
+    if [ -z "$IBIS_NAMESVR_KEY" ]; then
+	IBIS_NAMESVR_KEY="key$GRUN_TOKEN"
+    fi
+    if [ -z "$IBIS_POOLSVR_KEY" ]; then
+	IBIS_POOLSVR_KEY="key$GRUN_TOKEN"
+    fi
+    case "$IBIS_NETWORK" in
+    new_firewall|firewall|routedmsg)
+	if [ -z "$IBIS_HUB_PORT" ]; then
+	    echo "$PROG: No IBIS_HUB_PORT in environment" >&2; exit 1
+	fi
+	IBIS_CONTROL_LINK=RoutedMessages
+	case "$IBIS_NETWORK" in
+	new_firewall)  IBIS_DATA_LINK=AnyTCP;;
+	firewall)  IBIS_DATA_LINK=TCPSplice;;
+	routedmsg) IBIS_DATA_LINK=RoutedMessages;;
+	esac
+	IBIS_CONN_OPTS="-Dibis.connect.control_links=$IBIS_CONTROL_LINK -Dibis.connect.data_links=$IBIS_DATA_LINK -Dibis.connect.hub_port=$IBIS_HUB_PORT"
+	;;
+    default|*)
+	IBIS_CONN_OPTS=""
+	;;
+    esac
+
+    # taken from ibis-prun (only without the function for sh-portability):
+    LIBCLASSPATH=""
+    DIRLIBS=${IBIS_HOME}/lib/*.jar
+    for i in ${DIRLIBS}; do
+	if [ -f "$i" ] ; then
+	    if [ -z "$LIBCLASSPATH" ] ; then
+		LIBCLASSPATH=$i
+	    else
+		LIBCLASSPATH="$i":$LIBCLASSPATH
+	    fi
+	fi
+    done
+    classpath="$classpath:$LIBCLASSPATH"
+
+    cmd="$JAVA_BINARY \
+	-classpath $classpath \
+        -Dibis.registry.impl=ibis.ipl.impl.registry.tcp.NameServerClient \
+	-Dibis.registry.host=$IBIS_NAMESVR_HOST \
+	-Dibis.registry.port=$IBIS_NAMESVR_PORT \
+	-Dibis.registry.key=$IBIS_NAMESVR_KEY \
+	-Dibis.pool.total_hosts=$GRUN_NUMNODES \
+	-Dibis.pool.server.host=$IBIS_POOLSVR_HOST \
+	$IBIS_POOLSVR_PORT_OPT \
+	-Dibis.pool.cluster=$GRUN_CLUSTER \
+	-Dibis.pool.key=$IBIS_POOLSVR_KEY \
+	-Dcluster=$GRUN_CLUSTER \
+	$IBIS_CONN_OPTS \
+	$IBIS_JAVA_OPTS \
+	$*"
+    if [ $GRUN_VERBOSE -ge 1 ]; then
+	echo $PROG: Running $cmd
+    fi
+    if [ ! -z "$GRUN_REDIRECT" ]; then
+	# Original:
+	# $cmd >stdout.$cpusuffix 2>stderr.$cpusuffix
+	#
+	# Both redirect to local file (e.g., for debugging or observing
+	# application progress) and return output via GRAM as usual.
+	((($cmd | tee stdout.$cpusuffix) 3>&1 1>&2 2>&3 |
+	 tee stderr.$cpusuffix) 3>&1 1>&2 2>&3)
+    else
+	$cmd
+    fi
+fi
+
+if [ "$GRUN_PHASE" = stageout ]; then
+    for i in $GRUN_OUTFILES; do
+	if [ -z "$GRUN_GASS_DIR" ]; then
+	    if [ $GRUN_VERBOSE -ge 2 ]; then
+		echo $PROG: Result $i available on `hostname` in $GRUN_SANDBOX
+	    fi
+	else
+	    if [ $GRUN_VERBOSE -ge 2 ]; then
+		echo $PROG: Result $i returned via GASS output file $i.$host
+	    fi
+	    globus-url-copy $URL_COPY_OPTS file:`pwd`/$i \
+	       $GRUN_GASS/./$GRUN_GASS_DIR/$i.$host
+	fi
+    done
+    for i in $GRUN_STAGEDOUTFILES; do
+	if [ $GRUN_VERBOSE -ge 2 ]; then
+	    echo $PROG: Result $i staged out via RSL
+	fi
+	# Temp hack:
+	cp $i $prevdir
+    done
+    ok=1
+    if [ ! -z "$GRUN_REDIRECT" ]; then
+	for i in stdout.* stderr.*; do
+	    if [ ! -f $i ]; then
+		continue
+	    fi
+	    if [ -z "$GRUN_GASS_DIR" ]; then
+		if [ $GRUN_VERBOSE -ge 2 ]; then
+		    echo $PROG: Result $i available on `hostname` in $GRUN_SANDBOX
+		fi
+	    else
+		if [ $GRUN_VERBOSE -ge 2 ]; then
+		    echo $PROG: Result $i returned via GASS
+		fi
+		globus-url-copy $URL_COPY_OPTS file:`pwd`/$i \
+		    $GRUN_GASS/./$GRUN_GASS_DIR/$i
+		if [ $? != 0 ]; then
+		    echo $PROG: Error copying $i >&2
+		    ok=0
+		fi
+	    fi
+	done
+    fi
+    # Only cleanup if all copies worked
+    if [ $ok = 1 -a ! -z "$GRUN_CLEANUP" ]; then
+	cd $prevdir
+	# Sanity check on GRUN_SANDBOX, e.g., it isn't $HOME due to some bug;-)
+	case $GRUN_SANDBOX in
+	grun.dir/job-*) /bin/rm -rf $GRUN_SANDBOX ;;
+	esac
+    fi
+fi

@@ -7,7 +7,7 @@ package ibis.ipl;
  * This exception is thrown when, during an invocation of one of the
  * receive() variants with a timeout, the timeout expires.
  */
-public class ReceiveTimedOutException extends java.io.IOException {
+public class ReceiveTimedOutException extends IbisIOException {
     private static final long serialVersionUID = 1L;
 
     /**

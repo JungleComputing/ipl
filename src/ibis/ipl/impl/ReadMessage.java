@@ -7,6 +7,8 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 /**
  * Implementation of the {@link ibis.ipl.ReadMessage} interface.
@@ -286,5 +288,11 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
             before = info.bytesRead();
             finishCalledFromUpcall = false;
         }
+    }
+
+    public void readByteBuffer(ByteBuffer value) throws IOException,
+	    ReadOnlyBufferException {
+        checkNotFinished();
+        in.readByteBuffer(value);
     }
 }

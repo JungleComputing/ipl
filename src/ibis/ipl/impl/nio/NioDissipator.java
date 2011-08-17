@@ -780,6 +780,19 @@ public abstract class NioDissipator extends DataInputStream implements Config,
             }
         }
     }
+    
+    public void readByteBuffer(ByteBuffer b) throws IOException {
+	if (b.hasArray()) {
+	    readArray(b.array(), b.arrayOffset(), b.limit() - b.position());
+	    b.position(b.limit());
+	} else {
+	    byte[] buf = new byte[b.limit() - b.position()];
+	    readArray(buf);
+	    b.put(buf);
+	}
+    }
+    
+    
 
     /**
      * fills the buffer upto at least "minimum" bytes.

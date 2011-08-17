@@ -68,7 +68,7 @@ public final class IbisFactory {
 
         if (inputStream == null) {
             System.err.println(
-                    "Warning: could not load properties from manifest property file");
+                    "IbisFactory Warning: could not load properties from manifest property file");
         } else {
             try {
                 manifestProperties.load(inputStream);
@@ -483,7 +483,7 @@ public final class IbisFactory {
         // print some info
         if (isVerbose(properties)) {
             System.err
-                    .println("Looking for an IPL Implementation with capabilities: "
+                    .println("IbisFactory: Looking for an IPL Implementation with capabilities: "
                             + requiredCapabilities);
             System.err.println("(ibis) Properties:");
             for (Enumeration<?> e = properties.propertyNames(); e
@@ -511,7 +511,7 @@ public final class IbisFactory {
         // and pass the rest to the ibis we create
         String specifiedSubImplementation = null;
         if (specifiedImplementation != null) {
-            String[] parts = specifiedImplementation.split(",", 2);
+            String[] parts = specifiedImplementation.split(",|;", 2);
 
             specifiedImplementation = parts[0];
 
@@ -524,7 +524,7 @@ public final class IbisFactory {
                 portTypes, specifiedImplementation);
 
         if (isVerbose(properties)) {
-            System.err.println("Selected ipl implementation: "
+            System.err.println("IbisFactory: Selected ipl implementation: "
                     + starter.getNickName());
         }
 
@@ -633,7 +633,7 @@ public final class IbisFactory {
                 return result;
             }
         } catch (IOException e) {
-            System.err.println("Could not create jar file from file: " + file);
+            System.err.println("IbisFactory: Could not create jar file from file: " + file);
         }
         return null;
     }
@@ -666,7 +666,7 @@ public final class IbisFactory {
                     }
                 }
             } else {
-                System.err.println("Not a file/directory: " + file);
+                System.err.println("IbisFactory: Not a file/directory: " + file);
             }
         }
         return result.toArray(new JarFile[0]);
@@ -695,7 +695,7 @@ public final class IbisFactory {
             return IbisStarter.createInstance(starterClass, classLoader,
                     nickName, iplVersion, implementationVersion);
         } catch (Exception e) {
-            System.err.println("Could not load ibis from jar: " + jar.getName()
+            System.err.println("IbisFactory: Could not load ibis from jar: " + jar.getName()
                     + ": " + e);
             return null;
         }
@@ -742,7 +742,7 @@ public final class IbisFactory {
 
             if (nickNames == null) {
                 System.err
-                        .println("Warning: no implementations found in manifest property file");
+                        .println("IbisFactory Warning: no implementations found in manifest property file");
             }
 
             for (String nickName : nickNames.split(",")) {
@@ -774,7 +774,7 @@ public final class IbisFactory {
             }
         } catch (Throwable t) {
             System.err
-                    .println("Warning: could not load implementation from manifest property file: "
+                    .println("IbisFactory Warning: could not load implementation from manifest property file: "
                             + t);
             t.printStackTrace(System.err);
         }

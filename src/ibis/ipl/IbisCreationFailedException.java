@@ -5,7 +5,7 @@ package ibis.ipl;
 /**
  * Signals that an Ibis instance could not be created.
  */
-public class IbisCreationFailedException extends Exception {
+public class IbisCreationFailedException extends IbisException {
 
     private static final long serialVersionUID = 1L;
 

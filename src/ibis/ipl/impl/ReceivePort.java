@@ -132,6 +132,9 @@ public abstract class ReceivePort extends Manageable
     private long nLostConnections = 0;
     private long nClosedConnections = 0;
 
+    private int outstanding;    // For connections that have been allowed but are not
+                                // actually present yet.
+
     /**
      * Constructs a <code>ReceivePort</code> with the specified parameters.
      * Note that all property checks are already performed in the
@@ -335,7 +338,7 @@ public abstract class ReceivePort extends Manageable
             retval = TYPE_MISMATCH;
         } else if (! connectionsEnabled) {
             retval = DISABLED;
-        } else if (connections.size() != 0 &&
+        } else if ((outstanding != 0 || connections.size() != 0) &&
             ! (type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)
                 || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
             retval = NO_MANY_TO_X;
@@ -357,6 +360,9 @@ public abstract class ReceivePort extends Manageable
         if (logger.isDebugEnabled()) {
             logger.debug("Connection attempt from " + id + ": "
                     + getString(retval));
+        }
+        if (retval == ACCEPTED) {
+            outstanding++;
         }
         return retval;
     }
@@ -445,6 +451,7 @@ public abstract class ReceivePort extends Manageable
             ReceivePortConnectionInfo info) {
         nConnections++;
         connections.put(id, info);
+        outstanding--;
         notifyAll();
     }
 
@@ -548,6 +555,9 @@ public abstract class ReceivePort extends Manageable
             }
             logger.error("Got unexpected exception in upcall, continuing ...", e);
         } catch(ClassNotFoundException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Got exception from upcall", e);
+            }
             if (! msg.isFinished()) {
                 IOException ioex =
                     new IOException("Got ClassNotFoundException: "
@@ -600,7 +610,9 @@ public abstract class ReceivePort extends Manageable
      * @param cnt the byte count of this message.
      */
     public void finishMessage(ReadMessage r, long cnt) {
+	ibis.ipl.SendPortIdentifier[] ports;
         synchronized(this) {
+            ports = connectedTo();
             nMessages++;
             messageBytes += cnt;
             message = null;
@@ -608,7 +620,7 @@ public abstract class ReceivePort extends Manageable
             notifyAll();
         }
         // This outside the lock, otherwise deadlock.
-        ibis.addReceivedPerIbis(cnt, this);
+        ibis.addReceivedPerIbis(cnt, ports);
     }
 
     /**
@@ -660,6 +672,22 @@ public abstract class ReceivePort extends Manageable
         if (logger.isDebugEnabled()) {
             logger.debug(name + ":done receiveport.close");
         }
+    }
+    
+    /**
+     * Called in case an Ibis died or left. The connections originating from it must be
+     * removed.
+     * @param id the IbisIdentifier of the Ibis that left/died.
+     */
+    protected synchronized void killConnectionsWith(ibis.ipl.IbisIdentifier id) {
+	SendPortIdentifier[] keys = connections.keySet().toArray(new SendPortIdentifier[connections.size()]);
+	for (SendPortIdentifier s : keys) {
+	    if (s.ibisIdentifier().equals(id)) {
+		connections.get(s).close(new ConnectionClosedException("Connection origin died or left"));
+		removeInfo(s);
+	    }
+	}
+	    
     }
     
     protected synchronized void updateProperties() {

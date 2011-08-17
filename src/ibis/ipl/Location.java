@@ -13,12 +13,29 @@ package ibis.ipl;
  * Locations should be comparable with <code>equals()</code>, so implementations
  * probably redefine <code>hashCode()</code> and <code>equals()</code>.
  * <p>
+ * The location can be set using the {@link IbisProperties#LOCATION} property.
+ * The <code>%HOSTNAME%</code> sequence is replaced by the hostname, the <code>%DOMAIN%</code> sequence
+ * is replaced by the domain, where each "level" in the domain name is a separate
+ * level in the location, and <code>%FLAT_DOMAIN%</code> sequence is replaced by the domain,
+ * as a single level in the location.
+ * <code>%PID%</code> is replaced by the process id, if available, or <code>-1</code>.
+ * Unrecognized sequences are left untouched.
+ * <p>
+ * The default location is specified
+ * below, in {@link #DEFAULT_LOCATION}.
+ * <p>
  * Note that this interface extends {@link Comparable} and {@link
  * Iterable}. So, locations can be sorted, and the user can iterate over
  * the levels in a location.
  */
 public interface Location extends java.io.Serializable, Comparable<Location>,
         Iterable<String> {
+    
+    /**
+     * Default location format.
+     */
+    public static final String DEFAULT_LOCATION = "%HOSTNAME%@%DOMAIN%";
+
     /**
      * Returns the number of levels in this location.
      * @return

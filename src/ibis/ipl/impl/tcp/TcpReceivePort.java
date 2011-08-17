@@ -42,22 +42,30 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
 
         public void run() {
-            logger.info("Started connection handler thread");
+            logger.info("Started "
+		 + (lazy_connectionhandler_thread ? "lazy " : "")
+		 + "connection handler thread");
             try {
                 if (lazy_connectionhandler_thread) {
                     // For disconnects, there must be a reader thread, but we
                     // don't really want that. So, we have a thread that only
                     // checks every second.
                     for (;;) {
-                        Thread.sleep(1000);
+                        synchronized(this) {
+                            try {
+                                wait(1000);
+                            } catch(InterruptedException e) {
+                                // ignored
+                            }
+                        }
                         synchronized(port) {
                             // If there is a reader, or a message is active,
                             // continue.
                             if (reader_busy || ((TcpReceivePort)port).getPortMessage() != null) {
                                 continue;
                             }
-                            if (in == null) {
-                                return;
+			    if (closed) {
+				return;
                             }
                             reader_busy = true;
                         }
@@ -163,8 +171,22 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         //
                         // Unfortunately, it also causes a deadlock in 1-to-1 explict receive 
                         // applications -- J
-                        s.getOutputStream().write(0);
-                        close(null);
+                        // // Fixed by lazy connection handler thread.
+                        synchronized(port) {
+                            disconnectBusy++;
+                        }
+                        try {
+                            s.getOutputStream().write(0);
+                            close(null);
+                        } finally {
+                            synchronized(port) {
+                                disconnectBusy--;
+                                if (disconnectBusy == 0) {
+                                    port.notifyAll();
+                                }
+                            }
+                        }
+
                     }
                     break;
                 default:
@@ -178,6 +200,18 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     private final boolean lazy_connectionhandler_thread;
 
     private boolean reader_busy = false;
+
+    private int disconnectBusy = 0;
+
+    synchronized void waitForNoDisconnects() {
+        while (disconnectBusy > 0) {
+            try {
+                wait();
+            } catch(InterruptedException e) {
+                // ignored
+            }
+        }
+    }
 
     TcpReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
             ReceivePortConnectUpcall connUpcall, Properties props) throws IOException {
@@ -293,4 +327,16 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         // But this method was synchronized!!! Fixed (Ceriel).
         conn.run();
     }
+        
+    public synchronized void closePort(long timeout) {
+        ReceivePortConnectionInfo conns[] = connections();
+        if (lazy_connectionhandler_thread && conns.length > 0) {
+            // Wakeup connection handler thread, otherwise this may take a second ...
+            synchronized(conns[0]) {
+                conns[0].notifyAll();
+            }
+        }
+        super.closePort(timeout);
+    }
+
 }
