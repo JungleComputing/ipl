@@ -7,6 +7,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
@@ -38,17 +39,17 @@ public class Connect {
     		PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_DATA, 
             PortType.RECEIVE_EXPLICIT,
-            PortType.CONNECTION_MANY_TO_ONE);
+            PortType.CONNECTION_ONE_TO_ONE);
 
     private static final PortType portTypeNormal = new PortType(
     		PortType.COMMUNICATION_FIFO, 
     		PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_DATA, 
             PortType.RECEIVE_EXPLICIT,
-            PortType.CONNECTION_MANY_TO_ONE);
+            PortType.CONNECTION_ONE_TO_ONE);
     
     private static final IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, "nickname.smartsockets");
+        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
     private final PortType portType; 
     private final int bytes;
@@ -81,9 +82,12 @@ public class Connect {
         
         IbisIdentifier src = null;
         
+       	sender = myIbis.createSendPort(portType);
+        
         for (int r=0;r<repeat;r++) { 
         	
         	long start = System.currentTimeMillis();
+        	ReceivePortIdentifier id = null;
         	
         	for (int c=0;c<count;c++) { 
         		
@@ -99,16 +103,15 @@ public class Connect {
         		}
         		
         		if (!connected) { 
-        	       	sender = myIbis.createSendPort(portType);
-        	        src = rm.origin().ibisIdentifier();
-                	rm.finish();
+        		    src = rm.origin().ibisIdentifier();
+        		    rm.finish();
                 	
          //       	System.out.println("RM done");
                         	
         //	    	System.out.println("Connecting to " + src);
                 	
-                	sender.connect(src, "client", 5000, true);
-        	    	connected = true;
+        		    id = sender.connect(src, "client", 5000, true);
+        		    connected = true;
         //	
         //	    	System.out.println("Connect done");
         		} else { 
@@ -128,8 +131,7 @@ public class Connect {
         //		System.out.println("WM done");
                 
         		if (reconnect) { 
-        			sender.close();
-        			sender = null;
+        			sender.disconnect(id);
         			connected = false;
         //			System.out.println("Disconnect done");
                }
@@ -174,9 +176,12 @@ public class Connect {
         // Create a send port for sending requests and connect.
         SendPort sender = null;
         
+        sender = myIbis.createSendPort(portType);
+        
+        ReceivePortIdentifier id = null;
+        
         if (!reconnect) { 
-        	sender = myIbis.createSendPort(portType);
-        	sender.connect(server, "server", 5000, true);
+        	id = sender.connect(server, "server", 5000, true);
         }
         
         System.out.println("Sending messages");
@@ -192,9 +197,8 @@ public class Connect {
     //    		System.out.println("R " + r + " C " + c);
         		
          		if (reconnect) { 
-         	       	sender = myIbis.createSendPort(portType);
         //	    	System.out.println("Connecting to " + server);
-         	       	sender.connect(server, "server", 5000, true);
+         	       	id = sender.connect(server, "server", 5000, true);
         //			System.out.println("Connected");
                 }
         		
@@ -221,8 +225,7 @@ public class Connect {
     //    		System.out.println("RM done");
         		
         		if (reconnect) { 
-        			sender.close();
-        			sender = null;
+        			sender.disconnect(id);
         //			System.out.println("Disconnected");
             	}    
         	}
@@ -281,7 +284,7 @@ public class Connect {
     public static void main(String args[]) {
     	
     	PortType portType = portTypeNormal;
-    	int bytes = 1;
+    	int bytes = 0;
     	int count = 1000;
     	int repeat = 10;
     	boolean reconnect = true;
