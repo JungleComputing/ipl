@@ -51,16 +51,10 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                     // don't really want that. So, we have a thread that only
                     // checks every second.
                     for (;;) {
-                        synchronized(this) {
-                            try {
-                                wait(1000);
-                            } catch(InterruptedException e) {
-                                // ignored
-                            }
-                        }
                         synchronized(port) {
                             // If there is a reader, or a message is active,
                             // continue.
+                            port.wait(100);
                             if (reader_busy || ((TcpReceivePort)port).getPortMessage() != null) {
                                 continue;
                             }
@@ -161,7 +155,6 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         if (logger.isDebugEnabled()) {
                             logger.debug(name + ": disconnect from " + origin);
                         }
-                        // FIXME!
                         //
                         // This is here to make sure the close is processed before a new 
                         // connections can be made (by the same sendport). Without this ack, 
@@ -171,22 +164,36 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         //
                         // Unfortunately, it also causes a deadlock in 1-to-1 explict receive 
                         // applications -- J
-                        // // Fixed by lazy connection handler thread.
-                        synchronized(port) {
-                            disconnectBusy++;
-                        }
-                        try {
-                            s.getOutputStream().write(0);
-                            close(null);
-                        } finally {
-                            synchronized(port) {
-                                disconnectBusy--;
-                                if (disconnectBusy == 0) {
-                                    port.notifyAll();
-                                }
-                            }
-                        }
+                        //
+                        // Fixed by lazy connection handler thread.
 
+                        try {
+                            in.close();
+                        }  catch(Throwable z) {
+                            // ignore
+                        }
+                        closed = true;
+                        in = null;
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(port.name + ": connection with " + origin
+                        	    + " closing");
+                        }
+                        
+                        port.lostConnection(origin, null);
+                        
+                        s.getOutputStream().write(0);
+                        
+                        try {
+                            dataIn.close();
+                        } catch(Throwable e) {
+                            // ignore
+                        }
+                        
+                        try {
+                            s.close();
+                        } catch(Throwable e) {
+                            // ignore
+                        }
                     }
                     break;
                 default:
@@ -200,18 +207,6 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     private final boolean lazy_connectionhandler_thread;
 
     private boolean reader_busy = false;
-
-    private int disconnectBusy = 0;
-
-    synchronized void waitForNoDisconnects() {
-        while (disconnectBusy > 0) {
-            try {
-                wait();
-            } catch(InterruptedException e) {
-                // ignored
-            }
-        }
-    }
 
     TcpReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
             ReceivePortConnectUpcall connUpcall, Properties props) throws IOException {

@@ -57,7 +57,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                         synchronized(port) {
                             // If there is a reader, or a message is active,
                             // continue.
-                            port.wait(1000);
+                            port.wait(100);
                             if (reader_busy || ((SmartSocketsReceivePort)port).getPortMessage() != null) {
                                 continue;
                             }
@@ -172,19 +172,32 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                         // applications -- J
                         
                         // Fixed by lazy connection handler thread. --Ceriel
-                        synchronized(port) {
-                            disconnectBusy++;
+                        try {
+                            in.close();
+                        } catch(Throwable z) {
+                            // ignore
+                        }
+
+                	closed = true;
+                        in = null;
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(port.name + ": connection with " + origin
+                                    + " closing");
+                        }
+                        
+                        port.lostConnection(origin, null);
+                        
+                        s.getOutputStream().write(0);
+                        
+                        try {
+                            dataIn.close();
+                        } catch(Throwable z) {
+                            // ignore
                         }
                         try {
-                            s.getOutputStream().write(0);
-                            close(null);
-                        } finally {
-                            synchronized(port) {
-                                disconnectBusy--;
-                                if (disconnectBusy == 0) {
-                                    port.notifyAll();
-                                }
-                            }
+                            s.close();
+                        } catch (Throwable x) {
+                            // ignore
                         }
                     }
                     break;
@@ -199,18 +212,6 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
     private final boolean lazy_connectionhandler_thread;
 
     private boolean reader_busy = false;    
-
-    private int disconnectBusy = 0;
-    
-    synchronized void waitForNoDisconnects() {
-        while (disconnectBusy > 0) {
-            try {
-                wait();
-            } catch(InterruptedException e) {
-                // ignored
-            }
-        }
-    }
 
     SmartSocketsReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
             ReceivePortConnectUpcall connUpcall, Properties props) throws IOException {

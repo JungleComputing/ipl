@@ -316,7 +316,6 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         }
 
         synchronized(rp) {
-            rp.waitForNoDisconnects();
             result = rp.connectionAllowed(send, sp);
         }
 
