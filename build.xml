@@ -360,7 +360,7 @@
         <delete dir="javadoc/ipl" />
         <mkdir dir="javadoc/ipl" />
         <javadoc destdir="javadoc/ipl" access="public" sourcepath="src" windowtitle="Ibis IPL Documentation" packagenames="ibis.ipl,ibis.ipl.server" classpathref="default.classpath" overview="src/overview.html" doctitle="Ibis IPL Documentation" bottom="The Ibis project">
-            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
+	    <link href="http://download.oracle.com/javase/1.5.0/docs/api/" />
 
             <tag name="ibis.experimental" description="WARNING: This is an Experimental feature of the IPL. It may not function correctly, future releases of the IPL may have a revised API for this feature, or it may be removed completely. " />
         </javadoc>

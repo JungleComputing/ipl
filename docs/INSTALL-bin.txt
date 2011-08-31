@@ -6,8 +6,8 @@ The Ibis software requires at least a 1.6 JDK version of Java. With a
 1.4 or older version of Java, this Ibis release will not run, and with
 a 1.5 release, the provided scripts will not run.  Suitable
 versions of Java can be obtained from the web.  IBM has versions for AIX
-(at http://www.ibm.com/developerworks/java), SUN has versions for
-Solaris, Linux, and Windows (at http://java.sun.com), and Apple has a
+(at http://www.ibm.com/developerworks/java), Oracle has versions for
+Solaris, Linux, and Windows (at http://www.oracle.com/technetwork/java/index.html), and Apple has a
 version for Mac OS X (at http://developer.apple.com/java).
 
 Building the provided example and benchmarks applications requires

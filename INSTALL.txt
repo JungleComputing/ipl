@@ -8,7 +8,7 @@ Ibis source release installation
     Suitable versions of Java can be obtained from the web.
     IBM has versions for Linux and AIX
     (at http://www.ibm.com/developerworks/java),
-    SUN has versions for Solaris, Linux, and Windows (at http://java.sun.com), 
+    Oracle has versions for Solaris, Linux, and Windows (at http://www.oracle.com/technetwork/java/index.html), 
     and Apple has a version for Mac OS X (at http://developer.apple.com/java).
 
     The Ibis build process requires `ant', a software building tool similar to
