@@ -45,10 +45,10 @@ public class RPC {
 	 * 
 	 * 
 	 * @param <InterfaceType>
-	 *            Type of Interface which defines all the remotely accessable
+	 *            Type of Interface which defines all the remotely accessible
 	 *            functions.
 	 * @param interfaceClass
-	 *            Interface which defines all the remotely accessable functions.
+	 *            Interface which defines all the remotely accessible functions.
 	 *            All functions in this interface must declare to throw a
 	 *            {@link RemoteException}.
 	 * @param theObject
