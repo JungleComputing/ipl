@@ -232,7 +232,7 @@ final class AlternativeTypeInfo {
     /**
      * Some Java-implementation-dependant stuff resides here.
      */
-    JavaDependantStuff javaDependantStuff;
+    private JavaDependantStuff javaDependantStuff;
 
     /** The sorted list of serializable fields. */
     Field[] serializable_fields;
@@ -380,7 +380,7 @@ final class AlternativeTypeInfo {
      * @return the object, or <code>null</code>.
      */
     public Object newInstance() {
-        return javaDependantStuff.newInstance();
+        return getJavaDependantStuff().newInstance();
     }
 
     /**
@@ -977,5 +977,17 @@ final class AlternativeTypeInfo {
                     e);
         }
         return c;
+    }
+    
+    public JavaDependantStuff getJavaDependantStuff() {
+	if (javaDependantStuff == null) {
+	    throw new Error("Unrecognized Java version, ibis serialization not supported. Java version = "
+		    + System.getProperty("java.version"));
+	}
+        return javaDependantStuff;
+    }
+
+    public void setJavaDependantStuff(JavaDependantStuff javaDependantStuff) {
+        this.javaDependantStuff = javaDependantStuff;
     }
 }
