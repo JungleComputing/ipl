@@ -534,6 +534,8 @@ final class AlternativeTypeInfo {
             javaDependantStuff = new HarmonyJavaStuff(clazz);
         } else if (DalvikJavaStuff.available) {
             javaDependantStuff = new DalvikJavaStuff(clazz);
+        } else if (ClasspathJavaStuff.available) {
+            javaDependantStuff = new ClasspathJavaStuff(clazz);
         }
 
         try {
