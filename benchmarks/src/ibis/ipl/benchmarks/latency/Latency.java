@@ -359,8 +359,6 @@ class UpcallSender implements MessageUpcall {
                 }
             }
             
-            readMessage.finish();
-
             Latency.logger.debug("SEND pre new");
             WriteMessage writeMessage = sport.newMessage();
             if (buffer != null) {
