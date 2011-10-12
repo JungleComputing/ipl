@@ -37,7 +37,7 @@ public class IPUtils {
          *            an InetAddress
          * @return int value indicating the order of the addresses
          */
-        private int compareAddress(InetAddress i1, InetAddress i2) {
+        private int compareAddress(InetAddress i1, InetAddress i2, int score) {
 
             // We have a preference for the shortest address (i.e., IPv4)
             byte[] tmp1 = i1.getAddress();
@@ -52,6 +52,15 @@ public class IPUtils {
 
                     int t1 = tmp1[i] & 0xFF;
                     int t2 = tmp2[i] & 0xFF;
+                    if (score == 4 && i == 0 && t1 == 192) {
+                        // Prefer other private IP addresses ....
+                        // 192.168.... is used for virtualization, at least
+                        // on our system, and does not work as a contact
+                        // address. All nodes in the system have the same
+                        // address. This is not a good fix. TODO!
+                        // --Ceriel
+                        return t1 - t2;
+                    }
                     return t2 - t1;
                 }
             }
@@ -107,7 +116,7 @@ public class IPUtils {
             int result = 0;
 
             if (score1 == score2) {
-                result = compareAddress(i1, i2);
+                result = compareAddress(i1, i2, score1);
             } else {
                 result = score1 - score2;
             }
