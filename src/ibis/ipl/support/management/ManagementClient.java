@@ -137,6 +137,7 @@ public class ManagementClient implements Runnable {
                                         + descriptions[i].getAttribute()
                                         + "\" of bean \""
                                         + descriptions[i].getBeanName() + "\"");
+                        return;
                     }
                 }
             }
