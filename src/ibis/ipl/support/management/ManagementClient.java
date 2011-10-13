@@ -132,12 +132,11 @@ public class ManagementClient implements Runnable {
                         result[i] = getAttributeMethod.invoke(beanServer,
                                 objectName, descriptions[i].getAttribute());
                     } catch (Throwable t) {
-                        connection
-                                .closeWithError("cannot get value for attribute \""
+                        logger.error("cannot get value for attribute \""
                                         + descriptions[i].getAttribute()
                                         + "\" of bean \""
                                         + descriptions[i].getBeanName() + "\"");
-                        return;
+                        result[i] = null;
                     }
                 }
             }
