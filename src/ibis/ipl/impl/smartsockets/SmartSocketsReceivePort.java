@@ -47,27 +47,46 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         }
 
         public void run() {
-            logger.info("Started connection handler thread, in = " + in);
+            logger.info("Started connection handler thread");
             try {
                 if (lazy_connectionhandler_thread) {
+                    int interval = 10;
                     // For disconnects, there must be a reader thread, but we
                     // don't really want that. So, we have a thread that only
                     // checks every second.
                     for (;;) {
+                	if (logger.isDebugEnabled()) {
+                	    logger.debug("lazy handler sleeping " + interval + " ms.");
+                	}
+                	synchronized(this) {
+                	    // Wait on this handler. We cannot use the port for this,
+                	    // since that one wakes up when finish() is called on a message.
+                	    try {
+                		wait(interval);
+                	    } catch(Throwable e) {
+                		// ignore
+                	    }
+                	}
                         synchronized(port) {
                             // If there is a reader, or a message is active,
                             // continue.
-                            port.wait(100);
                             if (reader_busy || ((SmartSocketsReceivePort)port).getPortMessage() != null) {
+                        	if (logger.isDebugEnabled()) {
+                        	    logger.debug("lazy handler woke up, continues");
+                        	}
+                        	if (interval < 1000) {
+                        	    interval += 10;
+                        	}
                                 continue;
                             }
 			    if (closed) {
                                 return;
                             }
                             reader_busy = true;
+                            interval = 10;
                         }
                         if (logger.isInfoEnabled()) {
-                            logger.info("Lazy thread starting read ...");
+                            logger.info("lazy handler starting read ...");
                         }
                         reader(true);
                         synchronized(port) {
@@ -138,6 +157,12 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                                 + origin);
                     }
                     close(null);
+                    if (lazy_connectionhandler_thread && ! fromHandlerThread) {
+                        // Wake up the connection handler thread so that it can die.
+                        synchronized(this) {
+                            notifyAll();
+                        }
+                    }
                     return;
                 case CLOSE_ONE_CONNECTION:
                     if (logger.isDebugEnabled()) {
@@ -198,6 +223,12 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                             s.close();
                         } catch (Throwable x) {
                             // ignore
+                        }
+                        if (lazy_connectionhandler_thread && ! fromHandlerThread) {
+                            // Wake up the connection handler thread so that it can die.
+                            synchronized(this) {
+                        	notifyAll();
+                            }
                         }
                     }
                     break;
