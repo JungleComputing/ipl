@@ -18,6 +18,7 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.registry.Registry;
 import ibis.ipl.support.management.ManagementClient;
+import ibis.ipl.support.management.MpiManagementService;
 import ibis.ipl.support.vivaldi.Coordinates;
 import ibis.ipl.support.vivaldi.VivaldiClient;
 import ibis.util.TypedProperties;
@@ -71,6 +72,9 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     /** Management Client */
     private final ManagementClient managementClient;
 
+    /** Management Client */
+    private final MpiManagementService mpiManagementService;
+    
     /** Vivaldi Client */
     private final VivaldiClient vivaldiClient;
 
@@ -89,6 +93,10 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     private HashMap<ibis.ipl.IbisIdentifier, Long> sentBytesPerIbis = null;
     
     private HashMap<ibis.ipl.IbisIdentifier, Long> receivedBytesPerIbis = null;
+    
+    //NEW MPI STUFF
+    private int mpiId = -1;
+    private HashMap<Integer, Long> sentMPIBytesPerIbis = null;
 
     /** Counter for allocating names for anonymous sendports. */
     private static int send_counter = 0;
@@ -219,6 +227,18 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             sentBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
             receivedBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
         }
+        
+        if (properties.getBooleanProperty("ibis.MPI_bytescount")) {
+        	try {
+        		mpiManagementService = new MpiManagementService(this);
+        		sentMPIBytesPerIbis = new HashMap<Integer, Long>();
+            } catch (Exception e) {
+                throw new IbisCreationFailedException(
+                        "Could not create mpi managment service", e);
+            } 
+        } else {
+        	mpiManagementService = null;
+        }
 
         if (properties.getBooleanProperty("ibis.managementclient")) {
             try {
@@ -315,6 +335,10 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         if (managementClient != null) {
             managementClient.end();
         }
+        
+        if (mpiManagementService != null) {
+        	mpiManagementService.end();
+        }
 
         if (vivaldiClient != null) {
             vivaldiClient.end();
@@ -388,6 +412,22 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             }
             receivedBytesPerIbis.put(i, new Long(cnt));
         }
+    }
+
+    //NEW MPI STUFF
+    public synchronized void setMPIid(int mpi_id) {
+        mpiId = mpi_id;
+    }
+
+    public synchronized void addMPISentPerIbis(long amount, int to_mpi_id) {
+        if (sentMPIBytesPerIbis == null) {
+            return;
+        }
+        Long oldval = sentMPIBytesPerIbis.get(ident);
+        if (oldval != null) {
+        	amount += oldval.longValue();
+        }
+        sentMPIBytesPerIbis.put(to_mpi_id, new Long(amount));        
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -747,6 +787,18 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             return null;
         }
         return new HashMap<ibis.ipl.IbisIdentifier, Long>(receivedBytesPerIbis);
+    }
+    
+    //NEW MPI STUFF
+    public synchronized int getMPIid() {
+        return mpiId;
+    }
+    
+    public synchronized Map<Integer, Long> getSentMPIBytesPerIbis() {
+        if (sentMPIBytesPerIbis == null) {
+            return null;
+        }
+        return new HashMap<Integer, Long>(sentMPIBytesPerIbis);
     }
     
     /**

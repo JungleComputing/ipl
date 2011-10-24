@@ -12,6 +12,7 @@ import ibis.util.ThreadPool;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -27,7 +28,7 @@ public class ManagementClient implements Runnable {
     private final VirtualSocketFactory virtualSocketFactory;
 
     private final VirtualServerSocket serverSocket;
-
+    
     private final Ibis ibis;
 
     private boolean ended;
