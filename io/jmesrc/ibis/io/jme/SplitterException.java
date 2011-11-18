@@ -13,7 +13,7 @@ public class SplitterException extends IOException {
      */
     private static final long serialVersionUID = 9005051418523286737L;
 
-    private Vector streams = new Vector();
+    private transient Vector streams = new Vector();
 
     private Vector exceptions = new Vector();
 

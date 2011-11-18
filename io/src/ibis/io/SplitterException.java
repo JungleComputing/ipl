@@ -13,7 +13,9 @@ public class SplitterException extends IOException {
      */
     private static final long serialVersionUID = 9005051418523286737L;
 
-    private ArrayList<OutputStream> streams = new ArrayList<OutputStream>();
+    // Transient, because OutputStream is not Serializable. (Thanks, Selmar Smit!)
+    // Note that some of the methods here are meaningless after serialization.
+    private transient ArrayList<OutputStream> streams = new ArrayList<OutputStream>();
 
     private ArrayList<Exception> exceptions = new ArrayList<Exception>();
 
