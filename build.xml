@@ -8,7 +8,7 @@
     <!-- Names for generated directories. -->
     <property name="javadoc" value="javadoc/ipl" />
 
-    <property name="version" value="2.2" />
+    <property name="version" value="2.3-pre" />
     <property name="version-tag" value="-${version}" />
 
     <property name="sources-filename" value="ipl${version-tag}-sources" />
