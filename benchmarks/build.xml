@@ -14,6 +14,7 @@
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
     <property name="jar" location="lib/ipl-benchmarks${version-tag}.jar" />
+    <property name="build.sysclasspath" value="ignore"/>
 
     <target name="build" description="build the benchmarks">
         <!-- Clean up -->

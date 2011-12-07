@@ -19,6 +19,8 @@
          override with ant -Dsmartsockets=/location/of/smartsockets/lib -->
     <property name="smartsockets" value="external/smartsockets" />
 
+    <property name="build.sysclasspath" value="ignore"/>
+
     <!-- import environment properties -->
     <property environment="env" />
 

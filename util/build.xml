@@ -14,6 +14,8 @@
 
     <property name="jar" location="${lib}/${ant.project.name}${version-tag}.jar" />
     <property name="sources-filename" value="${ant.project.name}${version-tag}-sources" />
+    <property name="build.sysclasspath" value="ignore"/>
+
 
     <path id="external_jars">
         <fileset dir="${lib}">

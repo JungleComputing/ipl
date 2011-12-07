@@ -12,6 +12,8 @@
     <property name="external" location="../external" />
     <property name="sources" value="../sources" />
 
+    <property name="build.sysclasspath" value="ignore"/>
+
     <property name="version-tag" value="" />
 
     <property name="jar" location="${lib}/${ant.project.name}${version-tag}.jar" />

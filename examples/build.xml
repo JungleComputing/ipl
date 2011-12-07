@@ -15,6 +15,8 @@
     <property name="lib" location="lib" />
     <property name="jar" location="lib/ipl-examples${version-tag}.jar" />
 
+    <property name="build.sysclasspath" value="ignore"/>
+
     <target name="build" description="build the examples">
         <!-- Clean up -->
         <delete dir="${tmp}" />
