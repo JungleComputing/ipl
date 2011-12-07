@@ -57,7 +57,7 @@ public final class IbisFactory {
 
     private static IbisFactory defaultFactory;
 
-    private static final String VERSION = "2.2";
+    private static final String VERSION = "2.3";
     
     private static Properties manifestProperties = new Properties();
     
