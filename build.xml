@@ -8,6 +8,7 @@
     <!-- Names for generated directories. -->
     <property name="javadoc" value="javadoc/ipl" />
 
+    <!-- If you change the version number, change it in IbisFactory.java as well! -->
     <property name="version" value="2.3-pre" />
     <property name="version-tag" value="-${version}" />
 
