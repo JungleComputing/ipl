@@ -24,8 +24,3 @@ Windows 2000, Windows XP
     You can set the IPL_HOME environment variable to this path by going to
     the Control Panel, System, the "Advanced" tab, Environment variables,
     add it there and reboot your system.
-
-Cygwin
-    There is a separate ipl-run script for Cygwin in the bin directory, 
-    called ipl-run.cygwin. It is wise to move that to ipl-run.
-

@@ -9,7 +9,7 @@
     <property name="javadoc" value="javadoc/ipl" />
 
     <!-- If you change the version number, change it in IbisFactory.java as well! -->
-    <property name="version" value="2.3-pre" />
+    <property name="version" value="2.3" />
     <property name="version-tag" value="-${version}" />
 
     <property name="sources-filename" value="ipl${version-tag}-sources" />
@@ -388,7 +388,7 @@
 
         <zip destfile="ipl${version-tag}.zip">
             <zipfileset dir="." prefix="ipl${version-tag}" includes="javadoc/**,docs/*.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,HISTORY.txt,README.txt,sources/**,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**,benchmarks/**" excludes="examples/.*,examples/.*/**" />
-            <zipfileset dir="." prefix="ipl${version-tag}" filemode="755" includes="bin/**" />
+            <zipfileset dir="." prefix="ipl${version-tag}" filemode="755" includes="scripts/**" />
             <zipfileset dir="." includes="docs/INSTALL-bin.txt" fullpath="ipl${version-tag}/INSTALL.txt" />
         </zip>
 

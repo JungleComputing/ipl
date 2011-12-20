@@ -1,4 +1,23 @@
 Here is a list of Ibis releases.
+2.3 (?? Jan 2012)
+   Some small changes to the IPL:
+   - WriteMessage now has a writeByteBuffer method, ReadMessage now has a
+     readByteBuffer method.
+   - IbisFactory now allows '|' and ';' as separator character in a list of
+     ibis implementations, in addition to ','.
+   - there now are base classes for all Ibis exceptions: IbisException, IbisIOException,
+     and IbisRuntimeException.
+   - Added some %-escapes in the LOCATION property that allow inclusion of hostname,
+     domain, et cetera.
+   TCP Ibis no longer can use smartsockets for its connections. We have SmartSockets Ibis
+   for that.
+   Various additions that enable f.i. IbisDeploy to monitor a running IPL application.
+   Ibis Util now contains a simple RPC implementation.
+   The included BCEL version has been replaced with a newer version.
+   Fixed a possible race when doing sequences of connect/disconnect calls.
+   Fixed a possible deadlock in one-to-one, explicit receive connections.
+   Fixed a couple of bugs in Ibis serialization.
+   Ibis serialization now also supports ClassPath java libraries (and gcj).
 
 2.2 (12 Nov 2009)
    Many changes and fixes. There now is a separate smartsockets Ibis,

@@ -39,7 +39,7 @@ possible between two instances due to firewalls or NAT boxes. This is
 done using the Smartsockets library of the Ibis project.
 
 The Ibis server is started with the \texttt{ipl-server} script which is
-located in the \texttt{bin} directory of the Ibis distribution.  Before
+located in the \texttt{scripts} directory of the Ibis distribution.  Before
 starting an Ibis application, an Ibis server needs to be running on a
 machine that is accessible from all nodes participating in the Ibis run.
 The server listens to a TCP port. The port number can be specified using
@@ -88,7 +88,7 @@ directory, on the class path, and at a location specified with the
 
 An application interfaces to Ibis using the \emph{Ibis Portability Layer} (IPL).
 The code for this package is provided in a single jar file:
-ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.2.jar}.
+ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.3.jar}.
 It lives in the \emph{lib} directory of the Ibis distribution.
 This jar file needs to be added to the class path of the application.
 
@@ -215,7 +215,7 @@ run the \texttt{ipl-server} script:
 \noindent
 {\small
 \begin{verbatim}
-$ $IPL_HOME/bin/ipl-server --events
+$ $IPL_HOME/scripts/ipl-server --events
 \end{verbatim}
 }
 \noindent
@@ -232,7 +232,7 @@ and server. Run the following command in two different shells:
 {\small
 \begin{verbatim}
 $ CLASSPATH=$IPL_HOME/examples/lib/ipl-examples.jar \
-    $IPL_HOME/bin/ipl-run \
+    $IPL_HOME/scripts/ipl-run \
     -Dibis.server.address=localhost -Dibis.pool.name=test \
     ibis.ipl.examples.Hello
 \end{verbatim}
@@ -254,7 +254,7 @@ the application without ipl-run, the following command can be used:
 \begin{verbatim}
 $ java \
     -cp \
-    $IPL_HOME/lib/ipl-2.2.jar:$IPL_HOME/examples/lib/ipl-examples.jar \
+    $IPL_HOME/lib/ipl-2.3.jar:$IPL_HOME/examples/lib/ipl-examples.jar \
     -Dibis.implementation.path=$IPL_HOME/lib \
     -Dibis.server.address=localhost \
     -Dibis.pool.name=test \
@@ -279,7 +279,7 @@ run the \texttt{ipl-server} script:
 \noindent
 {\small
 \begin{verbatim}
-C:\DOCUME~1\Temp> "%IPL_HOME%"\bin\ipl-server --events
+C:\DOCUME~1\Temp> "%IPL_HOME%"\scripts\ipl-server --events
 \end{verbatim}
 }
 \noindent
@@ -301,7 +301,7 @@ line.
 {\small
 \begin{verbatim}
 C:\DOCUME~1\Temp> set CLASSPATH=%IPL_HOME%\examples\lib\ipl-examples.jar
-C:\DOCUME~1\Temp> "%IPL_HOME%"\bin\ipl-run
+C:\DOCUME~1\Temp> "%IPL_HOME%"\scripts\ipl-run
     "-Dibis.server.address=localhost" "-Dibis.pool.name=test"
     ibis.ipl.examples.Hello
 \end{verbatim}
@@ -324,7 +324,7 @@ This should just be a single line.
 {\small
 \begin{verbatim}
 C:\DOCUME~1\Temp> java
-    -cp "%IPL_HOME%"\lib\ipl-2.2.jar;"%IPL_HOME%"\examples\lib\ipl-examples.jar
+    -cp "%IPL_HOME%"\lib\ipl-2.3.jar;"%IPL_HOME%"\examples\lib\ipl-examples.jar
     -Dibis.implementation.path="%IPL_HOME%"\lib
     -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties
     -Dibis.server.address=localhost -Dibis.pool.name=test

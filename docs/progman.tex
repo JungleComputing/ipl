@@ -398,13 +398,13 @@ properties of Ibis and their usage.
 %-- add ipl.jar to classpath, rewrite using iplc, example ant build file.
 
 Applications that use Ibis can be compiled as any normal Java
-application. The file \texttt{ipl-2.2.jar} needs to be added to the
+application. The file \texttt{ipl-2.3.jar} needs to be added to the
 classpath when compiling (and running) an Ibis application. For the
 serialization of Ibis to function correctly, one additional step is
 required after compiling: the code for writing and reading objects must
 be generated. The \emph{Ibis compiler} application is available for
 this purpose. It can be run by using the \texttt{iplc}
-script in the \texttt{bin} directory of the distribution. The Ibis
+script in the \texttt{scripts} directory of the distribution. The Ibis
 compiler needs to be passed the class files of the application, either
 as a directory containing classes, or as a jar file.
 
@@ -420,7 +420,7 @@ distribution. The relevant piece of the script is this:
       taskname="Ibisc"
       failonerror="true"
       fork="true">
-          <arg line="ipl-examples-2.2.jar" />
+          <arg line="ipl-examples-2.3.jar" />
           <classpath refid="default.classpath" />
 </java>
 \end{verbatim}

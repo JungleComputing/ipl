@@ -9,4 +9,4 @@ if [ -z "$IPL_HOME" ];  then
     exit 1
 fi
 
-exec "$IPL_HOME"/bin/ipl-run ibis.ipl.server.Server "$@"
+exec "$IPL_HOME"/scripts/ipl-run ibis.ipl.server.Server "$@"
