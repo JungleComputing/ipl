@@ -19,5 +19,5 @@ fi
 # Note: this requires Java 6
 exec $AFFINITY java \
     -classpath "$CLASSPATH:$IPL_HOME/lib/"'*' \
-    -Dlog4j.configuration=file:$IPL_HOME/log4j.properties \
+    -Dlog4j.configuration=file:"$IPL_HOME"/log4j.properties \
     "$@"
