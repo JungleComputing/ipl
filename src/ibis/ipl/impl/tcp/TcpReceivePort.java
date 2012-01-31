@@ -42,26 +42,42 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
 
         public void run() {
-            logger.info("Started "
-		 + (lazy_connectionhandler_thread ? "lazy " : "")
-		 + "connection handler thread");
+            logger.info("Started connection handler thread");
             try {
                 if (lazy_connectionhandler_thread) {
+                    int interval = 10;
                     // For disconnects, there must be a reader thread, but we
                     // don't really want that. So, we have a thread that only
                     // checks every second.
                     for (;;) {
+                	if (logger.isDebugEnabled()) {
+                	    logger.debug("lazy handler sleeping " + interval + " ms.");
+                	}
+                	synchronized(this) {
+                	    // Wait on this handler. We cannot use the port for this,
+                	    // since that one wakes up when finish() is called on a message.
+                	    try {
+                		wait(interval);
+                	    } catch(Throwable e) {
+                		// ignore
+                	    }
+                	}
+                	
                         synchronized(port) {
-                            // If there is a reader, or a message is active,
-                            // continue.
-                            port.wait(100);
                             if (reader_busy || ((TcpReceivePort)port).getPortMessage() != null) {
+                        	if (logger.isDebugEnabled()) {
+                        	    logger.debug("lazy handler woke up, continues");
+                        	}
+                        	if (interval < 1000) {
+                        	    interval += 10;
+                        	}
                                 continue;
                             }
 			    if (closed) {
 				return;
                             }
                             reader_busy = true;
+                            interval = 10;
                         }
                         if (logger.isInfoEnabled()) {
                             logger.info("Lazy thread starting read ...");
@@ -135,6 +151,12 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                                 + origin);
                     }
                     close(null);
+                    if (lazy_connectionhandler_thread && ! fromHandlerThread) {
+                        // Wake up the connection handler thread so that it can die.
+                        synchronized(this) {
+                            notifyAll();
+                        }
+                    }
                     return;
                 case CLOSE_ONE_CONNECTION:
                     if (logger.isDebugEnabled()) {
@@ -151,10 +173,12 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                     ReceivePortIdentifier identifier
                             = new ReceivePortIdentifier(bytes);
                     if (ident.equals(identifier)) {
-                        // Sendport is disconnecting from me.
+                	// Sendport is disconnecting from me.
                         if (logger.isDebugEnabled()) {
-                            logger.debug(name + ": disconnect from " + origin);
+                            logger.debug(name + ": disconnect from " + origin
+                                    + ", fromHandlerThread = " + fromHandlerThread);
                         }
+                        
                         //
                         // This is here to make sure the close is processed before a new 
                         // connections can be made (by the same sendport). Without this ack, 
@@ -194,6 +218,12 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         } catch(Throwable e) {
                             // ignore
                         }
+                        if (lazy_connectionhandler_thread && ! fromHandlerThread) {
+                            // Wake up the connection handler thread so that it can die.
+                            synchronized(this) {
+                        	notifyAll();
+                            }
+                        }                        
                     }
                     break;
                 default:
