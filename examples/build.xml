@@ -40,7 +40,6 @@
         <javac srcdir="${src}"
                destdir="${tmp}"
                debug="on"
-               source="1.5"
                target="1.5"
                classpathref="default.classpath">
             <compilerarg value="-Xlint:unchecked" />
