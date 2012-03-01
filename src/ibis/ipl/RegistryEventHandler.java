@@ -66,7 +66,7 @@ public interface RegistryEventHandler {
      * Upcall generated when one or more Ibisses are sent a signal.
      * 
      * This call can only be the result of a
-     * {@link Registry#signal(String, IbisIdentifier[])} call. It is always the
+     * {@link Registry#signal(String, IbisIdentifier...)} call. It is always the
      * result of a call by the application. How the receiver of this upcall
      * reacts to this is up to the application.
      * 

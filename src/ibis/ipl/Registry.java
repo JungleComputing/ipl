@@ -106,7 +106,7 @@ public interface Registry extends Manageable {
     public void assumeDead(IbisIdentifier ibisIdentifier) throws IOException;
 
     /**
-     * Send a signal to one or more Ibisses. This results in a
+     * Send a signal to one or more Ibis instances. This results in a
      * {@link RegistryEventHandler#gotSignal(String,IbisIdentifier)} upcall on
      * all Ibis instances in the given list. It is up to the application to
      * react accordingly.
@@ -115,9 +115,7 @@ public interface Registry extends Manageable {
      *            the value of the signal. Useful if more than one type of
      *            signal is needed.
      * @param ibisIdentifiers
-     *            the ibisses to wich the signal is sent. if this parameter is
-     *            null, the signal is broadcasted to all ibisses currently in
-     *            the pool.
+     *            the ibis instances to which the signal is to be sent.
      * @exception IOException
      *                is thrown in case of trouble.
      */
