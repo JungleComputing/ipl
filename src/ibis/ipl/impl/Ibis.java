@@ -692,7 +692,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         long bytesRead = this.bytesRead;
         // also add numbers for current receive ports
         for (ReceivePort receivePort : receivePorts.values()) {
-            bytesRead += receivePort.getBytesReceived();
+            bytesRead += receivePort.getBytesRead();
         }
 
         return bytesRead;
