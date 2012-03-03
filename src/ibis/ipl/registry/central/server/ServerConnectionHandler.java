@@ -163,7 +163,7 @@ final class ServerConnectionHandler implements Runnable {
 
         pool.gotHeartbeat(member.getIbis());
 
-        // logger.info("dataRead = " + (start - dataRead) + ", poolRetrieved = "
+        // logger.debug("dataRead = " + (start - dataRead) + ", poolRetrieved = "
         // + (poolRetrieved - dataRead) + ", joinDone = " + (joinDone -
         // poolRetrieved) + ", datawritten = " + (dataWritten - joinDone));
 
@@ -496,7 +496,7 @@ final class ServerConnectionHandler implements Runnable {
         }
         if (logger.isInfoEnabled()) {
             synchronized (this) {
-                logger.info("max simultanious connections was: "
+                logger.debug("max simultanious connections was: "
                         + maxNrOfThreads);
             }
         }

@@ -353,7 +353,7 @@ final class CommunicationHandler implements Runnable {
                     }
                     return;
                 } catch (Exception e) {
-                    logger.info("bootstrap with " + ibis
+                    logger.error("bootstrap with " + ibis
                             + " failed, trying next one", e);
                 } finally {
                     if (connection != null) {
@@ -621,7 +621,7 @@ final class CommunicationHandler implements Runnable {
             if (connection != null) {
                 connection.close();
             }
-            logger.info(identifier + ": could not send heartbeat to server", e);
+            logger.error(identifier + ": could not send heartbeat to server", e);
             return false;
         }
     }
@@ -995,7 +995,7 @@ final class CommunicationHandler implements Runnable {
         long done = System.currentTimeMillis();
 
         if (opcode == Protocol.OPCODE_BROADCAST) {
-            logger.info("readPoolName = " + (readPoolName - start)
+            logger.debug("readPoolName = " + (readPoolName - start)
                     + ", gatheredPoolData = "
                     + (gatheredPoolData - readPoolName) + ", gatheredData = "
                     + (gatheredData - gatheredPoolData) + ", sendData = "

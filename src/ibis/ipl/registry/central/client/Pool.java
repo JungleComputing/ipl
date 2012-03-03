@@ -279,7 +279,7 @@ final class Pool {
             }
             long statted = System.currentTimeMillis();
 
-            logger.info("pool init, read = " + (read - start) + ", locked = "
+            logger.debug("pool init, read = " + (read - start) + ", locked = "
                     + (locked - read) + ", membersDone = "
                     + (membersDone - locked) + ", used = "
                     + (used - membersDone) + ", handled = " + (handled - used)
@@ -503,9 +503,9 @@ final class Pool {
      * Handles incoming events, passes events to the registry
      */
     private void handleEvents() {
-        logger.info("handling events");
+        logger.debug("handling events");
         if (!isInitialized()) {
-            logger.info("handle events: not initialized yet");
+            logger.debug("handle events: not initialized yet");
             return;
         }
 
@@ -520,7 +520,7 @@ final class Pool {
 
                 if (event == null) {
                     logger
-                            .info("done handling events, event time now: "
+                            .debug("done handling events, event time now: "
                                     + time);
                     return;
                 }

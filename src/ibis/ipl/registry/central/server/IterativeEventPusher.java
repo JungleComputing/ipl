@@ -114,18 +114,18 @@ final class IterativeEventPusher implements Runnable {
 
             if (useTree) {
                 children = pool.getChildren();
-                if (logger.isInfoEnabled()) {
+                if (logger.isDebugEnabled()) {
                     String message = "broadcasting to " + children.length + " children:";
                     for (Member member : children) {
                         message += "\n" + member;
                     }
-                    logger.info(message);
+                    logger.debug(message);
                 }
             } else {
                 children = pool.getMembers();
             }
 
-            logger.info("updating " + children.length
+            logger.debug("updating " + children.length
                     + " nodes in pool (pool size = " + pool.getSize()
                     + ") to event-time " + eventTime + " using tree: "
                     + useTree);
@@ -139,7 +139,7 @@ final class IterativeEventPusher implements Runnable {
 
             workQ.waitUntilDone();
 
-            logger.info("DONE updating nodes in pool to event-time "
+            logger.debug("DONE updating nodes in pool to event-time "
                     + eventTime);
 
             pool.purgeHistory();

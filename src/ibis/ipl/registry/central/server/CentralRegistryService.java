@@ -26,17 +26,15 @@ import org.slf4j.LoggerFactory;
  * Server for the centralized registry implementation.
  * 
  */
-public final class CentralRegistryService extends Thread implements Service,
-        RegistryServiceInterface {
+public final class CentralRegistryService extends Thread implements Service, RegistryServiceInterface {
 
     // public static final int VIRTUAL_PORT = 302;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(CentralRegistryService.class);
+    private static final Logger logger = LoggerFactory.getLogger(CentralRegistryService.class);
 
-    //do we remove old, terminated pools or not?
-    //we shouldn't, but the ipl used to, so we keep this for backwards
-    //compatibility for now.
+    // do we remove old, terminated pools or not?
+    // we shouldn't, but the ipl used to, so we keep this for backwards
+    // compatibility for now.
     public static final boolean REMOVE_ENDED_POOLS = true;
 
     private static final long POOL_CLEANUP_TIMEOUT = 60 * 1000;
@@ -62,23 +60,18 @@ public final class CentralRegistryService extends Thread implements Service,
      * @param socketFactory
      * @throws IOException
      */
-    public CentralRegistryService(TypedProperties properties,
-            VirtualSocketFactory socketFactory, ControlPolicy policy)
+    public CentralRegistryService(TypedProperties properties, VirtualSocketFactory socketFactory, ControlPolicy policy)
             throws IOException {
         this.socketFactory = socketFactory;
 
-        TypedProperties typedProperties = RegistryProperties
-                .getHardcodedProperties();
+        TypedProperties typedProperties = RegistryProperties.getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        printStats = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_STATS);
+        printStats = typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        printEvents = typedProperties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors = typedProperties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new TreeMap<String, Pool>();
 
@@ -87,8 +80,7 @@ public final class CentralRegistryService extends Thread implements Service,
 
         ThreadPool.createNew(this, "Central Registry Service");
 
-        logger.debug("Started Central Registry service on virtual port "
-                + Protocol.VIRTUAL_PORT);
+        logger.debug("Started Central Registry service on virtual port " + Protocol.VIRTUAL_PORT);
     }
 
     synchronized Pool getPool(String poolName) {
@@ -105,22 +97,17 @@ public final class CentralRegistryService extends Thread implements Service,
     }
 
     // atomic get/create pool
-    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap,
-            long heartbeatInterval, long eventPushInterval, boolean gossip,
-            long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize, boolean keepStatistics,
-            long statisticsInterval, boolean purgeHistory,
+    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap, long heartbeatInterval,
+            long eventPushInterval, boolean gossip, long gossipInterval, boolean adaptGossipInterval, boolean tree,
+            boolean closedWorld, int poolSize, boolean keepStatistics, long statisticsInterval, boolean purgeHistory,
             String implementationVersion) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || (result.hasEnded() && REMOVE_ENDED_POOLS)) {
 
-            result = new Pool(poolName, socketFactory, peerBootstrap,
-                    heartbeatInterval, eventPushInterval, gossip,
-                    gossipInterval, adaptGossipInterval, tree, closedWorld,
-                    poolSize, keepStatistics, statisticsInterval,
-                    implementationVersion, printEvents, printErrors,
-                    purgeHistory);
+            result = new Pool(poolName, socketFactory, peerBootstrap, heartbeatInterval, eventPushInterval, gossip,
+                    gossipInterval, adaptGossipInterval, tree, closedWorld, poolSize, keepStatistics,
+                    statisticsInterval, implementationVersion, printEvents, printErrors, purgeHistory);
             pools.put(poolName, result);
         }
 
@@ -156,8 +143,7 @@ public final class CentralRegistryService extends Thread implements Service,
     }
 
     public String toString() {
-        return "Central Registry service on virtual port "
-                + Protocol.VIRTUAL_PORT;
+        return "Central Registry service on virtual port " + Protocol.VIRTUAL_PORT;
     }
 
     // pool cleanup thread
@@ -165,17 +151,13 @@ public final class CentralRegistryService extends Thread implements Service,
 
         while (!stopped) {
             if (pools.size() > 0) {
-                if (printStats) {
-                    System.err.printf("%tT list of pools:\n", System
-                            .currentTimeMillis());
-                    System.err
-                            .println("     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED TERMINATED ENDED");
-                }
+                String message = "list of pools:\n"
+                        + "     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED TERMINATED ENDED\n";
 
                 // copy values to new array so we can do "remove" on original
                 for (Pool pool : pools.values().toArray(new Pool[0])) {
                     if (printStats) {
-                        System.err.println(pool.getStatsString());
+                        message = message + pool.getStatsString() + "\n";
                     }
 
                     if (pool.hasEnded()) {
@@ -188,6 +170,14 @@ public final class CentralRegistryService extends Thread implements Service,
                         }
                     }
 
+                }
+
+                if (printStats) {
+                    if (logger.isInfoEnabled()) {
+                        logger.info(message);
+                    } else {
+                        System.err.println(message);
+                    }
                 }
 
             }

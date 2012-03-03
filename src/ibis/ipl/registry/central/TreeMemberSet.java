@@ -110,7 +110,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
         long done = System.currentTimeMillis();
 
-        logger.info("TreeMemberSet.init(): read = " + (read - start)
+        logger.debug("TreeMemberSet.init(): read = " + (read - start)
                 + ", stream = " + (stream - read) + ", done = "
                 + (done - stream));
 
