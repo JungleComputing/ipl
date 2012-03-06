@@ -353,7 +353,7 @@ final class CommunicationHandler implements Runnable {
                     }
                     return;
                 } catch (Exception e) {
-                    logger.error("bootstrap with " + ibis
+                    logger.info("bootstrap with " + ibis
                             + " failed, trying next one", e);
                 } finally {
                     if (connection != null) {
@@ -621,7 +621,7 @@ final class CommunicationHandler implements Runnable {
             if (connection != null) {
                 connection.close();
             }
-            logger.error(identifier + ": could not send heartbeat to server", e);
+            logger.info(identifier + ": could not send heartbeat to server", e);
             return false;
         }
     }
