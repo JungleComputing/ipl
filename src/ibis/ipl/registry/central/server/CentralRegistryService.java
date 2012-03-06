@@ -48,6 +48,8 @@ public final class CentralRegistryService extends Thread implements Service, Reg
     private final boolean printEvents;
 
     private final boolean printErrors;
+    
+    private final int connectTimeout;
 
     private ServerConnectionHandler handler;
 
@@ -72,6 +74,8 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         printEvents = typedProperties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
         printErrors = typedProperties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        
+        connectTimeout = typedProperties.getIntProperty(RegistryProperties.SERVER_CONNECT_TIMEOUT) * 1000;
 
         pools = new TreeMap<String, Pool>();
 
@@ -107,7 +111,7 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
             result = new Pool(poolName, socketFactory, peerBootstrap, heartbeatInterval, eventPushInterval, gossip,
                     gossipInterval, adaptGossipInterval, tree, closedWorld, poolSize, keepStatistics,
-                    statisticsInterval, implementationVersion, printEvents, printErrors, purgeHistory);
+                    statisticsInterval, connectTimeout, implementationVersion, printEvents, printErrors, purgeHistory);
             pools.put(poolName, result);
         }
 

@@ -32,9 +32,6 @@ final class Pool implements Runnable {
 
     public static final int BOOTSTRAP_LIST_SIZE = 25;
 
-    // 10 seconds connect timeout
-    private static final int CONNECT_TIMEOUT = 10000;
-
     // minimum time between two "ping" attempts if maybeDead() was
     // called by the user
     private static final long RECENTLY_SEEN_THRESHOLD = 1000;
@@ -78,6 +75,8 @@ final class Pool implements Runnable {
     private final boolean printErrors;
 
     private final boolean purgeHistory;
+    
+    private final int connectTimeout;
 
     // statistics are only kept on the request of the user
 
@@ -104,7 +103,7 @@ final class Pool implements Runnable {
     Pool(String name, VirtualSocketFactory socketFactory, boolean peerBootstrap, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize, boolean keepStatistics, long statisticsInterval,
-            String implementationVersion, boolean printEvents, boolean printErrors, boolean purgeHistory) {
+            int connectTimeout, String implementationVersion, boolean printEvents, boolean printErrors, boolean purgeHistory) {
         print("creating new pool: \"" + name + "\"");
 
         this.name = name;
@@ -119,6 +118,7 @@ final class Pool implements Runnable {
         this.printEvents = printEvents;
         this.printErrors = printErrors;
         this.purgeHistory = purgeHistory;
+        this.connectTimeout = connectTimeout;
 
         if (keepStatistics) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
@@ -626,7 +626,7 @@ final class Pool implements Runnable {
         try {
 
             logger.debug("creating connection to " + member);
-            connection = new Connection(member.getIbis(), CONNECT_TIMEOUT, true, socketFactory, Protocol.VIRTUAL_PORT);
+            connection = new Connection(member.getIbis(), connectTimeout, true, socketFactory, Protocol.VIRTUAL_PORT);
             logger.debug("connection created to " + member + ", send opcode, checking for reply");
 
             connection.out().writeByte(Protocol.MAGIC_BYTE);
@@ -700,7 +700,7 @@ final class Pool implements Runnable {
 
             logger.debug("creating connection to push events to " + member);
 
-            connection = new Connection(member.getIbis(), CONNECT_TIMEOUT, true, socketFactory, Protocol.VIRTUAL_PORT);
+            connection = new Connection(member.getIbis(), connectTimeout, true, socketFactory, Protocol.VIRTUAL_PORT);
 
             long connected = System.currentTimeMillis();
 
