@@ -1448,6 +1448,7 @@ class CodeGenerator implements RewriterConstants {
         
         if (! is_abstract) {
             instgen = generateInstanceGenerator();
+            instgen.setMajor(clazz.getMajor());
             Repository.addClass(instgen);
         }
         generator.markRewritten(clazz, instgen);
