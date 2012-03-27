@@ -83,7 +83,7 @@
         </copy>
 
         <!-- Compile the java code from ${src} into ${compile} -->
-        <javac srcdir="${tmpsrc}" destdir="${compile}" debug="on" target="1.5">
+        <javac srcdir="${tmpsrc}" destdir="${compile}" debug="on">
             <classpath refid="external_jars" />
             <compilerarg value="-Xlint:unchecked" />
         </javac>
