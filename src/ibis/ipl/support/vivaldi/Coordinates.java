@@ -79,7 +79,9 @@ public final class Coordinates implements Serializable {
     }
 
     private static double[] randomVector() {
-        logger.debug("randomness commencing!");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("randomness commencing!");
+	}
 
         double[] result = new double[DIMENSIONS];
         for (int i = 0; i < DIMENSIONS; i++) {
@@ -103,8 +105,10 @@ public final class Coordinates implements Serializable {
 
         double[] result = mult(1 / magnitude, vector);
 
-        logger.debug("unitVector(" + toString(vector) + ") = "
-                + toString(result));
+        if (logger.isDebugEnabled()) {
+            logger.debug("unitVector(" + toString(vector) + ") = "
+        	    + toString(result));
+        }
 
         magnitude = magnitude(result);
         if (magnitude < 0.99 || magnitude > 1.01) {
@@ -199,21 +203,27 @@ public final class Coordinates implements Serializable {
      * Updates coordinate with new information...
      */
     public Coordinates update(Coordinates remoteCoordinates, double rtt) {
-        logger.debug("updating " + this + " with " + remoteCoordinates
-                + " at distance " + rtt);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("updating " + this + " with " + remoteCoordinates
+		    + " at distance " + rtt);
+	}
 
         double newError;
         double[] newCoordinates;
 
         double weight = error / (error + remoteCoordinates.error);
 
-        logger.debug("weight = " + weight);
+        if (logger.isDebugEnabled()) {
+            logger.debug("weight = " + weight);
+        }
 
         double distance = distance(remoteCoordinates);
 
         double sampleError = Math.abs(distance - rtt) / rtt;
 
-        logger.debug("sample error = " + sampleError);
+        if (logger.isDebugEnabled()) {
+            logger.debug("sample error = " + sampleError);
+        }
 
         newError = sampleError * ERROR_CONTROL * weight + error
                 * (1 - ERROR_CONTROL * weight);
@@ -222,23 +232,33 @@ public final class Coordinates implements Serializable {
             newError = 1.0;
         }
 
-        logger.debug("new error = " + newError);
+        if (logger.isDebugEnabled()) {
+            logger.debug("new error = " + newError);
+        }
 
         double step = COORDINATE_CONTROL * weight;
 
-        logger.debug("step = " + step);
+        if (logger.isDebugEnabled()) {
+            logger.debug("step = " + step);
+        }
 
         double[] unitVector = unitVector(subtract(coordinates,
                 remoteCoordinates.coordinates));
-        logger.debug("unit vector = " + toString(unitVector));
+        if (logger.isDebugEnabled()) {
+            logger.debug("unit vector = " + toString(unitVector));
+        }
 
         double[] scaled = mult(step * (rtt - distance(remoteCoordinates)),
                 unitVector);
-        logger.debug("scaled = " + toString(scaled));
+        if (logger.isDebugEnabled()) {
+            logger.debug("scaled = " + toString(scaled));
+        }
 
         newCoordinates = add(coordinates, scaled);
 
-        logger.debug("new coordinates = " + toString(newCoordinates));
+        if (logger.isDebugEnabled()) {
+            logger.debug("new coordinates = " + toString(newCoordinates));
+        }
 
         return new Coordinates(newCoordinates, newError);
     }

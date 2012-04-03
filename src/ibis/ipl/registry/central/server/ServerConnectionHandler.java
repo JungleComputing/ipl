@@ -376,7 +376,9 @@ final class ServerConnectionHandler implements Runnable {
         if (currentNrOfThreads > maxNrOfThreads) {
             maxNrOfThreads = currentNrOfThreads;
         }
-        logger.debug("Now " + currentNrOfThreads + " connections");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Now " + currentNrOfThreads + " connections");
+        }
     }
 
     private synchronized void threadEnded() {
@@ -388,9 +390,13 @@ final class ServerConnectionHandler implements Runnable {
     public void run() {
         Connection connection = null;
         try {
-            logger.debug("accepting connection");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("accepting connection");
+            }
             connection = new Connection(serverSocket);
-            logger.debug("connection accepted");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("connection accepted");
+            }
         } catch (IOException e) {
             if (server.isStopped()) {
                 threadEnded();
@@ -478,7 +484,9 @@ final class ServerConnectionHandler implements Runnable {
                 pool.getStatistics().add(opcode,
                         System.currentTimeMillis() - start, connection.read(),
                         connection.written(), true);
-                logger.debug("done handling request");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("done handling request");
+                }
             }
             if (pool.hasEnded()) {
                 // save statistics

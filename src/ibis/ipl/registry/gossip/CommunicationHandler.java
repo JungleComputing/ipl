@@ -83,8 +83,10 @@ class CommunicationHandler implements Runnable {
             bootstrapList[i] = new VirtualSocketAddress(bootstrapStringList[i]);
         }
 
-        logger.debug("local address = " + serverSocket.getLocalSocketAddress());
-        logger.debug("server address = " + serverAddress);
+        if (logger.isDebugEnabled()) {
+            logger.debug("local address = " + serverSocket.getLocalSocketAddress());
+            logger.debug("server address = " + serverAddress);
+        }
 
         arrg = new ARRG(serverSocket.getLocalSocketAddress(), false,
                 bootstrapList, serverAddress, registry.getPoolName(),
@@ -151,7 +153,9 @@ class CommunicationHandler implements Runnable {
 
         if (address == null
                 || address.equals(serverSocket.getLocalSocketAddress())) {
-            logger.debug("noone to gossip with, or (not) gossiping with self");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("noone to gossip with, or (not) gossiping with self");
+            }
             return;
         }
 
@@ -180,7 +184,9 @@ class CommunicationHandler implements Runnable {
                                 .written(), false);
             }
         } catch (IOException e) {
-            logger.debug("could not gossip with " + address, e);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("could not gossip with " + address, e);
+            }
         }
     }
 
@@ -327,9 +333,13 @@ class CommunicationHandler implements Runnable {
     public void run() {
         Connection connection = null;
         try {
-            logger.debug("accepting connection");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("accepting connection");
+            }
             connection = new Connection(serverSocket);
-            logger.debug("connection accepted");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("connection accepted");
+            }
         } catch (IOException e) {
             if (registry.isStopped()) {
                 threadEnded();
@@ -395,7 +405,9 @@ class CommunicationHandler implements Runnable {
             connection.close();
         }
 
-        logger.debug("done handling request");
+        if (logger.isDebugEnabled()) {
+            logger.debug("done handling request");
+        }
 
         if (statistics != null) {
             statistics.add(opcode, System.currentTimeMillis() - start,

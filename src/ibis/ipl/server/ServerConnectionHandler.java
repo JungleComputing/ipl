@@ -57,7 +57,9 @@ class ServerConnectionHandler implements Runnable {
         ThreadPool.createNew(this, "server connection handler");
         currentNrOfThreads++;
 
-        logger.debug("Now " + currentNrOfThreads + " connections");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Now " + currentNrOfThreads + " connections");
+        }
     }
 
     private synchronized void threadEnded() {
@@ -198,9 +200,13 @@ class ServerConnectionHandler implements Runnable {
     public void run() {
         Connection connection = null;
         try {
-            logger.debug("accepting connection");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("accepting connection");
+            }
             connection = new Connection(serverSocket);
-            logger.debug("connection accepted");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("connection accepted");
+            }
         } catch (IOException e) {
             if (hasEnded()) {
                 threadEnded();
@@ -234,7 +240,9 @@ class ServerConnectionHandler implements Runnable {
 
             opcode = connection.in().readByte();
 
-            logger.debug("got request, opcode = " + opcode);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("got request, opcode = " + opcode);
+            }
 
             // public static final byte OPCODE_GET_ADDRESS = 0;
             // public static final byte OPCODE_GET_SERVICE_NAMES = 1;

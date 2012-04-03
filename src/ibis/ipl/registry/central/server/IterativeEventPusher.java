@@ -76,11 +76,15 @@ final class IterativeEventPusher implements Runnable {
                     return;
                 }
 
-                logger.debug("pushing to " + work);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("pushing to " + work);
+                }
 
                 pool.push(work, false, useTree);
                 workQ.doneJob();
-                logger.debug("done pushing to " + work);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("done pushing to " + work);
+                }
             }
         }
     }
@@ -125,10 +129,12 @@ final class IterativeEventPusher implements Runnable {
                 children = pool.getMembers();
             }
 
-            logger.debug("updating " + children.length
-                    + " nodes in pool (pool size = " + pool.getSize()
-                    + ") to event-time " + eventTime + " using tree: "
-                    + useTree);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("updating " + children.length
+        		+ " nodes in pool (pool size = " + pool.getSize()
+        		+ ") to event-time " + eventTime + " using tree: "
+        		+ useTree);
+            }
 
             WorkQ workQ = new WorkQ(children);
 
@@ -139,8 +145,10 @@ final class IterativeEventPusher implements Runnable {
 
             workQ.waitUntilDone();
 
-            logger.debug("DONE updating nodes in pool to event-time "
-                    + eventTime);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("DONE updating nodes in pool to event-time "
+        		+ eventTime);
+            }
 
             pool.purgeHistory();
 

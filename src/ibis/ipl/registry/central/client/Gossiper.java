@@ -30,7 +30,9 @@ public class Gossiper implements Runnable {
             Member member = pool.getRandomMember();
 
             if (member != null) {
-                logger.debug("gossiping with " + member);
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("gossiping with " + member);
+        	}
 
                 try {
                     commHandler.gossip(member.getIbis());

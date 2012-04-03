@@ -165,14 +165,18 @@ final class Pool {
         Member member = members.get(ibisIdentifier.name());
 
         if (member == null) {
-            logger.debug("user reporting ibis " + ibisIdentifier
-                    + "  which is not in pool, not reporting");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("user reporting ibis " + ibisIdentifier
+        		+ "  which is not in pool, not reporting");
+            }
             return false;
         }
 
         if (member.getTime() > (System.currentTimeMillis() - heartbeatInterval)) {
-            logger.debug("user reporting member " + ibisIdentifier
-                    + "  recently reported already, skiping this time");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("user reporting member " + ibisIdentifier
+        		+ "  recently reported already, skipping this time");
+            }
             return false;
         }
 
@@ -219,7 +223,9 @@ final class Pool {
                 return;
             }
 
-            logger.debug("reading bootstrap state");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("reading bootstrap state");
+            }
 
             time = in.readInt();
 
@@ -279,15 +285,19 @@ final class Pool {
             }
             long statted = System.currentTimeMillis();
 
-            logger.debug("pool init, read = " + (read - start) + ", locked = "
-                    + (locked - read) + ", membersDone = "
-                    + (membersDone - locked) + ", used = "
-                    + (used - membersDone) + ", handled = " + (handled - used)
-                    + ", statted = " + (statted - handled));
+            if (logger.isDebugEnabled()) {
+        	logger.debug("pool init, read = " + (read - start) + ", locked = "
+        		+ (locked - read) + ", membersDone = "
+        		+ (membersDone - locked) + ", used = "
+        		+ (used - membersDone) + ", handled = " + (handled - used)
+        		+ ", statted = " + (statted - handled));
+            }
         }
 
         handleEvents();
-        logger.debug("bootstrap complete");
+        if (logger.isDebugEnabled()) {
+            logger.debug("bootstrap complete");
+        }
 
     }
 
@@ -326,7 +336,9 @@ final class Pool {
         byte[] bytes = arrayOut.toByteArray();
         out.writeInt(bytes.length);
         out.write(bytes);
-        logger.debug("pool state size = " + bytes.length);
+        if (logger.isDebugEnabled()) {
+            logger.debug("pool state size = " + bytes.length);
+        }
     }
     
     synchronized String[] wonElections(IbisIdentifier id) {
@@ -353,7 +365,9 @@ final class Pool {
             long timeRemaining = deadline - System.currentTimeMillis();
 
             if (timeRemaining <= 0) {
-                logger.debug("getElectionResullt deadline expired");
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("getElectionResult deadline expired");
+        	}
                 return null;
             }
 
@@ -361,20 +375,28 @@ final class Pool {
                 if (timeRemaining > 1000) {
                     timeRemaining = 1000;
                 }
-                logger.debug("waiting " + timeRemaining + " for election");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("waiting " + timeRemaining + " for election");
+                }
                 wait(timeRemaining);
-                logger.debug("DONE waiting " + timeRemaining + " for election");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("DONE waiting " + timeRemaining + " for election");
+                }
             } catch (final InterruptedException e) {
                 // IGNORE
             }
             result = elections.get(election);
         }
-        logger.debug("getElection result = " + result);
+        if (logger.isDebugEnabled()) {
+            logger.debug("getElection result = " + result);
+        }
         return result.getWinner();
     }
 
     private synchronized void handleEvent(Event event) {
-        logger.debug("handling event: " + event);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("handling event: " + event);
+	}
 
         switch (event.getType()) {
         case Event.JOIN:
@@ -396,7 +418,9 @@ final class Pool {
                 statistics.newPoolSize(members.size());
             }
             if (died.equals(registry.getIbisIdentifier())) {
-                logger.debug("we were declared dead");
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("we were declared dead");
+        	}
                 stop();
             }
             break;
@@ -503,9 +527,13 @@ final class Pool {
      * Handles incoming events, passes events to the registry
      */
     private void handleEvents() {
-        logger.debug("handling events");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("handling events");
+	}
         if (!isInitialized()) {
-            logger.debug("handle events: not initialized yet");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("handle events: not initialized yet");
+            }
             return;
         }
 
@@ -519,9 +547,10 @@ final class Pool {
                 event = getEvent();
 
                 if (event == null) {
-                    logger
-                            .debug("done handling events, event time now: "
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("done handling events, event time now: "
                                     + time);
+                    }
                     return;
                 }
                 handleEvent(event);

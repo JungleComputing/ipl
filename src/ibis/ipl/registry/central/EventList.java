@@ -28,39 +28,57 @@ public class EventList {
      *  @return the specified event, or null if it is not found.
      */
     public Event get(int time) {
-        logger.debug("getting event " + time);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("getting event " + time);
+	}
         for(Event event: events) {
             if (event.getTime() == time) {
-                logger.debug("getting event " + time + ", returning " + event);
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("getting event " + time + ", returning " + event);
+        	}
                 return event;
             }
             if (event.getTime() > time) {
-                logger.debug("getting event " + time + ", returning <null>");
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("getting event " + time + ", returning <null>");
+        	}
                 return null;
             }
         }
-        logger.debug("getting event " + time + ", returning <null>");
+        if (logger.isDebugEnabled()) {
+            logger.debug("getting event " + time + ", returning <null>");
+        }
         return null;
     }
     
     public Event[] getList(int start) {
-        logger.debug("getting events from " + start);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("getting events from " + start);
+	}
         ArrayList<Event> result = new ArrayList<Event>();
         
         for(Event event: events) {
-            logger.debug("considering " + event);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("considering " + event);
+            }
             int time = event.getTime();
             if (time >= start) {
                 if (result.isEmpty()) {
-                    logger.debug("adding " + event);
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("adding " + event);
+                    }
                     result.add(event);
                 } else {
                     Event previous = result.get(result.size() - 1);
                     if (time != (previous.getTime() + 1)) {
-                        logger.debug("NOT adding " + event + " time should be " + (previous.getTime() + 1));
+                	if (logger.isDebugEnabled()) {
+                	    logger.debug("NOT adding " + event + " time should be " + (previous.getTime() + 1));
+                	}
                         return result.toArray(new Event[0]);
                     }
-                    logger.debug("adding " + event);
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("adding " + event);
+                    }
                     result.add(event);
                 }
             }
@@ -96,10 +114,14 @@ public class EventList {
     
     public void setMinimum(int time) {
         minimum = time;
-        logger.debug("purging upto " + time);
+        if (logger.isDebugEnabled()) {
+            logger.debug("purging upto " + time);
+        }
         while(!events.isEmpty() && events.first().getTime() < time) {
             Event first = events.first();
-            logger.debug("removing " + first);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("removing " + first);
+            }
             events.remove(first);
         }
     }
@@ -113,7 +135,9 @@ public class EventList {
             }
         }
   
-        logger.debug("next required event: " + result);
+        if (logger.isDebugEnabled()) {
+            logger.debug("next required event: " + result);
+        }
         
         return result;
     }

@@ -103,7 +103,9 @@ final class Upcaller implements Runnable {
                 return;
             }
 
-            logger.debug("doing upcall for event: " + event);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("doing upcall for event: " + event);
+            }
 
             setBusyUpcaller();
 
@@ -132,7 +134,9 @@ final class Upcaller implements Runnable {
                 logger.error("error on handling event", t);
             }
 
-            logger.debug("upcall for event " + event + " done");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("upcall for event " + event + " done");
+            }
 
             clearBusyUpcaller();
         }

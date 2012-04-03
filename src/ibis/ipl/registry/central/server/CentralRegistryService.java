@@ -84,7 +84,9 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
         ThreadPool.createNew(this, "Central Registry Service");
 
-        logger.debug("Started Central Registry service on virtual port " + Protocol.VIRTUAL_PORT);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Started Central Registry service on virtual port " + Protocol.VIRTUAL_PORT);
+        }
     }
 
     synchronized Pool getPool(String poolName) {

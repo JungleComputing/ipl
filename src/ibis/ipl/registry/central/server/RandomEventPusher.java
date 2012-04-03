@@ -46,7 +46,9 @@ final class RandomEventPusher implements Runnable {
 
                 }
 
-                logger.debug("waiting " + timeout);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("waiting " + timeout);
+                }
                 synchronized (this) {
                     try {
 
@@ -77,7 +79,9 @@ final class RandomEventPusher implements Runnable {
 
     private synchronized void createNewThread() {
         if (currentThreads >= THREADS) {
-            logger.debug("not creating thread, maximum reached");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("not creating thread, maximum reached");
+            }
             return;
         }
         ThreadPool.createNew(this, "node contactor");
@@ -92,9 +96,13 @@ final class RandomEventPusher implements Runnable {
         Member member = pool.getRandomMember();
 
         if (member == null) {
-            logger.debug("no member to contact");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("no member to contact");
+            }
         } else {
-            logger.debug("gossiping/pushing to " + member);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("gossiping/pushing to " + member);
+            }
             pool.push(member, false, false);
         }
         threadDone();

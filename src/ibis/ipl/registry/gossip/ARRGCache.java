@@ -77,7 +77,9 @@ class ARRGCache {
             cache.remove(random.nextInt(cache.size()));
         }
         
-        logger.debug("cache value now: " + cache.size());
+        if (logger.isDebugEnabled()) {
+            logger.debug("cache value now: " + cache.size());
+        }
     }
 
     public synchronized ARRGCacheEntry[] getEntries(boolean includeArrgOnly) {

@@ -63,8 +63,10 @@ public final class Connection {
     public Connection(VirtualSocketAddress address, int timeout,
             boolean fillTimeout, VirtualSocketFactory factory)
             throws IOException {
-        logger.debug("connecting to " + address + ", timeout = " + timeout
-                + " , filltimeout = " + fillTimeout);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("connecting to " + address + ", timeout = " + timeout
+		    + " , filltimeout = " + fillTimeout);
+	}
 
         final HashMap<String, Object> lightConnection = new HashMap<String, Object>();
         // lightConnection.put("connect.module.allow",
@@ -80,7 +82,9 @@ public final class Connection {
                 .getInputStream(), IOProperties.BUFFER_SIZE));
         in = new DataInputStream(counter);
 
-        logger.debug("connection to " + address + " established");
+        if (logger.isDebugEnabled()) {
+            logger.debug("connection to " + address + " established");
+        }
 
     }
 
@@ -88,7 +92,9 @@ public final class Connection {
      * Accept incoming connection on given serverSocket.
      */
     public Connection(VirtualServerSocket serverSocket) throws IOException {
-        logger.debug("waiting for incomming connection...");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("waiting for incoming connection...");
+	}
         socket = serverSocket.accept();
         socket.setTcpNoDelay(true);
 
@@ -97,8 +103,10 @@ public final class Connection {
         in = new DataInputStream(counter);
         out = new DataOutputStream(new BufferedOutputStream(socket
                 .getOutputStream(), IOProperties.BUFFER_SIZE));
-        logger.debug("new connection from " + socket.getRemoteSocketAddress()
-                + " accepted");
+        if (logger.isDebugEnabled()) {
+            logger.debug("new connection from " + socket.getRemoteSocketAddress()
+        	    + " accepted");
+        }
     }
 
     public DataOutputStream out() {

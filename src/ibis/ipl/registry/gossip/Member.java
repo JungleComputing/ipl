@@ -92,7 +92,9 @@ class Member {
     }
     
     synchronized public void merge(Member other) {
-        logger.debug("merging " + this + " with " + other);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("merging " + this + " with " + other);
+	}
         
         if (other.lastSeen > lastSeen) {
             lastSeen = other.lastSeen;
@@ -118,13 +120,16 @@ class Member {
         int witnessesRequired = properties.getIntProperty(RegistryProperties.WITNESSES_REQUIRED);
         
         if (timedout() && witnesses.size() > witnessesRequired) {
-            logger.debug("member dead after merge: " + witnesses.size());
+            if (logger.isDebugEnabled()) {
+        	logger.debug("member dead after merge: " + witnesses.size());
+            }
             
             dead = true;
             witnesses.clear();
         }
-        
-        logger.debug("merge result = " + this);
+        if (logger.isDebugEnabled()) {
+            logger.debug("merge result = " + this);
+        }
     }
     
     synchronized IbisIdentifier getIdentifier() {

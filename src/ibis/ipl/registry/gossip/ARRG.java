@@ -149,24 +149,32 @@ class ARRG extends Thread {
 
         resetLastGossip();
 
-        logger.debug("bootstrap service for " + poolName
-                + " received request from " + peerEntry);
+        if (logger.isDebugEnabled()) {
+            logger.debug("bootstrap service for " + poolName
+        	    + " received request from " + peerEntry);
+        }
     }
 
     private void gossip(VirtualSocketAddress victim, int timeout, boolean fillTimeout) throws IOException {
         long start = System.currentTimeMillis();
 
         if (victim == null) {
-            logger.debug("no victim specified");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("no victim specified");
+            }
             return;
         }
 
         if (victim.equals(self.getAddress())) {
-            logger.debug("not gossiping with outselves");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("not gossiping with outselves");
+            }
             return;
         }
 
-        logger.debug("gossiping with " + victim);
+        if (logger.isDebugEnabled()) {
+            logger.debug("gossiping with " + victim);
+        }
 
         ARRGCacheEntry[] sendEntries =
             cache.getRandomEntries(GOSSIP_SIZE, true);
@@ -287,7 +295,9 @@ class ARRG extends Thread {
                     fallbackCache.add(victim);
                     success = true;
                 } catch (IOException e) {
-                    logger.debug("could not gossip with " + victim, e);
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("could not gossip with " + victim, e);
+                    }
                 }
 
             }
@@ -300,8 +310,10 @@ class ARRG extends Thread {
                         gossip(victim.getAddress(), CONNECT_TIMEOUT, false);
                         success = true;
                     } catch (IOException e) {
-                        logger.debug("could not gossip with fallback entry: "
-                                + victim, e);
+                	if (logger.isDebugEnabled()) {
+                	    logger.debug("could not gossip with fallback entry: "
+                		    + victim, e);
+                	}
                     }
                 }
             }
@@ -324,7 +336,9 @@ class ARRG extends Thread {
                 long timeout = (long) (Math.random() * GOSSIP_TIMEOUT) + 1;
 
                 try {
-                    logger.debug("waiting " + timeout + " ms");
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("waiting " + timeout + " ms");
+                    }
                     wait(timeout);
                 } catch (InterruptedException e) {
                     // IGNORE

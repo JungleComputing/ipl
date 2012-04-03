@@ -59,7 +59,9 @@ final class Broadcaster implements Runnable {
     }
 
     synchronized void waitUntilDone() {
-        logger.debug("waiting until done, " + count + " remaining");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("waiting until done, " + count + " remaining");
+	}
         while (count > 0) {
             try {
                 wait();
@@ -67,7 +69,9 @@ final class Broadcaster implements Runnable {
                 // IGNORE
             }
         }
-        logger.debug("done!");
+        if (logger.isDebugEnabled()) {
+            logger.debug("done!");
+        }
     }
 
     public void run() {
@@ -79,7 +83,9 @@ final class Broadcaster implements Runnable {
                 return;
             }
 
-            logger.trace("sending leave to " + address);
+            if (logger.isTraceEnabled()) {
+        	logger.trace("sending leave to " + address);
+            }
 
             commHandler.sendLeave(address);
 

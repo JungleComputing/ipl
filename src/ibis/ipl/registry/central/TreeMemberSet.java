@@ -172,7 +172,9 @@ public final class TreeMemberSet implements MemberSet, Serializable {
     }
 
     public void add(Member member) {
-        logger.debug("adding " + member + " to tree");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("adding " + member + " to tree");
+	}
 
         if (spares.isEmpty()) {
             expandTree();
@@ -191,7 +193,9 @@ public final class TreeMemberSet implements MemberSet, Serializable {
     }
 
     public Member remove(IbisIdentifier identifier) {
-        logger.debug("removing " + identifier + " from tree");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("removing " + identifier + " from tree");
+	}
 
         for (int i = 0; i < list.size(); i++) {
             Node node = list.get(i);
@@ -209,7 +213,9 @@ public final class TreeMemberSet implements MemberSet, Serializable {
                 return result;
             }
         }
-        logger.debug("could not remove " + identifier + ", not found in tree");
+        if (logger.isDebugEnabled()) {
+            logger.debug("could not remove " + identifier + ", not found in tree");
+        }
         return null;
     }
 
@@ -371,7 +377,9 @@ public final class TreeMemberSet implements MemberSet, Serializable {
     }
 
     public Member[] getChildren(IbisIdentifier ibis) {
-        logger.debug("getting children of " + ibis);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("getting children of " + ibis);
+	}
 
         if (lastSearchResult == null || lastSearchResult.member == null
                 || !lastSearchResult.member.getIbis().equals(ibis)) {

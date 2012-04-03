@@ -99,8 +99,10 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                     reader(true);
                 }
             } catch (Throwable e) {
-                logger.info("ConnectionHandler.run, connected "
-                        + "to " + origin + ", caught exception", e);
+        	if (logger.isInfoEnabled()) {
+        	    logger.info("ConnectionHandler.run, connected "
+        		    + "to " + origin + ", caught exception", e);
+        	}
                 close(e);
             }
         }

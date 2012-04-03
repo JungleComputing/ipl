@@ -45,7 +45,9 @@ public class StatisticsProcessor {
             result = 1;
         }
 
-        logger.debug("interval = " + result);
+        if (logger.isDebugEnabled()) {
+            logger.debug("interval = " + result);
+        }
 
         return result;
     }

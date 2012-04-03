@@ -36,7 +36,9 @@ public class Experiment {
             serverStatistics = new Statistics(serverFile);
         } else {
             serverStatistics = null;
-            logger.debug("no server file found");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("no server file found");
+            }
         }
 
         clientStatistics = new ArrayList<Statistics>();
@@ -54,8 +56,10 @@ public class Experiment {
             try {
                 clientStatistics.add(new Statistics(file));
             } catch (IOException e) {
-                logger.debug("cannot load statistics file: " + file
-                        + " (trying .old version)", e);
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("cannot load statistics file: " + file
+        		    + " (trying .old version)", e);
+        	}
                 loadErrors++;
                 try {
                     File oldFile = new File(file.getPath() + ".old");
@@ -110,7 +114,9 @@ public class Experiment {
     }
 
     long duration() {
-        logger.debug("duration = " + (endTime - startTime));
+	if (logger.isDebugEnabled()) {
+	    logger.debug("duration = " + (endTime - startTime));
+	}
 
         return endTime - startTime;
     }
@@ -121,8 +127,10 @@ public class Experiment {
         if (serverStatistics != null) {
             double result = serverStatistics.poolSizeAt(realtime);
 
-            logger.debug("SERVER statistics: value at " + time + " ("
-                    + realtime + ") = " + result);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("SERVER statistics: value at " + time + " ("
+        		+ realtime + ") = " + result);
+            }
 
             if (result == -1) {
                 return 0;
@@ -143,8 +151,10 @@ public class Experiment {
         for (Statistics statistics : clientStatistics) {
             double value = statistics.poolSizeAt(realtime);
 
-            logger.debug("statistics: " + statistics + " value at " + time
-                    + " (" + realtime + ") = " + value);
+            if (logger.isDebugEnabled()) {
+        	logger.debug("statistics: " + statistics + " value at " + time
+        		+ " (" + realtime + ") = " + value);
+            }
 
             if (value != -1) {
                 active = active + 1;
@@ -156,7 +166,9 @@ public class Experiment {
             return 0;
         }
         
-        logger.debug("total = " + total + ", active = " + active + ", value = " + (total / active));
+        if (logger.isDebugEnabled()) {
+            logger.debug("total = " + total + ", active = " + active + ", value = " + (total / active));
+        }
 
         return total / active;
     }

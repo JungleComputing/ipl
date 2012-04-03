@@ -31,7 +31,9 @@ public class ElectionSet implements Iterable<Election> {
 
     public synchronized void writeGossipData(DataOutputStream out)
             throws IOException {
-        logger.debug("writing " + elections.size() + " elections");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("writing " + elections.size() + " elections");
+	}
         out.writeInt(elections.size());
 
         for (Election election : elections.values()) {
@@ -45,8 +47,9 @@ public class ElectionSet implements Iterable<Election> {
         if (nrOfElections < 0) {
             throw new IOException("negative election list value");
         }
-        
-        logger.debug("reading " + nrOfElections + " elections");
+        if (logger.isDebugEnabled()) {
+            logger.debug("reading " + nrOfElections + " elections");
+        }
 
         for (int i = 0; i < nrOfElections; i++) {
             Election election = new Election(in);
@@ -69,8 +72,10 @@ public class ElectionSet implements Iterable<Election> {
 
     public synchronized IbisIdentifier[] getElectionResult(String electionName,
             long timeoutMillis) {
-        logger.debug("trying to get election result for: " + electionName
-                + ", waiting " + timeoutMillis);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("trying to get election result for: " + electionName
+		    + ", waiting " + timeoutMillis);
+	}
 
         if (timeoutMillis > 0) {
             try {
@@ -101,9 +106,11 @@ public class ElectionSet implements Iterable<Election> {
 
     public synchronized IbisIdentifier[] elect(String electionName,
             long timeoutMillis) {
-        logger.debug("electing result for: " + electionName + ", waiting "
-                + timeoutMillis);
-
+	if (logger.isDebugEnabled()) {
+	    logger.debug("electing result for: " + electionName + ", waiting "
+		    + timeoutMillis);
+	}
+	    
         Election election = elections.get(electionName);
 
         if (election == null) {

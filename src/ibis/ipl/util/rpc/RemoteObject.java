@@ -79,7 +79,9 @@ public class RemoteObject<InterfaceType> implements MessageUpcall {
 			// object
 			this.name = receivePort.name();
 
-			logger.debug("remote object " + this + " created");
+			if (logger.isDebugEnabled()) {
+			    logger.debug("remote object " + this + " created");
+			}
 
 		} catch (IOException e) {
 			throw new RemoteException(

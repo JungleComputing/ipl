@@ -75,7 +75,9 @@ final class IterativeEventPusher extends Thread {
                     return;
                 }
 
-                logger.debug("pushing to " + work);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("pushing to " + work);
+                }
 
                 commHandler.forward(work.getIbis());
                 workQ.doneJob();

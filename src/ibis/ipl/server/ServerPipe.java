@@ -104,7 +104,9 @@ class ServerPipe implements Runnable {
     }
 
     private synchronized void parseAddress(String line) {
-        logger.debug("Parsing address from line: \"" + line + "\"");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("Parsing address from line: \"" + line + "\"");
+	}
 
         int prefixIndex = line.lastIndexOf(Server.ADDRESS_LINE_PREFIX);
         int postfixIndex = line.indexOf(Server.ADDRESS_LINE_POSTFIX);

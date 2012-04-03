@@ -137,7 +137,9 @@ public class Client {
         } catch (InitializationException e) {
             throw new IOException(e.getMessage());
         }
-        logger.debug("client factory running on " + factory.getLocalHost());
+        if (logger.isDebugEnabled()) {
+            logger.debug("client factory running on " + factory.getLocalHost());
+        }
 
     }
 

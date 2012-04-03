@@ -268,10 +268,12 @@ class MemberSet extends Thread {
         // if there are not enough live members in a pool to reach the
         // minimum needed to otherwise declare a member dead, do it now
         if (member.isSuspect() && member.nrOfWitnesses() >= liveMembers) {
-            logger.warn("declared " + member + " with "
-                    + member.nrOfWitnesses()
-                    + " witnesses dead due to a low number of live members ("
-                    + liveMembers + ").");
+            if (logger.isWarnEnabled()) {
+        	logger.warn("declared " + member + " with "
+        		+ member.nrOfWitnesses()
+        		+ " witnesses dead due to a low number of live members ("
+        		+ liveMembers + ").");
+            }
             member.declareDead();
         }
 
@@ -282,7 +284,9 @@ class MemberSet extends Thread {
                 statistics.newPoolSize(members.size());
             }
             registry.ibisLeft(member.getIdentifier());
-            logger.debug("purged " + member + " from list");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("purged " + member + " from list");
+            }
         } else if (member.isDead()) {
             deceased.add(member.getUUID());
             members.remove(member.getUUID());
@@ -290,7 +294,9 @@ class MemberSet extends Thread {
                 statistics.newPoolSize(members.size());
             }
             registry.ibisDied(member.getIdentifier());
-            logger.debug("purged " + member + " from list");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("purged " + member + " from list");
+            }
         }
     }
 
@@ -400,32 +406,41 @@ class MemberSet extends Thread {
 
             Member[] suspects = getRandomSuspects(count);
 
-            logger.debug(self.getIdentifier() + ": checking " + suspects.length
-                    + " suspects");
+            if (logger.isDebugEnabled()) {
+        	logger.debug(self.getIdentifier() + ": checking " + suspects.length
+        		+ " suspects");
+            }
 
             for (Member suspect : suspects) {
                 if (suspect.equals(self)) {
                     logger.error("we are a suspect ourselves");
                     suspect.seen();
                 } else {
-                    logger
-                            .debug("suspecting " + suspect
-                                    + " is dead, checking");
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("suspecting " + suspect
+                		+ " is dead, checking");
+                    }
                     try {
                         registry.getCommHandler().ping(suspect.getIdentifier());
                         suspect.seen();
                     } catch (Exception e) {
-                        logger.debug("could not reach " + suspect
-                                + ", adding ourselves as witness");
+                	if (logger.isDebugEnabled()) {
+                	    logger.debug("could not reach " + suspect
+                		    + ", adding ourselves as witness");
+                	}
                         suspect.suspectDead(registry.getIbisIdentifier());
                     }
-                    logger.debug("done checking " + suspect);
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("done checking " + suspect);
+                    }
 
                 }
             }
 
-            logger.debug(self.getIdentifier() + ": done checking "
-                    + suspects.length + " suspects");
+            if (logger.isDebugEnabled()) {
+        	logger.debug(self.getIdentifier() + ": done checking "
+        		+ suspects.length + " suspects");
+            }
 
             int timeout = (int) (Math.random() * interval);
             synchronized (this) {
@@ -438,6 +453,8 @@ class MemberSet extends Thread {
                 }
             }
         }
-        logger.debug(self.getIdentifier() + ": registry stopped, exiting");
+        if (logger.isDebugEnabled()) {
+            logger.debug(self.getIdentifier() + ": registry stopped, exiting");
+        }
     }
 }

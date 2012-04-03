@@ -164,9 +164,13 @@ public class ManagementClient implements Runnable {
 
         while (!ended()) {
             try {
-                logger.debug("accepting connection");
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("accepting connection");
+        	}
                 connection = new Connection(serverSocket);
-                logger.debug("connection accepted");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("connection accepted");
+                }
             } catch (IOException e) {
                 if (ended) {
                     return;
@@ -192,7 +196,7 @@ public class ManagementClient implements Runnable {
 
                 byte opcode = connection.in().readByte();
 
-                if (opcode < Protocol.NR_OF_OPCODES) {
+                if (logger.isDebugEnabled() && opcode < Protocol.NR_OF_OPCODES) {
                     logger.debug("received request: "
                             + Protocol.OPCODE_NAMES[opcode]);
                 }
@@ -204,7 +208,9 @@ public class ManagementClient implements Runnable {
                 default:
                     logger.error("unknown opcode in request: " + opcode);
                 }
-                logger.debug("done handling request");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("done handling request");
+                }
             } catch (Throwable e) {
                 logger.error("error on handling request", e);
             } finally {

@@ -146,7 +146,9 @@ public class VivaldiClient implements Runnable {
 
     public void start() {
         ThreadPool.createNew(this, "vivaldi");
-        logger.info("Started Vivaldi service");
+        if (logger.isInfoEnabled()) {
+            logger.info("Started Vivaldi service");
+        }
     }
 
     private synchronized void updateCoordinates(Coordinates remoteCoordinates,
@@ -194,8 +196,10 @@ public class VivaldiClient implements Runnable {
                 try {
                     ping(randomNode, true);
                 } catch (Exception e) {
-                    logger.debug("error on pinging random node " + randomNode,
-                            e);
+                    if (logger.isDebugEnabled()) {
+                	logger.debug("error on pinging random node " + randomNode,
+                		e);
+                    }
 
                 }
             }

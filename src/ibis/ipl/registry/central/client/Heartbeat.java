@@ -45,7 +45,9 @@ public class Heartbeat implements Runnable {
         resetHeartbeadDeadline();
         resetServerDeadline();
 
-        logger.debug("deadlines reset");
+        if (logger.isDebugEnabled()) {
+            logger.debug("deadlines reset");
+        }
 
         // no need to wake up heartbeat thread, deadline will only be later
     }
@@ -67,7 +69,9 @@ public class Heartbeat implements Runnable {
             }
 
             try {
-                logger.debug("waiting " + timeout + " for heartbeat");
+        	if (logger.isDebugEnabled()) {
+        	    logger.debug("waiting " + timeout + " for heartbeat");
+        	}
                 wait(timeout);
             } catch (InterruptedException e) {
                 // IGNORE

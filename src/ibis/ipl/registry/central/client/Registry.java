@@ -125,10 +125,14 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
-            logger.debug("statistics: on");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("statistics: on");
+            }
         } else {
             statistics = null;
-            logger.debug("statistics: off");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("statistics: off");
+            }
         }
 
         pool = new Pool(capabilities, properties, this, statistics);
@@ -157,8 +161,9 @@ public final class Registry extends ibis.ipl.registry.Registry {
         }
 
    
-
-        logger.debug("registry for " + identifier + " initiated");
+        if (logger.isDebugEnabled()) {
+            logger.debug("registry for " + identifier + " initiated");
+        }
     }
 
     @Override
@@ -254,8 +259,10 @@ public final class Registry extends ibis.ipl.registry.Registry {
             throw new IbisConfigurationException("No signal support requested");
         }
 
-        logger.debug("telling " + ibisIdentifiers.length
-                + " ibisses a string: " + signal);
+        if (logger.isDebugEnabled()) {
+            logger.debug("telling " + ibisIdentifiers.length
+        	    + " ibisses a string: " + signal);
+        }
 
         communicationHandler.signal(signal, ibisIdentifiers);
     }
@@ -379,7 +386,9 @@ public final class Registry extends ibis.ipl.registry.Registry {
      * Handles incoming user events.
      */
     synchronized void handleEvent(Event event) {
-        logger.debug("new event passed to user: " + event);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("new event passed to user: " + event);
+	}
 
         if (event.getType() == Event.SIGNAL) {
             boolean match = false;

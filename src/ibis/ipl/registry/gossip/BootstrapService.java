@@ -137,7 +137,9 @@ public class BootstrapService implements Service, Runnable {
         ThreadPool.createNew(this, "bootstrap service connection handler");
         currentNrOfThreads++;
 
-        logger.trace("now " + currentNrOfThreads + " threads");
+        if (logger.isTraceEnabled()) {
+            logger.trace("now " + currentNrOfThreads + " threads");
+        }
 
         if (currentNrOfThreads > maxNrOfThreads) {
             maxNrOfThreads = currentNrOfThreads;
@@ -153,9 +155,13 @@ public class BootstrapService implements Service, Runnable {
     public void run() {
         Connection connection = null;
         try {
-            logger.debug("accepting connection");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("accepting connection");
+            }
             connection = new Connection(serverSocket);
-            logger.debug("connection accepted");
+            if (logger.isDebugEnabled()) {
+        	logger.debug("connection accepted");
+            }
         } catch (IOException e) {
             if (hasEnded()) {
                 threadEnded();
@@ -224,7 +230,9 @@ public class BootstrapService implements Service, Runnable {
             connection.close();
         }
 
-        logger.debug("done handling request");
+        if (logger.isDebugEnabled()) {
+            logger.debug("done handling request");
+        }
 
         // delete any dead ARRG's
         cleanup();

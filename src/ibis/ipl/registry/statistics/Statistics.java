@@ -76,7 +76,9 @@ public final class Statistics implements Runnable {
 
 		newPoolSize(0);
 
-		logger.debug("created statistics");
+		if (logger.isDebugEnabled()) {
+		    logger.debug("created statistics");
+		}
 	}
 
 	public Statistics(File file) throws IOException {
@@ -200,7 +202,9 @@ public final class Statistics implements Runnable {
 			file = new File("statistics" + File.separator + poolName
 					+ File.separator + id);
 
-			logger.debug("writing statistics to: " + file);
+			if (logger.isDebugEnabled()) {
+			    logger.debug("writing statistics to: " + file);
+			}
 
 			if (file.exists()) {
 				file.renameTo(new File(file.getPath() + ".old"));
@@ -216,7 +220,9 @@ public final class Statistics implements Runnable {
 		} catch (IOException e) {
 			logger.error("cannot write statistics to " + file, e);
 		}
-		logger.debug("DONE writing statistics for: " + id);
+		if (logger.isDebugEnabled()) {
+		    logger.debug("DONE writing statistics for: " + id);
+		}
 	}
 
 	public synchronized void add(byte opcode, long time, long bytesReceived,
@@ -318,7 +324,9 @@ public final class Statistics implements Runnable {
 
 		poolSizeHistory.add(new DataPoint(poolSize));
 
-		logger.trace("reported pool size now: " + poolSize);
+		if (logger.isTraceEnabled()) {
+		    logger.trace("reported pool size now: " + poolSize);
+		}
 	}
 
 	public synchronized void electionEvent() {

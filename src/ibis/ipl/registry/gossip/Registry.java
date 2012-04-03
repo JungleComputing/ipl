@@ -183,7 +183,9 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
         ThreadPool.createNew(this, "pool management thread");
 
-        logger.debug("registry for " + identifier + " initiated");
+        if (logger.isDebugEnabled()) {
+            logger.debug("registry for " + identifier + " initiated");
+        }
     }
 
     @Override
@@ -461,24 +463,32 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     @Override
     public void leave() throws IOException {
-        logger.debug("leaving: setting stopped state");
+	if (logger.isDebugEnabled()) {
+	    logger.debug("leaving: setting stopped state");
+	}
         synchronized (this) {
             stopped = true;
             notifyAll();
         }
-        logger.debug("leaving: telling pool we are leaving");
+        if (logger.isDebugEnabled()) {
+            logger.debug("leaving: telling pool we are leaving");
+        }
         members.leave(identifier);
         members.leave();
 
         // logger.debug("leaving: broadcasting leave");
         commHandler.broadcastLeave();
 
-        logger.debug("leaving: writing statistics");
+        if (logger.isDebugEnabled()) {
+            logger.debug("leaving: writing statistics");
+        }
         if (statistics != null) {
             statistics.write();
             statistics.end();
         }
-        logger.debug("leaving: done!");
+        if (logger.isDebugEnabled()) {
+            logger.debug("leaving: done!");
+        }
     }
 
     public void run() {
