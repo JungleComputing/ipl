@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class representing a coordinate in a Cartesian space. Code copied from
- * Zorilla
+ * Zorilla.
  * 
  * @author Niels Drost
  * 

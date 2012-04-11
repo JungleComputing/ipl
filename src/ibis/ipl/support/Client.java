@@ -143,6 +143,10 @@ public class Client {
 
     }
 
+    /**
+     * Returns the VirtualSocketFactory.
+     * @return the socket factory.
+     */
     public VirtualSocketFactory getFactory() {
         return factory;
     }

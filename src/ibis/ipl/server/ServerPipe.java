@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Connection to the stdin/stdout of a server running with the --remote option
+ * Connection to the stdin/stdout of a server running with the --remote option.
  * 
  * @author Niels Drost
  * 

@@ -8,7 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Properties valid for the Ibis server
+ * Properties valid for the Ibis server.
  * 
  * @ibis.experimental
  */
@@ -59,32 +59,32 @@ public final class ServerProperties {
     }
 
     private static final String[][] propertiesList = new String[][] {
-            { HUB_ADDRESSES, null, "Comma separated list of hubs." },
+            { HUB_ADDRESSES, null, "String: comma-separated list of hub addresses." },
 
             { START_HUB, "true",
-                    "Boolean: if true, also start a hub at the server" },
+                    "Boolean: if true, also start a hub at the server." },
 
             { HUB_ONLY, "false",
-                    "Boolean: if true, only start a hub, not the rest of the server" },
+                    "Boolean: if true, only start a hub, not the rest of the server." },
 
             { HUB_ADDRESS_FILE, null,
-                    "String: file where the address of the hub is printed to (and deleted on exit)" },
+                    "String: file where the address of the hub is printed to (and deleted on exit)." },
 
             { PORT, Integer.toString(DEFAULT_PORT),
-                    "Port which the server binds to" },
+                    "Integer: port to which the server binds." },
 
             { PRINT_EVENTS, "false",
                     "Boolean: if true, events of services are printed to standard out." },
             { PRINT_ERRORS, "false",
-                    "Boolean: if true, details of errors (like stacktraces) are printed" },
+                    "Boolean: if true, details of errors (like stacktraces) are printed." },
             { PRINT_STATS, "false",
                     "Boolean: if true, statistics are printed to standard out regularly." },
             {
                     REMOTE,
                     "false",
-                    "Boolean: If true, the server listens to stdin for commands and responds on stdout" },
+                    "Boolean: If true, the server listens to stdin for commands and responds on stdout." },
 
-            { VIZ_INFO, null, "String: info for smartsockets visualization" },
+            { VIZ_INFO, null, "String: info for smartsockets visualization." },
 
     };
 
