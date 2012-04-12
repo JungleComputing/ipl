@@ -20,6 +20,7 @@ import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.DUP;
 import org.apache.bcel.generic.FieldGen;
@@ -1558,22 +1559,41 @@ class CodeGenerator implements RewriterConstants {
             }
 
             read_il.append(mgen.getInstructionList());
-            mgen.setInstructionList(read_il);
+            
+            MethodGen newMethod = null;
+            if (is_externalizable || !super_is_serializable
+                    || generator.forceGeneratedCalls() || super_has_ibis_constructor) {
+                newMethod = new MethodGen(Constants.ACC_PUBLIC,
+                        Type.VOID, ibis_input_stream_arrtp,
+                        new String[] { VARIABLE_INPUT_STREAM }, METHOD_INIT, classname, read_il,
+                        constantpool);
+            } else if (SerializationInfo.hasReadObject(methods)) {
+                newMethod = new MethodGen(
+                        Constants.ACC_PUBLIC, Type.VOID,
+                        ibis_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
+                        METHOD_$READ_OBJECT_WRAPPER$, classname, read_il, constantpool);
+            }
+            newMethod.addException(TYPE_JAVA_IO_IOEXCEPTION);
+            newMethod.addException(
+                    TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION);
 
-            mgen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
-                    mgen.getExceptionHandlers()));
-            mgen.setMaxLocals();
+            newMethod.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
+                    newMethod.getExceptionHandlers()));
+            newMethod.setMaxLocals();
 
-            gen.setMethodAt(mgen.getMethod(), index);
+            gen.setMethodAt(newMethod.getMethod(), index);
         }
     }
 
     private void fillInGeneratedWriteObjectMethod(int dpth) {
-        /* Now, produce generated_WriteObject. */
+
+        InstructionList write_il = new InstructionList();
+        int flags = Constants.ACC_PUBLIC | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+
         int write_method_index = SerializationInfo.findMethod(methods,
                 METHOD_GENERATED_WRITE_OBJECT, 
                 SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V);
-        InstructionList write_il = new InstructionList();
+        
         MethodGen write_gen = new MethodGen(methods[write_method_index], classname,
                 constantpool);
 
@@ -1643,17 +1663,23 @@ class CodeGenerator implements RewriterConstants {
         } else {
             write_il.append(generateDefaultWrites(write_gen));
         }
-
-        write_gen = new MethodGen(methods[write_method_index], classname,
-                constantpool);
+        
         write_il.append(write_gen.getInstructionList());
-        write_gen.setInstructionList(write_il);
+        
+        MethodGen new_write_gen = new MethodGen(flags, Type.VOID,
+                ibis_output_stream_arrtp, new String[] { VARIABLE_OUTPUT_STREAM },
+                METHOD_GENERATED_WRITE_OBJECT, classname, write_il, constantpool);
+        new_write_gen.addException(TYPE_JAVA_IO_IOEXCEPTION);
 
-        write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
+        CodeExceptionGen[] exceptions = write_gen.getExceptionHandlers();
+        for (CodeExceptionGen ex : exceptions) {
+            new_write_gen.addExceptionHandler(ex.getStartPC(), ex.getEndPC(), ex.getHandlerPC(), ex.getCatchType());
+        }
+        new_write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
                 write_gen.getExceptionHandlers()));
-        write_gen.setMaxLocals();
+        new_write_gen.setMaxLocals();
 
-        gen.setMethodAt(write_gen.getMethod(), write_method_index);
+        gen.setMethodAt(new_write_gen.getMethod(), write_method_index);
     }
 
     private void fillInGeneratedDefaultWriteObjectMethod(int dpth) {
@@ -1713,13 +1739,21 @@ class CodeGenerator implements RewriterConstants {
             ifcmpne.setTarget(end);
         }
         write_il.append(write_gen.getInstructionList());
+        int flags = Constants.ACC_PUBLIC
+                | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+        MethodGen default_write_method = new MethodGen(flags, Type.VOID,
+                new Type[] { ibis_output_stream, Type.INT }, new String[] {
+                VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
+                METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
+                classname, write_il, constantpool);
 
-        write_gen.setInstructionList(write_il);
-        write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
-                write_gen.getExceptionHandlers()));
-        write_gen.setMaxLocals();
+        default_write_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
 
-        gen.setMethodAt(write_gen.getMethod(), default_write_method_index);
+        default_write_method.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
+                default_write_method.getExceptionHandlers()));
+        default_write_method.setMaxLocals();
+
+        gen.setMethodAt(default_write_method.getMethod(), default_write_method_index);
     }
 
     private void fillInGeneratedDefaultReadObjectMethod(int dpth) {
@@ -1770,12 +1804,29 @@ class CodeGenerator implements RewriterConstants {
         }
 
         read_il.append(read_gen.getInstructionList());
+        
+        int flags = Constants.ACC_PUBLIC
+                | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+        
+        MethodGen default_read_method = new MethodGen(flags, Type.VOID,
+                new Type[] { ibis_input_stream, Type.INT }, new String[] {
+                VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
+                METHOD_GENERATED_DEFAULT_READ_OBJECT,
+                classname, read_il, constantpool);
 
-        read_gen.setInstructionList(read_il);
-        read_gen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
-                read_gen.getExceptionHandlers()));
-        read_gen.setMaxLocals();
+        default_read_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
+        default_read_method.addException(
+                TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION);
+        
+        CodeExceptionGen[] exceptions = read_gen.getExceptionHandlers();
+        for (CodeExceptionGen ex : exceptions) {
+            default_read_method.addExceptionHandler(ex.getStartPC(), ex.getEndPC(), ex.getHandlerPC(), ex.getCatchType());
+        }
+        
+        default_read_method.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
+                default_read_method.getExceptionHandlers()));
+        default_read_method.setMaxLocals();
 
-        gen.setMethodAt(read_gen.getMethod(), default_read_method_index);
+        gen.setMethodAt(default_read_method.getMethod(), default_read_method_index);
     }
 }
