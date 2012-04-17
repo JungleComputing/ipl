@@ -2,13 +2,18 @@
 
 package ibis.io.rewriter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariableTable;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.classfile.StackMapTable;
+import org.apache.bcel.classfile.StackMapTableEntry;
+import org.apache.bcel.classfile.StackMapType;
 import org.apache.bcel.generic.AALOAD;
 import org.apache.bcel.generic.AASTORE;
 import org.apache.bcel.generic.ACONST_NULL;
@@ -16,9 +21,9 @@ import org.apache.bcel.generic.ALOAD;
 import org.apache.bcel.generic.ARETURN;
 import org.apache.bcel.generic.ARRAYLENGTH;
 import org.apache.bcel.generic.ASTORE;
-import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
@@ -31,7 +36,6 @@ import org.apache.bcel.generic.IFEQ;
 import org.apache.bcel.generic.IF_ACMPEQ;
 import org.apache.bcel.generic.IF_ICMPEQ;
 import org.apache.bcel.generic.IF_ICMPGT;
-import org.apache.bcel.generic.IF_ICMPLT;
 import org.apache.bcel.generic.IF_ICMPNE;
 import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.ILOAD;
@@ -48,7 +52,6 @@ import org.apache.bcel.generic.PUSH;
 import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.SIPUSH;
-import org.apache.bcel.generic.SWITCH;
 import org.apache.bcel.generic.Type;
 
 /**
@@ -93,6 +96,8 @@ class CodeGenerator implements RewriterConstants {
     protected IOGenerator generator;
 
     private boolean is_abstract;
+
+    InstructionHandle localStart[] = new InstructionHandle[10];
 
     public static JavaClass lookupClass(String name) {
         try {
@@ -200,6 +205,10 @@ class CodeGenerator implements RewriterConstants {
 
     void generateEmptyMethods() {
         /* Generate the necessary (empty) methods. */
+	if (has_serial_persistent_fields) {
+	    // Don't rewrite.
+	    return;
+	}
 
         if (generator.isVerbose()) {
             System.out.println("  Generating empty methods for class : "
@@ -409,6 +418,22 @@ class CodeGenerator implements RewriterConstants {
                         && (SerializationInfo.hasIbisConstructor(field_class)
                                 || (SerializationInfo.isSerializable(field_class)
                                         && generator.forceGeneratedCalls())))) {
+            write_il.append(new ICONST(0));
+            write_il.append(new ISTORE(2));
+            if (localStart[2] == null) {
+                localStart[2] = write_il.getEnd();
+            }
+            write_il.append(new ICONST(0));
+            write_il.append(new ISTORE(3));
+            if (localStart[3] == null) {
+                localStart[3] = write_il.getEnd();
+            }
+            write_il.append(new ICONST(0));
+            write_il.append(new ISTORE(4));
+            if (localStart[4] == null) {
+                localStart[4] = write_il.getEnd();
+            }
+
             // If there is an object replacer, we cannot do the
             // "fast" code.
             write_il.append(new ACONST_NULL());
@@ -458,7 +483,7 @@ class CodeGenerator implements RewriterConstants {
                         field.getName(), field_type, Constants.GETFIELD));
                 write_il.append(new ARRAYLENGTH());
                 write_il.append(new DUP());
-                write_il.append(new ISTORE(4));
+                write_il.append(new ISTORE(3));
                 write_il.append(
                         factory.createInvoke(
                                 TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
@@ -473,7 +498,7 @@ class CodeGenerator implements RewriterConstants {
                                     field.getName(),
                                     field_type, Constants.GETFIELD));
                     write_il.append(new ICONST(0));
-                    write_il.append(new ILOAD(4));
+                    write_il.append(new ILOAD(3));
                     write_il.append(
                             factory.createInvoke(
                                     TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
@@ -483,7 +508,7 @@ class CodeGenerator implements RewriterConstants {
                                         Constants.INVOKEVIRTUAL));
                 } else {
                     write_il.append(new ICONST(0));
-                    write_il.append(new ISTORE(3));
+                    write_il.append(new ISTORE(4));
                     GOTO gto = new GOTO(null);
                     write_il.append(gto);
 
@@ -494,7 +519,7 @@ class CodeGenerator implements RewriterConstants {
                             factory.createFieldAccess(classname,
                                     field.getName(), field_type,
                                     Constants.GETFIELD));
-                    write_il.append(new ILOAD(3));
+                    write_il.append(new ILOAD(4));
                     write_il.append(new AALOAD());
 
                     write_il.append(
@@ -514,7 +539,7 @@ class CodeGenerator implements RewriterConstants {
                             factory.createFieldAccess(classname,
                                     field.getName(),
                                     field_type, Constants.GETFIELD));
-                    write_il.append(new ILOAD(3));
+                    write_il.append(new ILOAD(4));
                     write_il.append(new AALOAD());
                     write_il.append(new ALOAD(1));
                     write_il.append(
@@ -522,10 +547,10 @@ class CodeGenerator implements RewriterConstants {
                                     field_class.getClassName(),
                                     Constants.INVOKEVIRTUAL));
 
-                    ifcmp1.setTarget(write_il.append(new IINC(3, 1)));
-                    gto.setTarget(write_il.append(new ILOAD(4)));
+                    ifcmp1.setTarget(write_il.append(new IINC(4, 1)));
+                    gto.setTarget(write_il.append(new ILOAD(3)));
 
-                    write_il.append(new ILOAD(3));
+                    write_il.append(new ILOAD(4));
                     write_il.append(new IF_ICMPGT(loop_body_start));
                 }
             } else {
@@ -551,218 +576,8 @@ class CodeGenerator implements RewriterConstants {
         return write_il;
     }
 
-    private InstructionList serialPersistentWrites(MethodGen write_gen) {
-        Instruction persistent_field_access = factory.createFieldAccess(
-                classname, FIELD_SERIAL_PERSISTENT_FIELDS, new ArrayType(
-                        new ObjectType(TYPE_JAVA_IO_OBJECT_STREAM_FIELD), 1),
-                        Constants.GETSTATIC);
-        InstructionList write_il = new InstructionList();
-        int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT,
-                CASE_OBJECT };
-        InstructionHandle[] case_handles
-        = new InstructionHandle[case_values.length];
-        GOTO[] gotos = new GOTO[case_values.length + 1];
-
-        for (int i = 0; i < gotos.length; i++) {
-            gotos[i] = new GOTO(null);
-        }
-
-        write_il.append(new SIPUSH((short) 0));
-        write_il.append(new ISTORE(2));
-
-        GOTO gto = new GOTO(null);
-        write_il.append(gto);
-
-        InstructionHandle loop_body_start
-        = write_il.append(persistent_field_access);
-        write_il.append(new ILOAD(2));
-        write_il.append(new AALOAD());
-        write_il.append(
-                factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
-                        METHOD_GET_NAME, Type.STRING, Type.NO_ARGS,
-                        Constants.INVOKEVIRTUAL));
-        write_il.append(new ASTORE(3));
-
-        InstructionHandle begin_try = write_il.append(new PUSH(
-                constantpool, classname));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_FOR_NAME,
-                java_lang_class_type, new Type[] { Type.STRING },
-                Constants.INVOKESTATIC));
-        write_il.append(new ALOAD(3));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_GET_FIELD,
-                new ObjectType(TYPE_JAVA_LANG_REFLECT_FIELD),
-                new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
-        write_il.append(new ASTORE(4));
-
-        write_il.append(persistent_field_access);
-        write_il.append(new ILOAD(2));
-        write_il.append(new AALOAD());
-        write_il.append(factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
-                METHOD_GET_TYPE_CODE, Type.CHAR, Type.NO_ARGS,
-                Constants.INVOKEVIRTUAL));
-
-        case_handles[0] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_BOOLEAN, Type.BOOLEAN, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_BOOLEAN,
-                Type.VOID, new Type[] { Type.BOOLEAN },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[0]);
-
-        case_handles[1] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_CHAR, Type.CHAR, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(
-                factory.createInvoke(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                        METHOD_WRITE_CHAR, Type.VOID, new Type[] { Type.INT },
-                        Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[1]);
-
-        case_handles[2] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_DOUBLE, Type.DOUBLE, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_DOUBLE,
-                Type.VOID, new Type[] { Type.DOUBLE },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[2]);
-
-        case_handles[3] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_FLOAT, Type.FLOAT, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_FLOAT,
-                Type.VOID, new Type[] { Type.FLOAT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[3]);
-
-        case_handles[4] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_INT, Type.INT, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(
-                factory.createInvoke(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                        METHOD_WRITE_INT, Type.VOID, new Type[] { Type.INT },
-                        Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[4]);
-
-        case_handles[5] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_LONG, Type.LONG, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_LONG,
-                Type.VOID, new Type[] { Type.LONG },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[5]);
-
-        case_handles[6] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_SHORT, Type.SHORT, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(
-                factory.createInvoke(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_SHORT,
-                        Type.VOID, new Type[] { Type.INT },
-                        Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[6]);
-
-        case_handles[7] = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_BOOLEAN, Type.BOOLEAN, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_BOOLEAN,
-                Type.VOID, new Type[] { Type.BOOLEAN },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(gotos[7]);
-
-        InstructionHandle default_handle = write_il.append(new ALOAD(1));
-        write_il.append(new ALOAD(4));
-        write_il.append(new ALOAD(0));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET, Type.OBJECT, new Type[] { Type.OBJECT },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_OBJECT, Type.VOID,
-                new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
-        InstructionHandle end_try = write_il.append(gotos[8]);
-
-        write_il.insert(case_handles[0], new SWITCH(case_values,
-                case_handles, default_handle));
-
-        InstructionHandle handler = write_il.append(new ASTORE(6));
-        write_il.append(factory.createNew(TYPE_JAVA_IO_IOEXCEPTION));
-        write_il.append(new DUP());
-        write_il.append(factory.createNew(TYPE_JAVA_LANG_STRING_BUFFER));
-        write_il.append(new DUP());
-        write_il.append(
-                factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                        METHOD_INIT, Type.VOID, Type.NO_ARGS,
-                        Constants.INVOKESPECIAL));
-        write_il.append(new PUSH(constantpool, "Could not write field "));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(new ALOAD(3));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                METHOD_TO_STRING, Type.STRING, Type.NO_ARGS,
-                Constants.INVOKEVIRTUAL));
-        write_il.append(factory.createInvoke(TYPE_JAVA_IO_IOEXCEPTION,
-                METHOD_INIT, Type.VOID, new Type[] { Type.STRING },
-                Constants.INVOKESPECIAL));
-        write_il.append(new ATHROW());
-
-        InstructionHandle gotos_target = write_il.append(new IINC(2, 1));
-
-        for (int i = 0; i < gotos.length; i++) {
-            gotos[i].setTarget(gotos_target);
-        }
-        InstructionHandle loop_test = write_il.append(new ILOAD(2));
-        write_il.append(persistent_field_access);
-        gto.setTarget(loop_test);
-        write_il.append(new ARRAYLENGTH());
-        write_il.append(new IF_ICMPLT(loop_body_start));
-
-        write_gen.addExceptionHandler(begin_try, end_try, handler,
-                new ObjectType(TYPE_JAVA_LANG_EXCEPTION));
-
-        return write_il;
-    }
-
     private InstructionList generateDefaultWrites(MethodGen write_gen) {
         InstructionList write_il = new InstructionList();
-
-        if (has_serial_persistent_fields) {
-            return serialPersistentWrites(write_gen);
-        }
 
         /* handle the primitive fields */
 
@@ -864,6 +679,9 @@ class CodeGenerator implements RewriterConstants {
                     METHOD_READ_KNOWN_TYPE_HEADER, Type.INT, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
             read_il.append(new ISTORE(2));
+            if (localStart[2] == null) {
+        	localStart[2] = read_il.getEnd();
+            }
             read_il.append(new ILOAD(2));
             read_il.append(new ICONST(-1));
 
@@ -894,6 +712,9 @@ class CodeGenerator implements RewriterConstants {
                             Type.NO_ARGS, Constants.INVOKEVIRTUAL));
                     read_il.append(new DUP());
                     read_il.append(new ISTORE(3));
+                    if (localStart[3] == null) {
+                        localStart[3] = read_il.getEnd();
+                    }
                     read_il.append(factory.createNewArray(el_type,
                             (short) 1));
                     read_il.append(
@@ -914,6 +735,9 @@ class CodeGenerator implements RewriterConstants {
                             Constants.INVOKEVIRTUAL));
                     read_il.append(new ICONST(0));
                     read_il.append(new ISTORE(4));
+                    if (localStart[4] == null) {
+                        localStart[4] = read_il.getEnd();
+                    }
                     GOTO gto1 = new GOTO(null);
                     read_il.append(gto1);
 
@@ -923,6 +747,9 @@ class CodeGenerator implements RewriterConstants {
                             factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                                     METHOD_READ_KNOWN_TYPE_HEADER, Type.INT,
                                     Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+                    if (localStart[2] == null) {
+                        localStart[2] = read_il.getEnd();
+                    }
                     read_il.append(new ISTORE(2));
                     read_il.append(new ILOAD(2));
                     read_il.append(new ICONST(-1));
@@ -1102,137 +929,10 @@ class CodeGenerator implements RewriterConstants {
         return h;
     }
 
-    private InstructionList serialPersistentReads(boolean from_constructor,
-            MethodGen read_gen) {
-        Instruction persistent_field_access = factory.createFieldAccess(
-                classname, FIELD_SERIAL_PERSISTENT_FIELDS, new ArrayType(
-                        new ObjectType(TYPE_JAVA_IO_OBJECT_STREAM_FIELD), 1),
-                        Constants.GETSTATIC);
-        InstructionList read_il = new InstructionList();
-        int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT,
-                CASE_OBJECT };
-        InstructionHandle[] case_handles
-        = new InstructionHandle[case_values.length];
-        GOTO[] gotos = new GOTO[case_values.length + 1];
-
-        for (int i = 0; i < gotos.length; i++) {
-            gotos[i] = new GOTO(null);
-        }
-
-        read_il.append(new SIPUSH((short) 0));
-        read_il.append(new ISTORE(2));
-
-        GOTO gto = new GOTO(null);
-        read_il.append(gto);
-
-        InstructionHandle loop_body_start
-        = read_il.append(persistent_field_access);
-        read_il.append(new ILOAD(2));
-        read_il.append(new AALOAD());
-        read_il.append(factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
-                METHOD_GET_NAME, Type.STRING, Type.NO_ARGS,
-                Constants.INVOKEVIRTUAL));
-        read_il.append(new ASTORE(3));
-
-        InstructionHandle begin_try = read_il.append(new PUSH(constantpool,
-                classname));
-        read_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_FOR_NAME,
-                java_lang_class_type, new Type[] { Type.STRING },
-                Constants.INVOKESTATIC));
-        read_il.append(new ALOAD(3));
-        read_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_GET_FIELD,
-                new ObjectType(TYPE_JAVA_LANG_REFLECT_FIELD),
-                new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
-        read_il.append(new ASTORE(4));
-
-        if (!from_constructor && has_final_fields) {
-            read_il.append(new ALOAD(4));
-            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
-                    METHOD_GET_MODIFIERS, Type.INT, Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
-            read_il.append(new ISTORE(5));
-        }
-
-        read_il.append(persistent_field_access);
-        read_il.append(new ILOAD(2));
-        read_il.append(new AALOAD());
-        read_il.append(factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
-                METHOD_GET_TYPE_CODE, Type.CHAR, Type.NO_ARGS,
-                Constants.INVOKEVIRTUAL));
-
-        case_handles[0] = generateReadField(TYPE_BYTE, Type.BYTE, read_il,
-                gotos[0], from_constructor);
-        case_handles[1] = generateReadField(TYPE_CHAR, Type.CHAR, read_il,
-                gotos[1], from_constructor);
-        case_handles[2] = generateReadField(TYPE_DOUBLE, Type.DOUBLE, read_il,
-                gotos[2], from_constructor);
-        case_handles[3] = generateReadField(TYPE_FLOAT, Type.FLOAT, read_il,
-                gotos[3], from_constructor);
-        case_handles[4] = generateReadField(TYPE_INT, Type.INT, read_il,
-                gotos[4], from_constructor);
-        case_handles[5] = generateReadField(TYPE_LONG, Type.LONG, read_il,
-                gotos[5], from_constructor);
-        case_handles[6] = generateReadField(TYPE_SHORT, Type.SHORT, read_il,
-                gotos[6], from_constructor);
-        case_handles[7] = generateReadField(TYPE_BOOLEAN, Type.BOOLEAN,
-                read_il, gotos[7], from_constructor);
-
-        InstructionHandle default_handle = generateReadField("",
-                Type.OBJECT, read_il, gotos[8], from_constructor);
-
-        InstructionHandle end_try = read_il.getEnd();
-
-        read_il.insert(case_handles[0], new SWITCH(case_values,
-                case_handles, default_handle));
-
-        InstructionHandle handler = read_il.append(new ASTORE(6));
-        read_il.append(factory.createNew(TYPE_JAVA_IO_IOEXCEPTION));
-        read_il.append(new DUP());
-        read_il.append(factory.createNew(TYPE_JAVA_LANG_STRING_BUFFER));
-        read_il.append(new DUP());
-        read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                METHOD_INIT, Type.VOID, Type.NO_ARGS,
-                Constants.INVOKESPECIAL));
-        read_il.append(new PUSH(constantpool, "Could not read field "));
-        read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
-                Constants.INVOKEVIRTUAL));
-        read_il.append(new ALOAD(3));
-        read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
-                Constants.INVOKEVIRTUAL));
-        read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
-                METHOD_TO_STRING, Type.STRING, Type.NO_ARGS,
-                Constants.INVOKEVIRTUAL));
-        read_il.append(factory.createInvoke(TYPE_JAVA_IO_IOEXCEPTION,
-                METHOD_INIT, Type.VOID, new Type[] { Type.STRING },
-                Constants.INVOKESPECIAL));
-        read_il.append(new ATHROW());
-
-        InstructionHandle gotos_target = read_il.append(new IINC(2, 1));
-
-        for (int i = 0; i < gotos.length; i++) {
-            gotos[i].setTarget(gotos_target);
-        }
-        InstructionHandle loop_test = read_il.append(new ILOAD(2));
-        read_il.append(persistent_field_access);
-        gto.setTarget(loop_test);
-        read_il.append(new ARRAYLENGTH());
-        read_il.append(new IF_ICMPLT(loop_body_start));
-
-        read_gen.addExceptionHandler(begin_try, end_try, handler,
-                new ObjectType(TYPE_JAVA_LANG_EXCEPTION));
-
-        return read_il;
-    }
 
     private InstructionList generateDefaultReads(boolean from_constructor,
             MethodGen read_gen) {
         InstructionList read_il = new InstructionList();
-
-        if (has_serial_persistent_fields) {
-            return serialPersistentReads(from_constructor, read_gen);
-        }
 
         /* handle the primitive fields */
 
@@ -1462,6 +1162,8 @@ class CodeGenerator implements RewriterConstants {
          * ibis constructor, or is assumed to have one (-force option).
          */
 
+        localStart = new InstructionHandle[10];
+        
         /* Now, do the same for the reading side. */
         MethodGen mgen = null;
         int index = -1;    
@@ -1517,6 +1219,21 @@ class CodeGenerator implements RewriterConstants {
          */
 
         if (read_il != null) {
+            read_il.append(new ICONST(0));
+            read_il.append(new ISTORE(2));
+            if (localStart[2] == null) {
+        	localStart[2] = read_il.getEnd();
+            }
+            read_il.append(new ICONST(0));
+            read_il.append(new ISTORE(3));
+            if (localStart[3] == null) {
+                localStart[3] = read_il.getEnd();
+            }
+            read_il.append(new ICONST(0));
+            read_il.append(new ISTORE(4));
+            if (localStart[4] == null) {
+                localStart[4] = read_il.getEnd();
+            }
             if (is_externalizable || SerializationInfo.hasReadObject(methods)) {
                 /* First, get and set IbisSerializationInputStream's idea of the current object. */
                 read_il.append(new ALOAD(1));
@@ -1581,6 +1298,12 @@ class CodeGenerator implements RewriterConstants {
             newMethod.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
                     newMethod.getExceptionHandlers()));
             newMethod.setMaxLocals();
+            generateStackMapTable(newMethod);
+            int i = 2;
+            while (localStart[i] != null) {
+        	newMethod.addLocalVariable("local_" + i, Type.INT, localStart[i], null);
+        	i++;
+            }
 
             gen.setMethodAt(newMethod.getMethod(), index);
         }
@@ -1597,6 +1320,24 @@ class CodeGenerator implements RewriterConstants {
         
         MethodGen write_gen = new MethodGen(methods[write_method_index], classname,
                 constantpool);
+
+        localStart = new InstructionHandle[10];
+        
+        write_il.append(new ICONST(0));
+        write_il.append(new ISTORE(2));
+        if (localStart[2] == null) {
+            localStart[2] = write_il.getEnd();
+        }
+        write_il.append(new ICONST(0));
+        write_il.append(new ISTORE(3));
+        if (localStart[3] == null) {
+            localStart[3] = write_il.getEnd();
+        }
+        write_il.append(new ICONST(0));
+        write_il.append(new ISTORE(4));
+        if (localStart[4] == null) {
+            localStart[4] = write_il.getEnd();
+        }
 
         /* write the superclass if neccecary */
         if (is_externalizable) {
@@ -1679,6 +1420,7 @@ class CodeGenerator implements RewriterConstants {
         new_write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
                 write_gen.getExceptionHandlers()));
         new_write_gen.setMaxLocals();
+        generateStackMapTable(new_write_gen);
 
         gen.setMethodAt(new_write_gen.getMethod(), write_method_index);
     }
@@ -1702,9 +1444,22 @@ class CodeGenerator implements RewriterConstants {
         MethodGen write_gen = new MethodGen(
                 methods[default_write_method_index], classname,
                 constantpool);
+        
+        localStart = new InstructionHandle[10];
 
         InstructionList write_il = new InstructionList();
         InstructionHandle end = write_gen.getInstructionList().getStart();
+        
+        write_il.append(new ICONST(0));
+        write_il.append(new ISTORE(3));
+        if (localStart[3] == null) {
+            localStart[3] = write_il.getEnd();
+        }
+        write_il.append(new ICONST(0));
+        write_il.append(new ISTORE(4));
+        if (localStart[4] == null) {
+            localStart[4] = write_il.getEnd();
+        }
 
         write_il.append(new ILOAD(2));
         write_il.append(new SIPUSH((short) dpth));
@@ -1753,6 +1508,7 @@ class CodeGenerator implements RewriterConstants {
         default_write_method.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
                 default_write_method.getExceptionHandlers()));
         default_write_method.setMaxLocals();
+        generateStackMapTable(default_write_method);
 
         gen.setMethodAt(default_write_method.getMethod(), default_write_method_index);
     }
@@ -1767,10 +1523,22 @@ class CodeGenerator implements RewriterConstants {
         MethodGen read_gen = new MethodGen(
                 methods[default_read_method_index], classname,
                 constantpool);
+        
+        localStart = new InstructionHandle[10];
 
         InstructionList read_il = new InstructionList();
         end = read_gen.getInstructionList().getStart();
-
+        
+        read_il.append(new ICONST(0));
+        read_il.append(new ISTORE(3));
+        if (localStart[3] == null) {
+            localStart[3] = read_il.getEnd();
+        }
+        read_il.append(new ICONST(0));
+        read_il.append(new ISTORE(4));
+        if (localStart[4] == null) {
+            localStart[4] = read_il.getEnd();
+        }
         read_il.append(new ILOAD(2));
         read_il.append(new SIPUSH((short) dpth));
         ifcmpne = new IF_ICMPNE(null);
@@ -1827,7 +1595,104 @@ class CodeGenerator implements RewriterConstants {
         default_read_method.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
                 default_read_method.getExceptionHandlers()));
         default_read_method.setMaxLocals();
+        generateStackMapTable(default_read_method);
 
         gen.setMethodAt(default_read_method.getMethod(), default_read_method_index);
+    }
+    
+    private void generateStackMapTable(MethodGen m) {
+	// Generates stackmaptable, assuming that for each jump target, the
+	// stackmap entry should be the same.
+	if (clazz.getMajor() < 50) {
+	    // In this case, no StackMapTables are needed.
+	    return;
+	}
+	
+	LocalVariableTable localtable = m.getLocalVariableTable(constantpool);
+	int nLocals = localtable.getTableLength();
+	
+	// First, generate a list of jump targets. Each basic block must get
+	// its own StackMapTable entry.
+	m.getInstructionList().setPositions();
+	InstructionHandle l = m.getInstructionList().getStart();
+	ArrayList<Integer> targets = new ArrayList<Integer>();
+	while (l != null) {
+	    if (l.getInstruction() instanceof BranchInstruction) {
+		BranchInstruction b = (BranchInstruction) l.getInstruction();
+		InstructionHandle target = b.getTarget();
+		if (! targets.contains(target.getPosition())) {
+		    targets.add(target.getPosition());
+		}
+	    }
+	    l = l.getNext();
+	}
+	
+	if (targets.size() == 0) {
+	    // In this case, the StackMapTable is implicit.
+	    return;
+	}
+	
+	// Now, put the collected positions in an integer array and sort them, because
+	// the StackMapTable entries must be generated in order.
+	int[] positions = new int[targets.size()];
+	for (int i = 0; i < positions.length; i++) {
+	    positions[i] = targets.get(i);
+	}
+	Arrays.sort(positions);
+
+	// Now, generate the StackMapTableEntries.
+	int prevPosition = 0;
+	int size = 2;		// space for number of entries.
+	ArrayList<StackMapTableEntry> entries = new ArrayList<StackMapTableEntry>();
+	int oldnLocals = nLocals;
+	boolean first = true;
+	for (int i = 0; i < positions.length; i++) {
+	    int pos = positions[i] - prevPosition;
+	    while (localStart[nLocals] != null && localStart[nLocals].getPosition() < positions[i]) {
+		nLocals++;
+	    }
+	    if (nLocals > oldnLocals) {
+		if (first && m.getName().equals("<init>")) {
+		    first = false;
+		    StackMapType[] types = new StackMapType[nLocals];
+		    types[0] = new StackMapType(Constants.ITEM_Object, constantpool.addClass(clazz.getClassName()), null);
+		    size += 3;
+		    types[1] = new StackMapType(Constants.ITEM_Object, constantpool.addClass(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM), null);
+		    size += 3;
+		    for (int j = oldnLocals; j < nLocals; j++) {
+			types[j] = new StackMapType(Constants.ITEM_Integer, -1, null);
+			size++;
+		    }
+		    entries.add(new StackMapTableEntry(Constants.FULL_FRAME,
+			    pos, nLocals, types, 0, null, null));
+		    size += 7;
+		} else {
+		    StackMapType[] types = new StackMapType[nLocals - oldnLocals];
+		    for (int j = oldnLocals; j < nLocals; j++) {
+			types[j - oldnLocals] = new StackMapType(Constants.ITEM_Integer, -1, null);
+			size++;
+		    }
+		    entries.add(new StackMapTableEntry(Constants.APPEND_FRAME + (nLocals - oldnLocals - 1),
+			    pos, nLocals - oldnLocals, types, 0, null, null));
+		    size += 3;
+		}
+	    }
+	    else if (pos < 64) {
+		// SAME
+		entries.add(new StackMapTableEntry(pos, 0, 0, null, 0, null, null));
+		size++;
+	    } else {
+		// SAME_FRAME_EXTENDED
+		entries.add(new StackMapTableEntry(Constants.SAME_FRAME_EXTENDED, pos, 0, null, 0, null, null));
+		size += 3;
+	    }
+	    prevPosition = positions[i] + 1;	// yes: + 1. See http://http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.4
+	    oldnLocals = nLocals;
+	}
+	
+	// Now create a StackMapTable attribute and add it to the method parameter.
+	int stringIndex = constantpool.addUtf8("StackMapTable");
+	StackMapTable table = new StackMapTable(stringIndex, size, entries.toArray(new StackMapTableEntry[entries.size()]), null);
+	m.addCodeAttribute(table);
     }
 }

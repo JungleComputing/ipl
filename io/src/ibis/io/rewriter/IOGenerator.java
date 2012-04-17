@@ -269,9 +269,11 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
             if (!classes_to_rewrite.contains(clazz) && !SerializationInfo.isIbisSerializable(clazz)) {
                 classes_to_rewrite.add(clazz);
 
+                /*
                 if (clazz.getMajor() > 50) {
                     clazz.setMajor(50);         // Dirty hack as long as we don't generate StackMap.
                 }
+                */
 
                 if (verbose) {
                     System.out.println("Adding rewrite class : "
