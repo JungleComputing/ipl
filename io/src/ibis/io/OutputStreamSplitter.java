@@ -136,16 +136,14 @@ public final class OutputStreamSplitter extends OutputStream {
     }
 
     public synchronized void remove(OutputStream s) throws IOException {
-	
-        synchronized(this) {
-            while (numSenders != 0) {
-                try {
-                    wait();
-                } catch(Exception e) {
-                    // Ignored
-                }
-            }
-        }
+
+	while (numSenders != 0) {
+	    try {
+		wait();
+	    } catch(Exception e) {
+		// Ignored
+	    }
+	}
         
         int i = out.indexOf(s);
         
