@@ -76,7 +76,9 @@ public final class OutputStreamSplitter extends OutputStream {
     void doWrite(byte[] buf, int offset, int len, int index) {
         try {
             OutputStream o = out.get(index);
-            o.write(buf, offset, len);
+            if (o != null) {
+        	o.write(buf, offset, len);
+            }
         } catch(IOException e) {
             addException(e, index);
         }
@@ -85,7 +87,9 @@ public final class OutputStreamSplitter extends OutputStream {
     void doFlush(int index) {
         try {
             OutputStream o = out.get(index);
-            o.flush();
+            if (o != null) {
+        	o.flush();
+            }
         } catch(IOException e) {
             addException(e, index);
         }
@@ -94,7 +98,9 @@ public final class OutputStreamSplitter extends OutputStream {
     void doClose(int index) {
         try {
             OutputStream o = out.get(index);
-            o.close();
+            if (o != null) {
+        	o.close();
+            }
         } catch(IOException e) {
             addException(e, index);
         }
@@ -125,11 +131,22 @@ public final class OutputStreamSplitter extends OutputStream {
         this.saveException = saveException;
     }
 
-    public void add(OutputStream s) {
+    public synchronized void add(OutputStream s) {
         out.add(s);
     }
 
-    public void remove(OutputStream s) throws IOException {
+    public synchronized void remove(OutputStream s) throws IOException {
+	
+        synchronized(this) {
+            while (numSenders != 0) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // Ignored
+                }
+            }
+        }
+        
         int i = out.indexOf(s);
         
         if (i == -1) {
@@ -156,7 +173,10 @@ public final class OutputStreamSplitter extends OutputStream {
 
         for (int i = 0; i < out.size(); i++) {
             try {
-                out.get(i).write(b);
+        	OutputStream o = out.get(i);
+        	if (o != null) {
+        	    o.write(b);
+        	}
             } catch (IOException e2) {
                 if (savedException == null) {
                     savedException = new SplitterException();
@@ -164,7 +184,7 @@ public final class OutputStreamSplitter extends OutputStream {
                 savedException.add(out.get(i), e2);
                 if (removeOnException) {
                     out.remove(i);
-                    i--;
+                    --i;
                 }
             }
         }
