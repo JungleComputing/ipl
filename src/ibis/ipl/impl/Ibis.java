@@ -306,12 +306,6 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             ended = true;
         }
 
-        try {
-            registry.leave();
-        } catch (Throwable e) {
-            throw new IbisIOException("Registry: leave failed ", e);
-        }
-
         if (managementClient != null) {
             managementClient.end();
         }
@@ -320,7 +314,13 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             vivaldiClient.end();
         }
 
-        quit();
+        try {
+            registry.leave();
+        } catch (Throwable e) {
+            throw new IbisIOException("Registry: leave failed ", e);
+        } finally {
+            quit();
+        }
     }
 
     public void poll() throws IOException {
