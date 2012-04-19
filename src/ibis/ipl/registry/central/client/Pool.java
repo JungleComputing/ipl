@@ -578,7 +578,11 @@ final class Pool {
             }
         }
         
-        return terminateEvent.getIbis();
+        if (terminateEvent != null) {
+            return terminateEvent.getIbis();
+        }
+        
+        return null;
     }
 
 }
