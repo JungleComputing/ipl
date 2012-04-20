@@ -36,13 +36,13 @@ public class Heartbeat implements Runnable {
                 + (heartbeatInterval * 5);
     }
 
-    synchronized void resetHeartbeadDeadline() {
+    synchronized void resetHeartbeatDeadline() {
         heartbeatDeadline = System.currentTimeMillis()
-                + (long) (heartbeatInterval * 0.9 * Math.random());
+                + (long) (heartbeatInterval * (0.3 + Math.random()/2.0));
     }
 
     synchronized void resetDeadlines() {
-        resetHeartbeadDeadline();
+        resetHeartbeatDeadline();
         resetServerDeadline();
 
         if (logger.isDebugEnabled()) {
@@ -80,15 +80,16 @@ public class Heartbeat implements Runnable {
     }
 
     public void run() {
+        resetDeadlines();
         while (!pool.isStopped()) {
             waitForHeartbeatDeadline();
 
             boolean success = commHandler.sendHeartBeat();
             if (success) {
                 resetServerDeadline();
-                resetHeartbeadDeadline();
+                resetHeartbeatDeadline();
             } else {
-                resetHeartbeadDeadline();
+                resetHeartbeatDeadline();
             }
 
             if (serverDeadlineExpired()) {
