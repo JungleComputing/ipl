@@ -97,7 +97,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
         if (isFromIbisc()) {
             setModified(wrapper.getInfo(clazz));
             if (instgen != null) {
-        	addEntry(wrapper.getInfo(instgen), clazz.name);
+        	addEntry(wrapper.getInfo(instgen), clazz.name.replaceAll("/", "."));
             }
         }
         addSave(clazz);
@@ -570,6 +570,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
             } catch (IOException e) {
                 System.err.println("got exception while writing " + classfile
                         + ": " + e);
+                e.printStackTrace(System.err);
                 System.exit(1);
             }
         }

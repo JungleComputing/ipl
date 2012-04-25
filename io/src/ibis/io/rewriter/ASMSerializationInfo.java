@@ -167,7 +167,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         for (FieldNode f : fields) {
             if (f.name.equals(FIELD_SERIAL_PERSISTENT_FIELDS)
                     && ((f.access & (ACC_FINAL | ACC_STATIC | ACC_PRIVATE)) == (ACC_FINAL | ACC_STATIC | ACC_PRIVATE))
-                     && f.signature.equals(
+                     && f.desc.equals(
                             TYPE_LJAVA_IO_OBJECT_STREAM_FIELD)) {
                 return true;
             }
@@ -257,7 +257,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
                     //      32-bit integer.
                     dout.writeInt(mods);
                     // 4.3. The descriptor of the field in UTF encoding
-                    dout.writeUTF(cFields[i].signature);
+                    dout.writeUTF(cFields[i].desc);
                 }
             }
 
@@ -285,8 +285,8 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
                     String name1 = o1.name;
                     String name2 = o2.name;
                     if (name1.equals(name2)) {
-                        String sig1 = o1.signature;
-                        String sig2 = o2.signature;
+                        String sig1 = o1.desc;
+                        String sig2 = o2.desc;
                         return sig1.compareTo(sig2);
                     }
                     return name1.compareTo(name2);
@@ -350,6 +350,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         } catch (Exception ex) {
             System.err.println("Warning: could not get serialVersionUID "
                     + "for class " + clazz.name);
+            ex.printStackTrace(System.err);
             return 0L;
         }
     }
