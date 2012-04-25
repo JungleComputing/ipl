@@ -2,9 +2,11 @@ package ibis.compile;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 public class ASMClassInfo implements ClassInfo {
     
@@ -40,6 +42,8 @@ public class ASMClassInfo implements ClassInfo {
     @Override
     public byte[] getBytes() {
         ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        // TraceClassVisitor tw = new TraceClassVisitor(new PrintWriter(System.out));
+        // n.accept(tw);
         n.accept(w);
         return w.toByteArray();
     }

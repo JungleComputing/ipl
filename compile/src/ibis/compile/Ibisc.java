@@ -138,6 +138,7 @@ public class Ibisc {
                 } catch (Exception ex) {
                     System.err.println("Ibisc: got exception while writing "
                             + e.fileName + ": " + ex);
+                    ex.printStackTrace(System.err);
                     if (temp != null) {
                         temp.delete();
                     }

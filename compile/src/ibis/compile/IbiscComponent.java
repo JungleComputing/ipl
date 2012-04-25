@@ -90,8 +90,7 @@ public abstract class IbiscComponent {
     public abstract void process(Iterator<?> classes);
 
     /**
-     * Should return the rewriter implementation, for now only BCEL is
-     * supported. In the future, ASM may be supported as well.
+     * Returns the rewriter implementation. ASM and BCEL are supported.
      * @return the rewriter implementation needed/used by this
      * <code>IbiscComponent</code>.
      */
