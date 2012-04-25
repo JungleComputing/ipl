@@ -33,6 +33,7 @@
             <fileset dir="${ibis}/lib">
                 <include name="*.jar" />
             </fileset>
+	    <pathelement path="tmp" />
         </path>
 
         <!-- Compile the java code from ${src} into ${tmp} -->
