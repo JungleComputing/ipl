@@ -45,7 +45,8 @@ Foundation (http://www.apache.org/).
 
 The BCEL copyright notice lives in "notices/LICENSE.bcel.txt".  The
 Log4J copyright notice lives in "notices/LICENSE.log4j.txt".  The
-Commons copyright notice lives in notices/LICENSE.apache-2.0.txt".
+Commons copyright notice lives in "notices/LICENSE.apache-2.0.txt".
+The ASM copyright notice lives in "notices/LICENSE.asm.txt".
 
 This product includes jstun, which is distributed with a dual license,
 one of which is version 2.0 of the Apache license. It lives in
