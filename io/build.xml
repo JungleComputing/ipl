@@ -91,7 +91,7 @@
         <!-- Put everything in ${compile} into the jar file -->
         <jar jarfile="${jar}" basedir="${compile}">
             <manifest>
-                <attribute name="Ibisc-Component" value="ibis.io.rewriter.IOGenerator" />
+                <attribute name="Ibisc-Component" value="ibis.io.rewriter.ASMIOGenerator" />
             </manifest>
             <metainf dir=".." includes="LICENSE.txt" />
         </jar>
