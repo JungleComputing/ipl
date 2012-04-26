@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 public class ASMClassInfo implements ClassInfo {
@@ -42,8 +43,11 @@ public class ASMClassInfo implements ClassInfo {
     @Override
     public byte[] getBytes() {
         ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        // TraceClassVisitor tw = new TraceClassVisitor(new PrintWriter(System.out));
-        // n.accept(tw);
+        if (Ibisc.debug) {
+            TraceClassVisitor tw = new TraceClassVisitor(new PrintWriter(System.out));
+            CheckClassAdapter cw = new CheckClassAdapter(tw, false);
+            n.accept(cw);
+        }
         n.accept(w);
         return w.toByteArray();
     }

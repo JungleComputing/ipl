@@ -34,6 +34,8 @@ public class Ibisc {
 
     /** Set when jar files must be compressed. */
     private static boolean compress = true;
+    
+    static boolean debug = false;
 
     static ByteCodeWrapper w;
 
@@ -282,6 +284,10 @@ public class Ibisc {
                 verbose = true;
             } else if (args[i].equals("-no-verbose")) {
                 verbose = false;
+            } else if (args[i].equals("-d") || args[i].equals("-debug")) {
+                debug = true;
+            } else if (args[i].equals("-no-debug")) {
+                debug = false;
             } else if (args[i].equals("-verify")) {
                 verify = true;
             } else if (args[i].equals("-no-verify")) {
