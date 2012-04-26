@@ -70,7 +70,7 @@ interface ASMRewriterConstants {
 
     static final String METHOD_GET_DOUBLE = "getDouble";
 
-    static final String METHOD_GET_FIELD = "getField";
+    static final String METHOD_GET_DECLAREDFIELD = "getDeclaredField";
 
     static final String METHOD_GET_FLOAT = "getFloat";
 
@@ -206,83 +206,59 @@ interface ASMRewriterConstants {
 
     static final String SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V = "(Ljava/io/ObjectOutputStream;)V";
 
-    static final String TYPE_BOOLEAN = "Z";
+    static final String IBIS_IO_CONSTANTS = "ibis/io/Constants";
 
-    static final String TYPE_BYTE = "B";
+    static final String IBIS_IO_GENERATOR = "ibis/io/Generator";
 
-    static final String TYPE_CHAR = "C";
+    static final String IBIS_IO_REPLACER = "ibis/io/Replacer";
 
-    static final String TYPE_DOUBLE = "D";
+    static final String IBIS_IO_SERIALIZABLE = "ibis/io/Serializable";
 
-    static final String TYPE_FLOAT = "F";
+    static final String JAVA_IO_EXTERNALIZABLE = "java/io/Externalizable";
+
+    static final String JAVA_IO_IOEXCEPTION = "java/io/IOException";
+
+    static final String JAVA_IO_OBJECTINPUT = "java/io/ObjectInput";
+
+    static final String JAVA_IO_OBJECTOUTPUT = "java/io/ObjectOutput";
+
+    static final String JAVA_IO_OBJECTSTREAMFIELD = "java/io/ObjectStreamField";
+
+    static final String JAVA_IO_SERIALIZABLE = "java/io/Serializable";
+
+    static final String JAVA_LANG_CLASS = "java/lang/Class";
+
+    static final String JAVA_LANG_CLASSNOTFOUNDEXCEPTION = "java/lang/ClassNotFoundException";
+
+    static final String JAVA_LANG_ENUM = "java/lang/Enum";
+
+    static final String JAVA_LANG_OBJECT = "java/lang/Object";
+
+    static final String JAVA_LANG_REFLECT_FIELD = "java/lang/reflect/Field";
+
+    static final String JAVA_LANG_STRING = "java/lang/String";
+
+    static final String JAVA_LANG_STRINGBUFFER = "java/lang/StringBuffer";
     
-    static final String TYPE_SHORT = "S";
+    static final String JAVA_LANG_THROWABLE = "java/lang/Throwable";
+
+    static final String SIGNATURE_LJAVA_IO_OBJECTSTREAMFIELD = "[Ljava/io/ObjectStreamField;";
     
-    static final String TYPE_INT = "I";
+    static final Type TYPE_JAVA_IO_OBJECTINPUT = Type.getObjectType(JAVA_IO_OBJECTINPUT);
     
-    static final String TYPE_LONG = "J";
+    static final Type TYPE_JAVA_IO_OBJECTOUTPUT = Type.getObjectType(JAVA_IO_OBJECTOUTPUT);
     
-    static final String TYPE_VOID = "V";
+    static final Type TYPE_IBIS_IO_INPUT = Type.getObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM);
     
-    static final String TYPE_IBIS_IO_CONSTANTS = "ibis/io/Constants";
-
-    static final String TYPE_IBIS_IO_GENERATOR = "ibis/io/Generator";
-
-    static final String TYPE_IBIS_IO_REPLACER = "ibis/io/Replacer";
-
-    static final String TYPE_IBIS_IO_SERIALIZABLE = "ibis/io/Serializable";
-
-    static final String TYPE_JAVA_IO_EXTERNALIZABLE = "java/io/Externalizable";
-
-    static final String TYPE_JAVA_IO_IOEXCEPTION = "java/io/IOException";
-
-    static final String TYPE_JAVA_IO_OBJECT_INPUT = "java/io/ObjectInput";
-
-    static final String TYPE_JAVA_IO_OBJECT_OUTPUT = "java/io/ObjectOutput";
-
-    static final String TYPE_JAVA_IO_OBJECT_STREAM_FIELD = "java/io/ObjectStreamField";
-
-    static final String TYPE_JAVA_IO_SERIALIZABLE = "java/io/Serializable";
-
-    static final String TYPE_JAVA_LANG_CLASS = "java/lang/Class";
-
-    static final String TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION = "java/lang/ClassNotFoundException";
-
-    static final String TYPE_JAVA_LANG_ENUM = "java/lang/Enum";
-
-    static final String TYPE_JAVA_LANG_EXCEPTION = "java/lang/Exception";
-
-    static final String TYPE_JAVA_LANG_OBJECT = "java/lang/Object";
-
-    static final String TYPE_JAVA_LANG_REFLECT_FIELD = "java/lang/reflect/Field";
-
-    static final String TYPE_JAVA_LANG_STRING = "java/lang/String";
-
-    static final String TYPE_JAVA_LANG_STRING_BUFFER = "java/lang/StringBuffer";
-
-    static final String TYPE_LJAVA_IO_OBJECT_STREAM_FIELD = "[Ljava/io/ObjectStreamField;";
-
-    static final String VARIABLE_INPUT_STREAM = "is";
-
-    static final String VARIABLE_LEVEL = "lvl";
-
-    static final String VARIABLE_OUTPUT_STREAM = "os";
-
-    static final String VARIABLE_REPLACER = "replacer";
+    static final Type TYPE_IBIS_IO_OUTPUT = Type.getObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM);
     
-    static final Type OBJECT_INPUT_STREAM_TYPE = Type.getObjectType(TYPE_JAVA_IO_OBJECT_INPUT);
+    static final Type TYPE_OBJECT = Type.getType(Object.class);
     
-    static final Type OBJECT_OUTPUT_STREAM_TYPE = Type.getObjectType(TYPE_JAVA_IO_OBJECT_OUTPUT);
+    static final Type TYPE_CLASS = Type.getType(Class.class);
     
-    static final Type IBIS_INPUT_STREAM_TYPE = Type.getObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM);
+    static final Type TYPE_STRING = Type.getType(String.class);
     
-    static final Type IBIS_OUTPUT_STREAM_TYPE = Type.getObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM);
+    static final Type TYPE_STRINGBUFFER = Type.getType(StringBuffer.class);
     
-    static final Type OBJECT_TYPE = Type.getType(Object.class);
-    
-    static final Type CLASS_TYPE = Type.getType(Class.class);
-    
-    static final Type STRING_TYPE = Type.getType(String.class);
-    
-    static final Type STRINGBUFFER_TYPE = Type.getType(StringBuffer.class);
+    static final Type TYPE_THROWABLE = Type.getType(Throwable.class);
 }

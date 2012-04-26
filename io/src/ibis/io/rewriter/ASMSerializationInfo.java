@@ -43,35 +43,35 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
     static {
         primitiveSerialization.put(Type.BOOLEAN_TYPE, new ASMSerializationInfo(
                 METHOD_WRITE_BOOLEAN, METHOD_READ_BOOLEAN, METHOD_READ_FIELD_BOOLEAN,
-                TYPE_BOOLEAN, true));
+                "Z", true));
 
         primitiveSerialization.put(Type.BYTE_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_BYTE, METHOD_READ_BYTE, METHOD_READ_FIELD_BYTE, TYPE_BYTE, true));
+                METHOD_WRITE_BYTE, METHOD_READ_BYTE, METHOD_READ_FIELD_BYTE, "B", true));
 
         primitiveSerialization.put(Type.SHORT_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_SHORT, METHOD_READ_SHORT, METHOD_READ_FIELD_SHORT, TYPE_SHORT, true));
+                METHOD_WRITE_SHORT, METHOD_READ_SHORT, METHOD_READ_FIELD_SHORT, "S", true));
 
         primitiveSerialization.put(Type.CHAR_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_CHAR, METHOD_READ_CHAR, METHOD_READ_FIELD_CHAR, TYPE_CHAR, true));
+                METHOD_WRITE_CHAR, METHOD_READ_CHAR, METHOD_READ_FIELD_CHAR, "C", true));
 
         primitiveSerialization.put(Type.INT_TYPE, new ASMSerializationInfo(METHOD_WRITE_INT,
-                METHOD_READ_INT, METHOD_READ_FIELD_INT, TYPE_INT, true));
+                METHOD_READ_INT, METHOD_READ_FIELD_INT, "I", true));
 
         primitiveSerialization.put(Type.LONG_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_LONG, METHOD_READ_LONG, METHOD_READ_FIELD_LONG, TYPE_LONG, true));
+                METHOD_WRITE_LONG, METHOD_READ_LONG, METHOD_READ_FIELD_LONG, "J", true));
 
         primitiveSerialization.put(Type.FLOAT_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_FLOAT, METHOD_READ_FLOAT, METHOD_READ_FIELD_FLOAT, TYPE_FLOAT, true));
+                METHOD_WRITE_FLOAT, METHOD_READ_FLOAT, METHOD_READ_FIELD_FLOAT, "F", true));
 
         primitiveSerialization.put(Type.DOUBLE_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_DOUBLE, METHOD_READ_DOUBLE, METHOD_READ_FIELD_DOUBLE, TYPE_DOUBLE,
+                METHOD_WRITE_DOUBLE, METHOD_READ_DOUBLE, METHOD_READ_FIELD_DOUBLE, "D",
                 true));
-        primitiveSerialization.put(STRING_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_STRING, METHOD_READ_STRING, METHOD_READ_FIELD_STRING, STRING_TYPE.getDescriptor(),
+        primitiveSerialization.put(TYPE_STRING, new ASMSerializationInfo(
+                METHOD_WRITE_STRING, METHOD_READ_STRING, METHOD_READ_FIELD_STRING, TYPE_STRING.getDescriptor(),
                 true));
-        primitiveSerialization.put(CLASS_TYPE, new ASMSerializationInfo(
+        primitiveSerialization.put(TYPE_CLASS, new ASMSerializationInfo(
                 METHOD_WRITE_CLASS, METHOD_READ_CLASS, METHOD_READ_FIELD_CLASS,
-                CLASS_TYPE.getDescriptor(), true));
+                TYPE_CLASS.getDescriptor(), true));
     }
 
     String write_name;
@@ -98,7 +98,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         return (temp == null ? referenceSerialization : temp);
     }
 
-    static boolean directImplementationOf(ClassNode clazz,
+    public static boolean directImplementationOf(ClassNode clazz,
             String name) {
         @SuppressWarnings("unchecked")
         List<String> names = clazz.interfaces;
@@ -119,14 +119,14 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         return false;
     }
 
-    static boolean predecessor(String c1, ClassNode c2) {
+    public static boolean predecessor(String c1, ClassNode c2) {
         String n = c2.superName;
 
         // System.out.println("comparing " + c1 + ", " + n);
         if (n.equals(c1)) {
             return true;
         }
-        if (n.equals(TYPE_JAVA_LANG_OBJECT)) {
+        if (n.equals(JAVA_LANG_OBJECT)) {
             return false;
         }
         return predecessor(c1, ASMCodeGenerator.lookupClass(n));
@@ -144,12 +144,12 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
     }
 
     static boolean isIbisSerializable(ClassNode clazz) {
-        return directImplementationOf(clazz, TYPE_IBIS_IO_SERIALIZABLE);
+        return directImplementationOf(clazz, IBIS_IO_SERIALIZABLE);
     }
  
     static boolean isExternalizable(ClassNode clazz) {
         try {
-            return ASMRepository.implementationOf(clazz, TYPE_JAVA_IO_EXTERNALIZABLE);
+            return ASMRepository.implementationOf(clazz, JAVA_IO_EXTERNALIZABLE);
         } catch (ClassNotFoundException e) {
             throw new Error(e);
         }
@@ -157,7 +157,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
     static boolean isSerializable(ClassNode clazz) {
         try {
-            return ASMRepository.implementationOf(clazz, TYPE_JAVA_IO_SERIALIZABLE);
+            return ASMRepository.implementationOf(clazz, JAVA_IO_SERIALIZABLE);
         } catch (ClassNotFoundException e) {
             throw new Error(e);
         }
@@ -168,7 +168,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             if (f.name.equals(FIELD_SERIAL_PERSISTENT_FIELDS)
                     && ((f.access & (ACC_FINAL | ACC_STATIC | ACC_PRIVATE)) == (ACC_FINAL | ACC_STATIC | ACC_PRIVATE))
                      && f.desc.equals(
-                            TYPE_LJAVA_IO_OBJECT_STREAM_FIELD)) {
+                            SIGNATURE_LJAVA_IO_OBJECTSTREAMFIELD)) {
                 return true;
             }
         }

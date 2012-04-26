@@ -282,16 +282,16 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
     private void addClass(ClassNode clazz) {
         boolean serializable = false;
 
-        if (clazz.name.equals(TYPE_JAVA_LANG_CLASS)) {
+        if (clazz.name.equals(JAVA_LANG_CLASS)) {
             return;
         }
 
-        if (clazz.name.equals(TYPE_JAVA_LANG_STRING)) {
+        if (clazz.name.equals(JAVA_LANG_STRING)) {
             return;
         }
 
         try {
-            if (ASMRepository.instanceOf(clazz, TYPE_JAVA_LANG_ENUM)) {
+            if (ASMRepository.instanceOf(clazz, JAVA_LANG_ENUM)) {
                 return;
             }
         } catch (ClassNotFoundException e1) {
@@ -343,7 +343,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
                                 if (verbose) {
                                     System.out.println(clazz.name
                                             + " already implements "
-                                            + TYPE_IBIS_IO_SERIALIZABLE);
+                                            + IBIS_IO_SERIALIZABLE);
                                 }
                             }
                         }
@@ -384,7 +384,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
                     field_type = field_type.getElementType();
                 }
                 if (field_type.getSort() == Type.OBJECT
-                        && ! field_type.getInternalName().equals(TYPE_JAVA_LANG_STRING) 
+                        && ! field_type.getInternalName().equals(JAVA_LANG_STRING) 
                         && ASMSerializationInfo.isFinal(field_type)) {
                     addRewriteClass(field_type, clazz);
                 }
@@ -486,7 +486,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
                         if (verbose) {
                             System.out.println(clazz.name
                                     + " already implements "
-                                    + TYPE_IBIS_IO_SERIALIZABLE);
+                                    + IBIS_IO_SERIALIZABLE);
                         }
                     }
                 } else {
