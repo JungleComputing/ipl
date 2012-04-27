@@ -360,7 +360,9 @@ public class Ibisc {
         int szm1 = components.size() - 1;
         for (int i = 0; i < szm1; i++) {
             IbiscComponent ic = components.get(i);
-            if (ic.getClass().getName().equals("ibis.io.rewriter.IOGenerator")) {
+            String cn = ic.getClass().getName();
+            if (cn.equals("ibis.io.rewriter.IOGenerator")
+                    || cn.equals("ibis.io.rewriter.ASMIOGenerator")) {
                 components.set(i, components.get(szm1));
                 components.set(szm1, ic);
                 break;
