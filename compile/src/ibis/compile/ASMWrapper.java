@@ -44,6 +44,7 @@ public class ASMWrapper implements ByteCodeWrapper {
         ClassNode n = new ClassNode(Opcodes.ASM4);
         ClassReader r = new ClassReader(in);
         r.accept(n, 0);
+        ASMRepository.addClass(n);
         return new ASMClassInfo(n);
     }
 

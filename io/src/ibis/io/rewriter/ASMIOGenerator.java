@@ -246,8 +246,8 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
         if (t.getSort() == Type.ARRAY) {
             addRewriteClass(t.getElementType(), clazz);
         } else if (t.getSort() == Type.OBJECT) {
-            String name = t.getClassName();
-            ClassNode c = ASMCodeGenerator.lookupClass(name)              ;
+            String name = t.getInternalName();
+            ClassNode c = ASMCodeGenerator.lookupClass(name);
             if (c != null) {
                 if (!local
                         || ASMCodeGenerator.getPackageName(clazz.name).equals(ASMCodeGenerator.getPackageName(c.name))) {
