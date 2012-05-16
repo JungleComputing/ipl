@@ -85,7 +85,9 @@
         <!-- Compile the java code from ${src} into ${compile} -->
         <javac srcdir="${tmpsrc}" destdir="${compile}" debug="on">
             <classpath refid="external_jars" />
+	    <!--
             <compilerarg value="-Xlint:unchecked" />
+	    -->
         </javac>
 
         <!-- Put everything in ${compile} into the jar file -->
