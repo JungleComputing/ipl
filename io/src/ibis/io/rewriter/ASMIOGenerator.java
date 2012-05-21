@@ -380,7 +380,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
             /* Don't send fields that are STATIC or TRANSIENT */
             if ((field.access & (ACC_STATIC | ACC_TRANSIENT)) == 0) {
                 Type field_type = Type.getType(field.desc);
-                while (field_type.getSort() == Type.ARRAY) {
+                if (field_type.getSort() == Type.ARRAY) {
                     field_type = field_type.getElementType();
                 }
                 if (field_type.getSort() == Type.OBJECT

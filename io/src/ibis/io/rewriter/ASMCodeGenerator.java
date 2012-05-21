@@ -299,7 +299,11 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         Type tp = field_type;
         if (tp.getSort() == Type.ARRAY) {
             isarray = true;
-            tp = tp.getElementType();
+            if (tp.getDimensions() > 1) {
+                tp = Type.getType(tp.getDescriptor().substring(1));
+            } else {
+                tp = tp.getElementType();
+            }
         }
         if (tp.getSort() == Type.OBJECT) {
             field_class = lookupClass(tp.getInternalName());
@@ -700,7 +704,11 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         Type tp = field_type;
         if (tp.getSort() == Type.ARRAY) {
             isarray = true;
-            tp = tp.getElementType();
+            if (tp.getDimensions() > 1) {
+                tp = Type.getType(tp.getDescriptor().substring(1));
+            } else {
+                tp = tp.getElementType();
+            }
         }
         if (tp.getSort() == Type.OBJECT) {
             field_class = lookupClass(tp.getInternalName());
