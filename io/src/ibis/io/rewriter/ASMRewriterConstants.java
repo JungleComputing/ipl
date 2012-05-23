@@ -202,9 +202,9 @@ interface ASMRewriterConstants {
 
     static final String SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V = "(Libis/io/IbisSerializationOutputStream;)V";
 
-    static final String SIGNATURE_LJAVA_IO_OBJECT_INPUT_STREAM_V = "(Ljava/io/ObjectInputStream;)V";
+    static final String SIGNATURE_METHOD_READ_OBJECT = "(Ljava/io/ObjectInputStream;)V";
 
-    static final String SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V = "(Ljava/io/ObjectOutputStream;)V";
+    static final String SIGNATURE_METHOD_WRITE_OBJECT = "(Ljava/io/ObjectOutputStream;)V";
 
     static final String IBIS_IO_CONSTANTS = "ibis/io/Constants";
 
@@ -217,6 +217,10 @@ interface ASMRewriterConstants {
     static final String JAVA_IO_EXTERNALIZABLE = "java/io/Externalizable";
 
     static final String JAVA_IO_IOEXCEPTION = "java/io/IOException";
+
+    static final String JAVA_IO_OBJECTINPUTSTREAM = "java/io/ObjectInputStream";
+
+    static final String JAVA_IO_OBJECTOUTPUTSTREAM = "java/io/ObjectOutputStream";
 
     static final String JAVA_IO_OBJECTINPUT = "java/io/ObjectInput";
 
@@ -243,6 +247,10 @@ interface ASMRewriterConstants {
     static final String JAVA_LANG_THROWABLE = "java/lang/Throwable";
 
     static final String SIGNATURE_LJAVA_IO_OBJECTSTREAMFIELD = "[Ljava/io/ObjectStreamField;";
+    
+    static final Type TYPE_JAVA_IO_OBJECTINPUTSTREAM = Type.getObjectType(JAVA_IO_OBJECTINPUTSTREAM);
+    
+    static final Type TYPE_JAVA_IO_OBJECTOUTPUTSTREAM = Type.getObjectType(JAVA_IO_OBJECTOUTPUTSTREAM);
     
     static final Type TYPE_JAVA_IO_OBJECTINPUT = Type.getObjectType(JAVA_IO_OBJECTINPUT);
     

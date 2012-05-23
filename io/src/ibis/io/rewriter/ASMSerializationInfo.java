@@ -378,10 +378,10 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
     }
 
     static boolean hasWriteObject(List<MethodNode> methods) {
-        return findMethod(methods, METHOD_WRITE_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V) != null;
+        return findMethod(methods, METHOD_WRITE_OBJECT, SIGNATURE_METHOD_WRITE_OBJECT) != null;
     }
 
     static boolean hasReadObject(List<MethodNode> methods) {
-        return findMethod(methods, METHOD_READ_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_INPUT_STREAM_V) != null;
+        return findMethod(methods, METHOD_READ_OBJECT, SIGNATURE_METHOD_READ_OBJECT) != null;
     }
 }

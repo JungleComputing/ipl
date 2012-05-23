@@ -151,7 +151,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
     private MethodInsnNode createWriteObjectInvocation() {
         return new MethodInsnNode(INVOKESPECIAL, clazz.name, METHOD_WRITE_OBJECT,
-                SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V);
+                SIGNATURE_METHOD_WRITE_OBJECT);
     }
 
     private int getClassDepth(ClassNode cl) {
@@ -1342,7 +1342,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                 read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
                         TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                         METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
-                        Type.getMethodDescriptor(TYPE_JAVA_IO_OBJECTINPUT)));
+                        Type.getMethodDescriptor(TYPE_JAVA_IO_OBJECTINPUTSTREAM)));
                  if (is_externalizable) {
                     /* Invoke readExternal */
                     read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
@@ -1352,7 +1352,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                     /* Invoke readObject. */
                     read_il.add(new MethodInsnNode(INVOKESPECIAL,
                             clazz.name, METHOD_READ_OBJECT,
-                            Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_JAVA_IO_OBJECTINPUT))); 
+                            Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_JAVA_IO_OBJECTINPUTSTREAM))); 
                 }
 
                 /* And then, restore IbisSerializationOutputStream's idea of the current object. */
@@ -1420,12 +1420,12 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
                     TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                     METHOD_GET_JAVA_OBJECT_OUTPUT_STREAM,
-                    Type.getMethodDescriptor(TYPE_JAVA_IO_OBJECTOUTPUT)));
+                    Type.getMethodDescriptor(TYPE_JAVA_IO_OBJECTOUTPUTSTREAM)));
             if (is_externalizable) {
                 /* Invoke writeExternal */
                 write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
                         clazz.name, METHOD_WRITE_EXTERNAL,
-                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_JAVA_IO_OBJECTINPUT)));
+                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_JAVA_IO_OBJECTOUTPUT)));
             } else {
                 /* Invoke writeObject. */
                 write_il.add(createWriteObjectInvocation());
