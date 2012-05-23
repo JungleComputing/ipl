@@ -31,6 +31,9 @@ The current Ibis source repository tree is accessible through SVN at
 "https://gforge.cs.vu.nl/svn/ibis/ipl/trunk".  You can check it
 out anonymously using the command
 "svn checkout https://gforge.cs.vu.nl/svn/ibis/ipl/trunk ipl".
+There are also tags for the different releases. For instance, the 2.3 release
+can be checked out using the command
+"svn checkout https://gforge.cs.vu.nl/svn/ibis/ipl/tags/2.3 ipl-2.3".
 
 The file BUGS.txt contains information for filing bug reports.
 
@@ -45,6 +48,7 @@ Foundation (http://www.apache.org/).
 
 The BCEL copyright notice lives in "notices/LICENSE.bcel.txt".  The
 Log4J copyright notice lives in "notices/LICENSE.log4j.txt".  The
+SLF4J copyright notice lives in "notices/LICENSE.slf4j.txt".  The
 Commons copyright notice lives in "notices/LICENSE.apache-2.0.txt".
 The ASM copyright notice lives in "notices/LICENSE.asm.txt".
 

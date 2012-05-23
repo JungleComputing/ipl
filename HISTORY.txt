@@ -1,5 +1,5 @@
 Here is a list of Ibis releases.
-2.3 (?? Jan 2012)
+2.3 (24 May 2012)
    Some small changes to the IPL:
    - WriteMessage now has a writeByteBuffer method, ReadMessage now has a
      readByteBuffer method.
@@ -9,10 +9,13 @@ Here is a list of Ibis releases.
      and IbisRuntimeException.
    - Added some %-escapes in the LOCATION property that allow inclusion of hostname,
      domain, et cetera.
-   TCP Ibis no longer can use smartsockets for its connections. We have SmartSockets Ibis
+   TCP Ibis no longer can use smartsockets for its connections, since we have SmartSockets Ibis
    for that.
    Various additions that enable f.i. IbisDeploy to monitor a running IPL application.
    Ibis Util now contains a simple RPC implementation.
+   The bytecode rewriter for Ibis serialization, which was based on BCEL, has been replaced
+   with one based on ASM, which seems to be the current bytecode manipulation library of choice,
+   and which also has good Java 1.7 support. The Ibisc mechanism now supports both BCEL and ASM,
    The included BCEL version has been replaced with a newer version.
    Fixed a possible race when doing sequences of connect/disconnect calls.
    Fixed a possible deadlock in one-to-one, explicit receive connections.

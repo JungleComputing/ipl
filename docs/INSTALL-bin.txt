@@ -2,10 +2,8 @@ The binary release of Ibis does not need any special installation.
 Simply unzip the distribution where you want. You might want to set the
 IPL_HOME environment variable to this location.
 
-The Ibis software requires at least a 1.6 JDK version of Java. With a
-1.4 or older version of Java, this Ibis release will not run, and with
-a 1.5 release, the provided scripts will not run.  Suitable
-versions of Java can be obtained from the web.  IBM has versions for AIX
+The Ibis software requires at least a 1.6 JDK version of Java.
+Suitable versions of Java can be obtained from the web.  IBM has versions for AIX
 (at http://www.ibm.com/developerworks/java), Oracle has versions for
 Solaris, Linux, and Windows (at http://www.oracle.com/technetwork/java/index.html), and Apple has a
 version for Mac OS X (at http://developer.apple.com/java).
