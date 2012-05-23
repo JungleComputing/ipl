@@ -1,1 +1,1 @@
-ConcurrentSenders -count 10000 -repeat 10 -senders 3
+ibis.ipl.benchmarks.concurrentSenders.ConcurrentSenders -count 10000 -repeat 10 -senders 3

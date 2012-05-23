@@ -1,1 +1,1 @@
-ibis.ipl.benchmarks.Latency -u -none
+ibis.ipl.benchmarks.latency.Latency -u -none

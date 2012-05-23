@@ -27,15 +27,18 @@ class Sender extends Thread {
     boolean sendTree;
 
     IbisIdentifier master;
+    
+    int me;
 
     Sender(Ibis ibis, PortType t, int count, int repeat, boolean sendTree,
-            IbisIdentifier master) {
+            IbisIdentifier master, int me) {
         this.ibis = ibis;
         this.t = t;
         this.count = count;
         this.repeat = repeat;
         this.sendTree = sendTree;
         this.master = master;
+        this.me = me;
     }
 
     public void run() {
@@ -45,7 +48,7 @@ class Sender extends Thread {
                 tree = new DITree(1023);
             }
 
-            SendPort sport = ibis.createSendPort(t, "send port");
+            SendPort sport = ibis.createSendPort(t, "send port " + me);
             sport.connect(master, "receive port");
 
             System.err.println(this
@@ -260,7 +263,7 @@ class ConcurrentSenders {
             } else {
                 // start N senders
                 for (int i = 0; i < senders; i++) {
-                    new Sender(ibis, t, count, repeat, sendTree, master).start();
+                    new Sender(ibis, t, count, repeat, sendTree, master, i).start();
                 }
             }
 
