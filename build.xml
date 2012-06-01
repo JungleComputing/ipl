@@ -212,6 +212,25 @@
             </manifest>
         </jar>
 
+        <!-- CACHE -->
+
+        <property name="cache.files" value="ibis/ipl/impl/stacking/cache/**/*.class" />
+
+        <checksum totalproperty="cache.checksum">
+            <fileset dir="tmp" includes="${cache.files}" />
+        </checksum>
+
+        <jar destfile="lib/ipl-impl-cache${version-tag}.jar">
+            <fileset dir="tmp" includes="${cache.files}" />
+            <metainf dir="." includes="LICENSE.txt" />
+            <manifest>
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.stacking.cache.CacheIbisStarter" />
+                <attribute name="Ibis-IPL-Version" value="${version}" />
+                <attribute name="Ibis-Implementation-Version" value="${cache.checksum}" />
+                <attribute name="Ibis-NickName" value="cache" />
+            </manifest>
+        </jar>
+
         <!-- MULTI -->
 
         <property name="multi.files" value="ibis/ipl/impl/multi/**/*.class" />
@@ -263,6 +282,11 @@
             lrmc.starter.class=ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter
             lrmc.ipl.version=${version}
             lrmc.version=${lrmc.checksum}
+
+            #cache
+            cache.starter.class=ibis.ipl.impl.stacking.cache.CacheIbisStarter
+            cache.ipl.version=${version}
+            cache.version=${cache.checksum}
 
             #multi
             multi.starter.class=ibis.ipl.impl.multi.MultiIbisStarter

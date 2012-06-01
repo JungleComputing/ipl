@@ -477,7 +477,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) {
             if (tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
-                        "Ultralight connections to not support connection upcalls");
+                        "Ultralight connections do not support connection upcalls");
             }
 
             if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) {

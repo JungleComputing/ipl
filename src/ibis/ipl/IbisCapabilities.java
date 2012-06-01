@@ -81,6 +81,13 @@ public final class IbisCapabilities extends CapabilitySet {
      */
     public final static String MALLEABLE = "malleable";
     
+    /**
+     * Capability indicating an Ibis that can deal with port caching.
+     * This means that the number of ports opened at any moment in time will
+     * not exceed the defined maximum number of ports.
+     */
+    public final static String PORT_CACHING = "port.caching";
+    
     /** 
      * Constructor for an IbisCapabilities object.
      * @param capabilities
