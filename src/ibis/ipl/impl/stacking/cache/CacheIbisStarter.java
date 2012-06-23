@@ -28,7 +28,7 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
             IbisCapabilities.MEMBERSHIP_UNRELIABLE, IbisCapabilities.SIGNALS,
             IbisCapabilities.ELECTIONS_UNRELIABLE,
             IbisCapabilities.ELECTIONS_STRICT, IbisCapabilities.MALLEABLE,
-            IbisCapabilities.TERMINATION, IbisCapabilities.PORT_CACHING);
+            IbisCapabilities.TERMINATION, IbisCapabilities.CONNECTION_CACHING);
     static final PortType portCapabilities = new PortType(
             PortType.SERIALIZATION_OBJECT_SUN,
             PortType.SERIALIZATION_OBJECT_IBIS, PortType.SERIALIZATION_OBJECT,

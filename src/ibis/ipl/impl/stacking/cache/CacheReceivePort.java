@@ -1,23 +1,48 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.MessageUpcall;
-import ibis.ipl.NoSuchPropertyException;
-import ibis.ipl.PortType;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.ReceivePort;
-import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPortIdentifier;
-
+import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CacheReceivePort implements ReceivePort {
 
-    final ReceivePort base;
+    /**
+     * Static variable which is incremented every time an anonymous (nameless)
+     * send port is created.
+     */
+    static AtomicInteger anonymousPortCounter;
+    /**
+     * Prefix for anonymous ports.
+     */
+    static final String ANONYMOUS_PREFIX;
 
+    static {
+        anonymousPortCounter = new AtomicInteger(0);
+        ANONYMOUS_PREFIX = "anonymous cache receive port";
+    }
+    /**
+     * List of receive port identifiers to which this send port is logically
+     * connected, but the under-the-hood-sendport is disconnected from them.
+     */
+    List<SendPortIdentifier> falselyConnected;
+    /**
+     * Under-the-hood send port.
+     */
+    final ReceivePort recvPort;
+    /**
+     * This send port's identifier.
+     */
+    final ReceivePortIdentifier recvPortIdentifier;
+    /**
+     * Reference to the cache manager.
+     */
+    CacheManager cacheManager;
+    
     /**
      * This class forwards upcalls with the proper receive port.
      */
@@ -26,17 +51,19 @@ public class CacheReceivePort implements ReceivePort {
         CacheReceivePort port;
         ReceivePortConnectUpcall upcaller;
 
-        public ConnectUpcaller(CacheReceivePort port,
-                ReceivePortConnectUpcall upcaller) {
+        public ConnectUpcaller(ReceivePortConnectUpcall upcaller,
+                CacheReceivePort port) {
             this.port = port;
             this.upcaller = upcaller;
         }
 
+        @Override
         public boolean gotConnection(ReceivePort me,
                 SendPortIdentifier applicant) {
             return upcaller.gotConnection(port, applicant);
         }
 
+        @Override
         public void lostConnection(ReceivePort me,
                 SendPortIdentifier johnDoe, Throwable reason) {
             upcaller.lostConnection(port, johnDoe, reason);
@@ -55,108 +82,164 @@ public class CacheReceivePort implements ReceivePort {
             this.port = port;
         }
 
+        @Override
         public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
             upcaller.upcall(new CacheReadMessage(m, port));
         }
     }
     
-    public CacheReceivePort(PortType type, CacheIbis ibis,
+    public CacheReceivePort(PortType portType, CacheIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
             throws IOException {
+        if (name == null) {
+            name = ANONYMOUS_PREFIX + " "
+                    + anonymousPortCounter.getAndIncrement();
+        }
         if (connectUpcall != null) {
-            connectUpcall = new ConnectUpcaller(this, connectUpcall);
+            connectUpcall = new ConnectUpcaller(connectUpcall, this);
         }
         if (upcall != null) {
             upcall = new Upcaller(upcall, this);
         }
-        base = ibis.baseIbis.createReceivePort(type, name, upcall, connectUpcall, properties);
+        
+        recvPort = ibis.baseIbis.createReceivePort(
+                portType, name, upcall, connectUpcall, properties);
+        recvPortIdentifier = new CacheReceivePortIdentifier(
+                ibis.identifier(), name);
+        falselyConnected = new ArrayList<SendPortIdentifier>();
+        cacheManager = ibis.cacheManager;
+    }
+    
+    /**
+     * Tell this spi to cache the connection between itself and this receiveport.
+     * @param spi
+     * @return
+     * @throws IOException 
+     */
+    public boolean cache(CacheSendPortIdentifier spi) throws IOException {
+        tellSpiToCacheMe(spi);
+        falselyConnected.add(spi);
+        return true;
+    }
+    
+    private void tellSpiToCacheMe(CacheSendPortIdentifier spi) {
+        // TODO: fill this up
     }
 
+    @Override
     public void close() throws IOException {
-        base.close();
+        recvPort.close();
     }
 
+    @Override
     public void close(long timeoutMillis) throws IOException {
-        base.close(timeoutMillis);
+        recvPort.close(timeoutMillis);
     }
 
-    public SendPortIdentifier[] connectedTo() {
-        return base.connectedTo();
+    @Override
+    public synchronized SendPortIdentifier[] connectedTo() {
+         SendPortIdentifier[] retVal = new SendPortIdentifier[
+                falselyConnected.size() + recvPort.connectedTo().length];
+
+        for (int i = 0; i < falselyConnected.size(); i++) {
+            retVal[i] = falselyConnected.get(i);
+        }
+        System.arraycopy(recvPort.connectedTo(), 0,
+                retVal, falselyConnected.size(), retVal.length);
+
+        return retVal;
     }
 
+    @Override
     public void disableConnections() {
-        base.disableConnections();
+        recvPort.disableConnections();
     }
 
+    @Override
     public void disableMessageUpcalls() {
-        base.disableMessageUpcalls();
+        recvPort.disableMessageUpcalls();
     }
 
+    @Override
     public void enableConnections() {
-        base.enableConnections();
+        recvPort.enableConnections();
     }
 
+    @Override
     public void enableMessageUpcalls() {
-        base.enableMessageUpcalls();
+        recvPort.enableMessageUpcalls();
     }
 
+    @Override
     public PortType getPortType() {
-        return base.getPortType();
+        return recvPort.getPortType();
     }
 
+    @Override
     public ReceivePortIdentifier identifier() {
-        return base.identifier();
+        return recvPortIdentifier;
     }
 
+    @Override
     public SendPortIdentifier[] lostConnections() {
-        return base.lostConnections();
+        return recvPort.lostConnections();
     }
 
+    @Override
     public String name() {
-        return base.name();
+        return recvPort.name();
     }
 
+    @Override
     public SendPortIdentifier[] newConnections() {
-        return base.newConnections();
+        return recvPort.newConnections();
     }
 
+    @Override
     public ReadMessage poll() throws IOException {
-        ReadMessage m = base.poll();
+        ReadMessage m = recvPort.poll();
         if (m != null) {
             m = new CacheReadMessage(m, this);
         }
         return m;
     }
 
+    @Override
     public ReadMessage receive() throws IOException {
         return receive(0);
     }
 
+    @Override
     public ReadMessage receive(long timeoutMillis) throws IOException {
-        return new CacheReadMessage(base.receive(timeoutMillis), this);
+        return new CacheReadMessage(recvPort.receive(timeoutMillis), this);
     }
 
+    @Override
     public Map<String, String> managementProperties() {
-        return base.managementProperties();
+        return recvPort.managementProperties();
     }
 
+    @Override
     public String getManagementProperty(String key)
             throws NoSuchPropertyException {
-        return base.getManagementProperty(key);
+        return recvPort.getManagementProperty(key);
     }
 
+    @Override
     public void setManagementProperties(Map<String, String> properties)
             throws NoSuchPropertyException {
-        base.setManagementProperties(properties);      
+        recvPort.setManagementProperties(properties);      
     }
 
+    @Override
     public void setManagementProperty(String key, String val)
             throws NoSuchPropertyException {
-        base.setManagementProperty(key, val);
+        recvPort.setManagementProperty(key, val);
     }
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
-        base.printManagementProperties(stream);
+        recvPort.printManagementProperties(stream);
     }
 }

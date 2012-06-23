@@ -189,7 +189,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 			throw new IOException("Sendport is closed");
 		}
 		
-		messageInUse = false;		
+		messageInUse = true;
 		return message;
 	}
 

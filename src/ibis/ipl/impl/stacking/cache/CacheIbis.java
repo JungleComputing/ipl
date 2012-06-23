@@ -5,11 +5,31 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CacheIbis implements Ibis {
 
     Ibis baseIbis;
     IbisStarter starter;
+    CacheManager cacheManager;
+    
+    public static final Logger cacheLog;
+    public static final String cacheLogString;
+    
+    static {
+        cacheLogString = "cacheIbis.log";
+        cacheLog = Logger.getLogger("cacheLog");
+        cacheLog.removeHandler(new ConsoleHandler());
+        
+        try {
+            cacheLog.addHandler(new FileHandler(cacheLogString));
+        } catch (Exception ex) {
+            Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     public CacheIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
@@ -20,13 +40,15 @@ public class CacheIbis implements Ibis {
             throws IbisCreationFailedException {
 
         starter = cacheIbisStarter;
+        
+        cacheManager = new CacheManager(this);
 
         /**
          * The received capabilites may or may not contain PORT_CACHING, so we
          * need to remove this when creating the under-the-hood ibis, since no
          * other ibis implementation holds this capability.
          */
-        if (!capabilities.hasCapability(IbisCapabilities.PORT_CACHING)) {
+        if (!capabilities.hasCapability(IbisCapabilities.CONNECTION_CACHING)) {
             baseIbis = factory.createIbis(registryEventHandler, capabilities,
                     userProperties, credentials, applicationTag, portTypes,
                     specifiedSubImplementation);
@@ -37,7 +59,7 @@ public class CacheIbis implements Ibis {
 
             int i = 0;
             for (String capability : capabilities.getCapabilities()) {
-                if (capability.equals(IbisCapabilities.PORT_CACHING)) {
+                if (capability.equals(IbisCapabilities.CONNECTION_CACHING)) {
                     continue;
                 }
                 subCapabilitiesArray[i++] = capability;
@@ -52,6 +74,7 @@ public class CacheIbis implements Ibis {
 
     @Override
     public void end() throws IOException {
+        cacheManager.end();
         baseIbis.end();
     }
 

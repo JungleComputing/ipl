@@ -207,7 +207,7 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 	private synchronized SmartSocketsUltraLightReadMessage getMessage(long timeout) { 
 
 		long endTime = System.currentTimeMillis() + timeout;
-		
+
 		while (!closed && messages.size() == 0) {			
 			if (timeout > 0) { 			
 				long waitTime = endTime - System.currentTimeMillis();

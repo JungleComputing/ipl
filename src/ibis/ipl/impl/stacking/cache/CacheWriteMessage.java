@@ -40,14 +40,17 @@ public class CacheWriteMessage implements WriteMessage {
         base.finish(e);
     }
 
+    @Override
     public SendPort localPort() {
         return port;
     }
 
+    @Override
     public void reset() throws IOException {
         base.reset();
     }
 
+    @Override
     public int send() throws IOException {
         return base.send();
     }

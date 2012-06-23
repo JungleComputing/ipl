@@ -86,7 +86,7 @@ public final class IbisCapabilities extends CapabilitySet {
      * This means that the number of ports opened at any moment in time will
      * not exceed the defined maximum number of ports.
      */
-    public final static String PORT_CACHING = "port.caching";
+    public final static String CONNECTION_CACHING = "connection.caching";
     
     /** 
      * Constructor for an IbisCapabilities object.
