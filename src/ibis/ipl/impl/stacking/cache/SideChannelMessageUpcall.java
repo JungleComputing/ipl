@@ -24,6 +24,9 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
         switch (opcode) {
             /*
              * The sender machine wants a free port at this machine.
+             * 
+             * useless: with connection_upcalls, when a sendport connects,
+             * the receiveport will get a gotConnection upcall.
              */
             case RESERVE_RP:
                 cache.reserve(msg.origin().ibisIdentifier());
@@ -31,6 +34,8 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
             /*
              * This upcall comes when the sending machine wants to
              * cache a connection from this sendport to its receiveport.
+             * 
+             * not useless.
              */
             case CACHE_SP:
                 spi = (SendPortIdentifier) msg.readObject();
@@ -40,6 +45,9 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
             /*
              * This upcall comes when the sendport cached the connection.
              * Need to count it at the receive port as well.
+             * 
+             * useless: if i have connection_upcalls, 
+             * the receive port will get an upcall for the lost connection.
              */
             case CACHE_RP:
                 spi = (SendPortIdentifier) msg.readObject();

@@ -8,9 +8,7 @@ import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
-import java.util.ArrayList;
-
-import java.util.Properties;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +18,7 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
     static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.stacking.cache.CacheIbisStarter");
     
     /**
-     * The same capabilities as SmartSocketsIbisStarter.
+     * The almost same capabilities as SmartSocketsIbisStarter.
      */
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
             IbisCapabilities.CLOSED_WORLD,
@@ -38,10 +36,11 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
             PortType.CONNECTION_UPCALLS, PortType.CONNECTION_TIMEOUT,
             PortType.CONNECTION_MANY_TO_MANY, PortType.CONNECTION_MANY_TO_ONE,
             PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_ONE_TO_ONE,
-            PortType.CONNECTION_LIGHT, PortType.CONNECTION_ULTRALIGHT,
+            PortType.CONNECTION_LIGHT, 
+            // does not support: PortType.CONNECTION_ULTRALIGHT,
             PortType.CONNECTION_DIRECT, PortType.RECEIVE_POLL,
             PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
-            PortType.RECEIVE_POLL_UPCALLS, PortType.RECEIVE_TIMEOUT);
+            PortType.RECEIVE_POLL_UPCALLS, PortType.RECEIVE_TIMEOUT);    
 
     public CacheIbisStarter(String nickName, String iplVersion,
             String implementationVersion) {

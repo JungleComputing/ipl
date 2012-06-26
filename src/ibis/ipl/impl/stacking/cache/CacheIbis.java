@@ -3,8 +3,7 @@ package ibis.ipl.impl.stacking.cache;
 import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -30,10 +29,29 @@ public class CacheIbis implements Ibis {
             Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    /**
+     * These capabilities need to be added to the list of capabilites
+     * the user requests.
+     * i.e. the caching ports require CONNECTION_UPCALLS.
+     */
+    static final Set<String> additionalPortCapabilities;
+    static final Set<PortType> additionalPortTypes;
+    static final Set<String> offeredIbisCapabilities;
+    
+    static {
+        offeredIbisCapabilities = new HashSet<String>();
+        additionalPortCapabilities = new HashSet<String>();
+        additionalPortTypes = new HashSet<PortType>();
+        
+        additionalPortCapabilities.add(PortType.CONNECTION_UPCALLS);
+        additionalPortTypes.add(CacheManager.ultraLightPT);
+        offeredIbisCapabilities.add(IbisCapabilities.CONNECTION_CACHING);
+    }
 
     public CacheIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
-            Properties userProperties, IbisCapabilities capabilities,
+            Properties userProperties, IbisCapabilities ibisCapabilities,
             Credentials credentials, byte[] applicationTag, PortType[] portTypes,
             String specifiedSubImplementation,
             CacheIbisStarter cacheIbisStarter)
@@ -41,35 +59,46 @@ public class CacheIbis implements Ibis {
 
         starter = cacheIbisStarter;
         
-        cacheManager = new CacheManager(this);
-
+        
+        int newNoPorts = portTypes.length + additionalPortTypes.size();
+        PortType[] newPorts = new PortType[newNoPorts];
+        
         /**
-         * The received capabilites may or may not contain PORT_CACHING, so we
-         * need to remove this when creating the under-the-hood ibis, since no
-         * other ibis implementation holds this capability.
+         * Need to take all ports and create new ones with the 
+         * additional port capabilities.
          */
-        if (!capabilities.hasCapability(IbisCapabilities.CONNECTION_CACHING)) {
-            baseIbis = factory.createIbis(registryEventHandler, capabilities,
-                    userProperties, credentials, applicationTag, portTypes,
-                    specifiedSubImplementation);
-        } else {
-
-            String[] subCapabilitiesArray =
-                    new String[capabilities.getCapabilities().length - 1];
-
-            int i = 0;
-            for (String capability : capabilities.getCapabilities()) {
-                if (capability.equals(IbisCapabilities.CONNECTION_CACHING)) {
-                    continue;
-                }
-                subCapabilitiesArray[i++] = capability;
-            }
-            IbisCapabilities subCapabilities = new IbisCapabilities(subCapabilitiesArray);
-
-            baseIbis = factory.createIbis(registryEventHandler, subCapabilities,
-                    userProperties, credentials, applicationTag, portTypes,
-                    specifiedSubImplementation);
+        for(int i = 0; i < portTypes.length; i++) {
+            Set<String> portCap = new HashSet<String>(Arrays.asList(
+                    portTypes[i].getCapabilities()));
+            portCap.addAll(additionalPortCapabilities);
+            newPorts[i] = new PortType(portCap.toArray(new String[portCap.size()]));
         }
+        
+        /**
+         * Add to the list of port types any other required port types,
+         * i.e. the port type used for the side channel.
+         */
+        int i = portTypes.length;
+        for(PortType pt : additionalPortTypes) {
+            newPorts[i++] = pt;
+        }        
+        portTypes = newPorts;
+        
+        /**
+         * Remove any of the offered ibis capabilities for the under the hood
+         * ibis instance.
+         */
+        Set<String> newCapabilities = new HashSet<String>(Arrays.asList(
+                ibisCapabilities.getCapabilities()));
+        newCapabilities.removeAll(offeredIbisCapabilities);
+        ibisCapabilities = new IbisCapabilities(newCapabilities.toArray(
+                new String[newCapabilities.size()]));
+        
+        baseIbis = factory.createIbis(registryEventHandler, ibisCapabilities,
+                    userProperties, credentials, applicationTag, portTypes,
+                    specifiedSubImplementation);
+        
+        cacheManager = new CacheManager(this);
     }
 
     @Override
@@ -80,8 +109,6 @@ public class CacheIbis implements Ibis {
 
     @Override
     public Registry registry() {
-        // return new
-        // ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
         return baseIbis.registry();
     }
 
@@ -147,9 +174,6 @@ public class CacheIbis implements Ibis {
     @Override
     public SendPort createSendPort(PortType portType, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
-        // TODO:
-        // aici bagi undeva portul. cand acel |undeva| > nr_max_porturi,
-        // inchizi unul, retii info despre el, si apoi il bagi pe asta.
         return new CacheSendPort(portType, this, name, cU, props);
     }
 
@@ -175,7 +199,6 @@ public class CacheIbis implements Ibis {
     public ReceivePort createReceivePort(PortType portType, String name,
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
-        // TODO: si aici isi are locul cache policy
         return new CacheReceivePort(portType, this, name, u, cU, props);
     }
 }

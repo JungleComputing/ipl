@@ -3,15 +3,11 @@ package ibis.ipl.impl.stacking.cache;
 import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class CacheSendPort implements SendPort {
+
     /**
      * Static variable which is incremented every time an anonymous (nameless)
      * send port is created.
@@ -30,11 +26,11 @@ public class CacheSendPort implements SendPort {
      * List of receive port identifiers to which this send port is logically
      * connected, but the under-the-hood-sendport is disconnected from them.
      */
-    List<ReceivePortIdentifier> falselyConnected;
+    private List<ReceivePortIdentifier> falselyConnected;
     /**
      * Under-the-hood send port.
      */
-    final SendPort sendPort;
+    final private SendPort sendPort;
     /**
      * This send port's identifier.
      */
@@ -43,7 +39,7 @@ public class CacheSendPort implements SendPort {
      * This port's current message (if it exists). we know there is at most one
      * at any moment in time.
      */
-    volatile WriteMessage currentMessage;
+    WriteMessage currentMessage;
     /**
      * Reference to the cache manager.
      */
@@ -55,7 +51,19 @@ public class CacheSendPort implements SendPort {
             name = ANONYMOUS_PREFIX + " "
                     + anonymousPortCounter.getAndIncrement();
         }
-        sendPort = ibis.baseIbis.createSendPort(portType, name, cU, props);
+        /*
+         * Add whatever additional port capablities are required.
+         * i.e. CONNECTION_UPCALLS
+         */
+        Set<String> portCap = new HashSet<String>(Arrays.asList(
+                    portType.getCapabilities()));
+        portCap.addAll(CacheIbis.additionalPortCapabilities);
+        PortType wrapperPortType = new PortType(portCap.toArray(
+                new String[portCap.size()]));
+        
+        sendPort = ibis.baseIbis.createSendPort(wrapperPortType, name, cU, props);
+        System.out.println("baseibis:" + ibis.baseIbis.toString());
+        System.out.println("sendport:" + sendPort.toString());
         sendPortIdentifier = new CacheSendPortIdentifier(
                 ibis.identifier(), name);
 
@@ -63,20 +71,30 @@ public class CacheSendPort implements SendPort {
         cacheManager = ibis.cacheManager;
     }
 
-    public void revive() throws IOException {
-        /**
-         * Some or all of this ports connections have been closed. Restore them.
-         */
-        for(ReceivePortIdentifier rpi : falselyConnected) {
-            guaranteeOneFreeResourceFrom(rpi);
+    /**
+     * Some or all of this ports connections have been closed. Restore them.
+     */
+    public synchronized void revive() throws IOException {
+        for (ReceivePortIdentifier rpi : falselyConnected) {
+            // with connection upcalls enabled,
+            // the receive port upcaller will make room for this connection.
             sendPort.connect(rpi);
         }
+        falselyConnected.clear();
     }
-    
-    public boolean cache(CacheReceivePortIdentifier rpi) throws IOException {
+
+    /**
+     * This method return true if it successfully caches the connection
+     * between this send port and the given receive port.
+     * @param rpi
+     * @return
+     * @throws IOException 
+     */
+    public synchronized boolean cache(CacheReceivePortIdentifier rpi)
+            throws IOException {
         /**
-         * I cannot cache (disconnect) the sendport from any receive port whilst
-         * a message is alive.
+         * I cannot disconnect the sendport from any receive port whilst a
+         * message is alive.
          */
         if (currentMessage != null) {
             return false;
@@ -88,32 +106,7 @@ public class CacheSendPort implements SendPort {
 
     @Override
     public synchronized void close() throws IOException {
-        sendPort.close();        
-    }
-    
-    /**
-     * This method makes sure that the receiving ibis has/will have
-     * an open receive port to let this sendport connect to it.
-     * @param rpi
-     * @param timeoutMillis
-     * @param fillTimeout
-     * @throws ConnectionFailedException 
-     */
-    private synchronized void safeConnect(ReceivePortIdentifier rpi, long timeoutMillis, 
-            boolean fillTimeout) throws ConnectionFailedException {
-        guaranteeOneFreeResourceFrom(rpi);
-        sendPort.connect(rpi, timeoutMillis, fillTimeout);
-    }
-
-    /**
-     * messages exchanged:
-     * SP: need at least 1 free resource
-     * RP: if I don't have it, I'll make one free. 
-     *     Then i'll reserve it for you.
-     * @param rpi 
-     */
-    private void guaranteeOneFreeResourceFrom(ReceivePortIdentifier rpi) {
-        // TODO: fill this up
+        sendPort.close();
     }
 
     @Override
@@ -126,7 +119,7 @@ public class CacheSendPort implements SendPort {
     public void connect(ReceivePortIdentifier receiver,
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionFailedException {
-        safeConnect(receiver, timeoutMillis, fillTimeout);
+        sendPort.connect(receiver, timeoutMillis, fillTimeout);
     }
 
     @Override
@@ -141,9 +134,8 @@ public class CacheSendPort implements SendPort {
             throws ConnectionFailedException {
         ReceivePortIdentifier rpi = new CacheReceivePortIdentifier(
                 ibisIdentifier, receivePortName);
+        connect(rpi, timeoutMillis, fillTimeout);
 
-        safeConnect(rpi, timeoutMillis, fillTimeout);
-        
         return rpi;
     }
 
@@ -157,9 +149,9 @@ public class CacheSendPort implements SendPort {
     public void connect(ReceivePortIdentifier[] receivePortIdentifiers,
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionsFailedException {
-        for(ReceivePortIdentifier rpi : receivePortIdentifiers) {
+        for (ReceivePortIdentifier rpi : receivePortIdentifiers) {
             try {
-                safeConnect(rpi, timeoutMillis, fillTimeout);
+                sendPort.connect(rpi, timeoutMillis, fillTimeout);
             } catch (ConnectionFailedException ex) {
                 throw new ConnectionsFailedException(ex.getMessage());
             }
@@ -179,23 +171,18 @@ public class CacheSendPort implements SendPort {
         int size = 0;
         ReceivePortIdentifier[] rpi =
                 new CacheReceivePortIdentifier[ports.size()];
-
         for (IbisIdentifier ii : ports.keySet()) {
-            rpi[size] = new CacheReceivePortIdentifier(ii, ports.get(ii));
-            try {
-                safeConnect(rpi[size++], timeoutMillis, fillTimeout);
-            } catch (ConnectionFailedException ex) {
-                throw new ConnectionsFailedException(ex.getMessage());
-            }
+            rpi[size++] = new CacheReceivePortIdentifier(ii, ports.get(ii));
         }
+
+        connect(rpi, timeoutMillis, fillTimeout);
 
         return rpi;
     }
 
     @Override
     public synchronized ReceivePortIdentifier[] connectedTo() {
-        ReceivePortIdentifier[] retVal = new ReceivePortIdentifier[
-                falselyConnected.size() + sendPort.connectedTo().length];
+        ReceivePortIdentifier[] retVal = new ReceivePortIdentifier[falselyConnected.size() + sendPort.connectedTo().length];
 
         for (int i = 0; i < falselyConnected.size(); i++) {
             retVal[i] = falselyConnected.get(i);
@@ -207,17 +194,16 @@ public class CacheSendPort implements SendPort {
     }
 
     @Override
-    public synchronized void disconnect(ReceivePortIdentifier receiver)
-            throws IOException {
-        cacheManager.removeConnection(sendPortIdentifier, receiver);
-        falselyConnected.remove(receiver);
-    }
-
-    @Override
-    public synchronized void disconnect(IbisIdentifier ibisIdentifier,
+    public void disconnect(IbisIdentifier ibisIdentifier,
             String receivePortName) throws IOException {
         ReceivePortIdentifier rpi = new CacheReceivePortIdentifier(
                 ibisIdentifier, receivePortName);
+        disconnect(rpi);
+    }
+
+    @Override
+    public synchronized void disconnect(ReceivePortIdentifier rpi)
+            throws IOException {
         cacheManager.removeConnection(sendPortIdentifier, rpi);
         falselyConnected.remove(rpi);
     }
@@ -251,6 +237,7 @@ public class CacheSendPort implements SendPort {
          * must remain connected.
          */
         cacheManager.revive(this.sendPortIdentifier);
+        
         /*
          * currentMessage will become null in the finish() method.
          */
