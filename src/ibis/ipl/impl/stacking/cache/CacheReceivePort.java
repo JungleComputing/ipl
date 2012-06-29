@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class CacheReceivePort implements ReceivePort {
+public final class CacheReceivePort implements ReceivePort {
 
     /**
      * Static variable which is incremented every time an anonymous (nameless)
@@ -19,10 +17,16 @@ public class CacheReceivePort implements ReceivePort {
      * Prefix for anonymous ports.
      */
     static final String ANONYMOUS_PREFIX;
+    /**
+     * Map to store identifiers to the cachereceiveports.
+     */
+    public static final Map<ReceivePortIdentifier, CacheReceivePort> map;
 
     static {
         anonymousPortCounter = new AtomicInteger(0);
         ANONYMOUS_PREFIX = "anonymous cache receive port";
+        
+        map = new HashMap<ReceivePortIdentifier, CacheReceivePort>();
     }
     /**
      * List of receive port identifiers to which this send port is logically
@@ -34,13 +38,13 @@ public class CacheReceivePort implements ReceivePort {
      */
     final private ReceivePort recvPort;
     /**
-     * This send port's identifier.
-     */
-    final ReceivePortIdentifier recvPortIdentifier;
-    /**
      * Reference to the cache manager.
      */
-    CacheManager cacheManager;
+    final CacheManager cacheManager;
+    /**
+     * Keep this port's original capabilities for the user to see.
+     */
+    private final PortType intialPortType;
 
     /**
      * This class forwards upcalls with the proper receive port.
@@ -61,9 +65,11 @@ public class CacheReceivePort implements ReceivePort {
         public boolean gotConnection(ReceivePort me,
                 SendPortIdentifier applicant) {
             System.out.println("\t\tGot connection from: " + applicant);
-            /*
-             * TODO: update cache information
-             */
+            
+            synchronized(port.cacheManager) {
+                port.cacheManager.addConnection(port.identifier(), applicant);
+            }
+            
             if (upcaller != null) {
                 return upcaller.gotConnection(port, applicant);
             } else {
@@ -73,14 +79,17 @@ public class CacheReceivePort implements ReceivePort {
 
         @Override
         public void lostConnection(ReceivePort me,
-                SendPortIdentifier johnDoe, Throwable reason) {
-            System.out.println("\t\tConnection lost with: " + johnDoe
+                SendPortIdentifier spi, Throwable reason) {
+            System.out.println("\t\tConnection lost with: " + spi
                     + "\n\tReason: " + reason);
-            /*
-             * TODO: update cache information
-             */
+            
+            // conn may be cached or a true disconnect or a close, or error.
+            synchronized(port.cacheManager) {
+                port.cacheManager.removeConnection(me.identifier(), spi);
+            }
+            
             if (upcaller != null) {
-                upcaller.lostConnection(port, johnDoe, reason);
+                upcaller.lostConnection(port, spi, reason);
             }
         }
     }
@@ -130,10 +139,12 @@ public class CacheReceivePort implements ReceivePort {
 
         recvPort = ibis.baseIbis.createReceivePort(
                 wrapperPortType, name, upcall, connectUpcall, properties);
-        recvPortIdentifier = new CacheReceivePortIdentifier(
-                ibis.identifier(), name);
+        
         falselyConnected = new ArrayList<SendPortIdentifier>();
         cacheManager = ibis.cacheManager;
+        intialPortType = portType;
+        
+        map.put(this.identifier(), this);
     }
 
     /**
@@ -144,47 +155,57 @@ public class CacheReceivePort implements ReceivePort {
      * @return
      * @throws IOException
      */
-    public synchronized boolean cache(CacheSendPortIdentifier spi) throws IOException {
-        tellSPToCacheMe(spi);
-        falselyConnected.add(spi);
-        return true;
-    }
-
-    private void tellSPToCacheMe(CacheSendPortIdentifier spi) throws IOException {
+    public void cache(SendPortIdentifier spi) throws IOException {
+        // tell the SP to cache the connection
         ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
                 spi.ibisIdentifier(), CacheManager.sideChnRPName);
         WriteMessage msg = cacheManager.sideChannelSendPort.newMessage();
         msg.writeByte(SideChannelProtocol.CACHE_SP);
         msg.writeObject(spi);
-        msg.writeObject(recvPortIdentifier);
-        // where do i count -1?
-        // here or at lost connection?!
-        // i'd say at lost connection.
+        msg.writeObject(recvPort.identifier());
+        /*
+         * I will count this closed connection at the lostConnection upcall.
+         */
         msg.finish();
         cacheManager.sideChannelSendPort.disconnect(sideRpi);
+        
+        falselyConnected.add(spi);
     }
 
     @Override
     public void close() throws IOException {
-        recvPort.close();
+        close(0);
     }
 
     @Override
     public void close(long timeoutMillis) throws IOException {
-        recvPort.close(timeoutMillis);
+        synchronized (cacheManager) {
+            /*
+             * TODO: my biggest problem: example: 1-1 cached connection
+             * rp.close() should block but the underlying close() will not, and
+             * it will close the receive port whilst it should wait for the send
+             * port to be closed.
+             */
+            recvPort.close(timeoutMillis);
+        }
     }
 
     @Override
-    public synchronized SendPortIdentifier[] connectedTo() {
-        SendPortIdentifier[] retVal = new SendPortIdentifier[falselyConnected.size() + recvPort.connectedTo().length];
-
-        for (int i = 0; i < falselyConnected.size(); i++) {
-            retVal[i] = falselyConnected.get(i);
+    public SendPortIdentifier[] connectedTo() {
+        synchronized (cacheManager) {
+            SendPortIdentifier[] trueConnections = recvPort.connectedTo();
+            SendPortIdentifier[] retVal =
+                    new SendPortIdentifier[falselyConnected.size() + trueConnections.length];
+            
+            for (int i = 0; i < falselyConnected.size(); i++) {
+                retVal[i] = falselyConnected.get(i);
+            }
+            
+            System.arraycopy(trueConnections, 0,
+                    retVal, falselyConnected.size(), trueConnections.length);
+            
+            return retVal;
         }
-        System.arraycopy(recvPort.connectedTo(), 0,
-                retVal, falselyConnected.size(), retVal.length);
-
-        return retVal;
     }
 
     @Override
@@ -209,12 +230,12 @@ public class CacheReceivePort implements ReceivePort {
 
     @Override
     public PortType getPortType() {
-        return recvPort.getPortType();
+        return this.intialPortType;
     }
 
     @Override
     public ReceivePortIdentifier identifier() {
-        return recvPortIdentifier;
+        return recvPort.identifier();
     }
 
     @Override

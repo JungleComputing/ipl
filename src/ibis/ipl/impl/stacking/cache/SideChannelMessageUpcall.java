@@ -29,7 +29,7 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
              * the receiveport will get a gotConnection upcall.
              */
             case RESERVE_RP:
-                cache.reserve(msg.origin().ibisIdentifier());
+//                cache.reserve(msg.origin().ibisIdentifier());
                 break;
             /*
              * This upcall comes when the sending machine wants to
@@ -50,9 +50,9 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
              * the receive port will get an upcall for the lost connection.
              */
             case CACHE_RP:
-                spi = (SendPortIdentifier) msg.readObject();
-                rpi = (ReceivePortIdentifier) msg.readObject();
-                cache.alreadyCached(spi, rpi);
+//                spi = (SendPortIdentifier) msg.readObject();
+//                rpi = (ReceivePortIdentifier) msg.readObject();
+//                cache.alreadyCached(spi, rpi);
                 break;
         }
     }

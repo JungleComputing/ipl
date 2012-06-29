@@ -4,31 +4,12 @@ import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class CacheIbis implements Ibis {
 
     Ibis baseIbis;
     IbisStarter starter;
     CacheManager cacheManager;
-    
-    public static final Logger cacheLog;
-    public static final String cacheLogString;
-    
-    static {
-        cacheLogString = "cacheIbis.log";
-        cacheLog = Logger.getLogger("cacheLog");
-        cacheLog.removeHandler(new ConsoleHandler());
-        
-        try {
-            cacheLog.addHandler(new FileHandler(cacheLogString));
-        } catch (Exception ex) {
-            Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
     
     /**
      * These capabilities need to be added to the list of capabilites
@@ -98,7 +79,8 @@ public class CacheIbis implements Ibis {
                     userProperties, credentials, applicationTag, portTypes,
                     specifiedSubImplementation);
         
-        cacheManager = new CacheManager(this);
+        // get the implementation version from somewhere
+        cacheManager = new RandomCacheManager(this);
     }
 
     @Override

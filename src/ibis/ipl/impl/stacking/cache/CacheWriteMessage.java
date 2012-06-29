@@ -34,12 +34,9 @@ public class CacheWriteMessage implements WriteMessage {
     @Override
     public long finish() throws IOException {
         try {
-            long retVal = base.finish();
-            return retVal;
+            return base.finish();
         } finally {
-            synchronized (sendPort) {
-                sendPort.currentMessage = null;
-            }
+            sendPort.currentMessage = null;
         }
     }
 
@@ -48,10 +45,7 @@ public class CacheWriteMessage implements WriteMessage {
         try {
             base.finish(e);
         } finally {
-            // good synchronize on sendport
-            synchronized (sendPort) {
-                sendPort.currentMessage = null;
-            }
+            sendPort.currentMessage = null;
         }
     }
 

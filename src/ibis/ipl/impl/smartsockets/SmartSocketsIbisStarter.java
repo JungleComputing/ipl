@@ -87,31 +87,6 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
             Properties userProperties, IbisCapabilities capabilities,
             Credentials credentials, byte[] applicationTag,
             PortType[] portTypes, String specifiedSubImplementation) throws IbisCreationFailedException {
-        /*
-         * something like this, because nothing is done with
-         * the variable specifiedSubImplementation.
-        String specifiedSubImplementation = null;
-        if (specifiedImplementation != null) {
-            String[] parts = specifiedImplementation.split(",|;", 2);
-
-            specifiedImplementation = parts[0];
-
-            if (parts.length == 2) {
-                specifiedSubImplementation = parts[1];
-            }
-        }
-
-        IbisStarter starter = selectImplementation(requiredCapabilities,
-                portTypes, specifiedImplementation);
-
-        if (isVerbose(properties)) {
-            System.err.println("IbisFactory: Selected ipl implementation: "
-                    + starter.getNickName());
-        }
-        return starter.startIbis(this, registryEventHandler, properties,
-                requiredCapabilities, credentials, applicationTag, portTypes,
-                specifiedSubImplementation);
-        */
         return new SmartSocketsIbis(registryEventHandler, capabilities,
                 credentials, applicationTag, portTypes, userProperties, this);
     }

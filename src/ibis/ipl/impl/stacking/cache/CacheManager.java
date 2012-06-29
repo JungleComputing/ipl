@@ -3,20 +3,32 @@ package ibis.ipl.impl.stacking.cache;
 import ibis.ipl.*;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
- * This class is responsible with keeping the number of open ports beneath
- * the limit; it also decides what to cache.
- *
- * We'll see later how this will be implemented. not so hard, I believe.
+ * This abstract class keeps the counter.
+ * How and what is cached depends on its implementations.
  */
-class CacheManager {
+abstract class CacheManager {
     public static final int MAX_CONNECTIONS;
+    public static int noAliveConnections = 0;
     
-   
-    public AtomicInteger currOpenConn;
+    public static final Logger log;
+    public static final String cacheLogString;
+    
+    static {
+        cacheLogString = "cacheIbis.log";
+        log = Logger.getLogger("cacheLog");
+        log.removeHandler(new ConsoleHandler());
+        
+        try {
+            FileHandler fh = new FileHandler(cacheLogString);
+            fh.setFormatter(new SimpleFormatter());
+            log.addHandler(fh);
+        } catch (Exception ex) {
+            Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     /**
      * Port type used for the creation of hub-based ports for the side-channel
@@ -27,8 +39,12 @@ class CacheManager {
             PortType.RECEIVE_AUTO_UPCALLS,
             PortType.SERIALIZATION_DATA,
             PortType.CONNECTION_MANY_TO_ONE);
-    public static final String sideChnSPName = "sidechannelsendport";
-    public static final String sideChnRPName = "sidechannelrecvport";
+    /**
+     * These side channel sendport and receiveport names need to be unique.
+     * So that the user won't create some other ports with these names.
+     */
+    public static final String sideChnSPName = "sidechannelsendport" + System.currentTimeMillis();
+    public static final String sideChnRPName = "sidechannelrecvport" + System.currentTimeMillis();
     ReceivePort sideChannelReceivePort;
     SendPort sideChannelSendPort;
     
@@ -48,8 +64,9 @@ class CacheManager {
             sideChannelSendPort = ibis.baseIbis.createSendPort(
                     ultraLightPT, sideChnSPName);
             
-            currOpenConn = new AtomicInteger(0);
+            log.log(Level.INFO, "Cache manager instantiated.");
         } catch (IOException ex) {
+            log.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.");
             throw new RuntimeException(ex);
         }
     }
@@ -59,56 +76,81 @@ class CacheManager {
             sideChannelSendPort.close();
             // will this block?
             sideChannelReceivePort.close();
+            log.log(Level.INFO, "Closed the cache manager.");
         } catch (IOException ex) {
+            log.log(Level.SEVERE, "Failed to close the cache manager.");
             Logger.getLogger(CacheManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    /**
-     * Don't need to worry about this connection anymore.
-     * Remove it
-     * @param sendPortIdentifier
-     * @param receiver 
-     */
-    void removeConnection(SendPortIdentifier sendPortIdentifier, ReceivePortIdentifier receiver) {
-       // throw new UnsupportedOperationException("Not yet implemented");
-    }
-
+   
     /**
      * Fully revive this send port's connections.
      *
-     * @param sendPortIdentifier
+     * @param spi
      */
-    void revive(SendPortIdentifier sendPortIdentifier) {
-        throw new UnsupportedOperationException("Not yet implemented");
-        /*
-         * if(no of alive ports < no max ports) { obj.revive(); no alive ports
-         * ++; } else { other = choose one alive port; other.cache();
-         * obj.revive(); }
-         */
+    synchronized void revive(SendPortIdentifier spi) {
+        int connToBeFreed = 0;
+        CacheSendPort sp = CacheSendPort.map.get(spi);
+        int cachedConn = sp.getNoCachedConnections();
+        
+        log.log(Level.INFO, "Reviving this sendport's connections: {0}", spi);
+
+        if (noAliveConnections + cachedConn > MAX_CONNECTIONS) {
+            connToBeFreed = noAliveConnections + cachedConn - MAX_CONNECTIONS;
+            log.log(Level.INFO, "Caching first {0} other connections.", connToBeFreed);
+            int n = cacheAtLeastNConnExcept(connToBeFreed, spi);            
+            noAliveConnections -= n;
+            log.log(Level.INFO, "Cached. {0} alive connections.", noAliveConnections);
+        }
+
+        try {
+            sp.revive();
+            noAliveConnections += cachedConn;
+
+            log.log(Level.INFO, "Revival was ok; no. conn. revived: {0}", connToBeFreed);
+            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
+        } catch (IOException ex) {
+            // should not be here.
+            log.log(Level.SEVERE, "Revival failed. Cause: {0}", ex);
+            throw new RuntimeException("CacheManager level: "
+                + "Couldn't reconnect a sendport to its receiveports.\n", ex);
+        }        
     }
 
     /**
      * Cache anything to make space.
+     * not sure if i'll use this method.
      */
-    void cache() {
-        throw new UnsupportedOperationException("Not yet implemented");
-        /*
-         * obj.cache(); no alive ports --;
-         */
-    }
-
+//    int cache() {
+//        int retVal;
+//        SendPortIdentifier spi = null;
+//        ReceivePortIdentifier rpi = null;
+//        
+//        /*
+//         * Give priority to the send ports.
+//         */
+//        while(true) {
+//            if((retVal = cacheSomeoneBut(spi)) > 0) {
+//                return retVal;
+//            }
+//            if((retVal = cacheSomeoneBut(rpi)) > 0) {
+//                return retVal;
+//            }
+//        }
+//    }
+    
     /**
-     * if(no_conn at max) { 
-     *      make space for a future connection 
-     * }
-     * keep the free space reserved until the ii connects with a sp.
-     * 
-     * @param ibisIdentifier 
+     * Cache any connection, except the ones containing this SPI.
+     * Returns the number of cached connections.
      */
-    void reserve(IbisIdentifier ibisIdentifier) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    protected abstract int cacheAtLeastNConnExcept(int n, SendPortIdentifier spi);
+    
+    /**
+     * Cache any connection, except the ones containing this SPI.
+     * Returns the number of cached connections.
+     */
+    protected abstract int cacheAtLeastNConnExcept(int n, ReceivePortIdentifier rpi);
 
     /**
      * The send port is on this machine.
@@ -117,18 +159,90 @@ class CacheManager {
      * @param spi
      * @param rpi 
      */
-    void cache(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    synchronized void cache(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        cacheConnection(spi, rpi);
+        noAliveConnections--;
+    }
+    
+    protected abstract void cacheConnection(SendPortIdentifier sp, 
+            ReceivePortIdentifier rp);
+    
+    /*
+     * This method will make space if needed for the future connections.
+     * It will try and cache (depending on implementation) connections,
+     * except the ones containing the param sendport.
+     * (because the future connections will be open from it, so it makes no 
+     * sense to cache some of its connections whilst opening the rest)
+     * 
+     * this method is always called from: synchronized(cacheManager).
+     * i could place synchronized here as well.
+     * see later...
+     */
+    void makeWay(SendPortIdentifier spi, int noConn) {
+        if(noAliveConnections + noConn > MAX_CONNECTIONS) {
+            int connToBeFreed = noAliveConnections + noConn - MAX_CONNECTIONS;
+            log.log(Level.INFO, "Caching {0} connections.", connToBeFreed);
+            connToBeFreed = cacheAtLeastNConnExcept(connToBeFreed, spi);
+            // subtract the cached connections
+            noAliveConnections -= connToBeFreed;
+            log.log(Level.INFO, "Cached. Now {0} alive connections.", noAliveConnections);
+        }
     }
 
-    /**
-     * The send port is on the remote machine and it's cached.
-     * Here, all we have to do is count this cached connection
-     * on this machine's receive port.
-     * @param spi
-     * @param rpi 
-     */
-    void alreadyCached(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    synchronized void addConnections(SendPortIdentifier spi, 
+            ReceivePortIdentifier[] rpis) {
+        // let the implementation decide what to do with the alive connections.
+        addConnectionsImpl(spi, rpis);
+        
+        // count: add the connections for which we made room
+        noAliveConnections += rpis.length;
     }
+    
+    protected abstract void addConnectionsImpl(SendPortIdentifier spi, 
+            ReceivePortIdentifier[] rpis);
+    
+
+    synchronized void removeAllConnections(SendPortIdentifier spi) {
+        // let the implementation decide what to do with these removed connections        
+        removeAllConnectionsImpl(spi);
+        
+        // keep on counting
+        noAliveConnections -= CacheSendPort.map.get(spi).getNoTrueConnections();
+    }
+    
+    protected abstract void removeAllConnectionsImpl(SendPortIdentifier spi);
+    
+    void removeConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        removeConnectionImpl(spi);
+        // keep on counting
+        noAliveConnections--;
+    }
+    
+    protected abstract void removeConnectionImpl(SendPortIdentifier spi);
+
+    /*
+     * We are on the receive port side of the connection.
+     * This method is called from the connection upcall.
+     */
+    void addConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        // let the implementation decide what to do with the alive connections.
+        addConnectionImpl(rpi, spi);
+        
+        // count
+        noAliveConnections++;
+    }
+    
+    protected abstract void addConnectionImpl(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
+
+    void removeConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        // let the implementation decide what to do with the alive connections.
+        removeConnectionImpl(rpi, spi);
+        
+        // count
+        noAliveConnections--;
+    }
+    
+    protected abstract void removeConnectionImpl(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
 }
