@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class CacheSendPort implements SendPort {
 
@@ -39,11 +41,6 @@ public final class CacheSendPort implements SendPort {
      */
     final private SendPort sendPort;
     /**
-     * This port's current message (if it exists). we know there is at most one
-     * at any moment in time.
-     */
-    WriteMessage currentMessage;
-    /**
      * Reference to the cache manager.
      */
     final CacheManager cacheManager;
@@ -55,6 +52,14 @@ public final class CacheSendPort implements SendPort {
      * Keep this port's original capabilities for the user to see.
      */
     private final PortType intialPortType;
+    /**
+     * Lock required for the aliveMessage field.
+     */
+    final Object messageLock;
+    /**
+     * Variable to determine wether this send port has a current alive message.
+     */
+    volatile boolean aliveMessage;
     
     public CacheSendPort(PortType portType, CacheIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
@@ -83,6 +88,9 @@ public final class CacheSendPort implements SendPort {
         rpiMap = new HashMap<String, ReceivePortIdentifier>();
         
         map.put(this.identifier(), this);
+        
+        messageLock = new Object();
+        aliveMessage = false;
     }
 
     /*
@@ -116,14 +124,51 @@ public final class CacheSendPort implements SendPort {
          * I cannot disconnect the sendport from any receive port whilst a
          * message is alive.
          */
-        if (currentMessage != null) {
-            return false;
-        }
-        sendPort.disconnect(rpi);
-        falselyConnected.add(rpi);
-        return true;
-    }
+        synchronized (messageLock) {
+            if (aliveMessage) {
+                return false;
+            } else {
+                /*
+                 * Send message through the side channel of this connection,
+                 * because the receive port alone cannot distinguish caching
+                 * from true disconnection.
+                 */
+                ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
+                        rpi.ibisIdentifier(), CacheManager.sideChnRPName);
+                WriteMessage msg = cacheManager.sideChannelSendPort.newMessage();
+                msg.writeByte(SideChannelProtocol.CACHE_FROM_SP);
+                msg.writeObject(this.identifier());
+                msg.writeObject(rpi);
+                msg.finish();
+                cacheManager.sideChannelSendPort.disconnect(sideRpi);
+                
+                /*
+                 * Wait for ack from ReceivePort side, so we know that
+                 * the RP side knows about the to-be-cached-connection.
+                 */
+                waitForAck();
 
+                /*
+                 * now properly disconnect from the receive port.
+                 */
+                sendPort.disconnect(rpi);
+                falselyConnected.add(rpi);
+                return true;
+            }
+        }
+    }
+    
+    private void waitForAck() {
+        synchronized(SideChannelMessageUpcall.ackLock) {
+            while(!SideChannelMessageUpcall.ackReceived) {
+                try {
+                    SideChannelMessageUpcall.ackLock.wait();
+                } catch (InterruptedException ignoreMe) {}
+            }
+            SideChannelMessageUpcall.ackReceived = false;
+        }
+    }
+    
     @Override
     public void close() throws IOException {
         synchronized (cacheManager) {
@@ -289,25 +334,34 @@ public final class CacheSendPort implements SendPort {
     public ReceivePortIdentifier[] lostConnections() {
         return sendPort.lostConnections();
     }
-
+    
     @Override
     public WriteMessage newMessage() throws IOException {
+        
+        synchronized (messageLock) {
+            while (aliveMessage) {
+                try {
+                    messageLock.wait();
+                } catch (InterruptedException ignoreMe) {}
+            }
+            aliveMessage = true;
+        }
+
+        /*
+         * Make sure all connections are open from this send port.
+         */
         synchronized (cacheManager) {
-            /**
-             * Make sure all connections are open from this send port.
-             */
             if (!falselyConnected.isEmpty()) {
                 cacheManager.revive(this.identifier());
             }
-
-            /*
-             * currentMessage will become null in the finish() method.
-             */
-            currentMessage = new CacheWriteMessage(sendPort.newMessage(), this);
-            return currentMessage;
         }
-    }
 
+        /*
+         * The field aliveMessage is set to false in this object's finish() methods.
+         */
+        return new CacheWriteMessage(sendPort.newMessage(), this);
+    }
+    
     @Override
     public String getManagementProperty(String key)
             throws NoSuchPropertyException {

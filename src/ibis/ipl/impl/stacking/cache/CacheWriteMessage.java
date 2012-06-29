@@ -33,19 +33,19 @@ public class CacheWriteMessage implements WriteMessage {
 
     @Override
     public long finish() throws IOException {
-        try {
+        synchronized (sendPort.messageLock) {
+            sendPort.aliveMessage = false;
+            sendPort.messageLock.notifyAll();
             return base.finish();
-        } finally {
-            sendPort.currentMessage = null;
         }
     }
 
     @Override
     public void finish(IOException e) {
-        try {
+        synchronized (sendPort.messageLock) {
+            sendPort.aliveMessage = false;
+            sendPort.messageLock.notifyAll();
             base.finish(e);
-        } finally {
-            sendPort.currentMessage = null;
         }
     }
 

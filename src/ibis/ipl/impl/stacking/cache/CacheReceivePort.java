@@ -44,7 +44,7 @@ public final class CacheReceivePort implements ReceivePort {
     /**
      * Keep this port's original capabilities for the user to see.
      */
-    private final PortType intialPortType;
+    private final PortType intialPortType;    
 
     /**
      * This class forwards upcalls with the proper receive port.
@@ -147,29 +147,34 @@ public final class CacheReceivePort implements ReceivePort {
         map.put(this.identifier(), this);
     }
 
-    /**
+    /*
      * Tell this spi to cache the connection between itself and this
      * receiveport.
-     * 
-     * @param spi
-     * @return
-     * @throws IOException
      */
     public void cache(SendPortIdentifier spi) throws IOException {
-        // tell the SP to cache the connection
+        /*
+         * Tell the SP side to cache the connection.
+         * I will count this connection at the lostConnection upcall.
+         */
         ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
                 spi.ibisIdentifier(), CacheManager.sideChnRPName);
         WriteMessage msg = cacheManager.sideChannelSendPort.newMessage();
-        msg.writeByte(SideChannelProtocol.CACHE_SP);
+        msg.writeByte(SideChannelProtocol.CACHE_FROM_RP_AT_SP);
         msg.writeObject(spi);
-        msg.writeObject(recvPort.identifier());
-        /*
-         * I will count this closed connection at the lostConnection upcall.
-         */
+        msg.writeObject(this.identifier());
         msg.finish();
         cacheManager.sideChannelSendPort.disconnect(sideRpi);
         
         falselyConnected.add(spi);
+    }
+    
+    /*
+     * Call coming when this sendport will want to cache a connection.
+     * The next lostConnection(sendport) will be a connection caching, and
+     * not a true disconnect upcall.
+     */
+    void futureCachedConnection(SendPortIdentifier spi) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
