@@ -8,10 +8,10 @@ import java.io.IOException;
 
 public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProtocol {
 
-    CacheManager cache;
+    final CacheManager cacheManager;
 
     SideChannelMessageUpcall(CacheManager cache) {
-        this.cache = cache;
+        this.cacheManager = cache;
     }
 
     @Override
@@ -40,7 +40,9 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
             case CACHE_SP:
                 spi = (SendPortIdentifier) msg.readObject();
                 rpi = (ReceivePortIdentifier) msg.readObject();
-                cache.cache(spi, rpi);
+                synchronized(cacheManager) {
+                    cacheManager.cache(spi, rpi);
+                }
                 break;
             /*
              * This upcall comes when the sendport cached the connection.

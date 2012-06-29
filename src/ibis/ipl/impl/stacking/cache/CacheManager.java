@@ -2,7 +2,6 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.*;
 
 /**
@@ -37,7 +36,7 @@ abstract class CacheManager {
     public static final PortType ultraLightPT = new PortType(
             PortType.CONNECTION_ULTRALIGHT,
             PortType.RECEIVE_AUTO_UPCALLS,
-            PortType.SERIALIZATION_DATA,
+            PortType.SERIALIZATION_OBJECT,
             PortType.CONNECTION_MANY_TO_ONE);
     /**
      * These side channel sendport and receiveport names need to be unique.
@@ -89,7 +88,7 @@ abstract class CacheManager {
      *
      * @param spi
      */
-    synchronized void revive(SendPortIdentifier spi) {
+    void revive(SendPortIdentifier spi) {
         int connToBeFreed = 0;
         CacheSendPort sp = CacheSendPort.map.get(spi);
         int cachedConn = sp.getNoCachedConnections();
@@ -119,28 +118,6 @@ abstract class CacheManager {
     }
 
     /**
-     * Cache anything to make space.
-     * not sure if i'll use this method.
-     */
-//    int cache() {
-//        int retVal;
-//        SendPortIdentifier spi = null;
-//        ReceivePortIdentifier rpi = null;
-//        
-//        /*
-//         * Give priority to the send ports.
-//         */
-//        while(true) {
-//            if((retVal = cacheSomeoneBut(spi)) > 0) {
-//                return retVal;
-//            }
-//            if((retVal = cacheSomeoneBut(rpi)) > 0) {
-//                return retVal;
-//            }
-//        }
-//    }
-    
-    /**
      * Cache any connection, except the ones containing this SPI.
      * Returns the number of cached connections.
      */
@@ -159,7 +136,7 @@ abstract class CacheManager {
      * @param spi
      * @param rpi 
      */
-    synchronized void cache(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+    void cache(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         cacheConnection(spi, rpi);
         noAliveConnections--;
     }
@@ -175,8 +152,6 @@ abstract class CacheManager {
      * sense to cache some of its connections whilst opening the rest)
      * 
      * this method is always called from: synchronized(cacheManager).
-     * i could place synchronized here as well.
-     * see later...
      */
     void makeWay(SendPortIdentifier spi, int noConn) {
         if(noAliveConnections + noConn > MAX_CONNECTIONS) {
@@ -189,7 +164,10 @@ abstract class CacheManager {
         }
     }
 
-    synchronized void addConnections(SendPortIdentifier spi, 
+    /*
+     * Called from synchronized(CacheManager) context as well.
+     */
+    void addConnections(SendPortIdentifier spi, 
             ReceivePortIdentifier[] rpis) {
         // let the implementation decide what to do with the alive connections.
         addConnectionsImpl(spi, rpis);
@@ -202,7 +180,7 @@ abstract class CacheManager {
             ReceivePortIdentifier[] rpis);
     
 
-    synchronized void removeAllConnections(SendPortIdentifier spi) {
+    void removeAllConnections(SendPortIdentifier spi) {
         // let the implementation decide what to do with these removed connections        
         removeAllConnectionsImpl(spi);
         
