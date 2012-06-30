@@ -45,6 +45,7 @@ public final class CacheReceivePort implements ReceivePort {
      * Keep this port's original capabilities for the user to see.
      */
     private final PortType intialPortType;    
+    public final Set<SendPortIdentifier> toBeCachedSet;
 
     /**
      * This class forwards upcalls with the proper receive port.
@@ -63,15 +64,18 @@ public final class CacheReceivePort implements ReceivePort {
 
         @Override
         public boolean gotConnection(ReceivePort me,
-                SendPortIdentifier applicant) {
-            System.out.println("\t\tGot connection from: " + applicant);
+                SendPortIdentifier spi) {
+            System.out.println("\t\tGot connection from: " + spi);
             
             synchronized(port.cacheManager) {
-                port.cacheManager.addConnection(port.identifier(), applicant);
+                if(port.falselyConnected.contains(spi)) {
+                    port.falselyConnected.remove(spi);
+                }
+            port.cacheManager.addConnection(port.identifier(), spi);
             }
             
             if (upcaller != null) {
-                return upcaller.gotConnection(port, applicant);
+                return upcaller.gotConnection(port, spi);
             } else {
                 return true;
             }
@@ -85,6 +89,11 @@ public final class CacheReceivePort implements ReceivePort {
             
             // conn may be cached or a true disconnect or a close, or error.
             synchronized(port.cacheManager) {
+                // check it this disconnect call is actually a caching
+                if(port.toBeCachedSet.contains(spi)) {
+                    port.toBeCachedSet.remove(spi);
+                    port.falselyConnected.add(spi);
+                }
                 port.cacheManager.removeConnection(me.identifier(), spi);
             }
             
@@ -145,6 +154,8 @@ public final class CacheReceivePort implements ReceivePort {
         intialPortType = portType;
         
         map.put(this.identifier(), this);
+        
+        toBeCachedSet = new HashSet<SendPortIdentifier>();
     }
 
     /*
@@ -169,12 +180,12 @@ public final class CacheReceivePort implements ReceivePort {
     }
     
     /*
-     * Call coming when this sendport will want to cache a connection.
+     * This method is called when the passed SPI will want to cache a connection.
      * The next lostConnection(sendport) will be a connection caching, and
      * not a true disconnect upcall.
      */
     void futureCachedConnection(SendPortIdentifier spi) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        toBeCachedSet.add(spi);
     }
 
     @Override

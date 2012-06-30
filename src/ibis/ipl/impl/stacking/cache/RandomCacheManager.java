@@ -2,50 +2,99 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
 
-public class RandomCacheManager extends CacheManager{
+public class RandomCacheManager extends CacheManager {
+
+    /*
+     * This list will contain all alive connections.
+     */
+    private final Set<Connection> set;
+    /*
+     * My random generator.
+     */
+    private final Random r;
 
     RandomCacheManager(CacheIbis ibis) {
         super(ibis);
+        set = new HashSet<Connection>();
+        r = new Random();
     }
 
     @Override
-    protected int cacheAtLeastNConnExcept(int n, SendPortIdentifier spi) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+    protected int cacheAtLeastNConnExcept(int n, Object spiOrRpi) {
+        int idx, counter, retVal = 0;
+        Connection[] array = (Connection[]) set.toArray();
 
-    @Override
-    protected int cacheAtLeastNConnExcept(int n, ReceivePortIdentifier rpi) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+        while (n-- > 0) {
+            // get a random index, and try to cache
+            // what's stopping us is that the connections may contain the spi
+            // so we fastforward in the list from the idx until we have a connection
+            // without the spi.
+            idx = r.nextInt(array.length);
+            counter = 0;
 
-    @Override
-    protected void cacheConnection(SendPortIdentifier sp, ReceivePortIdentifier rp) {
-        throw new UnsupportedOperationException("Not supported yet.");
+            while (array[idx] == null
+                    || (array[idx].contains(spiOrRpi) && counter < array.length)) {
+                idx = (idx + 1) % array.length;
+                counter++;
+            }
+
+            if (counter == array.length) {
+                /*
+                 * not good. The list only has connections with the given spi.
+                 * How can i cache a connection which is does not contain the
+                 * send port with the respective spi, if all my alive
+                 * connections are from the mentioned sendport.
+                 */
+                throw new RuntimeException("You ask too much.");
+            }
+
+            Connection conn = array[idx];
+            if (conn.atSendPortSide) {
+                super.removeConnection(conn.spi, conn.rpi);
+            } else {
+                super.removeConnection(conn.rpi, conn.spi);
+            }
+            array[idx] = null;
+            retVal++;
+        }
+
+        return retVal;
     }
 
     @Override
     protected void addConnectionsImpl(SendPortIdentifier spi, ReceivePortIdentifier[] rpis) {
-        //throw new UnsupportedOperationException("Not supported yet.");
+        for (ReceivePortIdentifier rpi : rpis) {
+            set.add(new Connection(spi, rpi));
+        }
+    }
+
+    @Override
+    protected void removeConnectionImpl(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        set.remove(new Connection(spi, rpi));
     }
 
     @Override
     protected void removeAllConnectionsImpl(SendPortIdentifier spi) {
-        //throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    protected void removeConnectionImpl(SendPortIdentifier spi) {
-        //throw new UnsupportedOperationException("Not supported yet.");
+        for (Iterator it = set.iterator(); it.hasNext();) {
+            Connection conn = (Connection) it.next();
+            if (conn.contains(spi)) {
+                it.remove();
+            }
+        }
     }
 
     @Override
     protected void addConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
-        //throw new UnsupportedOperationException("Not supported yet.");
+        set.add(new Connection(rpi, spi));
     }
 
     @Override
     protected void removeConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
-        //throw new UnsupportedOperationException("Not supported yet.");
+        set.remove(new Connection(rpi, spi));
     }
 }

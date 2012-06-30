@@ -189,7 +189,7 @@ public final class CacheSendPort implements SendPort {
             throws ConnectionFailedException {
         synchronized (cacheManager) {
             // tell the cache manager to make room for this one connection.
-            cacheManager.makeWay(this.identifier(), 1);
+            cacheManager.makeWayForSendPort(this.identifier(), 1);
             // actually connect.
             sendPort.connect(rpi, timeoutMillis, fillTimeout);
             // add the connection to the manager - it'll handle it
@@ -209,7 +209,7 @@ public final class CacheSendPort implements SendPort {
             throws ConnectionFailedException {
         synchronized (cacheManager) {
             // guarantee free room for connection
-            cacheManager.makeWay(this.identifier(), 1);
+            cacheManager.makeWayForSendPort(this.identifier(), 1);
             // actually connect
             ReceivePortIdentifier rpi = sendPort.connect(ibisIdentifier,
                     receivePortName, timeoutMillis, fillTimeout);
@@ -234,7 +234,7 @@ public final class CacheSendPort implements SendPort {
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionsFailedException {
         synchronized (cacheManager) {
-            cacheManager.makeWay(this.identifier(), rpis.length);
+            cacheManager.makeWayForSendPort(this.identifier(), rpis.length);
             sendPort.connect(rpis, timeoutMillis, fillTimeout);
             cacheManager.addConnections(this.identifier(), rpis);
         }
@@ -252,7 +252,7 @@ public final class CacheSendPort implements SendPort {
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionsFailedException {
         synchronized (cacheManager) {
-            cacheManager.makeWay(this.identifier(), ports.size());
+            cacheManager.makeWayForSendPort(this.identifier(), ports.size());
 
             ReceivePortIdentifier[] retValRpis = sendPort.connect(
                     ports, timeoutMillis, fillTimeout);
@@ -352,7 +352,7 @@ public final class CacheSendPort implements SendPort {
          */
         synchronized (cacheManager) {
             if (!falselyConnected.isEmpty()) {
-                cacheManager.revive(this.identifier());
+                cacheManager.reviveSendPort(this.identifier());
             }
         }
 

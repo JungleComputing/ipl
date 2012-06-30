@@ -33,14 +33,12 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
             /*
              * This upcall comes when the sending machine wants to cache a
              * connection from this sendport to its receiveport.
-             *
-             * not useless.
              */
             case CACHE_FROM_RP_AT_SP:
                 spi = (SendPortIdentifier) msg.readObject();
                 rpi = (ReceivePortIdentifier) msg.readObject();
                 synchronized (cacheManager) {
-                    cacheManager.cache(spi, rpi);
+                    cacheManager.removeConnection(spi, rpi);
                 }
                 break;
 
@@ -48,7 +46,7 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
              * This upcall comes when the sendport cached the connection. The
              * actual disconnection will take place at the lostConnection()
              * upcall. Here we merely want to mark that the disconnect call to
-             * come is caching and a true disconnect call.
+             * come is caching and not a true disconnect call.
              */
             case CACHE_FROM_SP:
                 spi = (SendPortIdentifier) msg.readObject();
