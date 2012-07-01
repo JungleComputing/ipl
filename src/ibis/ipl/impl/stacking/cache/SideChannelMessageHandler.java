@@ -2,23 +2,23 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import java.io.IOException;
+import java.util.logging.Level;
 
-public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProtocol {
-
+public class SideChannelMessageHandler implements MessageUpcall, SideChannelProtocol {
+    
     final CacheManager cacheManager;
     public static final Object ackLock = new Object();
     public static boolean ackReceived = false;
 
-    SideChannelMessageUpcall(CacheManager cache) {
-        this.cacheManager = cache;        
+    SideChannelMessageHandler(CacheManager cache) {
+        this.cacheManager = cache;
     }
 
     @Override
     public void upcall(ReadMessage msg) throws IOException, ClassNotFoundException {
         byte opcode = msg.readByte();
-
-        SendPortIdentifier spi;
-        ReceivePortIdentifier rpi;
+        SendPortIdentifier spi = (SendPortIdentifier) msg.readObject();
+        ReceivePortIdentifier rpi = (ReceivePortIdentifier) msg.readObject();
 
         switch (opcode) {
             /*
@@ -35,8 +35,6 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
              * connection from this sendport to its receiveport.
              */
             case CACHE_FROM_RP_AT_SP:
-                spi = (SendPortIdentifier) msg.readObject();
-                rpi = (ReceivePortIdentifier) msg.readObject();
                 synchronized (cacheManager) {
                     cacheManager.removeConnection(spi, rpi);
                 }
@@ -49,29 +47,48 @@ public class SideChannelMessageUpcall implements MessageUpcall, SideChannelProto
              * come is caching and not a true disconnect call.
              */
             case CACHE_FROM_SP:
-                spi = (SendPortIdentifier) msg.readObject();
-                rpi = (ReceivePortIdentifier) msg.readObject();
-                CacheReceivePort.map.get(rpi).futureCachedConnection(spi);
+                CacheReceivePort.map.get(rpi).toBeCachedSet.add(spi);
 
                 /*
                  * Now send ack back.
                  */
-                ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
-                        msg.origin().ibisIdentifier(), CacheManager.sideChnRPName);
-                WriteMessage ack = cacheManager.sideChannelSendPort.newMessage();
-                ack.writeByte(SideChannelProtocol.ACK);
-                ack.finish();
-                cacheManager.sideChannelSendPort.disconnect(sideRpi);
+                sendProtocol(spi, rpi, SideChannelProtocol.ACK);
 
-                // done
+                /*
+                 * Done.
+                 */
                 break;
 
             case ACK:
-                synchronized(ackLock) {
+                synchronized (ackLock) {
                     ackReceived = true;
                     ackLock.notifyAll();
                 }
                 break;
+
+            case CLOSE:
+                CacheReceivePort rp = CacheReceivePort.map.get(rpi);
+                rp.connectUpcall.lostConnection(null, spi, null);
+                break;
+        }
+    }
+    
+    public void sendProtocol(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi, byte opcode) {
+        synchronized (cacheManager.sideChannelSendPort) {
+            try {
+                ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
+                        spi.ibisIdentifier(), CacheManager.sideChnRPName);
+                WriteMessage msg = cacheManager.sideChannelSendPort.newMessage();
+                msg.writeByte(opcode);
+                msg.writeObject(spi);
+                msg.writeObject(rpi);
+                msg.finish();
+                cacheManager.sideChannelSendPort.disconnect(sideRpi);
+            } catch (Exception ex) {
+                CacheManager.log.log(Level.SEVERE, 
+                        "Error at side channel:\n{0}",ex.getMessage());
+            }
         }
     }
 }

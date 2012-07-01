@@ -12,6 +12,9 @@ abstract class CacheManager {
 
     public static final int MAX_CONNECTIONS;
     public static int noAliveConnections = 0;
+    /**
+     * Fields for logging.
+     */
     public static final Logger log;
     public static final String cacheLogString;
     /**
@@ -27,16 +30,24 @@ abstract class CacheManager {
      * These side channel sendport and receiveport names need to be unique. So
      * that the user won't create some other ports with these names.
      */
-    public static final String sideChnSPName = "sidechannelsendport"
-            + System.currentTimeMillis();
-    public static final String sideChnRPName = "sidechannelrecvport"
-            + System.currentTimeMillis();
-    ReceivePort sideChannelReceivePort;
-    SendPort sideChannelSendPort;
+    public static final String sideChnSPName = "sideChannelSendport_uniqueStrainOfThePox";
+    public static final String sideChnRPName = "sideChannelRecvport_uniqueStrainOfThePox";
+    /**
+     * The send and receive ports for the side channel should be static, i.e.
+     * 1 SP and 1 RP per CacheManager = Ibis instance.
+     * but in order to instantiate them I need the ibis reference from the
+     * constructor.
+     */
+    public final ReceivePort sideChannelReceivePort;
+    public final SendPort sideChannelSendPort;
+    /**
+     * This field handles the upcalls and provides a sendProtocol method.
+     */
+    public final SideChannelMessageHandler sideChannelHandler;
 
     static {
         cacheLogString = "cacheIbis.log";
-        log = Logger.getLogger("cacheLog");
+        log = Logger.getAnonymousLogger();
         log.removeHandler(new ConsoleHandler());
 
         try {
@@ -53,9 +64,10 @@ abstract class CacheManager {
 
     CacheManager(CacheIbis ibis) {
         try {
+            sideChannelHandler = new SideChannelMessageHandler(this);
             sideChannelReceivePort = ibis.baseIbis.createReceivePort(
                     ultraLightPT, sideChnRPName,
-                    new SideChannelMessageUpcall(this));
+                    sideChannelHandler);
             sideChannelReceivePort.enableConnections();
             sideChannelReceivePort.enableMessageUpcalls();
 
@@ -89,7 +101,7 @@ abstract class CacheManager {
     void reviveSendPort(SendPortIdentifier spi) {
         int connToBeFreed = 0;
         CacheSendPort sp = CacheSendPort.map.get(spi);
-        int cachedConn = sp.getNoCachedConnections();
+        int cachedConn = sp.falselyConnected.size();
 
         log.log(Level.INFO, "Reviving this sendport's connections: {0}", spi);
 
@@ -98,7 +110,7 @@ abstract class CacheManager {
             log.log(Level.INFO, "Caching first {0} other connections.", connToBeFreed);
             int n = cacheAtLeastNConnExcept(connToBeFreed, spi);
             noAliveConnections -= n;
-            log.log(Level.INFO, "Cached. {0} alive connections.", noAliveConnections);
+            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
         }
 
         try {
@@ -131,7 +143,7 @@ abstract class CacheManager {
             connToBeFreed = cacheAtLeastNConnExcept(connToBeFreed, spi);
             // subtract the cached connections
             noAliveConnections -= connToBeFreed;
-            log.log(Level.INFO, "Cached. Now {0} alive connections.", noAliveConnections);
+            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
         }
     }
 
@@ -145,20 +157,23 @@ abstract class CacheManager {
 
         // count: add the connections for which we made room
         noAliveConnections += rpis.length;
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
     void removeAllConnections(SendPortIdentifier spi) {
         // let the implementation decide what to do with these removed connections        
-        removeAllConnectionsImpl(spi);
+        int removed = removeAllConnectionsImpl(spi);
 
         // keep on counting
-        noAliveConnections -= CacheSendPort.map.get(spi).getNoTrueConnections();
+        noAliveConnections -= removed;
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
     void removeConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         removeConnectionImpl(spi, rpi);
         // keep on counting
         noAliveConnections--;
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
     /**
@@ -171,6 +186,7 @@ abstract class CacheManager {
 
         // count
         noAliveConnections++;
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
     void removeConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
@@ -179,6 +195,7 @@ abstract class CacheManager {
 
         // count
         noAliveConnections--;
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
     /**
@@ -193,7 +210,7 @@ abstract class CacheManager {
     protected abstract void removeConnectionImpl(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
 
-    protected abstract void removeAllConnectionsImpl(SendPortIdentifier spi);
+    protected abstract int removeAllConnectionsImpl(SendPortIdentifier spi);
 
     protected abstract void addConnectionImpl(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);

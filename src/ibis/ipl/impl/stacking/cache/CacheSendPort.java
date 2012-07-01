@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class CacheSendPort implements SendPort {
 
@@ -35,7 +33,7 @@ public final class CacheSendPort implements SendPort {
      * List of receive port identifiers to which this send port is logically
      * connected, but the under-the-hood-sendport is disconnected from them.
      */
-    private List<ReceivePortIdentifier> falselyConnected;
+    public List<ReceivePortIdentifier> falselyConnected;
     /**
      * Under-the-hood send port.
      */
@@ -133,14 +131,8 @@ public final class CacheSendPort implements SendPort {
                  * because the receive port alone cannot distinguish caching
                  * from true disconnection.
                  */
-                ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
-                        rpi.ibisIdentifier(), CacheManager.sideChnRPName);
-                WriteMessage msg = cacheManager.sideChannelSendPort.newMessage();
-                msg.writeByte(SideChannelProtocol.CACHE_FROM_SP);
-                msg.writeObject(this.identifier());
-                msg.writeObject(rpi);
-                msg.finish();
-                cacheManager.sideChannelSendPort.disconnect(sideRpi);
+                cacheManager.sideChannelHandler.sendProtocol(this.identifier(), rpi, 
+                        SideChannelProtocol.CACHE_FROM_SP);
                 
                 /*
                  * Wait for ack from ReceivePort side, so we know that
@@ -159,20 +151,28 @@ public final class CacheSendPort implements SendPort {
     }
     
     private void waitForAck() {
-        synchronized(SideChannelMessageUpcall.ackLock) {
-            while(!SideChannelMessageUpcall.ackReceived) {
+        synchronized(SideChannelMessageHandler.ackLock) {
+            while(!SideChannelMessageHandler.ackReceived) {
                 try {
-                    SideChannelMessageUpcall.ackLock.wait();
+                    SideChannelMessageHandler.ackLock.wait();
                 } catch (InterruptedException ignoreMe) {}
             }
-            SideChannelMessageUpcall.ackReceived = false;
+            SideChannelMessageHandler.ackReceived = false;
         }
     }
-    
+
     @Override
     public void close() throws IOException {
         synchronized (cacheManager) {
             sendPort.close();
+            /*
+             * Send a close() message to the receive ports with whom we have
+             * cached connections.
+             */
+            for (ReceivePortIdentifier rpi : falselyConnected) {
+                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
+                        rpi, SideChannelProtocol.CLOSE);
+            }
             cacheManager.removeAllConnections(this.identifier());
         }
     }
@@ -268,19 +268,17 @@ public final class CacheSendPort implements SendPort {
 
     @Override
     public ReceivePortIdentifier[] connectedTo() {
-        synchronized (cacheManager) {
-            ReceivePortIdentifier[] trueConnections = sendPort.connectedTo();
-            ReceivePortIdentifier[] retVal =
-                    new ReceivePortIdentifier[falselyConnected.size() + trueConnections.length];
+        ReceivePortIdentifier[] trueConnections = sendPort.connectedTo();
+        ReceivePortIdentifier[] retVal =
+                new ReceivePortIdentifier[falselyConnected.size() + trueConnections.length];
 
-            for (int i = 0; i < falselyConnected.size(); i++) {
-                retVal[i] = falselyConnected.get(i);
-            }
-            System.arraycopy(trueConnections, 0,
-                    retVal, falselyConnected.size(), trueConnections.length);
-
-            return retVal;
+        for (int i = 0; i < falselyConnected.size(); i++) {
+            retVal[i] = falselyConnected.get(i);
         }
+        System.arraycopy(trueConnections, 0,
+                retVal, falselyConnected.size(), trueConnections.length);
+
+        return retVal;
     }
 
     @Override
@@ -388,13 +386,5 @@ public final class CacheSendPort implements SendPort {
     public void setManagementProperty(String key, String value)
             throws NoSuchPropertyException {
         sendPort.setManagementProperty(key, value);
-    }
-
-    int getNoCachedConnections() {
-        return falselyConnected.size();
-    }
-    
-    int getNoTrueConnections() {
-        return sendPort.connectedTo().length;
     }
 }

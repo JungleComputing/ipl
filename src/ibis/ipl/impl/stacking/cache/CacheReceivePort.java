@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class CacheReceivePort implements ReceivePort {
 
@@ -29,10 +31,18 @@ public final class CacheReceivePort implements ReceivePort {
         map = new HashMap<ReceivePortIdentifier, CacheReceivePort>();
     }
     /**
-     * List of receive port identifiers to which this send port is logically
-     * connected, but the under-the-hood-sendport is disconnected from them.
+     * List of send port identifiers to which this receive port is logically
+     * connected, but the under-the-hood-receiveport is disconnected from them.
      */
     private List<SendPortIdentifier> falselyConnected;
+    /**
+     * All the unde-the-hood-alive and cached connections.
+     */
+    private Set<SendPortIdentifier> logicallyAlive;
+    /*
+     * Set containing live connections which will be cached.
+     */
+    public final Set<SendPortIdentifier> toBeCachedSet;
     /**
      * Under-the-hood send port.
      */
@@ -44,13 +54,21 @@ public final class CacheReceivePort implements ReceivePort {
     /**
      * Keep this port's original capabilities for the user to see.
      */
-    private final PortType intialPortType;    
-    public final Set<SendPortIdentifier> toBeCachedSet;
-
+    private final PortType intialPortType;
+    /**
+     * A reference to this receive port's connection upcaller.
+     * Need to call lostConnection() from the side channel.
+     */
+    public final ConnectUpcaller connectUpcall;
+    /**
+     * Boolean for the CacheReceivePort connection.
+     */
+    private boolean closed;
+    
     /**
      * This class forwards upcalls with the proper receive port.
      */
-    private static final class ConnectUpcaller
+    public static final class ConnectUpcaller
             implements ReceivePortConnectUpcall {
 
         CacheReceivePort port;
@@ -65,38 +83,60 @@ public final class CacheReceivePort implements ReceivePort {
         @Override
         public boolean gotConnection(ReceivePort me,
                 SendPortIdentifier spi) {
-            System.out.println("\t\tGot connection from: " + spi);
+            boolean retVal = true;
             
-            synchronized(port.cacheManager) {
-                if(port.falselyConnected.contains(spi)) {
-                    port.falselyConnected.remove(spi);
+            synchronized (port.cacheManager) {
+                if (port.closed) {
+                    return false;
                 }
-            port.cacheManager.addConnection(port.identifier(), spi);
+                if (port.falselyConnected.contains(spi)) {
+                    port.falselyConnected.remove(spi);
+                    port.cacheManager.notifyAll();
+                }
+                port.cacheManager.addConnection(port.identifier(), spi);
+            }
+
+            if (upcaller != null) {
+                retVal = upcaller.gotConnection(port, spi);
             }
             
-            if (upcaller != null) {
-                return upcaller.gotConnection(port, spi);
-            } else {
-                return true;
+            if(retVal) {
+                port.logicallyAlive.add(spi);
             }
+            
+            return retVal;
         }
 
+        /*
+         * Synchronized in order to guarantee that at most 1 is alive at any
+         * time, because this method is also called manually from the side
+         * channel handling class.
+         */
         @Override
-        public void lostConnection(ReceivePort me,
+        public synchronized void lostConnection(ReceivePort me,
                 SendPortIdentifier spi, Throwable reason) {
-            System.out.println("\t\tConnection lost with: " + spi
-                    + "\n\tReason: " + reason);
-            
-            // conn may be cached or a true disconnect or a close, or error.
-            synchronized(port.cacheManager) {
-                // check it this disconnect call is actually a caching
-                if(port.toBeCachedSet.contains(spi)) {
+            synchronized (port.cacheManager) {
+                // this method is called manually
+                // and the connection was cached, but now it needs to be closed.
+                if (me == null) {
+                    port.falselyConnected.remove(spi);
+                    return;
+                }
+                
+                if (port.toBeCachedSet.contains(spi)) {
+                    // check it this disconnect call is actually a caching
                     port.toBeCachedSet.remove(spi);
                     port.falselyConnected.add(spi);
+                } else {
+                    // this connection is lost for good - no caching.
+                    port.logicallyAlive.remove(spi);
+                    port.cacheManager.notifyAll();
                 }
+
+                // this connection exists no longer.
                 port.cacheManager.removeConnection(me.identifier(), spi);
             }
-            
+
             if (upcaller != null) {
                 upcaller.lostConnection(port, spi, reason);
             }
@@ -107,6 +147,7 @@ public final class CacheReceivePort implements ReceivePort {
      * This class forwards message upcalls with the proper message.
      */
     private static final class MessageUpcaller implements MessageUpcall {
+
         MessageUpcall upcaller;
         CacheReceivePort port;
 
@@ -120,7 +161,7 @@ public final class CacheReceivePort implements ReceivePort {
             upcaller.upcall(new CacheReadMessage(m, port));
         }
     }
-    
+
     public CacheReceivePort(PortType portType, CacheIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
@@ -129,33 +170,36 @@ public final class CacheReceivePort implements ReceivePort {
             name = ANONYMOUS_PREFIX + " "
                     + anonymousPortCounter.getAndIncrement();
         }
-        
-        connectUpcall = new ConnectUpcaller(connectUpcall, this);
-        
-        if(upcall != null) {
+
+        this.connectUpcall = new ConnectUpcaller(connectUpcall, this);
+
+        if (upcall != null) {
             upcall = new MessageUpcaller(upcall, this);
         }
 
         /*
-         * Add whatever additional port capablities are required.
-         * i.e. CONNECTION_UPCALLS
+         * Add whatever additional port capablities are required. i.e.
+         * CONNECTION_UPCALLS
          */
         Set<String> portCap = new HashSet<String>(Arrays.asList(
-                    portType.getCapabilities()));
+                portType.getCapabilities()));
         portCap.addAll(CacheIbis.additionalPortCapabilities);
         PortType wrapperPortType = new PortType(portCap.toArray(
                 new String[portCap.size()]));
 
         recvPort = ibis.baseIbis.createReceivePort(
-                wrapperPortType, name, upcall, connectUpcall, properties);
-        
+                wrapperPortType, name, upcall, this.connectUpcall, properties);
+
         falselyConnected = new ArrayList<SendPortIdentifier>();
+        logicallyAlive = new HashSet<SendPortIdentifier>();
         cacheManager = ibis.cacheManager;
         intialPortType = portType;
-        
+
         map.put(this.identifier(), this);
-        
+
         toBeCachedSet = new HashSet<SendPortIdentifier>();
+        
+        closed = false;
     }
 
     /*
@@ -167,27 +211,12 @@ public final class CacheReceivePort implements ReceivePort {
          * Tell the SP side to cache the connection.
          * I will count this connection at the lostConnection upcall.
          */
-        ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
-                spi.ibisIdentifier(), CacheManager.sideChnRPName);
-        WriteMessage msg = cacheManager.sideChannelSendPort.newMessage();
-        msg.writeByte(SideChannelProtocol.CACHE_FROM_RP_AT_SP);
-        msg.writeObject(spi);
-        msg.writeObject(this.identifier());
-        msg.finish();
-        cacheManager.sideChannelSendPort.disconnect(sideRpi);
+        cacheManager.sideChannelHandler.sendProtocol(spi, this.identifier(), 
+                SideChannelProtocol.CACHE_FROM_RP_AT_SP);
         
         falselyConnected.add(spi);
-    }
+    }    
     
-    /*
-     * This method is called when the passed SPI will want to cache a connection.
-     * The next lostConnection(sendport) will be a connection caching, and
-     * not a true disconnect upcall.
-     */
-    void futureCachedConnection(SendPortIdentifier spi) {
-        toBeCachedSet.add(spi);
-    }
-
     @Override
     public void close() throws IOException {
         close(0);
@@ -195,33 +224,36 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public void close(long timeoutMillis) throws IOException {
+        /*
+         * Wait until all logically alive connections are closed.
+         */
         synchronized (cacheManager) {
-            /*
-             * TODO: my biggest problem: example: 1-1 cached connection
-             * rp.close() should block but the underlying close() will not, and
-             * it will close the receive port whilst it should wait for the send
-             * port to be closed.
-             */
+            closed = true;
+            while (!falselyConnected.isEmpty() || recvPort.connectedTo().length > 0) {
+                System.out.println("\tFalsely conn:\t" + falselyConnected.size());
+                System.out.println("\tReal conn:\t" + recvPort.connectedTo()[0]);
+                try {
+                    cacheManager.wait();
+                } catch (InterruptedException ignoreMe) {}
+            }
             recvPort.close(timeoutMillis);
         }
     }
 
     @Override
     public SendPortIdentifier[] connectedTo() {
-        synchronized (cacheManager) {
-            SendPortIdentifier[] trueConnections = recvPort.connectedTo();
-            SendPortIdentifier[] retVal =
-                    new SendPortIdentifier[falselyConnected.size() + trueConnections.length];
-            
-            for (int i = 0; i < falselyConnected.size(); i++) {
-                retVal[i] = falselyConnected.get(i);
-            }
-            
-            System.arraycopy(trueConnections, 0,
-                    retVal, falselyConnected.size(), trueConnections.length);
-            
-            return retVal;
+        SendPortIdentifier[] trueConnections = recvPort.connectedTo();
+        SendPortIdentifier[] retVal =
+                new SendPortIdentifier[falselyConnected.size() + trueConnections.length];
+
+        for (int i = 0; i < falselyConnected.size(); i++) {
+            retVal[i] = falselyConnected.get(i);
         }
+
+        System.arraycopy(trueConnections, 0,
+                retVal, falselyConnected.size(), trueConnections.length);
+
+        return retVal;
     }
 
     @Override

@@ -10,4 +10,5 @@ interface SideChannelProtocol {
     
     static final byte CACHE_FROM_SP = 2;
     
+    static final byte CLOSE = 4;
 }

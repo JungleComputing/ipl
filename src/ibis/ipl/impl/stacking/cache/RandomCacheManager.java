@@ -32,13 +32,13 @@ public class RandomCacheManager extends CacheManager {
         while (n-- > 0) {
             // get a random index, and try to cache
             // what's stopping us is that the connections may contain the spi
-            // so we fastforward in the list from the idx until we have a connection
-            // without the spi.
+            // so we fastforward in the list from the idx until we have a 
+            // connection without the spi.
             idx = r.nextInt(array.length);
             counter = 0;
 
-            while (array[idx] == null
-                    || (array[idx].contains(spiOrRpi) && counter < array.length)) {
+            while (counter < array.length &&
+                    (array[idx] == null || array[idx].contains(spiOrRpi)) ) {
                 idx = (idx + 1) % array.length;
                 counter++;
             }
@@ -50,7 +50,12 @@ public class RandomCacheManager extends CacheManager {
                  * send port with the respective spi, if all my alive
                  * connections are from the mentioned sendport.
                  */
-                throw new RuntimeException("You ask too much.");
+                String s = "";
+                for(int i = 0; i < array.length; i++) {
+                    s+="("+array[i].toString()+"), ";
+                }
+                throw new RuntimeException("You ask too much. "
+                        + "Array of live connections looks like this:\n"+s);
             }
 
             Connection conn = array[idx];
@@ -79,13 +84,16 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    protected void removeAllConnectionsImpl(SendPortIdentifier spi) {
+    protected int removeAllConnectionsImpl(SendPortIdentifier spi) {
+        int retVal = 0;
         for (Iterator it = set.iterator(); it.hasNext();) {
             Connection conn = (Connection) it.next();
             if (conn.contains(spi)) {
                 it.remove();
+                retVal++;
             }
         }
+        return retVal;
     }
 
     @Override
