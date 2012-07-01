@@ -10,7 +10,7 @@ import java.util.Set;
 public class RandomCacheManager extends CacheManager {
 
     /*
-     * This list will contain all alive connections.
+     * This set will contain all alive connections.
      */
     private final Set<Connection> set;
     /*

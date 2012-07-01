@@ -79,7 +79,7 @@ public class CacheIbis implements Ibis {
                     userProperties, credentials, applicationTag, portTypes,
                     specifiedSubImplementation);
         
-        // get the implementation version from somewhere
+        // TODO: get the implementation version from somewhere
         cacheManager = new RandomCacheManager(this);
     }
 
