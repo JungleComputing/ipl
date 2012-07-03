@@ -49,15 +49,16 @@ public class LruCacheManager extends CacheManager {
     }
 
     @Override
-    protected void addConnectionsImpl(SendPortIdentifier spi, ReceivePortIdentifier[] rpis) {
+    protected int addConnectionsImpl(SendPortIdentifier spi, ReceivePortIdentifier[] rpis) {
         for (ReceivePortIdentifier rpi : rpis) {
             list.add(new Connection(spi, rpi));
         }
+        return rpis.length;
     }
 
     @Override
-    protected void removeConnectionImpl(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
-        list.remove(new Connection(spi, rpi));
+    protected int removeConnectionImpl(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        return list.remove(new Connection(spi, rpi)) ? 1 : 0;
     }
 
     @Override
@@ -74,12 +75,13 @@ public class LruCacheManager extends CacheManager {
     }
 
     @Override
-    protected void addConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    protected int addConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         list.add(new Connection(rpi, spi));
+        return 1;
     }
 
     @Override
-    protected void removeConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
-        list.remove(new Connection(rpi, spi));
+    protected int removeConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        return list.remove(new Connection(rpi, spi)) ? 1 : 0;
     }
 }

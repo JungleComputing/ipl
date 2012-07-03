@@ -66,7 +66,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 }
                 break;
 
-            case CLOSE:
+            case DISCONNECT:
                 CacheReceivePort rp = CacheReceivePort.map.get(rpi);
                 rp.connectUpcall.lostConnection(null, spi, null);
                 break;

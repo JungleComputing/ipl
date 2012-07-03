@@ -98,34 +98,34 @@ abstract class CacheManager {
      *
      * @param spi
      */
-    void reviveSendPort(SendPortIdentifier spi) {
-        int connToBeFreed = 0;
-        CacheSendPort sp = CacheSendPort.map.get(spi);
-        int cachedConn = sp.falselyConnected.size();
-
-        log.log(Level.INFO, "Reviving this sendport's connections: {0}", spi);
-
-        if (noAliveConnections + cachedConn > MAX_CONNECTIONS) {
-            connToBeFreed = noAliveConnections + cachedConn - MAX_CONNECTIONS;
-            log.log(Level.INFO, "Caching first {0} other connections.", connToBeFreed);
-            int n = cacheAtLeastNConnExcept(connToBeFreed, spi);
-            noAliveConnections -= n;
-            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
-        }
-
-        try {
-            sp.revive();
-            noAliveConnections += cachedConn;
-
-            log.log(Level.INFO, "Revival was ok; no. conn. revived: {0}", connToBeFreed);
-            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
-        } catch (IOException ex) {
-            // should not be here.
-            log.log(Level.SEVERE, "Revival failed. Cause: {0}", ex);
-            throw new RuntimeException("CacheManager level: "
-                    + "Couldn't reconnect a sendport to its receiveports.\n", ex);
-        }
-    }
+//    void reviveSendPort(SendPortIdentifier spi) {
+//        int connToBeFreed = 0;
+//        CacheSendPort sp = CacheSendPort.map.get(spi);
+//        int cachedConn = sp.falselyConnected.size();
+//
+//        log.log(Level.INFO, "Reviving this sendport's connections: {0}", spi);
+//
+//        if (noAliveConnections + cachedConn > MAX_CONNECTIONS) {
+//            connToBeFreed = noAliveConnections + cachedConn - MAX_CONNECTIONS;
+//            log.log(Level.INFO, "Caching first {0} other connections.", connToBeFreed);
+//            int n = cacheAtLeastNConnExcept(connToBeFreed, spi);
+//            noAliveConnections -= n;
+//            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
+//        }
+//
+//        try {
+//            sp.revive();
+//            noAliveConnections += cachedConn;
+//
+//            log.log(Level.INFO, "Revival was ok; no. conn. revived: {0}", connToBeFreed);
+//            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
+//        } catch (IOException ex) {
+//            // should not be here.
+//            log.log(Level.SEVERE, "Revival failed. Cause: {0}", ex);
+//            throw new RuntimeException("CacheManager level: "
+//                    + "Couldn't reconnect a sendport to its receiveports.\n", ex);
+//        }
+//    }
 
     /**
      * This method will make space if needed for the future connections. It will
@@ -153,10 +153,10 @@ abstract class CacheManager {
     void addConnections(SendPortIdentifier spi,
             ReceivePortIdentifier[] rpis) {
         // let the implementation decide what to do with the alive connections.
-        addConnectionsImpl(spi, rpis);
+        int addedConn = addConnectionsImpl(spi, rpis);
 
         // count: add the connections for which we made room
-        noAliveConnections += rpis.length;
+        noAliveConnections += addedConn;
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
@@ -170,9 +170,9 @@ abstract class CacheManager {
     }
 
     void removeConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
-        removeConnectionImpl(spi, rpi);
+        int removed = removeConnectionImpl(spi, rpi);
         // keep on counting
-        noAliveConnections--;
+        noAliveConnections -= removed;
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
@@ -182,19 +182,19 @@ abstract class CacheManager {
      */
     void addConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         // let the implementation decide what to do with the alive connections.
-        addConnectionImpl(rpi, spi);
+        int addedConn = addConnectionImpl(rpi, spi);
 
         // count
-        noAliveConnections++;
+        noAliveConnections += addedConn;
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
     void removeConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         // let the implementation decide what to do with the alive connections.
-        removeConnectionImpl(rpi, spi);
+        int removed = removeConnectionImpl(rpi, spi);
 
         // count
-        noAliveConnections--;
+        noAliveConnections -= removed;
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
@@ -204,17 +204,17 @@ abstract class CacheManager {
      */
     protected abstract int cacheAtLeastNConnExcept(int n, Object spiOrRpi);
 
-    protected abstract void addConnectionsImpl(SendPortIdentifier spi,
+    protected abstract int addConnectionsImpl(SendPortIdentifier spi,
             ReceivePortIdentifier[] rpis);
 
-    protected abstract void removeConnectionImpl(SendPortIdentifier spi,
+    protected abstract int removeConnectionImpl(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
 
     protected abstract int removeAllConnectionsImpl(SendPortIdentifier spi);
 
-    protected abstract void addConnectionImpl(ReceivePortIdentifier rpi,
+    protected abstract int addConnectionImpl(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
 
-    protected abstract void removeConnectionImpl(ReceivePortIdentifier rpi,
+    protected abstract int removeConnectionImpl(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
 }

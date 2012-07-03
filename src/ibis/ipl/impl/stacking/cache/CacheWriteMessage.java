@@ -1,221 +1,450 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.SendPort;
+import ibis.io.DataOutputStream;
+import ibis.io.SerializationFactory;
+import ibis.io.SerializationOutput;
+import ibis.ipl.PortType;
 import ibis.ipl.WriteMessage;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class CacheWriteMessage implements WriteMessage {
 
-    final WriteMessage base;
-    final CacheSendPort sendPort;
+    SerializationOutput out;
+    DataOutputStream dos;
+    /*
+     * SendPort used to generate base WriteMessages.
+     */
+    final CacheSendPort port;
+    /*
+     * Number of bytes written by this CacheWriteMessage.
+     */
+    long bytes;
+    /*
+     * Boolean for this send port.
+     */
+    boolean isFinished;
 
-    public CacheWriteMessage(WriteMessage base, CacheSendPort port) {
-        this.base = base;
-        this.sendPort = port;
+    public CacheWriteMessage(CacheSendPort sendPort) throws IOException {
+        this.port = sendPort;
+        this.isFinished = false;
+        
+        PortType type = this.port.getPortType();
+        String serialization;
+        if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
+            serialization = "data";
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
+            serialization = "sun";
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
+            serialization = "ibis";
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
+            serialization = "object";
+        } else {
+            serialization = "byte";
+        }
+        dos = new BufferedDataOutputStream(this.port);
+        out = SerializationFactory.createSerializationOutput(serialization,
+                dos);
     }
 
-    @Override
-    public long bytesWritten() throws IOException {
-        return base.bytesWritten();
-    }
-
-    @Override
-    public int capacity() throws IOException {
-        return base.capacity();
-    }
-
-    @Override
-    public int remaining() throws IOException {
-        return base.remaining();
-    }
-
-    @Override
-    public long finish() throws IOException {
-        synchronized (sendPort.messageLock) {
-            sendPort.aliveMessage = false;
-            sendPort.messageLock.notifyAll();
-            return base.finish();
+    private void checkNotFinished() throws IOException {
+        if (isFinished) {
+            throw new IOException(
+                    "Operating on a message that was already finished");
         }
     }
 
     @Override
-    public void finish(IOException e) {
-        synchronized (sendPort.messageLock) {
-            sendPort.aliveMessage = false;
-            sendPort.messageLock.notifyAll();
-            base.finish(e);
-        }
-    }
-
-    @Override
-    public SendPort localPort() {
-        return sendPort;
-    }
-
-    @Override
-    public void reset() throws IOException {
-        base.reset();
+    public ibis.ipl.SendPort localPort() {
+        return port;
     }
 
     @Override
     public int send() throws IOException {
-        return base.send();
+        checkNotFinished();
+        return 0;
     }
 
     @Override
-    public void flush() throws IOException {
-        base.flush();
+    public void reset() throws IOException {
+        try {
+            out.reset();
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
+    }
+    @Override
+    public long bytesWritten() {
+        return dos.bytesWritten();
+    }
+
+    @Override
+    public int capacity() throws IOException {
+        return -1;
+    }
+
+    @Override
+    public int remaining() throws IOException {
+        return -1;
     }
 
     @Override
     public void sync(int ticket) throws IOException {
-        base.sync(ticket);
+        checkNotFinished();
+        try {
+            out.flush();
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(boolean[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void flush() throws IOException {
+        checkNotFinished();
+        try {
+            out.flush();
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(boolean[] val) throws IOException {
-        base.writeArray(val);
+    public long finish() throws IOException {
+        checkNotFinished();
+        try {
+            out.reset();
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
+        try {
+            out.flush();
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
+        isFinished = true;
+        long retval = bytesWritten();
+        port.finishMessage(this, retval);
+        return retval;
     }
 
     @Override
-    public void writeArray(byte[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void finish(IOException e) {
+        if (isFinished) {
+            return;
+        }
+
+        try {
+            out.reset();
+        } catch (Throwable e2) {
+            // ignored
+        }
+
+        try {
+            out.flush();
+        } catch (Throwable e2) {
+            // ignored
+        }
+
+        isFinished = true;
+        port.finishMessage(this, e);
     }
 
     @Override
-    public void writeArray(byte[] val) throws IOException {
-        base.writeArray(val);
+    public void writeBoolean(boolean value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeBoolean(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(char[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void writeByte(byte value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeByte(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(char[] val) throws IOException {
-        base.writeArray(val);
+    public void writeChar(char value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeChar(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(double[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void writeShort(short value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeShort(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(double[] val) throws IOException {
-        base.writeArray(val);
+    public void writeInt(int value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeInt(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(float[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void writeLong(long value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeLong(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(float[] val) throws IOException {
-        base.writeArray(val);
+    public void writeFloat(float value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeFloat(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(int[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void writeDouble(double value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeDouble(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(int[] val) throws IOException {
-        base.writeArray(val);
+    public void writeString(String value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeString(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(long[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void writeObject(Object value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeObject(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(long[] val) throws IOException {
-        base.writeArray(val);
+    public void writeArray(boolean[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(Object[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void writeArray(byte[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(Object[] val) throws IOException {
-        base.writeArray(val);
+    public void writeArray(char[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(short[] val, int off, int len) throws IOException {
-        base.writeArray(val, off, len);
+    public void writeArray(short[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeArray(short[] val) throws IOException {
-        base.writeArray(val);
+    public void writeArray(int[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeBoolean(boolean val) throws IOException {
-        base.writeBoolean(val);
+    public void writeArray(long[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeByte(byte val) throws IOException {
-        base.writeByte(val);
+    public void writeArray(float[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeChar(char val) throws IOException {
-        base.writeChar(val);
+    public void writeArray(double[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeDouble(double val) throws IOException {
-        base.writeDouble(val);
+    public void writeArray(Object[] value) throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeFloat(float val) throws IOException {
-        base.writeFloat(val);
+    public void writeArray(boolean[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeInt(int val) throws IOException {
-        base.writeInt(val);
+    public void writeArray(byte[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeLong(long val) throws IOException {
-        base.writeLong(val);
+    public void writeArray(char[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeObject(Object val) throws IOException {
-        base.writeObject(val);
+    public void writeArray(short[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeShort(short val) throws IOException {
-        base.writeShort(val);
+    public void writeArray(int[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
-    public void writeString(String val) throws IOException {
-        base.writeString(val);
+    public void writeArray(long[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
+    }
+
+    @Override
+    public void writeArray(float[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
+    }
+
+    @Override
+    public void writeArray(double[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
+    }
+
+    @Override
+    public void writeArray(Object[] value, int offset, int size)
+            throws IOException {
+        checkNotFinished();
+        try {
+            out.writeArray(value, offset, size);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 
     @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
-        base.writeByteBuffer(value);
+        checkNotFinished();
+        try {
+            out.writeByteBuffer(value);
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
     }
 }

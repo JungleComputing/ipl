@@ -72,15 +72,17 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    protected void addConnectionsImpl(SendPortIdentifier spi, ReceivePortIdentifier[] rpis) {
+    protected int addConnectionsImpl(SendPortIdentifier spi, ReceivePortIdentifier[] rpis) {
+        int initSize = set.size();
         for (ReceivePortIdentifier rpi : rpis) {
             set.add(new Connection(spi, rpi));
         }
+        return set.size() - initSize;
     }
 
     @Override
-    protected void removeConnectionImpl(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
-        set.remove(new Connection(spi, rpi));
+    protected int removeConnectionImpl(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        return set.remove(new Connection(spi, rpi)) ? 1 : 0;
     }
 
     @Override
@@ -97,12 +99,12 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    protected void addConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
-        set.add(new Connection(rpi, spi));
+    protected int addConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        return set.add(new Connection(rpi, spi)) ? 1 : 0;
     }
 
     @Override
-    protected void removeConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
-        set.remove(new Connection(rpi, spi));
+    protected int removeConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        return set.remove(new Connection(rpi, spi)) ? 1 : 0;
     }
 }

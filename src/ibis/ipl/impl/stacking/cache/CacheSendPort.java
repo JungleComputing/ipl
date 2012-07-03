@@ -1,6 +1,7 @@
 package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
+import ibis.ipl.impl.CollectedWriteException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -55,9 +56,9 @@ public final class CacheSendPort implements SendPort {
      */
     final Object messageLock;
     /**
-     * Variable to determine wether this send port has a current alive message.
+     * Variable to determine whether this send port has a current alive message.
      */
-    volatile boolean aliveMessage;
+    volatile boolean aMessageIsAlive;
     
     public CacheSendPort(PortType portType, CacheIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
@@ -88,7 +89,7 @@ public final class CacheSendPort implements SendPort {
         map.put(this.identifier(), this);
         
         messageLock = new Object();
-        aliveMessage = false;
+        aMessageIsAlive = false;
     }
 
     /*
@@ -100,14 +101,14 @@ public final class CacheSendPort implements SendPort {
      * This method will be called only from the Cache Manager under a
      * synchronized context.
      */
-    public void revive() throws IOException {
-        for (ReceivePortIdentifier rpi : falselyConnected) {
-            // with connection upcalls enabled,
-            // the receive port upcaller will make room for this connection.
-            sendPort.connect(rpi);
-            falselyConnected.remove(rpi);
-        }
-    }
+//    public void revive() throws IOException {
+//        for (ReceivePortIdentifier rpi : falselyConnected) {
+//            // with connection upcalls enabled,
+//            // the receive port upcaller will make room for this connection.
+//            sendPort.connect(rpi);
+//            falselyConnected.remove(rpi);
+//        }
+//    }
 
     /*
      * This method return true if it successfully caches the connection between
@@ -123,7 +124,7 @@ public final class CacheSendPort implements SendPort {
          * message is alive.
          */
         synchronized (messageLock) {
-            if (aliveMessage) {
+            if (aMessageIsAlive) {
                 return false;
             } else {
                 /*
@@ -166,28 +167,48 @@ public final class CacheSendPort implements SendPort {
         synchronized (cacheManager) {
             sendPort.close();
             /*
-             * Send a close() message to the receive ports with whom we have
-             * cached connections.
+             * Send a DISCONNECT message to the receive ports with whom we have
+             * cached connections. Otherwise, they won't get the lostConnection()
+             * upcall.
              */
             for (ReceivePortIdentifier rpi : falselyConnected) {
                 cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
-                        rpi, SideChannelProtocol.CLOSE);
-            }
+                        rpi, SideChannelProtocol.DISCONNECT);                
+            }            
             cacheManager.removeAllConnections(this.identifier());
         }
     }
 
+    // -----------------------------------------
     @Override
     public void connect(ReceivePortIdentifier receiver)
             throws ConnectionFailedException {
         connect(receiver, 0, true);
     }
+    
+    @Override
+    public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier,
+            String receivePortName) throws ConnectionFailedException {
+        return connect(ibisIdentifier, receivePortName, 0, true);
+    }
+    
+    @Override
+    public void connect(ReceivePortIdentifier[] receivePortIdentifiers)
+            throws ConnectionsFailedException {
+        connect(receivePortIdentifiers, 0, true);
+    }
+    // -----------------------------------------
 
     @Override
     public void connect(ReceivePortIdentifier rpi,
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionFailedException {
         synchronized (cacheManager) {
+            
+            if (aMessageIsAlive) {
+                throw new ConnectionFailedException(
+                        "A message was alive while adding a new connection", rpi);
+            }
             // tell the cache manager to make room for this one connection.
             cacheManager.makeWayForSendPort(this.identifier(), 1);
             // actually connect.
@@ -196,11 +217,11 @@ public final class CacheSendPort implements SendPort {
             cacheManager.addConnections(this.identifier(), new ReceivePortIdentifier[] {rpi});
         }
     }
-
+    
     @Override
-    public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier,
-            String receivePortName) throws ConnectionFailedException {
-        return connect(ibisIdentifier, receivePortName, 0, true);
+    public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports)
+            throws ConnectionsFailedException {
+        return connect(ports, 0, true);
     }
 
     @Override
@@ -224,12 +245,6 @@ public final class CacheSendPort implements SendPort {
     }
 
     @Override
-    public void connect(ReceivePortIdentifier[] receivePortIdentifiers)
-            throws ConnectionsFailedException {
-        connect(receivePortIdentifiers, 0, true);
-    }
-
-    @Override
     public void connect(ReceivePortIdentifier[] rpis,
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionsFailedException {
@@ -241,16 +256,14 @@ public final class CacheSendPort implements SendPort {
     }
 
     @Override
-    public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports)
-            throws ConnectionsFailedException {
-        return connect(ports, 0, true);
-    }
-
-    @Override
     public ReceivePortIdentifier[] connect(
             Map<IbisIdentifier, String> ports,
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionsFailedException {
+        if (aMessageIsAlive) {
+            throw new ConnectionFailedException(
+                "A message was alive while adding a new connection", receiver);
+        }
         synchronized (cacheManager) {
             cacheManager.makeWayForSendPort(this.identifier(), ports.size());
 
@@ -284,6 +297,12 @@ public final class CacheSendPort implements SendPort {
     @Override
     public void disconnect(IbisIdentifier ibisIdentifier,
             String receivePortName) throws IOException {
+        synchronized (messageLock) {
+            if (aMessageIsAlive) {
+                throw new IOException(
+                        "Trying to disconnect while a message is alive!");
+            }
+        }
         synchronized (cacheManager) {
             ReceivePortIdentifier rpi = rpiMap.get(ibisIdentifier.name() + receivePortName);
             if (rpi == null) {
@@ -293,23 +312,42 @@ public final class CacheSendPort implements SendPort {
             }
             if (!falselyConnected.contains(rpi)) {
                 sendPort.disconnect(ibisIdentifier, receivePortName);
+                /*
+                 * Remove the connection only if it was trully alive.
+                 */
+                cacheManager.removeConnection(this.identifier(), rpi);
             } else {
                 falselyConnected.remove(rpi);
             }
-            cacheManager.removeConnection(this.identifier(), rpi);
         }
     }
 
     @Override
     public void disconnect(ReceivePortIdentifier rpi)
             throws IOException {
+        synchronized (messageLock) {
+            if (aMessageIsAlive) {
+                throw new IOException(
+                        "Trying to disconnect while a message is alive!");
+            }
+        }
         synchronized (cacheManager) {
             if (!falselyConnected.contains(rpi)) {
                 sendPort.disconnect(rpi);
+                /*
+                 * Remove the connection only if it was trully alive.
+                 */
+                cacheManager.removeConnection(this.identifier(), rpi);
             } else {
                 falselyConnected.remove(rpi);
+                /*
+                 * Send a DISCONNECT message to the receive ports with whom we
+                 * have cached connections. Otherwise, they won't get the
+                 * lostConnection() upcall.
+                 */
+                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
+                        rpi, SideChannelProtocol.DISCONNECT);
             }
-            cacheManager.removeConnection(this.identifier(), rpi);
         }
     }
 
@@ -337,27 +375,27 @@ public final class CacheSendPort implements SendPort {
     public WriteMessage newMessage() throws IOException {
         
         synchronized (messageLock) {
-            while (aliveMessage) {
+            while (aMessageIsAlive) {
                 try {
                     messageLock.wait();
                 } catch (InterruptedException ignoreMe) {}
             }
-            aliveMessage = true;
+            aMessageIsAlive = true;
         }
 
         /*
          * Make sure all connections are open from this send port.
          */
-        synchronized (cacheManager) {
-            if (!falselyConnected.isEmpty()) {
-                cacheManager.reviveSendPort(this.identifier());
-            }
-        }
+//        synchronized (cacheManager) {
+//            if (!falselyConnected.isEmpty()) {
+//                cacheManager.reviveSendPort(this.identifier());
+//            }
+//        }
 
         /*
          * The field aliveMessage is set to false in this object's finish() methods.
          */
-        return new CacheWriteMessage(sendPort.newMessage(), this);
+        return new CacheWriteMessage(this);
     }
     
     @Override
@@ -386,5 +424,17 @@ public final class CacheSendPort implements SendPort {
     public void setManagementProperty(String key, String value)
             throws NoSuchPropertyException {
         sendPort.setManagementProperty(key, value);
+    }
+
+    void gotSendException(CacheWriteMessage aThis, IOException e) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    void finishMessage(CacheWriteMessage aThis, IOException e) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    void finishMessage(CacheWriteMessage aThis, long retval) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 }
