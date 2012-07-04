@@ -31,16 +31,20 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 //                cache.reserve(msg.origin().ibisIdentifier());
 //                break;
             /*
+             * At SendPortSide:
              * This upcall comes when the sending machine wants to cache a
              * connection from this sendport to its receiveport.
              */
             case CACHE_FROM_RP_AT_SP:
                 synchronized (cacheManager) {
+                    boolean heKnows = true;
+                    CacheSendPort.map.get(spi).cache(rpi, heKnows);
                     cacheManager.removeConnection(spi, rpi);
                 }
                 break;
 
             /*
+             * At ReceivePortSide:
              * This upcall comes when the sendport cached the connection. The
              * actual disconnection will take place at the lostConnection()
              * upcall. Here we merely want to mark that the disconnect call to
@@ -59,6 +63,10 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                  */
                 break;
 
+                /*
+                 * At SendPortSide:
+                 * Ack received from the above scenario.
+                 */
             case ACK:
                 synchronized (ackLock) {
                     ackReceived = true;
@@ -66,6 +74,12 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 }
                 break;
 
+                /*
+                 * At ReceivePortSide:
+                 * This protocol is sent through the side channel because
+                 * the real connection has been cached.
+                 * - no point in turning it up again only to have it closed, right?
+                 */
             case DISCONNECT:
                 CacheReceivePort rp = CacheReceivePort.map.get(rpi);
                 rp.connectUpcall.lostConnection(null, spi, null);

@@ -8,7 +8,7 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class CacheWriteMessage implements WriteMessage {
+public final class CacheWriteMessage implements WriteMessage {
 
     SerializationOutput out;
     DataOutputStream dos;

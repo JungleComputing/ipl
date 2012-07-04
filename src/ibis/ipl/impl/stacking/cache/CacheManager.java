@@ -2,13 +2,20 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.*;
 
 /**
- * This abstract class keeps the counter. How and what is cached depends on its
- * implementations.
+ * This abstract class keeps the counter. 
+ * What is cached depends on its implementations.
+ * True connection closing needs to be done separatly,
+ * here we merely count the alive connections,
+ * and decide which one to cache from the alive ones.
  */
 abstract class CacheManager {
+    
+    // TODO: move it from here, it's ugly
+    static final int BUFFER_SIZE = 1 << 16;
 
     public static final int MAX_CONNECTIONS;
     public static int noAliveConnections = 0;
@@ -32,6 +39,7 @@ abstract class CacheManager {
      */
     public static final String sideChnSPName = "sideChannelSendport_uniqueStrainOfThePox";
     public static final String sideChnRPName = "sideChannelRecvport_uniqueStrainOfThePox";
+    
     /**
      * The send and receive ports for the side channel should be static, i.e.
      * 1 SP and 1 RP per CacheManager = Ibis instance.
@@ -217,4 +225,8 @@ abstract class CacheManager {
 
     protected abstract int removeConnectionImpl(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
+
+    ReceivePortIdentifier[] getSomeConnections(SendPortIdentifier identifier, List<ReceivePortIdentifier> rpis) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 }

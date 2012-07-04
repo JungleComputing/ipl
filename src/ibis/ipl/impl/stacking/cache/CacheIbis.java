@@ -21,12 +21,33 @@ public class CacheIbis implements Ibis {
     static final Set<String> offeredIbisCapabilities;
     
     static {
+        /*
+         * Enforce these capabilities on the ibis creation.
+         */
         offeredIbisCapabilities = new HashSet<String>();
         additionalPortCapabilities = new HashSet<String>();
         additionalPortTypes = new HashSet<PortType>();
         
+        /*
+         * I require this so I can handle caching connections at the
+         * receive port side.
+         */
         additionalPortCapabilities.add(PortType.CONNECTION_UPCALLS);
+        /*
+         * I require this so my partial streamed messages arrive 
+         * in the right order.
+         */
+        additionalPortCapabilities.add(PortType.COMMUNICATION_FIFO);
+        /*
+         * Add this port type to the ibis constructor - required for
+         * the side channel.
+         */
         additionalPortTypes.add(CacheManager.ultraLightPT);
+        /*
+         * These are the ibis capabilities offered by CacheIbis.
+         * These capabilities are to be removed when constructing 
+         * the under-the-hood ibis.
+         */
         offeredIbisCapabilities.add(IbisCapabilities.CONNECTION_CACHING);
     }
 

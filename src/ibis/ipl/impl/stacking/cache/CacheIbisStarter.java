@@ -31,13 +31,17 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
             PortType.SERIALIZATION_OBJECT_SUN,
             PortType.SERIALIZATION_OBJECT_IBIS, PortType.SERIALIZATION_OBJECT,
             PortType.SERIALIZATION_DATA, PortType.SERIALIZATION_BYTE,
-            PortType.COMMUNICATION_FIFO, PortType.COMMUNICATION_NUMBERED,
+            PortType.COMMUNICATION_FIFO, 
+            // maybe later, need to write before sending and receive a number
+//            PortType.COMMUNICATION_NUMBERED,
             PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_DOWNCALLS,
             PortType.CONNECTION_UPCALLS, PortType.CONNECTION_TIMEOUT,
             PortType.CONNECTION_MANY_TO_MANY, PortType.CONNECTION_MANY_TO_ONE,
             PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_ONE_TO_ONE,
             PortType.CONNECTION_LIGHT, 
-            // does not support: PortType.CONNECTION_ULTRALIGHT,
+            // can't support this, because I enrich the ports with
+            // connection upcalls, and this combination doesn't work.
+//            PortType.CONNECTION_ULTRALIGHT,
             PortType.CONNECTION_DIRECT, PortType.RECEIVE_POLL,
             PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
             PortType.RECEIVE_POLL_UPCALLS, PortType.RECEIVE_TIMEOUT);    
