@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public final class CacheSendPort implements SendPort {
 
@@ -156,7 +157,6 @@ public final class CacheSendPort implements SendPort {
     @Override
     public void close() throws IOException {
         synchronized (cacheManager) {
-            sendPort.close();
             /*
              * Send a DISCONNECT message to the receive ports with whom we have
              * cached connections. Otherwise, they won't get the
@@ -167,6 +167,11 @@ public final class CacheSendPort implements SendPort {
                         rpi, SideChannelProtocol.DISCONNECT);
             }
             cacheManager.removeAllConnections(this.identifier());
+            /*
+             * Disconnect from whoever is connected to the base send port.
+             */
+            sendPort.close();
+            CacheManager.log.log(Level.INFO, "Send port closed.");
         }
     }
 
@@ -255,10 +260,12 @@ public final class CacheSendPort implements SendPort {
 
         // TODO: I have to manipulate timeout and fillTimeout.
 
-        List<ReceivePortIdentifier> rpiList = Arrays.asList(rpis);
+        Set<ReceivePortIdentifier> rpiList = new HashSet<ReceivePortIdentifier>(
+                Arrays.asList(rpis));
         ReceivePortIdentifier[] connected;
         synchronized (cacheManager) {
             while (!rpiList.isEmpty()) {
+                int initialSize = rpiList.size();
                 /*
                  * Tell the cache manager to connect the send port to some of
                  * the receive ports received as params. This method guarantees
@@ -266,11 +273,12 @@ public final class CacheSendPort implements SendPort {
                  */
                 try {
                     connected = cacheManager.getSomeConnections(
-                            this.identifier(), rpiList, timeoutMillis);
+                            this, rpiList, timeoutMillis);
                 } catch (IbisIOException ex) {
                     throw (ConnectionsFailedException) ex;
                 }
-                assert rpiList.removeAll(Arrays.asList(connected));
+                rpiList.removeAll(Arrays.asList(connected));
+                assert rpiList.size() < initialSize;
             }
         }
     }

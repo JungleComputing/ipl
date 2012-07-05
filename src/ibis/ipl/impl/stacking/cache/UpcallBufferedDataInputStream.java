@@ -10,13 +10,11 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     private static class DataOfferingThread implements Runnable {
 
         final UpcallBufferedDataInputStream in;
-        final boolean isLastPart;
         final ReadMessage msg;
 
         public DataOfferingThread(UpcallBufferedDataInputStream is,
-                boolean isLastPart, ReadMessage msg) {
+                ReadMessage msg) {
             this.in = is;
-            this.isLastPart = isLastPart;
             this.msg = msg;
         }
 
@@ -95,8 +93,8 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     }
 
     @Override
-    protected void offer(boolean isLastPart, ReadMessage msg) {
-        ex.execute(new DataOfferingThread(this, isLastPart, msg));
+    protected void offer(ReadMessage msg) {
+        ex.execute(new DataOfferingThread(this, msg));
     }
 
     @Override
@@ -114,14 +112,6 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
     @Override
     public void close() {
-        // do nothing?!
-//        while (true) {
-//            try {
-//                ex.awaitTermination(Integer.MAX_VALUE, TimeUnit.DAYS);
-//                return;
-//            } catch (InterruptedException ex) {
-//                Logger.getLogger(UpcallBufferedDataInputStream.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
+        super.port.msgUpcall.wasLastPart = true;
     }
 }

@@ -2,7 +2,10 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.*;
 
 /**
@@ -12,12 +15,16 @@ import java.util.logging.*;
  * here we merely count the alive connections,
  * and decide which one to cache from the alive ones.
  */
-abstract class CacheManager {
+public abstract class CacheManager {
     
-    // TODO: move it from here, it's ugly
-    static final int BUFFER_SIZE = 1 << 16;
+    /* 
+     * TODO: move it from here, it's ugly
+     * This is the maximum size of the buffer used to stream data.
+     */
+    static final int BUFFER_CAPACITY = 1 << 16;
 
     public static final int MAX_CONNECTIONS;
+    public static final int MAX_CONN_DEFAULT = 50;
     public static int noAliveConnections = 0;
     /**
      * Fields for logging.
@@ -66,8 +73,9 @@ abstract class CacheManager {
             Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        // TODO: initialize from somewhere or set default.
-        MAX_CONNECTIONS = 10;
+        MAX_CONNECTIONS = Integer.parseInt(
+                System.getProperty("MAX_CONN", Integer.toString(MAX_CONN_DEFAULT)));
+        
     }
 
     CacheManager(CacheIbis ibis) {
@@ -135,25 +143,6 @@ abstract class CacheManager {
 //        }
 //    }
 
-    /**
-     * This method will make space if needed for the future connections. It will
-     * try and cache (depending on implementation) connections, except the ones
-     * containing the param sendport. (because the future connections will be
-     * open from it, so it makes no sense to cache some of its connections
-     * whilst opening the rest)
-     *
-     * this method is always called from: synchronized(cacheManager).
-     */
-    void makeWayForSendPort(SendPortIdentifier spi, int noConn) {
-        if (noAliveConnections + noConn > MAX_CONNECTIONS) {
-            int connToBeFreed = noAliveConnections + noConn - MAX_CONNECTIONS;
-            log.log(Level.INFO, "Caching {0} connections.", connToBeFreed);
-            connToBeFreed = cacheAtLeastNConnExcept(connToBeFreed, spi);
-            // subtract the cached connections
-            noAliveConnections -= connToBeFreed;
-            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
-        }
-    }
 
     /**
      * Called from synchronized(CacheManager) context as well.
@@ -176,9 +165,6 @@ abstract class CacheManager {
         noAliveConnections += addedConn;
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
-
-    
-    
 
     void removeAllConnections(SendPortIdentifier spi) {
         // let the implementation decide what to do with these removed connections        
@@ -232,27 +218,7 @@ abstract class CacheManager {
      * number of cached connections.
      */
     protected abstract int cacheAtLeastNConnExcept(int n, Object spiOrRpi);
-
-    protected abstract int addConnectionsImpl(SendPortIdentifier spi,
-            ReceivePortIdentifier[] rpis);
     
-    protected abstract int restoreConnectionImpl(SendPortIdentifier spi,
-            ReceivePortIdentifier rpi);
-
-    protected abstract int removeConnectionImpl(SendPortIdentifier spi,
-            ReceivePortIdentifier rpi);
-
-    protected abstract int removeAllConnectionsImpl(SendPortIdentifier spi);
-
-    protected abstract int addConnectionImpl(ReceivePortIdentifier rpi,
-            SendPortIdentifier spi);
-    
-    protected abstract int restoreConnectionImpl(ReceivePortIdentifier rpi,
-            SendPortIdentifier spi);
-
-    protected abstract int removeConnectionImpl(ReceivePortIdentifier rpi,
-            SendPortIdentifier spi);
-
     /**
      * Connect the send port identifier to some receive ports from the list
      * passed as a param.
@@ -275,19 +241,73 @@ abstract class CacheManager {
      * 2. cached
      * 3. not even initiated
      * 
-     * @param identifier
+     * @param spi
      * @param rpis
      * @param timeoutMillis
      * @return 
      */
-    ReceivePortIdentifier[] getSomeConnections(SendPortIdentifier identifier, 
-            List<ReceivePortIdentifier> rpis, long timeoutMillis) throws
+    // big TODO over here: timeout and stuff
+    ReceivePortIdentifier[] getSomeConnections(CacheSendPort port, 
+            Set<ReceivePortIdentifier> rpis, long timeoutMillis) throws
             IbisIOException {
-        if(rpis == null || rpis.isEmpty()) {
-            return null;
+        if (rpis == null || rpis.isEmpty()) {
+            throw new ConnectionsFailedException("Array of send ports is: " + rpis);
         }
-        throw new UnsupportedOperationException("Not yet implemented");
+        
+        /*
+         * Get the alive connections from this send port.
+         */
+        Set<ReceivePortIdentifier> alreadyConnected =
+                new HashSet<ReceivePortIdentifier>(
+                Arrays.asList(port.sendPort.connectedTo()));
+
+        rpis.removeAll(alreadyConnected);
+        
+        if(rpis.isEmpty()) {
+            return alreadyConnected.toArray(
+                new ReceivePortIdentifier[alreadyConnected.size()]);
+        }
+        
+        /*
+         * For now, I will assume I can connect to all the rpis in the list.
+         */
+        ReceivePortIdentifier[] toConnect = rpis.toArray(new ReceivePortIdentifier[rpis.size()]);
+        port.sendPort.connect(toConnect);
+        noAliveConnections += this.addConnectionsImpl(port.identifier(), toConnect);
+        
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
+        
+        rpis.addAll(alreadyConnected);
+        return rpis.toArray(
+                new ReceivePortIdentifier[alreadyConnected.size()]);
+//        throw new UnsupportedOperationException("Not yet implemented");
+//        if (noAliveConnections + noConn > MAX_CONNECTIONS) {
+//            int connToBeFreed = noAliveConnections + noConn - MAX_CONNECTIONS;
+//            log.log(Level.INFO, "Caching {0} connections.", connToBeFreed);
+//            connToBeFreed = cacheAtLeastNConnExcept(connToBeFreed, spi);
+//            // subtract the cached connections
+//            noAliveConnections -= connToBeFreed;
+//            log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
+//        }
     }
 
+    protected abstract int addConnectionsImpl(SendPortIdentifier spi,
+            ReceivePortIdentifier[] rpis);
     
+    protected abstract int restoreConnectionImpl(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
+
+    protected abstract int removeConnectionImpl(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
+
+    protected abstract int removeAllConnectionsImpl(SendPortIdentifier spi);
+
+    protected abstract int addConnectionImpl(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
+    
+    protected abstract int restoreConnectionImpl(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
+
+    protected abstract int removeConnectionImpl(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
 }

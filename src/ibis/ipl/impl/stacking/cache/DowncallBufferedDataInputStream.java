@@ -1,18 +1,20 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.io.Conversion;
 import ibis.ipl.ReadMessage;
 import java.io.IOException;
+import java.util.logging.Level;
 
 public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
 
-    DowncallBufferedDataInputStream(ReadMessage msg, CacheReceivePort port) 
+    DowncallBufferedDataInputStream(ReadMessage msg, CacheReceivePort port)
             throws IOException {
         super(port);
 
         super.currentMsg = msg;
-        super.lastPart = msg.readBoolean();
         super.remainingBytes = msg.readInt();
+
+        CacheManager.log.log(Level.INFO, "Got a msg: size={0}", 
+                remainingBytes);
     }
 
     /**
@@ -52,13 +54,6 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                  * The current message is depleted.
                  */
                 currentMsg.finish();
-                if (lastPart) {
-                    /*
-                     * If it was also the last part of the message, then I have
-                     * no more to offer.
-                     */
-                    throw new java.io.EOFException("EOF encountered");
-                }
                 /*
                  * Get the next partial message to read from it.
                  */
@@ -66,8 +61,9 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                 /*
                  * Read my protocol.
                  */
-                lastPart = currentMsg.readBoolean();
                 remainingBytes = currentMsg.readInt();
+                CacheManager.log.log(Level.INFO, "Got a message: size={0}", 
+                        remainingBytes);
             }
             /*
              * I have at least some remaining bytes from which to read from.
@@ -83,10 +79,11 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
     @Override
     public void close() throws IOException {
         currentMsg.finish();
+        CacheManager.log.log(Level.INFO, "Closed dataIn.");
     }
 
     @Override
-    protected void offer(boolean isLastPart, ReadMessage msg) {
+    protected void offer(ReadMessage msg) {
         throw new UnsupportedOperationException("DowncallBufferedDataInputStream"
                 + " feeds itself explicitly on received data.");
     }

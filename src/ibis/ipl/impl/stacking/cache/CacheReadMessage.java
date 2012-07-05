@@ -9,6 +9,8 @@ import ibis.ipl.SendPortIdentifier;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CacheReadMessage implements ReadMessage {
 
@@ -17,7 +19,7 @@ public class CacheReadMessage implements ReadMessage {
      */
     final CacheReceivePort port;
     
-    BufferedDataInputStream dis;
+    BufferedDataInputStream dataIn;
     SerializationInput in;
 
     boolean isFinished = false;
@@ -25,7 +27,7 @@ public class CacheReadMessage implements ReadMessage {
     private final SendPortIdentifier origin;
 
     protected CacheReadMessage(ReadMessage m, CacheReceivePort port,
-            BufferedDataInputStream dis) 
+            BufferedDataInputStream dataIn) 
             throws IOException {
         this.port = port;
         this.origin = m.origin();
@@ -43,30 +45,26 @@ public class CacheReadMessage implements ReadMessage {
         } else {
             serialization = "byte";
         }
-        this.dis = dis;
-        this.in = SerializationFactory.createSerializationInput(serialization, dis);
+        this.dataIn = dataIn;
+        this.in = SerializationFactory.createSerializationInput(serialization, dataIn);
     }
     
     /*
      * Glues the upcall in the CacheReceivePort
      * to the BufferedDataInpustStream.
      */
-    protected void offer(boolean isLastPart, ReadMessage msg) {
-        dis.offer(isLastPart, msg);
+    protected void offer(ReadMessage msg) {
+        dataIn.offer(msg);
     }
     
     @Override
     public long finish() throws IOException {
         checkNotFinished();
+        dataIn.close();
         in.clear();
+        in.close();
         isFinished = true;
-        // TODO: what about here?
-//        if (inUpcall) {
-//            finishCalledFromUpcall = true;
-//            getInfo().upcallCalledFinish();
-//        }
         long retVal = bytesRead();
-//        port.finishMessage(this, retVal);
         return retVal;
     }
 
@@ -75,11 +73,14 @@ public class CacheReadMessage implements ReadMessage {
         if (isFinished) {
             return;
         }
-        // TODO: what about htis?
-//        if (inUpcall) {
-//            finishCalledFromUpcall = true;
-//        }
-//        port.finishMessage(this, e);
+        try {
+            dataIn.close();
+        } catch (IOException ignoreMe) {}
+        in.clear();
+        try {
+            in.close();
+        } catch (IOException ingoreMe) {}
+        isFinished = true;
     }
 
     @Override
@@ -89,7 +90,7 @@ public class CacheReadMessage implements ReadMessage {
 
     @Override
     public long bytesRead() {
-	return dis.bytesRead();
+	return dataIn.bytesRead();
     }
 
     @Override

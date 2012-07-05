@@ -52,4 +52,11 @@ public class Connection {
         return hash;
     }
     
+    @Override
+    public String toString() {
+        return "[SPI, RPI] = " + 
+                "[" + this.spi.toString() + "], " +
+                "[" + this.rpi.toString() + "]";
+    }
+    
 }

@@ -7,6 +7,8 @@ import ibis.ipl.PortType;
 import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class CacheWriteMessage implements WriteMessage {
 
@@ -96,7 +98,8 @@ public final class CacheWriteMessage implements WriteMessage {
     public long finish() throws IOException {
         checkNotFinished();
         out.reset();
-        out.flush();
+        out.close();
+        dos.close();
         port.aMessageIsAlive = false;
         return bytesWritten();
     }
@@ -105,7 +108,7 @@ public final class CacheWriteMessage implements WriteMessage {
     public void finish(IOException e) {
         if (!port.aMessageIsAlive) {
             return;
-        }
+        }        
 
         try {
             out.reset();
@@ -114,10 +117,14 @@ public final class CacheWriteMessage implements WriteMessage {
         }
 
         try {
-            out.flush();
+            out.close();
         } catch (Throwable e2) {
             // ignored
         }
+        
+        try {
+            dos.close();
+        } catch (IOException ignoreMe) {}
 
         port.aMessageIsAlive = false;
     }

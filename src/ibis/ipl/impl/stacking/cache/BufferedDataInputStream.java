@@ -23,10 +23,6 @@ public abstract class BufferedDataInputStream extends DataInputStream{
      */
     protected int remainingBytes;
     /*
-     * Boolean determining if the currentMsg is actually the last partial message.
-     */
-    protected boolean lastPart;
-    /*
      * The buffer.
      */
     protected byte[] buffer;
@@ -54,7 +50,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     
     protected BufferedDataInputStream(CacheReceivePort port) {
         this.port = port;
-        this.capacity = CacheManager.BUFFER_SIZE;
+        this.capacity = CacheManager.BUFFER_CAPACITY;
         this.buffer = new byte[this.capacity];
         this.conversion = Conversion.loadConversion(false);
     }
@@ -84,7 +80,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
      * to the DataInputStream.
      * For upcalls.
      */
-    abstract protected void offer(boolean isLastPart, ReadMessage msg);
+    abstract protected void offer(ReadMessage msg);
 
     /*
      * Block until it is guaranteed that there are at least n bytes 

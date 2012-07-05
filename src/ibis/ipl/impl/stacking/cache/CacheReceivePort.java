@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public final class CacheReceivePort implements ReceivePort {
 
@@ -63,6 +64,11 @@ public final class CacheReceivePort implements ReceivePort {
      * lostConnection() from the side channel.
      */
     public final ConnectUpcaller connectUpcall;
+    /**
+     * A reference to this receive port's message upcaller. Need it
+     * to set the boolean isLastPart to true in the finish method.
+     */
+    public final MessageUpcaller msgUpcall;
     /*
      * Boolean determining if this receive port is closed or not.
      */
@@ -81,6 +87,7 @@ public final class CacheReceivePort implements ReceivePort {
                 CacheReceivePort port) {
             this.port = port;
             this.upcaller = upcaller;
+            CacheManager.log.log(Level.INFO, "Created ConnectionUpcaller");
         }
 
         @Override
@@ -89,6 +96,7 @@ public final class CacheReceivePort implements ReceivePort {
             if (port.closed) {
                 return false;
             }
+            CacheManager.log.log(Level.INFO, "Got Connection");
 
             boolean accepted = true;
 
@@ -111,6 +119,7 @@ public final class CacheReceivePort implements ReceivePort {
                     port.cacheManager.addConnection(port.identifier(), spi);
                     port.logicallyAlive.add(spi);
                 }
+                port.cacheManager.notifyAll();
             }
 
             return true;
@@ -133,7 +142,9 @@ public final class CacheReceivePort implements ReceivePort {
         @Override
         public synchronized void lostConnection(ReceivePort me,
                 SendPortIdentifier spi, Throwable reason) {
+            CacheManager.log.log(Level.INFO, "Got lost connection....");
             synchronized (port.cacheManager) {
+                CacheManager.log.log(Level.INFO, "Entered in the sync...");
                 /*
                  * The connection was cached, but now it needs to be closed.
                  * scenario 3).
@@ -141,6 +152,7 @@ public final class CacheReceivePort implements ReceivePort {
                 if (me == null) {
                     port.falselyConnected.remove(spi);
                     port.logicallyAlive.remove(spi);
+                    port.cacheManager.notifyAll();
                     return;
                 }
 
@@ -164,7 +176,6 @@ public final class CacheReceivePort implements ReceivePort {
                      * scenario 1).
                      */
                     port.logicallyAlive.remove(spi);
-                    port.cacheManager.notifyAll();
                 }
 
                 /*
@@ -174,6 +185,7 @@ public final class CacheReceivePort implements ReceivePort {
                  */
                 // this connection is trully alive no longer.
                 port.cacheManager.removeConnection(me.identifier(), spi);
+                port.cacheManager.notifyAll();
             }
 
             if (upcaller != null) {
@@ -185,7 +197,7 @@ public final class CacheReceivePort implements ReceivePort {
     /**
      * This class forwards message upcalls with the proper message.
      */
-    private static final class MessageUpcaller implements MessageUpcall {
+    public static final class MessageUpcaller implements MessageUpcall {
 
         MessageUpcall upcaller;
         CacheReceivePort port;
@@ -205,19 +217,18 @@ public final class CacheReceivePort implements ReceivePort {
                 currentMsg = new CacheReadUpcallMessage(m, port);
             }
 
-            boolean isLastPart = m.readBoolean();
             /*
              * Feed the buffer of the DataInputStream
              * with the data from this message.
              * the format of the message is: (bufSize, byte[bufSize] buffer);
              */
-            currentMsg.offer(isLastPart, m);
+            currentMsg.offer(m);
 
             if (wasLastPart) {
                 // this is a logically new message.
                 upcaller.upcall(currentMsg);
             }
-            wasLastPart = isLastPart;
+            wasLastPart = false;
         }
     }
 
@@ -233,7 +244,9 @@ public final class CacheReceivePort implements ReceivePort {
         this.connectUpcall = new ConnectUpcaller(connectUpcall, this);
 
         if (upcall != null) {
-            upcall = new MessageUpcaller(upcall, this);
+            this.msgUpcall = new MessageUpcaller(upcall, this);
+        } else {
+            this.msgUpcall = null;
         }
 
         /*
@@ -247,7 +260,7 @@ public final class CacheReceivePort implements ReceivePort {
                 new String[portCap.size()]));
 
         recvPort = ibis.baseIbis.createReceivePort(
-                wrapperPortType, name, upcall, this.connectUpcall, properties);
+                wrapperPortType, name, this.msgUpcall, this.connectUpcall, properties);
 
         falselyConnected = new ArrayList<SendPortIdentifier>();
         logicallyAlive = new HashSet<SendPortIdentifier>();
@@ -287,15 +300,19 @@ public final class CacheReceivePort implements ReceivePort {
     public void close(long timeoutMillis) throws IOException {
         /*
          * Wait until all logically alive connections are closed.
+         * TODO: handle timeoutMillis.
          */
         synchronized (cacheManager) {
             closed = true;
             while (!logicallyAlive.isEmpty()) {
                 try {
+                    CacheManager.log.log(Level.INFO, "Waiting for these "
+                            + "connections to close: {0}", logicallyAlive);
                     cacheManager.wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
+            CacheManager.log.log(Level.INFO, "Gonna close for good now...");
             recvPort.close(timeoutMillis);
         }
     }

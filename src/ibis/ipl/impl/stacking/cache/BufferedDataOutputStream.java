@@ -6,15 +6,14 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Level;
 
 public class BufferedDataOutputStream extends DataOutputStream {
 
     /*
-     * The send port which generates for me new WriteMessages.
-     * I need them so I can ship my buffer to the various receive ports.
+     * The send port which generates for me new WriteMessages. I need them so I
+     * can ship my buffer to the various receive ports.
      */
     final CacheSendPort port;
     /*
@@ -37,13 +36,13 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * No of bytes written, not counting the ones currently in the buffer.
      */
     int bytes;
-    
+    private int noMsg;
 
     public BufferedDataOutputStream(CacheSendPort sp) {
         this.port = sp;
         c = Conversion.loadConversion(false);
         this.index = 0;
-        this.capacity = CacheManager.BUFFER_SIZE;
+        this.capacity = CacheManager.BUFFER_CAPACITY;
         this.buffer = new byte[this.capacity];
     }
 
@@ -58,31 +57,37 @@ public class BufferedDataOutputStream extends DataOutputStream {
     }
 
     /**
-     * Send to all the connected receive ports the message built so far.
-     * Attach the protocol first: (boolean isLastPart, int bufferSize)
-     * so the receiving side knows how to handle it.
-     * @param isLastPart 
+     * Send to all the connected receive ports the message built so far. Attach
+     * the protocol first: (boolean isLastPart, int bufferSize) so the receiving
+     * side knows how to handle it.
+     *
+     * @param isLastPart
      */
     private void stream(boolean isLastPart) throws IOException {
         /*
          * All of our destinations.
          */
-        List<ReceivePortIdentifier> rpis = Arrays.asList(port.connectedTo());
-        while(rpis.size() > 0) {
+        Set<ReceivePortIdentifier> rpis = new HashSet<ReceivePortIdentifier>(
+                Arrays.asList(port.connectedTo()));
+        while (!rpis.isEmpty()) {
+            /*
+             * Situation when streaming 0 bytes can arise. i.e. the buffer is
+             * empty, but need to stream the isLastPart boolean.
+             */            
+            CacheManager.log.log(Level.INFO, "streaming {0} bytes to {1} receive ports.\n",
+                    new Object[]{index, rpis.size()});
 
             /*
-             * I'm gonna start caching and uncaching connections.
-             * Be safe.
+             * I'm gonna start caching and uncaching connections. Be safe.
              */
             synchronized (port.cacheManager) {
                 /*
-                 * Try to get all connections alive, but say thank you 
-                 * for what you get.
-                 * 
+                 * Try to get all connections alive, but say thank you for what
+                 * you get.
+                 *
                  * At least one connection... please.
                  */
-                ReceivePortIdentifier[] connected = port.cacheManager.
-                        getSomeConnections(port.identifier(), rpis, 0);
+                ReceivePortIdentifier[] connected = port.cacheManager.getSomeConnections(port, rpis, 0);
                 /*
                  * At least one element has been removed.
                  */
@@ -90,20 +95,20 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 /*
                  * Send the message to whoever is connected.
                  */
-                WriteMessage msg = port.sendPort.newMessage();
+                WriteMessage msg = port.sendPort.newMessage();                
+                noMsg++;
                 try {
-                msg.writeBoolean(isLastPart);
-                msg.writeInt(index);
-                msg.writeArray(buffer);
-                msg.finish();
-                } catch(IOException ex) {
+                    msg.writeBoolean(isLastPart);
+                    msg.writeInt(index);
+                    msg.writeArray(buffer, 0, index);
+                    msg.finish();
+                } catch (IOException ex) {
                     msg.finish(ex);
                 }
             }
         }
         /*
-         * Buffer is sent to everyone.
-         * Clear it.
+         * Buffer is sent to everyone. Clear it.
          */
         index = 0;
     }
@@ -115,7 +120,9 @@ public class BufferedDataOutputStream extends DataOutputStream {
 
     @Override
     public void close() throws IOException {
-        stream(true);
+        // stream(true);
+        CacheManager.log.log(Level.INFO, "\t\tStreamed {0} intermediate messages.\n", noMsg);
+        noMsg = 0;
     }
 
     /**
