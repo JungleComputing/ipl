@@ -107,4 +107,14 @@ public class RandomCacheManager extends CacheManager {
     protected int removeConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         return set.remove(new Connection(rpi, spi)) ? 1 : 0;
     }
+
+    @Override
+    protected int restoreConnectionImpl(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    protected int restoreConnectionImpl(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

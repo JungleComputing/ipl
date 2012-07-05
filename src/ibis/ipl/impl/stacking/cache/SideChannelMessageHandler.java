@@ -89,6 +89,10 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
     
     public void sendProtocol(SendPortIdentifier spi,
             ReceivePortIdentifier rpi, byte opcode) {
+        /*
+         * Synchronize on the sideChannelSendPort so as not to send
+         * to side messages at the same time.
+         */
         synchronized (cacheManager.sideChannelSendPort) {
             try {
                 ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(

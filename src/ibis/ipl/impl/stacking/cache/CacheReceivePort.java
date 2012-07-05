@@ -63,8 +63,8 @@ public final class CacheReceivePort implements ReceivePort {
      * lostConnection() from the side channel.
      */
     public final ConnectUpcaller connectUpcall;
-    /**
-     * Boolean for the CacheReceivePort connection.
+    /*
+     * Boolean determining if this receive port is closed or not.
      */
     private boolean closed;
 
@@ -86,29 +86,34 @@ public final class CacheReceivePort implements ReceivePort {
         @Override
         public boolean gotConnection(ReceivePort me,
                 SendPortIdentifier spi) {
-            boolean retVal = true;
-
-            synchronized (port.cacheManager) {
-                if (port.closed) {
-                    return false;
-                }
-                if (port.falselyConnected.contains(spi)) {
-                    port.falselyConnected.remove(spi);
-                    port.cacheManager.notifyAll();
-                }
-                port.cacheManager.addConnection(port.identifier(), spi);
+            if (port.closed) {
+                return false;
             }
+
+            boolean accepted = true;
 
             if (upcaller != null) {
-                retVal = upcaller.gotConnection(port, spi);
+                accepted = upcaller.gotConnection(port, spi);
             }
 
-            if (retVal) {
-                // if connection accepted,
-                port.logicallyAlive.add(spi);
+            if (!accepted) {
+                return false;
             }
 
-            return retVal;
+            synchronized (port.cacheManager) {
+                if (port.falselyConnected.contains(spi)) {
+                    // connection was cached
+                    port.falselyConnected.remove(spi);
+                    port.cacheManager.restoreConnection(port.identifier(), spi);
+                    port.cacheManager.notifyAll();
+                } else {
+                    // new connection
+                    port.cacheManager.addConnection(port.identifier(), spi);
+                    port.logicallyAlive.add(spi);
+                }
+            }
+
+            return true;
         }
 
         /**
@@ -135,6 +140,7 @@ public final class CacheReceivePort implements ReceivePort {
                  */
                 if (me == null) {
                     port.falselyConnected.remove(spi);
+                    port.logicallyAlive.remove(spi);
                     return;
                 }
 
@@ -150,16 +156,22 @@ public final class CacheReceivePort implements ReceivePort {
                      * The connection is cached because I wanted it cached.
                      * scenario 4)
                      */
+                    port.initiatedCachingByMe.remove(spi);
                     port.falselyConnected.add(spi);
                 } else {
                     /*
-                     * This connection is lost for good - not cached. scenario
-                     * 1).
+                     * This connection is lost for good - and it was't cached.
+                     * scenario 1).
                      */
                     port.logicallyAlive.remove(spi);
                     port.cacheManager.notifyAll();
                 }
 
+                /*
+                 * I don't want to do: port.cacheManager.cacheConnection(),
+                 * because from the receive side, I never want to uncache a
+                 * connection. So just remove it.
+                 */
                 // this connection is trully alive no longer.
                 port.cacheManager.removeConnection(me.identifier(), spi);
             }
@@ -188,12 +200,17 @@ public final class CacheReceivePort implements ReceivePort {
 
         @Override
         public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
-            if(wasLastPart) {
+            if (wasLastPart) {
                 // this is a logically new message.
                 currentMsg = new CacheReadUpcallMessage(m, port);
             }
-            
+
             boolean isLastPart = m.readBoolean();
+            /*
+             * Feed the buffer of the DataInputStream
+             * with the data from this message.
+             * the format of the message is: (bufSize, byte[bufSize] buffer);
+             */
             currentMsg.offer(isLastPart, m);
 
             if (wasLastPart) {
@@ -208,46 +225,43 @@ public final class CacheReceivePort implements ReceivePort {
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
             throws IOException {
-        try {
-            if (name == null) {
-                name = ANONYMOUS_PREFIX + " "
-                        + anonymousPortCounter.getAndIncrement();
-            }
-
-            this.connectUpcall = new ConnectUpcaller(connectUpcall, this);
-
-            if (upcall != null) {
-                upcall = new MessageUpcaller(upcall, this);
-            }
-
-            /*
-             * Add whatever additional port capablities are required. i.e.
-             * CONNECTION_UPCALLS
-             */
-            Set<String> portCap = new HashSet<String>(Arrays.asList(
-                    portType.getCapabilities()));
-            portCap.addAll(CacheIbis.additionalPortCapabilities);
-            PortType wrapperPortType = new PortType(portCap.toArray(
-                    new String[portCap.size()]));
-
-            recvPort = ibis.baseIbis.createReceivePort(
-                    wrapperPortType, name, upcall, this.connectUpcall, properties);
-
-            falselyConnected = new ArrayList<SendPortIdentifier>();
-            logicallyAlive = new HashSet<SendPortIdentifier>();
-            toBeCachedSet = new HashSet<SendPortIdentifier>();
-            initiatedCachingByMe = new HashSet<SendPortIdentifier>();
-            cacheManager = ibis.cacheManager;
-            intialPortType = portType;
-
-            closed = false;
-        } finally {
-            /*
-             * Send this to the map only when it has been filled up with all
-             * data. Even this finally block doesn't guarantee it, but hey.
-             */
-            map.put(this.identifier(), this);
+        if (name == null) {
+            name = ANONYMOUS_PREFIX + " "
+                    + anonymousPortCounter.getAndIncrement();
         }
+
+        this.connectUpcall = new ConnectUpcaller(connectUpcall, this);
+
+        if (upcall != null) {
+            upcall = new MessageUpcaller(upcall, this);
+        }
+
+        /*
+         * Add whatever additional port capablities are required. i.e.
+         * CONNECTION_UPCALLS
+         */
+        Set<String> portCap = new HashSet<String>(Arrays.asList(
+                portType.getCapabilities()));
+        portCap.addAll(CacheIbis.additionalPortCapabilities);
+        PortType wrapperPortType = new PortType(portCap.toArray(
+                new String[portCap.size()]));
+
+        recvPort = ibis.baseIbis.createReceivePort(
+                wrapperPortType, name, upcall, this.connectUpcall, properties);
+
+        falselyConnected = new ArrayList<SendPortIdentifier>();
+        logicallyAlive = new HashSet<SendPortIdentifier>();
+        toBeCachedSet = new HashSet<SendPortIdentifier>();
+        initiatedCachingByMe = new HashSet<SendPortIdentifier>();
+        
+        cacheManager = ibis.cacheManager;
+        intialPortType = portType;
+        closed = false;
+
+        /*
+         * Send this to the map only when it has been filled up with all data.
+         */
+        map.put(this.identifier(), this);
     }
 
     /*
@@ -261,8 +275,7 @@ public final class CacheReceivePort implements ReceivePort {
          */
         cacheManager.sideChannelHandler.sendProtocol(spi, this.identifier(),
                 SideChannelProtocol.CACHE_FROM_RP_AT_SP);
-
-        falselyConnected.add(spi);
+        initiatedCachingByMe.add(spi);
     }
 
     @Override

@@ -168,6 +168,18 @@ abstract class CacheManager {
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
 
+    void restoreConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        // let the implementation decide what to do with the alive connections.
+        int addedConn = restoreConnectionImpl(rpi, spi);
+
+        // count
+        noAliveConnections += addedConn;
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
+    }
+
+    
+    
+
     void removeAllConnections(SendPortIdentifier spi) {
         // let the implementation decide what to do with these removed connections        
         int removed = removeAllConnectionsImpl(spi);
@@ -196,6 +208,15 @@ abstract class CacheManager {
         noAliveConnections += addedConn;
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
     }
+    
+    void restoreConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        // let the implementation decide what to do with the alive connections.
+        int addedConn = restoreConnectionImpl(rpi, spi);
+
+        // count
+        noAliveConnections += addedConn;
+        log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);
+    }
 
     void removeConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         // let the implementation decide what to do with the alive connections.
@@ -214,6 +235,9 @@ abstract class CacheManager {
 
     protected abstract int addConnectionsImpl(SendPortIdentifier spi,
             ReceivePortIdentifier[] rpis);
+    
+    protected abstract int restoreConnectionImpl(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
 
     protected abstract int removeConnectionImpl(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
@@ -222,11 +246,48 @@ abstract class CacheManager {
 
     protected abstract int addConnectionImpl(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
+    
+    protected abstract int restoreConnectionImpl(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
 
     protected abstract int removeConnectionImpl(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
 
-    ReceivePortIdentifier[] getSomeConnections(SendPortIdentifier identifier, List<ReceivePortIdentifier> rpis) {
+    /**
+     * Connect the send port identifier to some receive ports from the list
+     * passed as a param.
+     * This method guarantees at least one successfull connection,
+     * and it will try to connect to as many receive ports it can
+     * in the given timeout.
+     * 
+     * If the sendport is already connected to some of the receive ports,
+     * those connections are guaranteed not to be closed, but sent
+     * as part of the result.
+     * 
+     * If timeout is zero, it will block until at least one connection
+     * has been established and no exception will be thrown.
+     * 
+     * If timeout > 0, it will throw a ConnectionFailedException
+     * or ConnectionsFailedException if rpis.length > 1.
+     * 
+     * for each rp, the connection (sp, rp) can be:
+     * 1. already alive
+     * 2. cached
+     * 3. not even initiated
+     * 
+     * @param identifier
+     * @param rpis
+     * @param timeoutMillis
+     * @return 
+     */
+    ReceivePortIdentifier[] getSomeConnections(SendPortIdentifier identifier, 
+            List<ReceivePortIdentifier> rpis, long timeoutMillis) throws
+            IbisIOException {
+        if(rpis == null || rpis.isEmpty()) {
+            return null;
+        }
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
+    
 }

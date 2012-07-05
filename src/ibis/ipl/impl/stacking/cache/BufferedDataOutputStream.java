@@ -81,16 +81,24 @@ public class BufferedDataOutputStream extends DataOutputStream {
                  * 
                  * At least one connection... please.
                  */
-                assert rpis.removeAll(Arrays.asList(port.cacheManager.
-                        getSomeConnections(port.identifier(), rpis)));
+                ReceivePortIdentifier[] connected = port.cacheManager.
+                        getSomeConnections(port.identifier(), rpis, 0);
+                /*
+                 * At least one element has been removed.
+                 */
+                assert rpis.removeAll(Arrays.asList(connected));
                 /*
                  * Send the message to whoever is connected.
                  */
                 WriteMessage msg = port.sendPort.newMessage();
+                try {
                 msg.writeBoolean(isLastPart);
                 msg.writeInt(index);
                 msg.writeArray(buffer);
                 msg.finish();
+                } catch(IOException ex) {
+                    msg.finish(ex);
+                }
             }
         }
         /*
