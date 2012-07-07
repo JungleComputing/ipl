@@ -13,18 +13,16 @@ import java.util.logging.Level;
  * This class handles message upcalls.
  */
 public final class MessageUpcaller implements MessageUpcall {
-   
+
     /*
      * The user defined message upcaller.
      */
     MessageUpcall upcaller;
     CacheReceivePort port;
-    
-    boolean wasLastPart;
-    
-    CacheReadMessage currentLogicalMsg;
-    final Object currentLogicalMsgLock;
-    boolean currentLogicalMsgFinished;
+    static boolean wasLastPart = true;
+    static CacheReadMessage currentLogicalMsg;
+    static final Object currentLogicalMsgLock = new Object();
+    static boolean currentLogicalMsgFinished;
     /*
      * If the current true message has been or not emptied.
      */
@@ -33,55 +31,56 @@ public final class MessageUpcaller implements MessageUpcall {
     public MessageUpcaller(MessageUpcall upcaller, CacheReceivePort port) {
         this.upcaller = upcaller;
         this.port = port;
-        currentLogicalMsgLock = new Object();
     }
 
     @Override
     public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
-        CacheManager.log.log(Level.INFO, "Got message upcall.\n");
+        messageDepleted = false;
+        boolean isLastPart = m.readBoolean();
 
-            messageDepleted = false;
-            boolean isLastPart = m.readBoolean();
-            
-            CacheManager.log.log(Level.INFO, "\nisLastPart={0}", isLastPart);
-            
-            // this is a logically new message.
-            if (wasLastPart) {
-                currentLogicalMsg = new CacheReadUpcallMessage(m, port);
-                currentLogicalMsgFinished = false;
-            }
+        CacheManager.log.log(Level.INFO, "\nGot message upcall. isLastPart={0}\n", isLastPart);
 
-            /*
-             * Feed the buffer of the DataInputStream with the data from this
-             * message. the format of the message is: (bufSize, byte[bufSize]
-             * buffer);
-             */
-            currentLogicalMsg.offerToBuffer(m);
+        // this is a logically new message.
+        if (wasLastPart) {
+            currentLogicalMsg = new CacheReadUpcallMessage(m, port);
+            currentLogicalMsgFinished = false;
+        }
 
-            if (wasLastPart) {
-                // this is a logically new message.
-                upcaller.upcall(currentLogicalMsg);
-                synchronized(currentLogicalMsgLock) {
-                    currentLogicalMsgFinished = true;
-                    currentLogicalMsgLock.notify();
-                }
-            }
-            
+        /*
+         * Feed the buffer of the DataInputStream with the data from this
+         * message. the format of the message is: (bufSize, byte[bufSize]
+         * buffer);
+         */
+        currentLogicalMsg.offerToBuffer(isLastPart, m);
+
+        if (wasLastPart) {
             wasLastPart = isLastPart;
-
-            /*
-             * Block until all data from m has been removed
-             * or until the user upcall is done.
-             */
+            // this is a logically new message.
+            upcaller.upcall(currentLogicalMsg);
             synchronized (currentLogicalMsgLock) {
-                while (!messageDepleted && !currentLogicalMsgFinished) {
-                    try {
-                        currentLogicalMsgLock.wait();
-                    } catch (InterruptedException ignoreMe) {
-                    }
+                currentLogicalMsgFinished = true;
+                currentLogicalMsg.finish();
+                currentLogicalMsgLock.notify();
+            }
+        } else {
+            wasLastPart = isLastPart;
+        }
+
+        /*
+         * Block until all data from m has been removed or until the user upcall
+         * is done.
+         */
+        synchronized (currentLogicalMsgLock) {
+            while (!messageDepleted && !currentLogicalMsgFinished) {
+                try {
+                    CacheManager.log.log(Level.INFO, "waaaaaaitiiiiing....");
+                    currentLogicalMsgLock.wait();
+                } catch (InterruptedException ignoreMe) {
                 }
             }
-            // now `m` will be finished at the exit from this method.
-            m.finish();
+        }
+        CacheManager.log.log(Level.INFO, "Finishing 1 message upcall.\n");
+        
+        // now `m` will be finished at the exit from this method.
     }
 }

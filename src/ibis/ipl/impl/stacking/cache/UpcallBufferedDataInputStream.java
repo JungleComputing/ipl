@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
@@ -75,7 +76,6 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                              */
                             int n = Math.min(in.capacity - (in.index + in.buffered_bytes),
                                     remaining);
-                            CacheManager.log.log(Level.INFO, "Buffering {0} bytes.", n);
                             msg.readArray(
                                     in.buffer, in.index + in.buffered_bytes, n);
                             in.buffered_bytes += n;
@@ -83,11 +83,10 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                             remaining -= n;
                         }
                     }
-                    CacheManager.log.log(Level.INFO, "Msg finished, can receive"
-                            + "another upcall from now on.");
                 } catch (Exception ex) {
-                    CacheManager.log.log(Level.INFO, "Got exception when trying "
-                            + "to read the buffer:\n\t{0}", ex.toString());
+                    CacheManager.log.log(Level.INFO, "Message closed "
+                            + "most likely because the user upcall "
+                            + "has finished and exited the wrapper upcall:\n\t{0}", ex.toString());
                 } finally {
                     /*
                      * Notify the end of this message, so we may pick up another
@@ -95,6 +94,9 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                      */
                     synchronized (in.port.msgUpcall.currentLogicalMsgLock) {
                         in.port.msgUpcall.messageDepleted = true;
+                        try {
+                            msg.finish();
+                        } catch (IOException ex) {}
                         in.port.msgUpcall.currentLogicalMsgLock.notify();
                     }
                     /*
@@ -103,7 +105,8 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                     in.notify();
                 }
             }
-            CacheManager.log.log(Level.INFO, "Finishing one thread...");
+            CacheManager.log.log(Level.INFO, "Msg finished, can receive"
+                            + "another upcall from now on.");
         }
     }
     /*
@@ -128,7 +131,7 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     }
 
     @Override
-    protected void offerToBuffer(ReadMessage msg) {
+    protected void offerToBuffer(boolean isLastPart, ReadMessage msg) {
         assert origin.equals(msg.origin());
         currentMsg = msg;
         ex.submit(new DataOfferingThread(this, msg));
@@ -153,7 +156,7 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
     @Override
     public void close() throws IOException {
-        CacheManager.log.log(Level.INFO, "Closing the current message");
+        CacheManager.log.log(Level.INFO, "\n\n\t\tClosing the current message");
         ex.shutdownNow();
     }
 }

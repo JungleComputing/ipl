@@ -97,10 +97,10 @@ public final class CacheWriteMessage implements WriteMessage {
     @Override
     public long finish() throws IOException {
         checkNotFinished();
-
+        
         serOut.flush();
         dataOut.close();
-        serOut.close();
+//        serOut.close();
         /*
          * serOut.close() actually just flushes dos. I need dataOut.close() so
          * it can do: stream(true).

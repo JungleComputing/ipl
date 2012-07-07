@@ -80,7 +80,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
      * to the DataInputStream.
      * For upcalls.
      */
-    abstract protected void offerToBuffer(ReadMessage msg);
+    abstract protected void offerToBuffer(boolean isLastPart, ReadMessage msg);
 
     /*
      * Block until it is guaranteed that there are at least n bytes 

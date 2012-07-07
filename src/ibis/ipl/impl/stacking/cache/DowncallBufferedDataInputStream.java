@@ -109,7 +109,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
     }
 
     @Override
-    protected void offerToBuffer(ReadMessage msg) {
+    protected void offerToBuffer(boolean isLastPart, ReadMessage msg) {
         throw new UnsupportedOperationException("DowncallBufferedDataInputStream"
                 + " feeds itself explicitly on received data.");
     }

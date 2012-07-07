@@ -9,6 +9,7 @@ import ibis.ipl.SendPortIdentifier;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
+import java.util.logging.Level;
 
 public abstract class CacheReadMessage implements ReadMessage {
 
@@ -20,6 +21,9 @@ public abstract class CacheReadMessage implements ReadMessage {
         }
     }
 
+    /*
+     * In this class, the boolean isLastPart has already been read.
+     */
     public static class CacheReadUpcallMessage extends CacheReadMessage {
 
         CacheReadUpcallMessage(ReadMessage m, CacheReceivePort port) 
@@ -67,15 +71,16 @@ public abstract class CacheReadMessage implements ReadMessage {
      * Glues the upcall in the CacheReceivePort
      * to the BufferedDataInpustStream.
      */
-    protected void offerToBuffer(ReadMessage msg) {
-        dataIn.offerToBuffer(msg);
+    protected void offerToBuffer(boolean isLastPart, ReadMessage msg) {
+        dataIn.offerToBuffer(isLastPart, msg);
     }
     
     @Override
     public long finish() throws IOException {        
         checkNotFinished();
+        CacheManager.log.log(Level.INFO, "Inside the Finish of CacheReadmessage");
         dataIn.close();
-        in.clear();
+//        in.clear();
         in.close();
         isFinished = true;
         long retVal = bytesRead();

@@ -99,6 +99,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
                     CacheManager.log.log(Level.SEVERE,"Failed to write {0} bytes message "
                             + "to {1} ports.", new Object[]{index, rpis.size()});
                 }
+                CacheManager.log.log(Level.INFO, "\tSent msg: ({0}, {1})",
+                        new Object[] {isLastPart, index});
             }
         }
         /*
