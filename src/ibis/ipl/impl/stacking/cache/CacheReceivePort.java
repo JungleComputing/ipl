@@ -6,6 +6,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class CacheReceivePort implements ReceivePort {
 
@@ -65,14 +66,12 @@ public final class CacheReceivePort implements ReceivePort {
      */
     public final ConnectUpcaller connectUpcall;
     /**
-     * A reference to this receive port's message upcaller. Need it
-     * to set the boolean isLastPart to true in the finish method.
+     * A reference to this receive port's message upcaller.
      */
     public final MessageUpcaller msgUpcall;
-    /*
-     * Boolean determining if this receive port is closed or not.
-     */
     private boolean closed;
+    public boolean aMessageIsAlive;
+    private boolean enabledMessageUpcalls;
 
     /**
      * This class forwards upcalls with the proper receive port.
@@ -142,9 +141,11 @@ public final class CacheReceivePort implements ReceivePort {
         @Override
         public synchronized void lostConnection(ReceivePort me,
                 SendPortIdentifier spi, Throwable reason) {
-            CacheManager.log.log(Level.INFO, "Got lost connection....");
+            CacheManager.log.log(Level.INFO, "\n\tGot lost connection....");
+            if (reason != null) {
+                CacheManager.log.log(Level.INFO, "\tbecause of exception:\n{0}", reason.toString());
+            }
             synchronized (port.cacheManager) {
-                CacheManager.log.log(Level.INFO, "Entered in the sync...");
                 /*
                  * The connection was cached, but now it needs to be closed.
                  * scenario 3).
@@ -194,44 +195,6 @@ public final class CacheReceivePort implements ReceivePort {
         }
     }
 
-    /**
-     * This class forwards message upcalls with the proper message.
-     */
-    public static final class MessageUpcaller implements MessageUpcall {
-
-        MessageUpcall upcaller;
-        CacheReceivePort port;
-        CacheReadMessage currentMsg;
-        boolean wasLastPart;
-
-        public MessageUpcaller(MessageUpcall upcaller, CacheReceivePort port) {
-            this.upcaller = upcaller;
-            this.port = port;
-            this.wasLastPart = true;
-        }
-
-        @Override
-        public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
-            if (wasLastPart) {
-                // this is a logically new message.
-                currentMsg = new CacheReadUpcallMessage(m, port);
-            }
-
-            /*
-             * Feed the buffer of the DataInputStream
-             * with the data from this message.
-             * the format of the message is: (bufSize, byte[bufSize] buffer);
-             */
-            currentMsg.offer(m);
-
-            if (wasLastPart) {
-                // this is a logically new message.
-                upcaller.upcall(currentMsg);
-            }
-            wasLastPart = false;
-        }
-    }
-
     public CacheReceivePort(PortType portType, CacheIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
@@ -266,10 +229,13 @@ public final class CacheReceivePort implements ReceivePort {
         logicallyAlive = new HashSet<SendPortIdentifier>();
         toBeCachedSet = new HashSet<SendPortIdentifier>();
         initiatedCachingByMe = new HashSet<SendPortIdentifier>();
-        
+
         cacheManager = ibis.cacheManager;
         intialPortType = portType;
         closed = false;
+
+        enabledMessageUpcalls = false;
+        aMessageIsAlive = false;
 
         /*
          * Send this to the map only when it has been filled up with all data.
@@ -299,8 +265,8 @@ public final class CacheReceivePort implements ReceivePort {
     @Override
     public void close(long timeoutMillis) throws IOException {
         /*
-         * Wait until all logically alive connections are closed.
-         * TODO: handle timeoutMillis.
+         * Wait until all logically alive connections are closed. TODO: handle
+         * timeoutMillis.
          */
         synchronized (cacheManager) {
             closed = true;
@@ -312,9 +278,9 @@ public final class CacheReceivePort implements ReceivePort {
                 } catch (InterruptedException ignoreMe) {
                 }
             }
-            CacheManager.log.log(Level.INFO, "Gonna close for good now...");
-            recvPort.close(timeoutMillis);
         }
+        CacheManager.log.log(Level.INFO, "Closing base receive port...");
+        recvPort.close(timeoutMillis);
     }
 
     @Override
@@ -330,6 +296,7 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public void disableMessageUpcalls() {
+        enabledMessageUpcalls = false;
         recvPort.disableMessageUpcalls();
     }
 
@@ -341,6 +308,7 @@ public final class CacheReceivePort implements ReceivePort {
     @Override
     public void enableMessageUpcalls() {
         recvPort.enableMessageUpcalls();
+        enabledMessageUpcalls = true;
     }
 
     @Override
@@ -369,12 +337,18 @@ public final class CacheReceivePort implements ReceivePort {
     }
 
     @Override
-    public ReadMessage poll() throws IOException {
-        ReadMessage m = recvPort.poll();
-        if (m != null) {
-            m = new CacheReadDowncallMessage(m, this);
+    public synchronized ReadMessage poll() throws IOException {
+        
+        if(aMessageIsAlive) {
+            return null;
         }
-        return m;
+        
+        ReadMessage msg = recvPort.poll();
+        if (msg != null) {
+            aMessageIsAlive = true;
+            return new CacheReadMessage.CacheReadDowncallMessage(msg, this);
+        }
+        return null;
     }
 
     @Override
@@ -383,11 +357,35 @@ public final class CacheReceivePort implements ReceivePort {
     }
 
     @Override
-    public ReadMessage receive(long timeoutMillis) throws IOException {
+    public synchronized ReadMessage receive(long timeoutMillis) throws IOException {
+        if(enabledMessageUpcalls) {
+            throw new IbisConfigurationException("Using explicit receive"
+                    + " when message upcalls are enabled.");
+        }
+        long deadline = 0;
+        if(timeoutMillis > 0) {
+            deadline = System.currentTimeMillis() + timeoutMillis;
+        }
+        
+        while(aMessageIsAlive) {
+            try {
+                wait();
+            } catch (InterruptedException ignoreMe) {}
+        }
+        
+        aMessageIsAlive = true;
+        
+        if(deadline > 0) {
+            timeoutMillis = deadline - System.currentTimeMillis();
+            if(timeoutMillis <= 0) {
+                throw new ReceiveTimedOutException();
+            }
+        }
         ReadMessage m = recvPort.receive(timeoutMillis);
-        return new CacheReadDowncallMessage(m, this);
-    }
 
+        return new CacheReadMessage.CacheReadDowncallMessage(m, this);
+    }
+  
     @Override
     public Map<String, String> managementProperties() {
         return recvPort.managementProperties();

@@ -273,6 +273,7 @@ public abstract class CacheManager {
          */
         ReceivePortIdentifier[] toConnect = rpis.toArray(new ReceivePortIdentifier[rpis.size()]);
         port.sendPort.connect(toConnect);
+        CacheManager.log.log(Level.INFO, "Base sendport connected to: {0}", toConnect[0]);
         noAliveConnections += this.addConnectionsImpl(port.identifier(), toConnect);
         
         log.log(Level.INFO, "Current alive connections: {0}", noAliveConnections);

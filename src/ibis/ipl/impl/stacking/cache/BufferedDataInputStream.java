@@ -80,13 +80,13 @@ public abstract class BufferedDataInputStream extends DataInputStream{
      * to the DataInputStream.
      * For upcalls.
      */
-    abstract protected void offer(ReadMessage msg);
+    abstract protected void offerToBuffer(ReadMessage msg);
 
     /*
      * Block until it is guaranteed that there are at least n bytes 
      * available for reading.
      */
-    abstract protected void fillBuffer(int n) throws IOException;
+    abstract protected void requestFromBuffer(int n) throws IOException;
 
     @Override
     public final int available() throws IOException {
@@ -104,7 +104,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -123,7 +123,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -144,7 +144,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -164,7 +164,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -185,7 +185,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -204,7 +204,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -225,7 +225,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -244,7 +244,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -265,7 +265,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -284,7 +284,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -305,7 +305,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -324,7 +324,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -345,7 +345,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -364,7 +364,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -385,7 +385,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
             if (buffered_bytes == 0) {
                 index = 0;
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / sizeof;
@@ -404,7 +404,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
                 index = 0;
 
                 // third, fill the buffer as far as possible.
-                fillBuffer(Math.min(capacity, to_convert));
+                requestFromBuffer(Math.min(capacity, to_convert));
             }
         }
 
@@ -416,14 +416,14 @@ public abstract class BufferedDataInputStream extends DataInputStream{
 
     @Override
     public byte readByte() throws IOException {
-        fillBuffer(1);
+        requestFromBuffer(1);
         buffered_bytes--;
         return buffer[index++];
     }
 
     @Override
     public boolean readBoolean() throws IOException {
-        fillBuffer(1);
+        requestFromBuffer(1);
         buffered_bytes--;
         return conversion.byte2boolean(buffer[index++]);
     }
@@ -432,7 +432,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     public char readChar() throws IOException {
         int sizeof = Conversion.CHAR_SIZE;
         char v;
-        fillBuffer(sizeof);
+        requestFromBuffer(sizeof);
         v = conversion.byte2char(buffer, index);
         index += sizeof;
         buffered_bytes -= sizeof;
@@ -443,7 +443,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     public short readShort() throws IOException {
         int sizeof = Conversion.SHORT_SIZE;
         short v;
-        fillBuffer(sizeof);
+        requestFromBuffer(sizeof);
         v = conversion.byte2short(buffer, index);
         index += sizeof;
         buffered_bytes -= sizeof;
@@ -454,7 +454,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     public int readInt() throws IOException {
         int sizeof = Conversion.INT_SIZE;
         int v;
-        fillBuffer(sizeof);
+        requestFromBuffer(sizeof);
         v = conversion.byte2int(buffer, index);
         index += sizeof;
         buffered_bytes -= sizeof;
@@ -465,7 +465,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     public long readLong() throws IOException {
         int sizeof = Conversion.LONG_SIZE;
         long v;
-        fillBuffer(sizeof);
+        requestFromBuffer(sizeof);
         v = conversion.byte2long(buffer, index);
         index += sizeof;
         buffered_bytes -= sizeof;
@@ -476,7 +476,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     public float readFloat() throws IOException {
         int sizeof = Conversion.FLOAT_SIZE;
         float v;
-        fillBuffer(sizeof);
+        requestFromBuffer(sizeof);
         v = conversion.byte2float(buffer, index);
         index += sizeof;
         buffered_bytes -= sizeof;
@@ -487,7 +487,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     public double readDouble() throws IOException {
         int sizeof = Conversion.DOUBLE_SIZE;
         double v;
-        fillBuffer(sizeof);
+        requestFromBuffer(sizeof);
         v = conversion.byte2double(buffer, index);
         index += sizeof;
         buffered_bytes -= sizeof;
@@ -534,7 +534,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
             index = 0;
             while(len > 0) {
                 int toRead = Math.min(len, capacity);
-                fillBuffer(toRead);
+                requestFromBuffer(toRead);
                 toRead = Math.min(len, buffered_bytes);
                 value.put(buffer, index, toRead);
                 len -= toRead;

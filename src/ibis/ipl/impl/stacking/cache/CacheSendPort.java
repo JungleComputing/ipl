@@ -171,7 +171,6 @@ public final class CacheSendPort implements SendPort {
              * Disconnect from whoever is connected to the base send port.
              */
             sendPort.close();
-            CacheManager.log.log(Level.INFO, "Send port closed.");
         }
     }
 

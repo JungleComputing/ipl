@@ -37,6 +37,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
      */
     int bytes;
     private int noMsg;
+    private boolean closed;
 
     public BufferedDataOutputStream(CacheSendPort sp) {
         this.port = sp;
@@ -57,26 +58,16 @@ public class BufferedDataOutputStream extends DataOutputStream {
     }
 
     /**
-     * Send to all the connected receive ports the message built so far. Attach
-     * the protocol first: (boolean isLastPart, int bufferSize) so the receiving
-     * side knows how to handle it.
-     *
-     * @param isLastPart
+     * Send to all the connected receive ports the message built so far. 
      */
     private void stream(boolean isLastPart) throws IOException {
+        
         /*
          * All of our destinations.
          */
         Set<ReceivePortIdentifier> rpis = new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(port.connectedTo()));
         while (!rpis.isEmpty()) {
-            /*
-             * Situation when streaming 0 bytes can arise. i.e. the buffer is
-             * empty, but need to stream the isLastPart boolean.
-             */            
-            CacheManager.log.log(Level.INFO, "streaming {0} bytes to {1} receive ports.\n",
-                    new Object[]{index, rpis.size()});
-
             /*
              * I'm gonna start caching and uncaching connections. Be safe.
              */
@@ -95,15 +86,18 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 /*
                  * Send the message to whoever is connected.
                  */
-                WriteMessage msg = port.sendPort.newMessage();                
-                noMsg++;
+                WriteMessage msg = null;
                 try {
+                    msg = port.sendPort.newMessage();
+                    noMsg++;
                     msg.writeBoolean(isLastPart);
                     msg.writeInt(index);
                     msg.writeArray(buffer, 0, index);
                     msg.finish();
                 } catch (IOException ex) {
                     msg.finish(ex);
+                    CacheManager.log.log(Level.SEVERE,"Failed to write {0} bytes message "
+                            + "to {1} ports.", new Object[]{index, rpis.size()});
                 }
             }
         }
@@ -115,13 +109,21 @@ public class BufferedDataOutputStream extends DataOutputStream {
 
     @Override
     public void flush() throws IOException {
+        if(closed) {
+            return ;
+        }
         stream(false);
+        CacheManager.log.log(Level.INFO, "\n\tFlushed {0} intermediate messages to"
+                + " {1} ports.\n", new Object[] {noMsg, port.connectedTo().length});
+        noMsg = 0;
     }
 
     @Override
     public void close() throws IOException {
-        // stream(true);
-        CacheManager.log.log(Level.INFO, "\t\tStreamed {0} intermediate messages.\n", noMsg);
+        closed = true;
+        stream(true);
+        CacheManager.log.log(Level.INFO, "\n\tStreamed {0} intermediate messages to"
+                + " {1} ports.\n", new Object[] {noMsg, port.connectedTo().length});
         noMsg = 0;
     }
 

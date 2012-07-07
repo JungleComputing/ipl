@@ -9,16 +9,30 @@ import ibis.ipl.SendPortIdentifier;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class CacheReadMessage implements ReadMessage {
+public abstract class CacheReadMessage implements ReadMessage {
+
+    public static class CacheReadDowncallMessage extends CacheReadMessage {
+
+        public CacheReadDowncallMessage(ReadMessage m, CacheReceivePort port)
+                throws IOException {
+            super(m, port, new DowncallBufferedDataInputStream(m, port));
+        }
+    }
+
+    public static class CacheReadUpcallMessage extends CacheReadMessage {
+
+        CacheReadUpcallMessage(ReadMessage m, CacheReceivePort port) 
+                throws IOException {
+            super(m, port, new UpcallBufferedDataInputStream(m, port));
+        }
+    }
 
     /*
      * The port which will give me base ReadMessages.
      */
     final CacheReceivePort port;
-    
+
     BufferedDataInputStream dataIn;
     SerializationInput in;
 
@@ -53,18 +67,22 @@ public class CacheReadMessage implements ReadMessage {
      * Glues the upcall in the CacheReceivePort
      * to the BufferedDataInpustStream.
      */
-    protected void offer(ReadMessage msg) {
-        dataIn.offer(msg);
+    protected void offerToBuffer(ReadMessage msg) {
+        dataIn.offerToBuffer(msg);
     }
     
     @Override
-    public long finish() throws IOException {
+    public long finish() throws IOException {        
         checkNotFinished();
         dataIn.close();
         in.clear();
         in.close();
         isFinished = true;
         long retVal = bytesRead();
+        synchronized(port) {
+            port.aMessageIsAlive = false;
+            port.notify();
+        }
         return retVal;
     }
 
@@ -80,7 +98,12 @@ public class CacheReadMessage implements ReadMessage {
         try {
             in.close();
         } catch (IOException ingoreMe) {}
+        
         isFinished = true;
+        synchronized(port) {
+            port.aMessageIsAlive = false;
+            port.notify();
+        }
     }
 
     @Override

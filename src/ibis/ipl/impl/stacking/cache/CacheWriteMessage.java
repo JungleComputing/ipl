@@ -8,12 +8,11 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class CacheWriteMessage implements WriteMessage {
 
-    SerializationOutput out;
-    DataOutputStream dos;
+    SerializationOutput serOut;
+    DataOutputStream dataOut;
     /*
      * SendPort used to generate base WriteMessages.
      */
@@ -24,6 +23,7 @@ public final class CacheWriteMessage implements WriteMessage {
     long bytes;
 
     public CacheWriteMessage(CacheSendPort sendPort) throws IOException {
+        CacheManager.log.log(Level.INFO,"Created CacheWriteMessage...");
         this.port = sendPort;
 
         PortType type = this.port.getPortType();
@@ -39,9 +39,9 @@ public final class CacheWriteMessage implements WriteMessage {
         } else {
             serialization = "byte";
         }
-        dos = new BufferedDataOutputStream(this.port);
-        out = SerializationFactory.createSerializationOutput(serialization,
-                dos);
+        dataOut = new BufferedDataOutputStream(this.port);
+        serOut = SerializationFactory.createSerializationOutput(serialization,
+                dataOut);
     }
 
     private void checkNotFinished() throws IOException {
@@ -64,12 +64,12 @@ public final class CacheWriteMessage implements WriteMessage {
 
     @Override
     public void reset() throws IOException {
-        out.reset();
+        serOut.reset();
     }
 
     @Override
     public long bytesWritten() {
-        return dos.bytesWritten();
+        return dataOut.bytesWritten();
     }
 
     @Override
@@ -85,21 +85,28 @@ public final class CacheWriteMessage implements WriteMessage {
     @Override
     public void sync(int ticket) throws IOException {
         checkNotFinished();
-        out.flush();
+        serOut.flush();
     }
 
     @Override
     public void flush() throws IOException {
         checkNotFinished();
-        out.flush();
+        serOut.flush();
     }
 
     @Override
     public long finish() throws IOException {
         checkNotFinished();
-        out.reset();
-        out.close();
-        dos.close();
+
+        serOut.flush();
+        dataOut.close();
+        serOut.close();
+        /*
+         * serOut.close() actually just flushes dos. I need dataOut.close() so
+         * it can do: stream(true).
+         */
+//        serOut.close();
+
         port.aMessageIsAlive = false;
         return bytesWritten();
     }
@@ -108,23 +115,23 @@ public final class CacheWriteMessage implements WriteMessage {
     public void finish(IOException e) {
         if (!port.aMessageIsAlive) {
             return;
-        }        
-
+        }
         try {
-            out.reset();
+            serOut.flush();
         } catch (Throwable e2) {
             // ignored
         }
 
         try {
-            out.close();
-        } catch (Throwable e2) {
-            // ignored
+            dataOut.close();
+        } catch (IOException ignoreMe) {
         }
         
         try {
-            dos.close();
-        } catch (IOException ignoreMe) {}
+            serOut.close();
+        } catch (Throwable e2) {
+            // ignored
+        }
 
         port.aMessageIsAlive = false;
     }
@@ -132,183 +139,183 @@ public final class CacheWriteMessage implements WriteMessage {
     @Override
     public void writeBoolean(boolean value) throws IOException {
         checkNotFinished();
-        out.writeBoolean(value);
+        serOut.writeBoolean(value);
     }
 
     @Override
     public void writeByte(byte value) throws IOException {
         checkNotFinished();
-        out.writeByte(value);
+        serOut.writeByte(value);
     }
 
     @Override
     public void writeChar(char value) throws IOException {
         checkNotFinished();
-        out.writeChar(value);
+        serOut.writeChar(value);
     }
 
     @Override
     public void writeShort(short value) throws IOException {
         checkNotFinished();
-        out.writeShort(value);
+        serOut.writeShort(value);
     }
 
     @Override
     public void writeInt(int value) throws IOException {
         checkNotFinished();
-        out.writeInt(value);
+        serOut.writeInt(value);
     }
 
     @Override
     public void writeLong(long value) throws IOException {
         checkNotFinished();
-        out.writeLong(value);
+        serOut.writeLong(value);
     }
 
     @Override
     public void writeFloat(float value) throws IOException {
         checkNotFinished();
-        out.writeFloat(value);
+        serOut.writeFloat(value);
     }
 
     @Override
     public void writeDouble(double value) throws IOException {
         checkNotFinished();
-        out.writeDouble(value);
+        serOut.writeDouble(value);
     }
 
     @Override
     public void writeString(String value) throws IOException {
         checkNotFinished();
-        out.writeString(value);
+        serOut.writeString(value);
     }
 
     @Override
     public void writeObject(Object value) throws IOException {
         checkNotFinished();
-        out.writeObject(value);
+        serOut.writeObject(value);
     }
 
     @Override
     public void writeArray(boolean[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(byte[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(char[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(short[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(int[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(long[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(float[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(double[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(Object[] value) throws IOException {
         checkNotFinished();
-        out.writeArray(value);
+        serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(boolean[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(byte[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(char[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(short[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(int[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(long[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(float[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(double[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(Object[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
         checkNotFinished();
-        out.writeByteBuffer(value);
+        serOut.writeByteBuffer(value);
     }
 }
