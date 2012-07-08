@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
@@ -92,12 +91,12 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                      * Notify the end of this message, so we may pick up another
                      * upcall.
                      */
-                    synchronized (in.port.msgUpcall.currentLogicalMsgLock) {
+                    synchronized (MessageUpcaller.currentLogicalMsgLock) {
                         in.port.msgUpcall.messageDepleted = true;
                         try {
                             msg.finish();
                         } catch (IOException ex) {}
-                        in.port.msgUpcall.currentLogicalMsgLock.notify();
+                        MessageUpcaller.currentLogicalMsgLock.notify();
                     }
                     /*
                      * Notify that there is available data in the buffer.
@@ -156,7 +155,6 @@ class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
     @Override
     public void close() throws IOException {
-        CacheManager.log.log(Level.INFO, "\n\n\t\tClosing the current message");
         ex.shutdownNow();
     }
 }

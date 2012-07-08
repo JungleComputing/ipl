@@ -10,5 +10,9 @@ interface SideChannelProtocol {
     
     static final byte CACHE_FROM_SP = 2;
     
-    static final byte DISCONNECT = 4;
+    static final byte DISCONNECT = 3;
+    
+    static final byte READ_MY_MESSAGE = 4;
+    
+    static final byte GIVE_ME_YOUR_MESSAGE = 5;
 }

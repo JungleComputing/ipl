@@ -69,9 +69,25 @@ public final class CacheReceivePort implements ReceivePort {
      * A reference to this receive port's message upcaller.
      */
     public final MessageUpcaller msgUpcall;
+    /*
+     * Boolean too see if this cacheReceivePort is closed.
+     */
     private boolean closed;
-    public boolean aMessageIsAlive;
+    /*
+     * The current message being read.
+     */
+    public ReadMessage currentReadMsg;
+    /*
+     * Boolean to check whether msg upcalls are enabled.
+     */
     private boolean enabledMessageUpcalls;
+    /*
+     * When a msg is alive, any send ports who wish to write to 
+     * this receive port must wait until the read message is no longer alive.
+     * thus they are placed in a queue.
+     */
+    protected final Queue<SendPortIdentifier> toHaveMyFutureAttention;
+    boolean readMsgRequested;
 
     /**
      * This class forwards upcalls with the proper receive port.
@@ -145,6 +161,7 @@ public final class CacheReceivePort implements ReceivePort {
             if (reason != null) {
                 CacheManager.log.log(Level.INFO, "\tbecause of exception:\n{0}", reason.toString());
             }
+            
             synchronized (port.cacheManager) {
                 /*
                  * The connection was cached, but now it needs to be closed.
@@ -235,7 +252,10 @@ public final class CacheReceivePort implements ReceivePort {
         closed = false;
 
         enabledMessageUpcalls = false;
-        aMessageIsAlive = false;
+        currentReadMsg = null;
+        readMsgRequested = false;
+        
+        toHaveMyFutureAttention = new LinkedList<SendPortIdentifier>();
 
         /*
          * Send this to the map only when it has been filled up with all data.
@@ -248,13 +268,13 @@ public final class CacheReceivePort implements ReceivePort {
      * receiveport.
      */
     public void cache(SendPortIdentifier spi) throws IOException {
+        initiatedCachingByMe.add(spi);
         /*
          * Tell the SP side to cache the connection. I will count this
          * connection at the lostConnection upcall.
          */
-        cacheManager.sideChannelHandler.sendProtocol(spi, this.identifier(),
+        cacheManager.sideChannelHandler.newThreadSendProtocol(spi, this.identifier(),
                 SideChannelProtocol.CACHE_FROM_RP_AT_SP);
-        initiatedCachingByMe.add(spi);
     }
 
     @Override
@@ -269,6 +289,9 @@ public final class CacheReceivePort implements ReceivePort {
          * timeoutMillis.
          */
         synchronized (cacheManager) {
+            if(closed) {
+                return ;
+            }
             closed = true;
             while (!logicallyAlive.isEmpty()) {
                 try {
@@ -339,14 +362,15 @@ public final class CacheReceivePort implements ReceivePort {
     @Override
     public synchronized ReadMessage poll() throws IOException {
         
-        if(aMessageIsAlive) {
+        if(currentReadMsg != null) {
             return null;
         }
         
         ReadMessage msg = recvPort.poll();
         if (msg != null) {
-            aMessageIsAlive = true;
-            return new CacheReadMessage.CacheReadDowncallMessage(msg, this);
+            readMsgRequested = false;
+            currentReadMsg = new CacheReadMessage.CacheReadDowncallMessage(msg, this);
+            return currentReadMsg;
         }
         return null;
     }
@@ -357,7 +381,7 @@ public final class CacheReceivePort implements ReceivePort {
     }
 
     @Override
-    public synchronized ReadMessage receive(long timeoutMillis) throws IOException {
+    public ReadMessage receive(long timeoutMillis) throws IOException {
         if(enabledMessageUpcalls) {
             throw new IbisConfigurationException("Using explicit receive"
                     + " when message upcalls are enabled.");
@@ -367,25 +391,30 @@ public final class CacheReceivePort implements ReceivePort {
             deadline = System.currentTimeMillis() + timeoutMillis;
         }
         
-        while(aMessageIsAlive) {
-            try {
-                wait();
-            } catch (InterruptedException ignoreMe) {}
+        synchronized (this) {
+            while (currentReadMsg != null) {
+                try {
+                    this.wait();
+                } catch (InterruptedException ignoreMe) {
+                }
+            }
         }
-        
-        aMessageIsAlive = true;
-        
+
         if(deadline > 0) {
             timeoutMillis = deadline - System.currentTimeMillis();
-            if(timeoutMillis <= 0) {
+            if (timeoutMillis <= 0) {
                 throw new ReceiveTimedOutException();
             }
         }
         ReadMessage m = recvPort.receive(timeoutMillis);
+        synchronized(this) {
+            readMsgRequested = false;
+            currentReadMsg = new CacheReadMessage.CacheReadDowncallMessage(m, this);
+        }
 
-        return new CacheReadMessage.CacheReadDowncallMessage(m, this);
+        return currentReadMsg;
     }
-  
+
     @Override
     public Map<String, String> managementProperties() {
         return recvPort.managementProperties();

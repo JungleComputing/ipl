@@ -7,7 +7,12 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BufferedDataOutputStream extends DataOutputStream {
 
@@ -36,15 +41,28 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * No of bytes written, not counting the ones currently in the buffer.
      */
     int bytes;
+    /*
+     * Number of messages streamed at one flush.
+     */
     private int noMsg;
+    /*
+     * If this output stream is closed.
+     */
     private boolean closed;
-
+    /*
+     * When writing a message (all its streaming parts), 
+     * need to make sure that the receive port(s) have no other
+     * alive read message.
+     */
+    protected final HashSet<ReceivePortIdentifier> yourReadMessageIsAliveFromMeSet;
+    
     public BufferedDataOutputStream(CacheSendPort sp) {
         this.port = sp;
         c = Conversion.loadConversion(false);
         this.index = 0;
         this.capacity = CacheManager.BUFFER_CAPACITY;
         this.buffer = new byte[this.capacity];
+        this.yourReadMessageIsAliveFromMeSet = new HashSet<ReceivePortIdentifier>();        
     }
 
     @Override
@@ -61,7 +79,6 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * Send to all the connected receive ports the message built so far. 
      */
     private void stream(boolean isLastPart) throws IOException {
-        
         /*
          * All of our destinations.
          */
@@ -79,16 +96,22 @@ public class BufferedDataOutputStream extends DataOutputStream {
                  * At least one connection... please.
                  */
                 ReceivePortIdentifier[] connected = port.cacheManager.getSomeConnections(port, rpis, 0);
+                
+                assert connected.length > 0;
+                
+                rpis.removeAll(Arrays.asList(connected));
+                
                 /*
-                 * At least one element has been removed.
+                 * Before sending the message to the receive ports,
+                 * make sure they have no other alive messages.
+                 * Blocking until made certain of this.
                  */
-                assert rpis.removeAll(Arrays.asList(connected));
+                yourLiveReadMessageIsFromMe(connected);
                 /*
                  * Send the message to whoever is connected.
                  */
-                WriteMessage msg = null;
+                WriteMessage msg = port.sendPort.newMessage();
                 try {
-                    msg = port.sendPort.newMessage();
                     noMsg++;
                     msg.writeBoolean(isLastPart);
                     msg.writeInt(index);
@@ -101,6 +124,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 }
                 CacheManager.log.log(Level.INFO, "\tSent msg: ({0}, {1})",
                         new Object[] {isLastPart, index});
+                
+                if(isLastPart) {
+                    yourLiveMessageIsNotMyConcern(connected);
+                }
             }
         }
         /*
@@ -108,11 +135,75 @@ public class BufferedDataOutputStream extends DataOutputStream {
          */
         index = 0;
     }
+    
+    private void yourLiveMessageIsNotMyConcern(ReceivePortIdentifier[] rpis) {
+        for(ReceivePortIdentifier rpi : rpis) {
+            yourReadMessageIsAliveFromMeSet.remove(rpi);
+        }
+    }
+
+    private void yourLiveReadMessageIsFromMe(ReceivePortIdentifier[] rpis) {
+        ExecutorService ex = Executors.newCachedThreadPool();
+        for (ReceivePortIdentifier rpi : rpis) {
+            /*
+             * I already got this receive port's alive read message.
+             */
+            if (yourReadMessageIsAliveFromMeSet.contains(rpi)) {
+                continue;
+            }
+            ex.submit(new AwaitForSignalThread(this, rpi));
+        }
+        
+        ex.shutdown();
+
+        boolean done;
+        do {
+            try {
+                done = ex.awaitTermination(10, TimeUnit.DAYS);
+            } catch (InterruptedException e) {
+                done = false;
+            }
+        } while (!done);
+    }
+
+    private static class AwaitForSignalThread extends Thread {
+
+        ReceivePortIdentifier rpi;
+        BufferedDataOutputStream out;
+
+        private AwaitForSignalThread(BufferedDataOutputStream out,
+                ReceivePortIdentifier rpi) {
+            this.rpi = rpi;
+            this.out = out;
+        }
+
+        @Override
+        public void run() {
+            /*
+             * I have to let the receive port know 
+             * that I want him to read my message.
+             */
+            out.port.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                    out.port.identifier(), rpi,
+                    SideChannelProtocol.READ_MY_MESSAGE);
+            /*
+             * Need to wait for approval.
+             */
+            synchronized (out.yourReadMessageIsAliveFromMeSet) {
+                while (!out.yourReadMessageIsAliveFromMeSet.contains(rpi)) {
+                    try {
+                        out.yourReadMessageIsAliveFromMeSet.wait();
+                    } catch (InterruptedException ignoreMe) {
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public void flush() throws IOException {
-        if(closed) {
-            return ;
+        if (closed) {
+            return;
         }
         stream(false);
         CacheManager.log.log(Level.INFO, "\n\tFlushed {0} intermediate messages to"

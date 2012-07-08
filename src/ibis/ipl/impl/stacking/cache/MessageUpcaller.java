@@ -73,7 +73,9 @@ public final class MessageUpcaller implements MessageUpcall {
         synchronized (currentLogicalMsgLock) {
             while (!messageDepleted && !currentLogicalMsgFinished) {
                 try {
-                    CacheManager.log.log(Level.INFO, "waaaaaaitiiiiing....");
+                    CacheManager.log.log(Level.INFO, "Waiting on current "
+                            + "streamed message to be depleted or"
+                            + "current logical message to be finished.");
                     currentLogicalMsgLock.wait();
                 } catch (InterruptedException ignoreMe) {
                 }

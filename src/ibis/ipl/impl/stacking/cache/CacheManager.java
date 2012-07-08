@@ -36,9 +36,9 @@ public abstract class CacheManager {
      * communication.
      */
     public static final PortType ultraLightPT = new PortType(
-            PortType.CONNECTION_ULTRALIGHT,
+//            PortType.CONNECTION_ULTRALIGHT,
             PortType.RECEIVE_AUTO_UPCALLS,
-            PortType.SERIALIZATION_DATA,
+            PortType.SERIALIZATION_OBJECT,
             PortType.CONNECTION_MANY_TO_ONE);
     /**
      * These side channel sendport and receiveport names need to be unique. So

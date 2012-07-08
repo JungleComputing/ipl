@@ -12,7 +12,7 @@ import java.util.logging.Level;
 public final class CacheWriteMessage implements WriteMessage {
 
     SerializationOutput serOut;
-    DataOutputStream dataOut;
+    BufferedDataOutputStream dataOut;
     /*
      * SendPort used to generate base WriteMessages.
      */
@@ -45,7 +45,7 @@ public final class CacheWriteMessage implements WriteMessage {
     }
 
     private void checkNotFinished() throws IOException {
-        if (!this.port.aMessageIsAlive) {
+        if (this.port.currentMsg == null) {
             throw new IOException(
                     "Operating on a message that was already finished");
         }
@@ -107,13 +107,13 @@ public final class CacheWriteMessage implements WriteMessage {
          */
 //        serOut.close();
 
-        port.aMessageIsAlive = false;
+        port.currentMsg = null;
         return bytesWritten();
     }
 
     @Override
     public void finish(IOException e) {
-        if (!port.aMessageIsAlive) {
+        if (port.currentMsg == null) {
             return;
         }
         try {
@@ -133,7 +133,7 @@ public final class CacheWriteMessage implements WriteMessage {
             // ignored
         }
 
-        port.aMessageIsAlive = false;
+        port.currentMsg = null;
     }
 
     @Override

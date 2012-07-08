@@ -53,7 +53,11 @@ public final class CacheSendPort implements SendPort {
     /**
      * Variable to determine whether this send port has a current alive message.
      */
-    volatile boolean aMessageIsAlive;
+//    volatile boolean aMessageIsAlive;
+    /**
+     * The current written message.
+     */
+    public CacheWriteMessage currentMsg;
 
     public CacheSendPort(PortType portType, CacheIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
@@ -79,7 +83,7 @@ public final class CacheSendPort implements SendPort {
         falselyConnected = new ArrayList<ReceivePortIdentifier>();
         cacheManager = ibis.cacheManager;
         messageLock = new Object();
-        aMessageIsAlive = false;
+        currentMsg = null;
         /*
          * Send this to the map only when it has been filled up with all data.
          */
@@ -108,7 +112,7 @@ public final class CacheSendPort implements SendPort {
              * the receive port alone cannot distinguish caching from true
              * disconnection.
              */
-            cacheManager.sideChannelHandler.sendProtocol(this.identifier(), rpi,
+            cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), rpi,
                     SideChannelProtocol.CACHE_FROM_SP);
 
             /*
@@ -163,7 +167,7 @@ public final class CacheSendPort implements SendPort {
              * lostConnection() upcall.
              */
             for (ReceivePortIdentifier rpi : falselyConnected) {
-                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
+                cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(),
                         rpi, SideChannelProtocol.DISCONNECT);
             }
             cacheManager.removeAllConnections(this.identifier());
@@ -251,7 +255,7 @@ public final class CacheSendPort implements SendPort {
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionsFailedException {
         synchronized (messageLock) {
-            if (aMessageIsAlive) {
+            if (currentMsg != null) {
                 throw new ConnectionsFailedException(
                         "A message was alive while adding new connections");
             }
@@ -301,7 +305,7 @@ public final class CacheSendPort implements SendPort {
     public void disconnect(ReceivePortIdentifier rpi)
             throws IOException {
         synchronized (messageLock) {
-            if (aMessageIsAlive) {
+            if (currentMsg != null) {
                 throw new IOException(
                         "Trying to disconnect while a message is alive!");
             }
@@ -320,7 +324,7 @@ public final class CacheSendPort implements SendPort {
                  * have cached connections. Otherwise, they won't get the
                  * lostConnection() upcall.
                  */
-                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
+                cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(),
                         rpi, SideChannelProtocol.DISCONNECT);
             }
         }
@@ -348,22 +352,20 @@ public final class CacheSendPort implements SendPort {
 
     @Override
     public WriteMessage newMessage() throws IOException {
-
         synchronized (messageLock) {
-            while (aMessageIsAlive) {
+            while (currentMsg != null) {
                 try {
                     messageLock.wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
-            aMessageIsAlive = true;
+            /*
+             * The field currentMsg is set to null in this object's finish()
+             * methods.
+             */
+            currentMsg = new CacheWriteMessage(this);
+            return currentMsg;
         }
-
-        /*
-         * The field aliveMessage is set to false in this object's finish()
-         * methods.
-         */
-        return new CacheWriteMessage(this);
     }
 
     @Override

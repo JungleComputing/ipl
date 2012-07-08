@@ -9,7 +9,6 @@ import ibis.ipl.SendPortIdentifier;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
-import java.util.logging.Level;
 
 public abstract class CacheReadMessage implements ReadMessage {
 
@@ -26,7 +25,7 @@ public abstract class CacheReadMessage implements ReadMessage {
      */
     public static class CacheReadUpcallMessage extends CacheReadMessage {
 
-        CacheReadUpcallMessage(ReadMessage m, CacheReceivePort port) 
+        CacheReadUpcallMessage(ReadMessage m, CacheReceivePort port)
                 throws IOException {
             super(m, port, new UpcallBufferedDataInputStream(m, port));
         }
@@ -35,22 +34,20 @@ public abstract class CacheReadMessage implements ReadMessage {
     /*
      * The port which will give me base ReadMessages.
      */
-    final CacheReceivePort port;
-
+    final CacheReceivePort recvPort;
     BufferedDataInputStream dataIn;
     SerializationInput in;
-
     boolean isFinished = false;
     long sequenceNr = -1;
     private final SendPortIdentifier origin;
 
     protected CacheReadMessage(ReadMessage m, CacheReceivePort port,
-            BufferedDataInputStream dataIn) 
+            BufferedDataInputStream dataIn)
             throws IOException {
-        this.port = port;
+        this.recvPort = port;
         this.origin = m.origin();
-        
-        PortType type = this.port.getPortType();
+
+        PortType type = this.recvPort.getPortType();
         String serialization;
         if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
             serialization = "data";
@@ -66,27 +63,40 @@ public abstract class CacheReadMessage implements ReadMessage {
         this.dataIn = dataIn;
         this.in = SerializationFactory.createSerializationInput(serialization, dataIn);
     }
-    
+
     /*
-     * Glues the upcall in the CacheReceivePort
-     * to the BufferedDataInpustStream.
+     * Glues the upcall in the CacheReceivePort to the BufferedDataInpustStream.
      */
     protected void offerToBuffer(boolean isLastPart, ReadMessage msg) {
         dataIn.offerToBuffer(isLastPart, msg);
     }
-    
+
     @Override
-    public long finish() throws IOException {        
+    public long finish() throws IOException {
         checkNotFinished();
-        CacheManager.log.log(Level.INFO, "Inside the Finish of CacheReadmessage");
         dataIn.close();
-//        in.clear();
+//            in.clear();
         in.close();
         isFinished = true;
         long retVal = bytesRead();
-        synchronized(port) {
-            port.aMessageIsAlive = false;
-            port.notify();
+        synchronized (recvPort) {
+            recvPort.currentReadMsg = null;
+
+            /*
+             * Need to send signal to the next in line send port who wishes to
+             * send us something.
+             */
+            if (!recvPort.toHaveMyFutureAttention.isEmpty()) {
+                /*
+                 * Set to false when we actually receive the message.
+                 */
+                recvPort.readMsgRequested = true;
+                recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                        recvPort.identifier(), recvPort.toHaveMyFutureAttention.remove(),
+                        SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
+            }
+
+            recvPort.notify();
         }
         return retVal;
     }
@@ -98,27 +108,44 @@ public abstract class CacheReadMessage implements ReadMessage {
         }
         try {
             dataIn.close();
-        } catch (IOException ignoreMe) {}
+        } catch (IOException ignoreMe) {
+        }
         in.clear();
         try {
             in.close();
-        } catch (IOException ingoreMe) {}
-        
+        } catch (IOException ingoreMe) {
+        }
+
         isFinished = true;
-        synchronized(port) {
-            port.aMessageIsAlive = false;
-            port.notify();
+        synchronized (recvPort) {
+            recvPort.currentReadMsg = null;
+
+            /*
+             * Need to send signal to the next in line send port who wishes to
+             * send us something.
+             */
+            if (!recvPort.toHaveMyFutureAttention.isEmpty()) {
+                /*
+                 * Set to false when we actually receive the message.
+                 */
+                recvPort.readMsgRequested = true;
+                recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                        recvPort.identifier(), recvPort.toHaveMyFutureAttention.remove(),
+                        SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
+            }
+
+            recvPort.notify();
         }
     }
 
     @Override
     public ibis.ipl.ReceivePort localPort() {
-        return this.port;
+        return this.recvPort;
     }
 
     @Override
     public long bytesRead() {
-	return dataIn.bytesRead();
+        return dataIn.bytesRead();
     }
 
     @Override
@@ -130,7 +157,7 @@ public abstract class CacheReadMessage implements ReadMessage {
     public int size() throws IOException {
         return -1;
     }
-    
+
     protected final void checkNotFinished() throws IOException {
         if (isFinished) {
             throw new IOException(
@@ -142,10 +169,10 @@ public abstract class CacheReadMessage implements ReadMessage {
     public SendPortIdentifier origin() {
         return origin;
     }
-    
+
     @Override
     public long sequenceNumber() {
-        if (! port.getPortType().hasCapability(PortType.COMMUNICATION_NUMBERED)) {
+        if (!recvPort.getPortType().hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             throw new IbisConfigurationException("No COMMUNICATION_NUMBERED "
                     + "specified in port type");
         }
@@ -323,7 +350,7 @@ public abstract class CacheReadMessage implements ReadMessage {
 
     @Override
     public void readByteBuffer(ByteBuffer value) throws IOException,
-	    ReadOnlyBufferException {
+            ReadOnlyBufferException {
         checkNotFinished();
         in.readByteBuffer(value);
     }
