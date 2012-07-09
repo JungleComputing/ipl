@@ -2,11 +2,9 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReadMessage.CacheReadUpcallMessage;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -21,12 +19,12 @@ public final class MessageUpcaller implements MessageUpcall {
     CacheReceivePort port;
     static boolean wasLastPart = true;
     static CacheReadMessage currentLogicalMsg;
-    static final Object currentLogicalMsgLock = new Object();
+    public static final Object currentLogicalMsgLock = new Object();
     static boolean currentLogicalMsgFinished;
     /*
      * If the current true message has been or not emptied.
      */
-    boolean messageDepleted;
+    public boolean messageDepleted;
 
     public MessageUpcaller(MessageUpcall upcaller, CacheReceivePort port) {
         this.upcaller = upcaller;

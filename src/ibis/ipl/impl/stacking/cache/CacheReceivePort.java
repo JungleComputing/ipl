@@ -1,12 +1,13 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class CacheReceivePort implements ReceivePort {
 
@@ -34,11 +35,11 @@ public final class CacheReceivePort implements ReceivePort {
      * List of send port identifiers to which this receive port is logically
      * connected, but the under-the-hood-receiveport is disconnected from them.
      */
-    private List<SendPortIdentifier> falselyConnected;
+    protected final Set<SendPortIdentifier> falselyConnected;
     /**
      * All the unde-the-hood-alive and cached connections.
      */
-    private Set<SendPortIdentifier> logicallyAlive;
+    protected final Set<SendPortIdentifier> logicallyAlive;
     /*
      * Set containing live connections which will be cached.
      */
@@ -51,11 +52,11 @@ public final class CacheReceivePort implements ReceivePort {
     /**
      * Under-the-hood send port.
      */
-    final protected ReceivePort recvPort;
+    public final ReceivePort recvPort;
     /**
      * Reference to the cache manager.
      */
-    final CacheManager cacheManager;
+    public final CacheManager cacheManager;
     /**
      * Keep this port's original capabilities for the user to see.
      */
@@ -64,7 +65,7 @@ public final class CacheReceivePort implements ReceivePort {
      * A reference to this receive port's connection upcaller. Need to call
      * lostConnection() from the side channel.
      */
-    public final ConnectUpcaller connectUpcall;
+    public final ConnectionUpcaller connectUpcall;
     /**
      * A reference to this receive port's message upcaller.
      */
@@ -72,7 +73,7 @@ public final class CacheReceivePort implements ReceivePort {
     /*
      * Boolean too see if this cacheReceivePort is closed.
      */
-    private boolean closed;
+    protected boolean closed;
     /*
      * The current message being read.
      */
@@ -82,135 +83,12 @@ public final class CacheReceivePort implements ReceivePort {
      */
     private boolean enabledMessageUpcalls;
     /*
-     * When a msg is alive, any send ports who wish to write to 
-     * this receive port must wait until the read message is no longer alive.
-     * thus they are placed in a queue.
+     * When a msg is alive, any send ports who wish to write to this receive
+     * port must wait until the read message is no longer alive. thus they are
+     * placed in a queue.
      */
-    protected final Queue<SendPortIdentifier> toHaveMyFutureAttention;
-    boolean readMsgRequested;
-
-    /**
-     * This class forwards upcalls with the proper receive port.
-     */
-    public static final class ConnectUpcaller
-            implements ReceivePortConnectUpcall {
-
-        CacheReceivePort port;
-        ReceivePortConnectUpcall upcaller;
-
-        public ConnectUpcaller(ReceivePortConnectUpcall upcaller,
-                CacheReceivePort port) {
-            this.port = port;
-            this.upcaller = upcaller;
-            CacheManager.log.log(Level.INFO, "Created ConnectionUpcaller");
-        }
-
-        @Override
-        public boolean gotConnection(ReceivePort me,
-                SendPortIdentifier spi) {
-            if (port.closed) {
-                return false;
-            }
-            CacheManager.log.log(Level.INFO, "Got Connection");
-
-            boolean accepted = true;
-
-            if (upcaller != null) {
-                accepted = upcaller.gotConnection(port, spi);
-            }
-
-            if (!accepted) {
-                return false;
-            }
-
-            synchronized (port.cacheManager) {
-                if (port.falselyConnected.contains(spi)) {
-                    // connection was cached
-                    port.falselyConnected.remove(spi);
-                    port.cacheManager.restoreConnection(port.identifier(), spi);
-                    port.cacheManager.notifyAll();
-                } else {
-                    // new connection
-                    port.cacheManager.addConnection(port.identifier(), spi);
-                    port.logicallyAlive.add(spi);
-                }
-                port.cacheManager.notifyAll();
-            }
-
-            return true;
-        }
-
-        /**
-         * Synchronized in order to guarantee that at most 1 is alive at any
-         * time, because this method is also called manually from the side
-         * channel handling class.
-         *
-         * This method is called in one of the following situations: 1) a true
-         * disconnect()/close() from the receive port 2) a connection caching
-         * (but the SPI would be in the toBeCachedSet thanks to the side
-         * channel) 3) a disconnect/close is called from the receive port, but
-         * the connection was cached; (the disc/close is sent through the side
-         * channel; to mark this, I set "me" to null) 4) a disconnect/close
-         * generated by a caching initiated from this side; the side channel
-         * sends the caching msg to sendport and it will close this connection.
-         */
-        @Override
-        public synchronized void lostConnection(ReceivePort me,
-                SendPortIdentifier spi, Throwable reason) {
-            CacheManager.log.log(Level.INFO, "\n\tGot lost connection....");
-            if (reason != null) {
-                CacheManager.log.log(Level.INFO, "\tbecause of exception:\n{0}", reason.toString());
-            }
-            
-            synchronized (port.cacheManager) {
-                /*
-                 * The connection was cached, but now it needs to be closed.
-                 * scenario 3).
-                 */
-                if (me == null) {
-                    port.falselyConnected.remove(spi);
-                    port.logicallyAlive.remove(spi);
-                    port.cacheManager.notifyAll();
-                    return;
-                }
-
-                if (port.toBeCachedSet.contains(spi)) {
-                    /*
-                     * This disconnect call is actually a connection caching.
-                     * scenario 2).
-                     */
-                    port.toBeCachedSet.remove(spi);
-                    port.falselyConnected.add(spi);
-                } else if (port.initiatedCachingByMe.contains(spi)) {
-                    /*
-                     * The connection is cached because I wanted it cached.
-                     * scenario 4)
-                     */
-                    port.initiatedCachingByMe.remove(spi);
-                    port.falselyConnected.add(spi);
-                } else {
-                    /*
-                     * This connection is lost for good - and it was't cached.
-                     * scenario 1).
-                     */
-                    port.logicallyAlive.remove(spi);
-                }
-
-                /*
-                 * I don't want to do: port.cacheManager.cacheConnection(),
-                 * because from the receive side, I never want to uncache a
-                 * connection. So just remove it.
-                 */
-                // this connection is trully alive no longer.
-                port.cacheManager.removeConnection(me.identifier(), spi);
-                port.cacheManager.notifyAll();
-            }
-
-            if (upcaller != null) {
-                upcaller.lostConnection(port, spi, reason);
-            }
-        }
-    }
+    public final Queue<SendPortIdentifier> toHaveMyFutureAttention;
+    public boolean readMsgRequested;
 
     public CacheReceivePort(PortType portType, CacheIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
@@ -221,7 +99,7 @@ public final class CacheReceivePort implements ReceivePort {
                     + anonymousPortCounter.getAndIncrement();
         }
 
-        this.connectUpcall = new ConnectUpcaller(connectUpcall, this);
+        this.connectUpcall = new ConnectionUpcaller(connectUpcall, this);
 
         if (upcall != null) {
             this.msgUpcall = new MessageUpcaller(upcall, this);
@@ -242,7 +120,7 @@ public final class CacheReceivePort implements ReceivePort {
         recvPort = ibis.baseIbis.createReceivePort(
                 wrapperPortType, name, this.msgUpcall, this.connectUpcall, properties);
 
-        falselyConnected = new ArrayList<SendPortIdentifier>();
+        falselyConnected = new HashSet<SendPortIdentifier>();
         logicallyAlive = new HashSet<SendPortIdentifier>();
         toBeCachedSet = new HashSet<SendPortIdentifier>();
         initiatedCachingByMe = new HashSet<SendPortIdentifier>();
@@ -254,7 +132,7 @@ public final class CacheReceivePort implements ReceivePort {
         enabledMessageUpcalls = false;
         currentReadMsg = null;
         readMsgRequested = false;
-        
+
         toHaveMyFutureAttention = new LinkedList<SendPortIdentifier>();
 
         /*
@@ -284,26 +162,36 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public void close(long timeoutMillis) throws IOException {
+        long deadline;
+        if(timeoutMillis < 0) {
+            deadline = -1;
+        } else if(timeoutMillis == 0) {
+            deadline = Long.MAX_VALUE;
+        } else {
+            deadline = System.currentTimeMillis() + timeoutMillis;
+        }
+        
+        CacheManager.log.log(Level.INFO, "Closing base receive port...");
+        recvPort.close(timeoutMillis);
+        
         /*
-         * Wait until all logically alive connections are closed. TODO: handle
-         * timeoutMillis.
+         * Wait until all logically alive connections are closed.
          */
         synchronized (cacheManager) {
-            if(closed) {
-                return ;
+            if (closed) {
+                return;
             }
             closed = true;
-            while (!logicallyAlive.isEmpty()) {
+            while (!logicallyAlive.isEmpty() && 
+                    (System.currentTimeMillis() < deadline)) {
                 try {
                     CacheManager.log.log(Level.INFO, "Waiting for these "
                             + "connections to close: {0}", logicallyAlive);
-                    cacheManager.wait();
+                    cacheManager.wait(deadline - System.currentTimeMillis());
                 } catch (InterruptedException ignoreMe) {
                 }
             }
         }
-        CacheManager.log.log(Level.INFO, "Closing base receive port...");
-        recvPort.close(timeoutMillis);
     }
 
     @Override
@@ -361,11 +249,11 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public synchronized ReadMessage poll() throws IOException {
-        
-        if(currentReadMsg != null) {
+
+        if (currentReadMsg != null) {
             return null;
         }
-        
+
         ReadMessage msg = recvPort.poll();
         if (msg != null) {
             readMsgRequested = false;
@@ -382,15 +270,15 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public ReadMessage receive(long timeoutMillis) throws IOException {
-        if(enabledMessageUpcalls) {
+        if (enabledMessageUpcalls) {
             throw new IbisConfigurationException("Using explicit receive"
                     + " when message upcalls are enabled.");
         }
         long deadline = 0;
-        if(timeoutMillis > 0) {
+        if (timeoutMillis > 0) {
             deadline = System.currentTimeMillis() + timeoutMillis;
         }
-        
+
         synchronized (this) {
             while (currentReadMsg != null) {
                 try {
@@ -400,14 +288,14 @@ public final class CacheReceivePort implements ReceivePort {
             }
         }
 
-        if(deadline > 0) {
+        if (deadline > 0) {
             timeoutMillis = deadline - System.currentTimeMillis();
             if (timeoutMillis <= 0) {
                 throw new ReceiveTimedOutException();
             }
         }
         ReadMessage m = recvPort.receive(timeoutMillis);
-        synchronized(this) {
+        synchronized (this) {
             readMsgRequested = false;
             currentReadMsg = new CacheReadMessage.CacheReadDowncallMessage(m, this);
         }

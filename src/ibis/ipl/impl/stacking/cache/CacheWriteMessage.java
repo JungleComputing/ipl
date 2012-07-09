@@ -1,5 +1,7 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.io.DataOutputStream;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
@@ -12,7 +14,7 @@ import java.util.logging.Level;
 public final class CacheWriteMessage implements WriteMessage {
 
     SerializationOutput serOut;
-    BufferedDataOutputStream dataOut;
+    public BufferedDataOutputStream dataOut;
     /*
      * SendPort used to generate base WriteMessages.
      */

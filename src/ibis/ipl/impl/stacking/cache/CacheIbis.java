@@ -1,5 +1,7 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.manager.RandomCacheManager;
 import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -7,7 +9,7 @@ import java.util.*;
 
 public class CacheIbis implements Ibis {
 
-    Ibis baseIbis;
+    public Ibis baseIbis;
     IbisStarter starter;
     CacheManager cacheManager;
     

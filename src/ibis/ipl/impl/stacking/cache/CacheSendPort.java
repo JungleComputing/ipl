@@ -1,11 +1,13 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
+import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 
 public final class CacheSendPort implements SendPort {
 
@@ -37,11 +39,11 @@ public final class CacheSendPort implements SendPort {
     /**
      * Under-the-hood send port.
      */
-    final SendPort sendPort;
+    public final SendPort sendPort;
     /**
      * Reference to the cache manager.
      */
-    final CacheManager cacheManager;
+    public final CacheManager cacheManager;
     /**
      * Keep this port's original capabilities for the user to see.
      */
@@ -260,13 +262,25 @@ public final class CacheSendPort implements SendPort {
                         "A message was alive while adding new connections");
             }
         }
-
-        // TODO: I have to manipulate timeout and fillTimeout.
+        
+        long deadline;
+        if(timeoutMillis > 0) {
+            deadline = System.currentTimeMillis() + timeoutMillis;
+        } else if(timeoutMillis == 0) {
+            deadline = Long.MAX_VALUE;
+        } else {
+            deadline = -1;
+        }
 
         Set<ReceivePortIdentifier> rpiList = new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(rpis));
         ReceivePortIdentifier[] connected;
+        
         synchronized (cacheManager) {
+            /*
+             * While there still are some receive ports to which I have 
+             * to connect...
+             */
             while (!rpiList.isEmpty()) {
                 int initialSize = rpiList.size();
                 /*
@@ -276,10 +290,18 @@ public final class CacheSendPort implements SendPort {
                  */
                 try {
                     connected = cacheManager.getSomeConnections(
-                            this, rpiList, timeoutMillis);
-                } catch (IbisIOException ex) {
-                    throw (ConnectionsFailedException) ex;
+                            this, rpiList, deadline - System.currentTimeMillis());
+                } catch (ConnectionTimedOutException timeout) {
+                    ConnectionsFailedException ex = new ConnectionsFailedException();
+                    for (ReceivePortIdentifier rpi : rpiList) {
+                        ex.add(new ConnectionTimedOutException(
+                                "Out of time, connection not even tried", rpi));
+                    }
+                    throw ex;
+                } catch (IbisIOException connFailed) {
+                    throw (ConnectionsFailedException) connFailed;
                 }
+
                 rpiList.removeAll(Arrays.asList(connected));
                 assert rpiList.size() < initialSize;
             }
