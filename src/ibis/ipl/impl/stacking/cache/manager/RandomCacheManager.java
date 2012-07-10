@@ -131,22 +131,27 @@ public class RandomCacheManager extends CacheManager {
         liveList.add(con);
         logReport();
     }
-    
+
     @Override
     public boolean isConnAlive(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
         return liveList.contains(con);
     }
-    
+
     @Override
     public boolean isConnCached(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         return cacheList.contains(con);
     }
-    
+
     @Override
-    public boolean hasConnections() {
-        return !liveList.isEmpty() || !cacheList.isEmpty();
+    public boolean hasConnections(ReceivePortIdentifier rpi) {
+        for(Connection con : liveList) {
+            if(con.contains(rpi)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -160,47 +165,47 @@ public class RandomCacheManager extends CacheManager {
         }
         return result;
     }
-    
+
     @Override
     public ReceivePortIdentifier[] allRpisFrom(SendPortIdentifier spi) {
         List<ReceivePortIdentifier> result = new LinkedList<ReceivePortIdentifier>();
-        
-        for(Connection con : liveList) {
-            if(con.contains(spi)) {
+
+        for (Connection con : liveList) {
+            if (con.contains(spi)) {
                 result.add(con.rpi);
             }
         }
-        
-        for(Connection con : cacheList) {
-            if(con.contains(spi)) {
+
+        for (Connection con : cacheList) {
+            if (con.contains(spi)) {
                 result.add(con.rpi);
             }
         }
-        
+
         return result.toArray(new ReceivePortIdentifier[result.size()]);
     }
-    
+
     @Override
     public SendPortIdentifier[] allSpisFrom(ReceivePortIdentifier rpi) {
         List<SendPortIdentifier> result = new LinkedList<SendPortIdentifier>();
-        
-        for(Connection con : liveList) {
-            if(con.contains(rpi)) {
+
+        for (Connection con : liveList) {
+            if (con.contains(rpi)) {
                 result.add(con.spi);
             }
         }
-        
-        for(Connection con : cacheList) {
-            if(con.contains(rpi)) {
+
+        for (Connection con : cacheList) {
+            if (con.contains(rpi)) {
                 result.add(con.spi);
             }
         }
-        
+
         return result.toArray(new SendPortIdentifier[result.size()]);
     }
 
     @Override
-    public Set<ReceivePortIdentifier> getSomeConnections(
+    public synchronized Set<ReceivePortIdentifier> getSomeUntouchableConnections(
             CacheSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionsFailedException, ConnectionTimedOutException {
@@ -222,10 +227,6 @@ public class RandomCacheManager extends CacheManager {
 
         if (aliveConn.size() > 0) {
             rpis.removeAll(aliveConn);
-            /*
-             * Also, these allAliveConn need to be marked as used.
-             */
-            usingConnections(aliveConn);
         }
 
         /*
@@ -366,19 +367,17 @@ public class RandomCacheManager extends CacheManager {
         return result;
     }
 
-    /*
-     * Here in our random cache manager, marking connections will serve no
-     * purpose.
-     */
     @Override
-    protected void usingConnections(Set<ReceivePortIdentifier> allAliveConn) {
-        // do nothing.
+    public void doneWith(SendPortIdentifier spi, Set<ReceivePortIdentifier> connected) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-
+    
     private void logReport() {
         CacheManager.log.log(Level.INFO, "\n\t{0} alive connections:\t{1}"
                 + "\n\t{2} cached connections:\t{3}",
                 new Object[]{liveList.size(), liveList,
                     cacheList.size(), cacheList});
     }
+
+    
 }

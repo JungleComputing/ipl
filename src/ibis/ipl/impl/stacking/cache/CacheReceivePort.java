@@ -171,7 +171,7 @@ public final class CacheReceivePort implements ReceivePort {
                 return;
             }
             closed = true;
-            while (cacheManager.hasConnections() && 
+            while (cacheManager.hasConnections(this.identifier()) && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
                     CacheManager.log.log(Level.INFO, "Waiting for some"

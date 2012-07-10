@@ -27,8 +27,8 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         CacheReceivePort rp = CacheReceivePort.map.get(rpi);
         CacheSendPort sp = CacheSendPort.map.get(spi);
         
-        CacheManager.log.log(Level.INFO,"\tGot side-message: \t("
-                + "[({0}, {1}), ({2}, {3})], OPCODE = {4})",
+        CacheManager.log.log(Level.INFO,"\tGot side-message: \t["
+                + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
                 new Object[] {spi.name(), spi.ibisIdentifier().name(),
                     rpi.name(), rpi.ibisIdentifier().name(), opcode});
 
@@ -139,8 +139,8 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
     private void sendProtocol(SendPortIdentifier spi, 
             ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode) {
-        CacheManager.log.log(Level.INFO,"\tSending side-message: \t("
-                + "[({0}, {1}), ({2}, {3})], OPCODE = {4})",
+        CacheManager.log.log(Level.INFO,"\tSending side-message: \t["
+                + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
                 new Object[] {spi.name(), spi.ibisIdentifier().name(),
                     rpi.name(), rpi.ibisIdentifier().name(), opcode});
         /*

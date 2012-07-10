@@ -100,7 +100,7 @@ public abstract class CacheReadMessage implements ReadMessage {
                         SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
             }
 
-            recvPort.notify();
+            recvPort.notifyAll();
         }
         return retVal;
     }
@@ -138,7 +138,7 @@ public abstract class CacheReadMessage implements ReadMessage {
                         SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
             }
 
-            recvPort.notify();
+            recvPort.notifyAll();
         }
     }
 

@@ -46,7 +46,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                          */
                         while (in.buffered_bytes >= in.len) {
                             try {
-                                in.notify();
+                                in.notifyAll();
                                 in.wait();
                             } catch (InterruptedException ignoreMe) {
                             }
@@ -69,7 +69,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                                 /*
                                  * I'm done with this message.
                                  */
-                                in.notify();
+                                in.notifyAll();
                                 return;
                             }
                             /*
@@ -99,12 +99,12 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                         try {
                             msg.finish();
                         } catch (IOException ex) {}
-                        MessageUpcaller.currentLogicalMsgLock.notify();
+                        MessageUpcaller.currentLogicalMsgLock.notifyAll();
                     }
                     /*
                      * Notify that there is available data in the buffer.
                      */
-                    in.notify();
+                    in.notifyAll();
                 }
             }
             CacheManager.log.log(Level.INFO, "Msg finished, can receive"
@@ -148,7 +148,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                     CacheManager.log.log(Level.INFO, "Waiting for buffer "
                             + "to fill: currBufBytes={0}, "
                             + "requestedLen={1}", new Object[]{buffered_bytes, len});
-                    notify();
+                    notifyAll();
                     wait();
                 } catch (InterruptedException ignoreMe) {
                 }
@@ -159,5 +159,6 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     @Override
     public void close() throws IOException {
         ex.shutdownNow();
+        ex = null;
     }
 }

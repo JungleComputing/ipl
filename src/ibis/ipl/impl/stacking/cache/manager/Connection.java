@@ -5,8 +5,8 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
 import java.io.IOException;
+import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A wrapper class for a pair of sendport and receive port identifiers.
@@ -16,6 +16,9 @@ public class Connection {
     final SendPortIdentifier spi;
     final ReceivePortIdentifier rpi;
     final boolean atSendPortSide;
+    
+    private static Map<ReceivePortIdentifier, Connection> spiMap;
+    private static Map<SendPortIdentifier, Connection> rpiMap;
     
     Connection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         this(spi, rpi, true);
@@ -82,7 +85,7 @@ public class Connection {
     
     @Override
     public String toString() {
-        return "(" + spi.name() +", " + spi.ibisIdentifier().name() + "), " +
-               "(" + rpi.name() +", " + rpi.ibisIdentifier().name() + ")";
+        return "(" + spi.name() +"-" + spi.ibisIdentifier().name() + ", " +
+               rpi.name() +"-" + rpi.ibisIdentifier().name() + ")";
     }
 }

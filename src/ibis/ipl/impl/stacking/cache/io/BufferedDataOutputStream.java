@@ -86,52 +86,59 @@ public class BufferedDataOutputStream extends DataOutputStream {
          */
         Set<ReceivePortIdentifier> rpis = new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(port.connectedTo()));
+
         while (!rpis.isEmpty()) {
             /*
-             * I'm gonna start caching and uncaching connections. Be safe.
+             * These connections are alive, but because I'm releasing the lock
+             * on cacheManager, any other port could try and cache these
+             * connections (for which I've worked so hard to get). So these
+             * connections are moved to limbo - becoming untouchable - and taken
+             * out when I say so, i.e. after I've written the message.
              */
-            synchronized (port.cacheManager) {
-                /*
-                 * Try to get all connections alive, but say thank you for what
-                 * you get.
-                 *
-                 * At least one connection... please.
-                 */
-                Set<ReceivePortIdentifier> connected = port.cacheManager.
-                        getSomeConnections(port, rpis, 0, false);
+            Set<ReceivePortIdentifier> connected = port.cacheManager.
+                    getSomeUntouchableConnections(port, rpis, 0, false);
+            /*
+             * I need to release the lock on cacheManager here, otherwise
+             * deadlock: too complicated to explain here.
+             */
 
-                assert connected.size() > 0;
+            assert connected.size() > 0;
 
-                rpis.removeAll(connected);
+            rpis.removeAll(connected);
 
-                /*
-                 * Before sending the message to the receive ports, make sure
-                 * they have no other alive messages. Blocking until made
-                 * certain of this.
-                 */
-                yourLiveReadMessageIsFromMe(connected);
-                /*
-                 * Send the message to whoever is connected.
-                 */
-                WriteMessage msg = port.sendPort.newMessage();
-                try {
-                    noMsg++;
-                    msg.writeBoolean(isLastPart);
-                    msg.writeInt(index);
-                    msg.writeArray(buffer, 0, index);
-                    msg.finish();
-                } catch (IOException ex) {
-                    msg.finish(ex);
-                    CacheManager.log.log(Level.SEVERE, "Failed to write {0} bytes message "
-                            + "to {1} ports.", new Object[]{index, rpis.size()});
-                }
-                CacheManager.log.log(Level.INFO, "\tSent msg: ({0}, {1})",
-                        new Object[]{isLastPart, index});
-
-                if (isLastPart) {
-                    yourLiveMessageIsNotMyConcern(connected);
-                }
+            /*
+             * Before sending the message to the receive ports, make sure they
+             * have no other alive messages. Blocking until made certain of
+             * this.
+             *
+             * I must not hold the lock on cacheManager whilst I wait here. This
+             * was the cause of a deadlock, but I have to wait.
+             */
+            CacheManager.log.log(Level.INFO, "Getting targeted rpis' read msgs...");
+            yourLiveReadMessageIsFromMe(connected);
+            /*
+             * Send the message to whoever is connected.
+             */
+            WriteMessage msg = port.sendPort.newMessage();
+            try {
+                noMsg++;
+                msg.writeBoolean(isLastPart);
+                msg.writeInt(index);
+                msg.writeArray(buffer, 0, index);
+                msg.finish();
+            } catch (IOException ex) {
+                msg.finish(ex);
+                CacheManager.log.log(Level.SEVERE, "Failed to write {0} bytes message "
+                        + "to {1} ports.", new Object[]{index, rpis.size()});
             }
+            CacheManager.log.log(Level.INFO, "\tSent msg: ({0}, {1})",
+                    new Object[]{isLastPart, index});
+
+            if (isLastPart) {
+                yourLiveMessageIsNotMyConcern(connected);
+            }
+
+            port.cacheManager.doneWith(port.identifier(), connected);
         }
         /*
          * Buffer is sent to everyone. Clear it.
@@ -216,6 +223,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
 
     @Override
     public void close() throws IOException {
+        CacheManager.log.log(Level.INFO, "dataOut closing. closed was {0}", closed);
+        if (closed) {
+            return;
+        }
         closed = true;
         stream(true);
         CacheManager.log.log(Level.INFO, "\n\tStreamed {0} intermediate messages to"

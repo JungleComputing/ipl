@@ -98,10 +98,11 @@ public final class CacheWriteMessage implements WriteMessage {
 
     @Override
     public long finish() throws IOException {
-        checkNotFinished();
+        checkNotFinished();        
         
         serOut.flush();
         dataOut.close();
+        
 //        serOut.close();
         /*
          * serOut.close() actually just flushes dos. I need dataOut.close() so
@@ -135,6 +136,8 @@ public final class CacheWriteMessage implements WriteMessage {
             // ignored
         }
 
+        serOut = null;
+        dataOut = null;
         port.currentMsg = null;
     }
 

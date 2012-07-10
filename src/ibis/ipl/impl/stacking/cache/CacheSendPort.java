@@ -68,11 +68,11 @@ public final class CacheSendPort implements SendPort {
         portCap.addAll(CacheIbis.additionalPortCapabilities);
         PortType wrapperPortType = new PortType(portCap.toArray(
                 new String[portCap.size()]));
-        
-        SendPortDisconnectUpcall wrapperDiscUp = 
+
+        SendPortDisconnectUpcall wrapperDiscUp =
                 new SendPortDisconnectUpcaller(cU, this);
 
-        sendPort = ibis.baseIbis.createSendPort(wrapperPortType, name, 
+        sendPort = ibis.baseIbis.createSendPort(wrapperPortType, name,
                 wrapperDiscUp, props);
 
         intialPortType = portType;
@@ -160,14 +160,14 @@ public final class CacheSendPort implements SendPort {
              * cached connections. Otherwise, they won't get the
              * lostConnection() upcall.
              */
-            for (ReceivePortIdentifier rpi : 
+            for (ReceivePortIdentifier rpi :
                     cacheManager.cachedRpisFrom(this.identifier())) {
-                
+
                 cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
                         rpi, SideChannelProtocol.DISCONNECT);
-            
+
             }
-            
+
             cacheManager.removeAllConnections(this.identifier());
             /*
              * Disconnect from whoever is connected to the base send port.
@@ -258,20 +258,20 @@ public final class CacheSendPort implements SendPort {
                         "A message was alive while adding new connections");
             }
         }
-        
+
         long deadline = 0;
-        if(timeoutMillis > 0) {
+        if (timeoutMillis > 0) {
             deadline = System.currentTimeMillis() + timeoutMillis;
         }
 
         Set<ReceivePortIdentifier> rpiSet = new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(rpis));
         Set<ReceivePortIdentifier> connected;
-        
+
         synchronized (cacheManager) {
             /*
-             * While there still are some receive ports to which I have 
-             * to connect...
+             * While there still are some receive ports to which I have to
+             * connect...
              */
             while (!rpiSet.isEmpty()) {
                 int initialSize = rpiSet.size();
@@ -281,15 +281,18 @@ public final class CacheSendPort implements SendPort {
                  * at least 1 successfull connection.
                  */
                 try {
-                    if(deadline > 0) {
-                         connected = cacheManager.getSomeConnections(
-                            this, rpiSet,
-                            deadline - System.currentTimeMillis(), fillTimeout);
+                    if (deadline > 0) {
+                        connected = cacheManager.getSomeUntouchableConnections(
+                                this, rpiSet,
+                                deadline - System.currentTimeMillis(), fillTimeout);
                     } else {
-                        connected = cacheManager.getSomeConnections(
-                            this, rpiSet,
-                            0, true);
+                        connected = cacheManager.getSomeUntouchableConnections(
+                                this, rpiSet,
+                                0, true);
                     }
+                    rpiSet.removeAll(connected);
+                    assert rpiSet.size() < initialSize;
+                    cacheManager.doneWith(this.identifier(), connected);
                 } catch (ConnectionTimedOutException timeout) {
                     ConnectionsFailedException ex = new ConnectionsFailedException();
                     for (ReceivePortIdentifier rpi : rpiSet) {
@@ -300,9 +303,6 @@ public final class CacheSendPort implements SendPort {
                 } catch (IbisIOException connFailed) {
                     throw (ConnectionsFailedException) connFailed;
                 }
-
-                rpiSet.removeAll(connected);
-                assert rpiSet.size() < initialSize;
             }
         }
     }

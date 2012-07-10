@@ -57,8 +57,10 @@ public final class MessageUpcaller implements MessageUpcall {
             upcaller.upcall(currentLogicalMsg);
             synchronized (currentLogicalMsgLock) {
                 currentLogicalMsgFinished = true;
-                currentLogicalMsg.finish();
-                currentLogicalMsgLock.notify();
+                try {
+                    currentLogicalMsg.finish();
+                } catch(Exception ignoreMe) {}
+                currentLogicalMsgLock.notifyAll();
             }
         } else {
             wasLastPart = isLastPart;

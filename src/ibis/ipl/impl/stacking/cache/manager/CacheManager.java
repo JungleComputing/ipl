@@ -20,7 +20,7 @@ public abstract class CacheManager {
      */
     public static final int BUFFER_CAPACITY = 1 << 16;
     public static final int MAX_CONNS;
-    public static final int MAX_CONNS_DEFAULT = 1;
+    public static final int MAX_CONNS_DEFAULT = 6;
     /**
      * Fields for logging.
      */
@@ -101,41 +101,41 @@ public abstract class CacheManager {
             Logger.getLogger(CacheManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    abstract public void removeAllConnections(SendPortIdentifier spi) ;
-    
-    abstract public void cacheConnection(SendPortIdentifier spi, 
+
+    abstract public void removeAllConnections(SendPortIdentifier spi);
+
+    abstract public void cacheConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
 
-    abstract public void removeConnection(SendPortIdentifier spi, 
+    abstract public void removeConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
-    
-    abstract public void cacheConnection(ReceivePortIdentifier rpi, 
+
+    abstract public void cacheConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
-    
-    abstract public void removeConnection(ReceivePortIdentifier rpi, 
+
+    abstract public void removeConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
-    
+
     abstract public void addConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
-    
-    abstract public void restoreConnection(ReceivePortIdentifier rpi, 
+
+    abstract public void restoreConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
 
     abstract public List<ReceivePortIdentifier> cachedRpisFrom(
             SendPortIdentifier identifier);
-    
-    abstract public boolean hasConnections();
 
-    abstract public boolean isConnAlive(SendPortIdentifier identifier, 
+    abstract public boolean hasConnections(ReceivePortIdentifier rpi);
+
+    abstract public boolean isConnAlive(SendPortIdentifier identifier,
             ReceivePortIdentifier rpi);
-    
-    abstract public boolean isConnCached(ReceivePortIdentifier identifier, 
+
+    abstract public boolean isConnCached(ReceivePortIdentifier identifier,
             SendPortIdentifier spi);
 
     abstract public ReceivePortIdentifier[] allRpisFrom(
             SendPortIdentifier identifier);
-    
+
     abstract public SendPortIdentifier[] allSpisFrom(
             ReceivePortIdentifier identifier);
 
@@ -156,20 +156,23 @@ public abstract class CacheManager {
      * If timeout > 0, and no connection has been established until the
      * deadline, it will throw a ConnectionTimedOutException.
      *
-     * for each rp, the connection (sp, rp) can be: 
-     * 1. already alive 
-     * 2. cached
+     * for each rp, the connection (sp, rp) can be: 1. already alive 2. cached
      * 3. not even initiated
+     *
+     * IMPORTANT: these connections are in an untouchable state. They will not
+     * be cached until the method doneWith(rpis) is called to take them out of
+     * that state.
      *
      * @param spi
      * @param rpis
      * @param timeoutMillis
      * @return
      */
-    abstract public Set<ReceivePortIdentifier> getSomeConnections(
+    abstract public Set<ReceivePortIdentifier> getSomeUntouchableConnections(
             CacheSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionTimedOutException, ConnectionsFailedException;
-    
-    abstract protected void usingConnections(Set<ReceivePortIdentifier> allAliveConn);
+
+    abstract public void doneWith(SendPortIdentifier spi,
+            Set<ReceivePortIdentifier> connected);
 }

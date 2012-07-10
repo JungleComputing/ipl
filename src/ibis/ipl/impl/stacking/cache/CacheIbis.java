@@ -3,6 +3,7 @@ package ibis.ipl.impl.stacking.cache;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.manager.RandomCacheManager;
 import ibis.ipl.*;
+import ibis.ipl.impl.stacking.cache.manager.LruCacheManager;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
