@@ -99,6 +99,10 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
 
     protected void sendDisconnectMessage(ReceivePortIdentifier receiver,
             SendPortConnectionInfo conn) throws IOException {
+        
+        if(out == null) {
+            super.createOut();
+        }
 
         out.writeByte(CLOSE_ONE_CONNECTION);
 

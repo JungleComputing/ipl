@@ -9,17 +9,16 @@ import java.util.logging.Level;
 /**
  * This class forwards upcalls with the proper receive port.
  */
-public class ConnectionUpcaller
+public class ReceivePortConnectionUpcaller
         implements ReceivePortConnectUpcall {
 
     CacheReceivePort port;
     ReceivePortConnectUpcall upcaller;
 
-    public ConnectionUpcaller(ReceivePortConnectUpcall upcaller,
+    public ReceivePortConnectionUpcaller(ReceivePortConnectUpcall upcaller,
             CacheReceivePort port) {
         this.port = port;
         this.upcaller = upcaller;
-        CacheManager.log.log(Level.INFO, "Created ConnectionUpcaller");
     }
 
     /*
@@ -45,15 +44,13 @@ public class ConnectionUpcaller
         }
 
         synchronized (port.cacheManager) {
-            if (port.falselyConnected.contains(spi)) {
+            if (port.cacheManager.isConnCached(this.port.identifier(), spi)) {
                 // connection was cached
-                port.falselyConnected.remove(spi);
                 port.cacheManager.restoreConnection(port.identifier(), spi);
                 port.cacheManager.notifyAll();
             } else {
                 // new connection
                 port.cacheManager.addConnection(port.identifier(), spi);
-                port.logicallyAlive.add(spi);
             }
             port.cacheManager.notifyAll();
         }
@@ -78,9 +75,9 @@ public class ConnectionUpcaller
     @Override
     public synchronized void lostConnection(ReceivePort me,
             SendPortIdentifier spi, Throwable reason) {
-        CacheManager.log.log(Level.INFO, "\n\tGot lost connection....");
+        CacheManager.log.log(Level.INFO, "\n\tGot lost connection at receive port...");
         if (reason != null) {
-            CacheManager.log.log(Level.INFO, "\tbecause of exception:\n{0}", reason.toString());
+            CacheManager.log.log(Level.INFO, "\tcause was:\n{0}", reason.toString());
         }
 
         synchronized (port.cacheManager) {
@@ -90,9 +87,7 @@ public class ConnectionUpcaller
                  * The connection was cached, but now it needs to be closed.
                  * scenario 3).
                  */
-                port.cacheManager.removeConnection(me.identifier(), spi);
-                port.falselyConnected.remove(spi);
-                port.logicallyAlive.remove(spi);
+                port.cacheManager.removeConnection(port.identifier(), spi);
             } else if (port.toBeCachedSet.contains(spi)) {
                 /*
                  * This disconnect call is actually a connection caching.
@@ -100,7 +95,6 @@ public class ConnectionUpcaller
                  */
                 port.cacheManager.cacheConnection(me.identifier(), spi);
                 port.toBeCachedSet.remove(spi);
-                port.falselyConnected.add(spi);
             } else if (port.initiatedCachingByMe.contains(spi)) {
                 /*
                  * The connection is cached because 
@@ -121,14 +115,12 @@ public class ConnectionUpcaller
                     port.initiatedCachingByMe.remove(spi);
                     port.initiatedCachingByMe.notifyAll();
                 }
-                port.falselyConnected.add(spi);
             } else {
                 /*
                  * This connection is lost for good - and it was't cached.
                  * scenario 1).
                  */
                 port.cacheManager.removeConnection(me.identifier(), spi);
-                port.logicallyAlive.remove(spi);
             }
             port.cacheManager.notifyAll();
         }

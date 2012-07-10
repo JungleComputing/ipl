@@ -1,9 +1,9 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.*;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -32,11 +32,6 @@ public final class CacheSendPort implements SendPort {
         map = new HashMap<SendPortIdentifier, CacheSendPort>();
     }
     /**
-     * List of receive port identifiers to which this send port is logically
-     * connected, but the under-the-hood-sendport is disconnected from them.
-     */
-    public List<ReceivePortIdentifier> falselyConnected;
-    /**
      * Under-the-hood send port.
      */
     public final SendPort sendPort;
@@ -52,10 +47,6 @@ public final class CacheSendPort implements SendPort {
      * Lock required for the aliveMessage field.
      */
     final Object messageLock;
-    /**
-     * Variable to determine whether this send port has a current alive message.
-     */
-//    volatile boolean aMessageIsAlive;
     /**
      * The current written message.
      */
@@ -77,12 +68,15 @@ public final class CacheSendPort implements SendPort {
         portCap.addAll(CacheIbis.additionalPortCapabilities);
         PortType wrapperPortType = new PortType(portCap.toArray(
                 new String[portCap.size()]));
+        
+        SendPortDisconnectUpcall wrapperDiscUp = 
+                new SendPortDisconnectUpcaller(cU, this);
 
-        sendPort = ibis.baseIbis.createSendPort(wrapperPortType, name, cU, props);
+        sendPort = ibis.baseIbis.createSendPort(wrapperPortType, name, 
+                wrapperDiscUp, props);
 
         intialPortType = portType;
 
-        falselyConnected = new ArrayList<ReceivePortIdentifier>();
         cacheManager = ibis.cacheManager;
         messageLock = new Object();
         currentMsg = null;
@@ -99,7 +93,7 @@ public final class CacheSendPort implements SendPort {
      *
      * This method will be called only from the Cache Manager under a
      * synchronized context. If so, I am guaranteed that the underlying
-     * connection will have no alive message.
+     * connection will have no alive message. (search for sendPort.newMessage())
      *
      * @param rpi the receive port to which to cache the connection
      * @param doesHeKnow if the receive port knows the next disconnect call he
@@ -129,7 +123,6 @@ public final class CacheSendPort implements SendPort {
          * guaranteed that he will know to cache this connection.
          */
         sendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
-        falselyConnected.add(rpi);
     }
 
     /**
@@ -145,7 +138,6 @@ public final class CacheSendPort implements SendPort {
      */
     public void revive(ReceivePortIdentifier rpi) throws IOException {
         sendPort.connect(rpi);
-        falselyConnected.remove(rpi);
     }
 
     private void waitForAck() {
@@ -168,10 +160,14 @@ public final class CacheSendPort implements SendPort {
              * cached connections. Otherwise, they won't get the
              * lostConnection() upcall.
              */
-            for (ReceivePortIdentifier rpi : falselyConnected) {
-                cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(),
+            for (ReceivePortIdentifier rpi : 
+                    cacheManager.cachedRpisFrom(this.identifier())) {
+                
+                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
                         rpi, SideChannelProtocol.DISCONNECT);
+            
             }
+            
             cacheManager.removeAllConnections(this.identifier());
             /*
              * Disconnect from whoever is connected to the base send port.
@@ -263,37 +259,40 @@ public final class CacheSendPort implements SendPort {
             }
         }
         
-        long deadline;
+        long deadline = 0;
         if(timeoutMillis > 0) {
             deadline = System.currentTimeMillis() + timeoutMillis;
-        } else if(timeoutMillis == 0) {
-            deadline = Long.MAX_VALUE;
-        } else {
-            deadline = -1;
         }
 
-        Set<ReceivePortIdentifier> rpiList = new HashSet<ReceivePortIdentifier>(
+        Set<ReceivePortIdentifier> rpiSet = new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(rpis));
-        ReceivePortIdentifier[] connected;
+        Set<ReceivePortIdentifier> connected;
         
         synchronized (cacheManager) {
             /*
              * While there still are some receive ports to which I have 
              * to connect...
              */
-            while (!rpiList.isEmpty()) {
-                int initialSize = rpiList.size();
+            while (!rpiSet.isEmpty()) {
+                int initialSize = rpiSet.size();
                 /*
                  * Tell the cache manager to connect the send port to some of
                  * the receive ports received as params. This method guarantees
                  * at least 1 successfull connection.
                  */
                 try {
-                    connected = cacheManager.getSomeConnections(
-                            this, rpiList, deadline - System.currentTimeMillis());
+                    if(deadline > 0) {
+                         connected = cacheManager.getSomeConnections(
+                            this, rpiSet,
+                            deadline - System.currentTimeMillis(), fillTimeout);
+                    } else {
+                        connected = cacheManager.getSomeConnections(
+                            this, rpiSet,
+                            0, true);
+                    }
                 } catch (ConnectionTimedOutException timeout) {
                     ConnectionsFailedException ex = new ConnectionsFailedException();
-                    for (ReceivePortIdentifier rpi : rpiList) {
+                    for (ReceivePortIdentifier rpi : rpiSet) {
                         ex.add(new ConnectionTimedOutException(
                                 "Out of time, connection not even tried", rpi));
                     }
@@ -302,25 +301,15 @@ public final class CacheSendPort implements SendPort {
                     throw (ConnectionsFailedException) connFailed;
                 }
 
-                rpiList.removeAll(Arrays.asList(connected));
-                assert rpiList.size() < initialSize;
+                rpiSet.removeAll(connected);
+                assert rpiSet.size() < initialSize;
             }
         }
     }
 
     @Override
     public ReceivePortIdentifier[] connectedTo() {
-        ReceivePortIdentifier[] trueConnections = sendPort.connectedTo();
-        ReceivePortIdentifier[] retVal =
-                new ReceivePortIdentifier[falselyConnected.size() + trueConnections.length];
-
-        for (int i = 0; i < falselyConnected.size(); i++) {
-            retVal[i] = falselyConnected.get(i);
-        }
-        System.arraycopy(trueConnections, 0,
-                retVal, falselyConnected.size(), trueConnections.length);
-
-        return retVal;
+        return cacheManager.allRpisFrom(this.identifier());
     }
 
     @Override
@@ -333,22 +322,21 @@ public final class CacheSendPort implements SendPort {
             }
         }
         synchronized (cacheManager) {
-            if (!falselyConnected.contains(rpi)) {
+            if (cacheManager.isConnAlive(this.identifier(), rpi)) {
                 sendPort.disconnect(rpi);
-                /*
-                 * Remove the connection only if it was trully alive.
-                 */
-                cacheManager.removeConnection(this.identifier(), rpi);
             } else {
-                falselyConnected.remove(rpi);
                 /*
                  * Send a DISCONNECT message to the receive ports with whom we
                  * have cached connections. Otherwise, they won't get the
                  * lostConnection() upcall.
                  */
-                cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(),
+                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
                         rpi, SideChannelProtocol.DISCONNECT);
             }
+            /*
+             * Remove the connection only if it was trully alive.
+             */
+            cacheManager.removeConnection(this.identifier(), rpi);
         }
     }
 

@@ -1,8 +1,8 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.*;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -31,15 +31,6 @@ public final class CacheReceivePort implements ReceivePort {
 
         map = new HashMap<ReceivePortIdentifier, CacheReceivePort>();
     }
-    /**
-     * List of send port identifiers to which this receive port is logically
-     * connected, but the under-the-hood-receiveport is disconnected from them.
-     */
-    protected final Set<SendPortIdentifier> falselyConnected;
-    /**
-     * All the unde-the-hood-alive and cached connections.
-     */
-    protected final Set<SendPortIdentifier> logicallyAlive;
     /*
      * Set containing live connections which will be cached.
      */
@@ -65,7 +56,7 @@ public final class CacheReceivePort implements ReceivePort {
      * A reference to this receive port's connection upcaller. Need to call
      * lostConnection() from the side channel.
      */
-    public final ConnectionUpcaller connectUpcall;
+    public final ReceivePortConnectionUpcaller connectUpcall;
     /**
      * A reference to this receive port's message upcaller.
      */
@@ -99,7 +90,7 @@ public final class CacheReceivePort implements ReceivePort {
                     + anonymousPortCounter.getAndIncrement();
         }
 
-        this.connectUpcall = new ConnectionUpcaller(connectUpcall, this);
+        this.connectUpcall = new ReceivePortConnectionUpcaller(connectUpcall, this);
 
         if (upcall != null) {
             this.msgUpcall = new MessageUpcaller(upcall, this);
@@ -120,8 +111,6 @@ public final class CacheReceivePort implements ReceivePort {
         recvPort = ibis.baseIbis.createReceivePort(
                 wrapperPortType, name, this.msgUpcall, this.connectUpcall, properties);
 
-        falselyConnected = new HashSet<SendPortIdentifier>();
-        logicallyAlive = new HashSet<SendPortIdentifier>();
         toBeCachedSet = new HashSet<SendPortIdentifier>();
         initiatedCachingByMe = new HashSet<SendPortIdentifier>();
 
@@ -182,11 +171,11 @@ public final class CacheReceivePort implements ReceivePort {
                 return;
             }
             closed = true;
-            while (!logicallyAlive.isEmpty() && 
+            while (cacheManager.hasConnections() && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
-                    CacheManager.log.log(Level.INFO, "Waiting for these "
-                            + "connections to close: {0}", logicallyAlive);
+                    CacheManager.log.log(Level.INFO, "Waiting for some"
+                            + " connections to close.");
                     cacheManager.wait(deadline - System.currentTimeMillis());
                 } catch (InterruptedException ignoreMe) {
                 }
@@ -196,8 +185,7 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public SendPortIdentifier[] connectedTo() {
-        return logicallyAlive.toArray(
-                new SendPortIdentifier[logicallyAlive.size()]);
+        return cacheManager.allSpisFrom(this.identifier());
     }
 
     @Override
