@@ -36,7 +36,7 @@ public class RandomCacheManager extends CacheManager {
     /*
      * Pick out one random connection and cache it.
      */
-    private synchronized void randomCache() {
+    private void randomCache() {
         assert !liveList.isEmpty();
         int idx = r.nextInt(liveList.size());
         /*
@@ -58,7 +58,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public void cacheConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+    public synchronized void cacheConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
         // the connection may be cached or alive.
         cacheList.add(con);
@@ -67,7 +67,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public void removeConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+    public synchronized void removeConnection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
         // the connection may be cached or alive.
         cacheList.remove(con);
@@ -76,7 +76,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public void removeAllConnections(SendPortIdentifier spi) {
+    public synchronized void removeAllConnections(SendPortIdentifier spi) {
         for (Iterator it = cacheList.iterator(); it.hasNext();) {
             Connection conn = (Connection) it.next();
             if (conn.contains(spi)) {
@@ -93,7 +93,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public void addConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    public synchronized void addConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         if (liveList.contains(con)) {
             return;
@@ -106,7 +106,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public void cacheConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    public synchronized void cacheConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         cacheList.add(con);
         liveList.remove(con);
@@ -114,7 +114,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public void removeConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    public synchronized void removeConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         cacheList.remove(con);
         liveList.remove(con);
@@ -122,7 +122,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public void restoreConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    public synchronized void restoreConnection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         if (liveList.size() >= MAX_CONNS) {
             this.randomCache();
@@ -133,19 +133,19 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public boolean isConnAlive(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+    public synchronized boolean isConnAlive(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
         return liveList.contains(con);
     }
 
     @Override
-    public boolean isConnCached(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    public synchronized boolean isConnCached(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         return cacheList.contains(con);
     }
 
     @Override
-    public boolean hasConnections(ReceivePortIdentifier rpi) {
+    public synchronized boolean hasConnections(ReceivePortIdentifier rpi) {
         for(Connection con : liveList) {
             if(con.contains(rpi)) {
                 return true;
@@ -155,7 +155,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public List<ReceivePortIdentifier> cachedRpisFrom(SendPortIdentifier spi) {
+    public synchronized List<ReceivePortIdentifier> cachedRpisFrom(SendPortIdentifier spi) {
         List<ReceivePortIdentifier> result =
                 new LinkedList<ReceivePortIdentifier>();
         for (Connection con : cacheList) {
@@ -167,7 +167,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public ReceivePortIdentifier[] allRpisFrom(SendPortIdentifier spi) {
+    public synchronized ReceivePortIdentifier[] allRpisFrom(SendPortIdentifier spi) {
         List<ReceivePortIdentifier> result = new LinkedList<ReceivePortIdentifier>();
 
         for (Connection con : liveList) {
@@ -186,7 +186,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public SendPortIdentifier[] allSpisFrom(ReceivePortIdentifier rpi) {
+    public synchronized SendPortIdentifier[] allSpisFrom(ReceivePortIdentifier rpi) {
         List<SendPortIdentifier> result = new LinkedList<SendPortIdentifier>();
 
         for (Connection con : liveList) {
@@ -205,7 +205,7 @@ public class RandomCacheManager extends CacheManager {
     }
 
     @Override
-    public synchronized Set<ReceivePortIdentifier> getSomeUntouchableConnections(
+    public synchronized Set<ReceivePortIdentifier> getSomeConnections(
             CacheSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionsFailedException, ConnectionTimedOutException {
@@ -367,11 +367,6 @@ public class RandomCacheManager extends CacheManager {
         return result;
     }
 
-    @Override
-    public void doneWith(SendPortIdentifier spi, Set<ReceivePortIdentifier> connected) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
     private void logReport() {
         CacheManager.log.log(Level.INFO, "\n\t{0} alive connections:\t{1}"
                 + "\n\t{2} cached connections:\t{3}",

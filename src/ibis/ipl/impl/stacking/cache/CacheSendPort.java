@@ -282,17 +282,16 @@ public final class CacheSendPort implements SendPort {
                  */
                 try {
                     if (deadline > 0) {
-                        connected = cacheManager.getSomeUntouchableConnections(
+                        connected = cacheManager.getSomeConnections(
                                 this, rpiSet,
                                 deadline - System.currentTimeMillis(), fillTimeout);
                     } else {
-                        connected = cacheManager.getSomeUntouchableConnections(
+                        connected = cacheManager.getSomeConnections(
                                 this, rpiSet,
                                 0, true);
                     }
                     rpiSet.removeAll(connected);
                     assert rpiSet.size() < initialSize;
-                    cacheManager.doneWith(this.identifier(), connected);
                 } catch (ConnectionTimedOutException timeout) {
                     ConnectionsFailedException ex = new ConnectionsFailedException();
                     for (ReceivePortIdentifier rpi : rpiSet) {

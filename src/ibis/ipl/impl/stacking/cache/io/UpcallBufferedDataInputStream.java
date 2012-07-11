@@ -88,7 +88,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                 } catch (Exception ex) {
                     CacheManager.log.log(Level.INFO, "Message closed "
                             + "most likely because the user upcall "
-                            + "has finished and exited the wrapper upcall:\n\t{0}", ex.toString());
+                            + "has finished and exited the wrapper upcall:\t{0}", ex.toString());
                 } finally {
                     /*
                      * Notify the end of this message, so we may pick up another
@@ -101,14 +101,13 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                         } catch (IOException ex) {}
                         MessageUpcaller.currentLogicalMsgLock.notifyAll();
                     }
-                    /*
+                    /*  
                      * Notify that there is available data in the buffer.
                      */
                     in.notifyAll();
                 }
             }
-            CacheManager.log.log(Level.INFO, "Msg finished, can receive"
-                            + "another upcall from now on.");
+            CacheManager.log.log(Level.INFO, "Data offering thread finishing...");
         }
     }
     /*
@@ -136,7 +135,12 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     public void offerToBuffer(boolean isLastPart, ReadMessage msg) {
         assert origin.equals(msg.origin());
         currentMsg = msg;
-        ex.submit(new DataOfferingThread(this, msg));
+        try {
+            ex.submit(new DataOfferingThread(this, msg));
+        } catch(Exception ex) {
+            CacheManager.log.log(Level.WARNING, "Got exception when submiting"
+                    + " a new dataThread:\t" + ex.toString());
+        }
     }
 
     @Override
@@ -158,7 +162,6 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
     @Override
     public void close() throws IOException {
-        ex.shutdownNow();
-        ex = null;
+        ex.shutdown();
     }
 }

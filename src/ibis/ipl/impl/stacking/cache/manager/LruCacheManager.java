@@ -17,13 +17,6 @@ public class LruCacheManager extends CacheManager {
     private final List<Connection> fromRPLiveConns;
     private final List<Connection> fromSPCacheConns;
     private final List<Connection> fromRPCacheConns;
-    /*
-     * Connections which are here are alive and cannot be cached. They will not
-     * stay in this array for a long time.
-     *
-     * Only from the send-port side can connections become untouchable.
-     */
-    private final List<Connection> untouchables;
 
     public LruCacheManager(CacheIbis ibis) {
         super(ibis);
@@ -31,18 +24,15 @@ public class LruCacheManager extends CacheManager {
         fromSPCacheConns = new LinkedList<Connection>();
         fromRPLiveConns = new LinkedList<Connection>();
         fromRPCacheConns = new LinkedList<Connection>();
-        untouchables = new LinkedList<Connection>();
     }
 
     /*
      * Pick out the N least recently used live connections and cache them.
      */
-    private synchronized void lruCache(int n) {
+    private void lruCache(int n) {
         assert n <= fromSPLiveConns.size()
-                + fromRPLiveConns.size()
-                + untouchables.size();
+                + fromRPLiveConns.size();
 
-        while (true) {
             /*
              * Try to get first from the connections from the send port side.
              * Faster to cache.
@@ -79,23 +69,6 @@ public class LruCacheManager extends CacheManager {
                 fromRPCacheConns.add(con);
                 n--;
             }
-
-            if (n > 0) {
-                /*
-                 * I cached every living thing, yet it's not enough. Need to
-                 * wait for those untouchables.
-                 */
-                try {
-                    wait();
-                } catch (InterruptedException ignoreMe) {
-                }
-            } else {
-                /*
-                 * I'm done.
-                 */
-                return;
-            }
-        }
     }
 
     @Override
@@ -103,16 +76,6 @@ public class LruCacheManager extends CacheManager {
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
 
-        // the connection may be alive or untouchable
-        while (untouchables.contains(con)) {
-            try {
-                wait();
-            } catch (InterruptedException ignoreMe) {
-            }
-        }
-        /*
-         * once the connection is not untouchable, it will go to the alive list.
-         */
         fromSPCacheConns.add(con);
         fromSPLiveConns.remove(con);
 
@@ -124,14 +87,6 @@ public class LruCacheManager extends CacheManager {
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
 
-        // the connection may be cached, alive or untouchable
-        while (untouchables.contains(con)) {
-            try {
-                wait();
-            } catch (InterruptedException ignoreMe) {
-            }
-        }
-
         fromSPCacheConns.remove(con);
         fromSPLiveConns.remove(con);
 
@@ -140,25 +95,6 @@ public class LruCacheManager extends CacheManager {
 
     @Override
     public synchronized void removeAllConnections(SendPortIdentifier spi) {
-        boolean notAvailable;
-        while (true) {
-            notAvailable = false;
-            for (Connection con : untouchables) {
-                if (con.contains(spi)) {
-                    notAvailable = true;
-                    break;
-                }
-            }
-            if (notAvailable) {
-                try {
-                    wait();
-                } catch (InterruptedException ignoreMe) {
-                }
-            } else {
-                break;
-            }
-        }
-
         for (Iterator it = fromSPCacheConns.iterator(); it.hasNext();) {
             Connection conn = (Connection) it.next();
             if (conn.contains(spi)) {
@@ -179,8 +115,7 @@ public class LruCacheManager extends CacheManager {
     public synchronized void addConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
-        if (fromRPLiveConns.size() + fromSPLiveConns.size() + untouchables.size()
-                >= MAX_CONNS) {
+        if (fromRPLiveConns.size() + fromSPLiveConns.size() >= MAX_CONNS) {
             this.lruCache(1);
         }
         fromRPLiveConns.add(con);
@@ -212,8 +147,7 @@ public class LruCacheManager extends CacheManager {
     public synchronized void restoreConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
-        if (fromRPLiveConns.size() + fromSPLiveConns.size() + untouchables.size()
-                >= MAX_CONNS) {
+        if (fromRPLiveConns.size() + fromSPLiveConns.size() >= MAX_CONNS) {
             this.lruCache(1);
         }
         fromRPCacheConns.remove(con);
@@ -226,7 +160,7 @@ public class LruCacheManager extends CacheManager {
     public synchronized boolean isConnAlive(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
-        return fromSPLiveConns.contains(con) || untouchables.contains(con);
+        return fromSPLiveConns.contains(con);
     }
 
     @Override
@@ -274,12 +208,6 @@ public class LruCacheManager extends CacheManager {
             }
         }
 
-        for (Connection con : untouchables) {
-            if (con.contains(spi)) {
-                result.add(con.rpi);
-            }
-        }
-
         return result.toArray(new ReceivePortIdentifier[result.size()]);
     }
 
@@ -299,17 +227,11 @@ public class LruCacheManager extends CacheManager {
             }
         }
 
-        for (Connection con : untouchables) {
-            if (con.contains(rpi)) {
-                result.add(con.spi);
-            }
-        }
-
         return result.toArray(new SendPortIdentifier[result.size()]);
     }
 
     @Override
-    public synchronized Set<ReceivePortIdentifier> getSomeUntouchableConnections(
+    public synchronized Set<ReceivePortIdentifier> getSomeConnections(
             CacheSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionsFailedException, ConnectionTimedOutException {
@@ -331,7 +253,7 @@ public class LruCacheManager extends CacheManager {
 
         if (aliveConn.size() > 0) {
             rpis.removeAll(aliveConn);
-            moveToUntouchables(port.identifier(), aliveConn);
+            markAsUsed(port.identifier(), aliveConn);
         }
 
         if (rpis.isEmpty()) {
@@ -372,8 +294,9 @@ public class LruCacheManager extends CacheManager {
         }
 
         toConnectNo = Math.min(MAX_CONNS - aliveConNo, rpis.size());
-        freeConns = Math.min(toConnectNo, MAX_CONNS - fromRPLiveConns.size()
-                - fromSPLiveConns.size() - untouchables.size());
+        freeConns = Math.min(toConnectNo, 
+                MAX_CONNS - fromRPLiveConns.size() - fromSPLiveConns.size());
+        List<Connection> tempList = new LinkedList<Connection>();
 
         /*
          * Create connections whilst we have free space.
@@ -404,7 +327,7 @@ public class LruCacheManager extends CacheManager {
                 toConnectNo--;
 
                 Connection con = new Connection(port.identifier(), rpi);
-                untouchables.add(con);
+                tempList.add(con);
             } catch (IOException ex) {
                 Logger.getLogger(RandomCacheManager.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -419,7 +342,7 @@ public class LruCacheManager extends CacheManager {
                  * Check if I'm full of connections.
                  */
                 if (fromSPLiveConns.size() + fromRPLiveConns.size()
-                        + untouchables.size() >= MAX_CONNS) {
+                        + tempList.size() >= MAX_CONNS) {
                     if (deadline > 0 && deadline - System.currentTimeMillis() <= 0) {
                         break;
                     }
@@ -446,43 +369,35 @@ public class LruCacheManager extends CacheManager {
                 toConnectNo--;
 
                 Connection con = new Connection(port.identifier(), rpi);
-                untouchables.add(con);
+                tempList.add(con);
             } catch (IOException ex) {
                 Logger.getLogger(RandomCacheManager.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+        
+        /*
+         * I'm adding the connections here at the end, because I didn't want to
+         * cache some of the connection I was actually fighting to make room
+         * for.
+         */
+        for (Connection con : tempList) {
+            fromSPLiveConns.add(con);
+            fromSPCacheConns.remove(con);
         }
 
         return result;
     }
 
-    private void moveToUntouchables(SendPortIdentifier spi,
+    private void markAsUsed(SendPortIdentifier spi,
             Set<ReceivePortIdentifier> allAliveConn) {
+        
         Set<Connection> aliveConn = new HashSet<Connection>();
         for (ReceivePortIdentifier rpi : allAliveConn) {
             aliveConn.add(new Connection(spi, rpi));
         }
 
         fromSPLiveConns.removeAll(aliveConn);
-        untouchables.addAll(aliveConn);
-    }
-
-    /*
-     * These alive connections are done being untouchables. They can be cached
-     * again, but they have been recently used. Place them at the end of the
-     * list.
-     */
-    @Override
-    public synchronized void doneWith(SendPortIdentifier spi,
-            Set<ReceivePortIdentifier> connected) {
-        Set<Connection> aliveConn = new HashSet<Connection>();
-        for (ReceivePortIdentifier rpi : connected) {
-            aliveConn.add(new Connection(spi, rpi));
-        }
-
-        untouchables.removeAll(aliveConn);
         fromSPLiveConns.addAll(aliveConn);
-
-        this.notifyAll();
     }
 
     private void logReport() {

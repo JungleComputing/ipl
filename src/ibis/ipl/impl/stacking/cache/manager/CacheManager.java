@@ -41,6 +41,7 @@ public abstract class CacheManager {
      */
     public static final String sideChnSPName = "sideChannelSendport_uniqueStrainOfThePox";
     public static final String sideChnRPName = "sideChannelRecvport_uniqueStrainOfThePox";
+    
     /**
      * The send and receive ports for the side channel should be static, i.e. 1
      * SP and 1 RP per CacheManager = Ibis instance. but in order to instantiate
@@ -70,6 +71,11 @@ public abstract class CacheManager {
                 System.getProperty("MAX_CONNS", Integer.toString(MAX_CONNS_DEFAULT)));
 
     }
+    private static long totalTime, count;
+    public static void addStreamTime(long l) {
+        totalTime += l;
+        count++;
+    }
 
     CacheManager(CacheIbis ibis) {
         try {
@@ -92,6 +98,9 @@ public abstract class CacheManager {
 
     public void end() {
         try {
+            if(count>0) {
+                log.log(Level.INFO, "Stream avg:\t{0} ms", totalTime/count);
+            }
             sideChannelSendPort.close();
             // will this block?
             sideChannelReceivePort.close();
@@ -168,11 +177,8 @@ public abstract class CacheManager {
      * @param timeoutMillis
      * @return
      */
-    abstract public Set<ReceivePortIdentifier> getSomeUntouchableConnections(
+    abstract public Set<ReceivePortIdentifier> getSomeConnections(
             CacheSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionTimedOutException, ConnectionsFailedException;
-
-    abstract public void doneWith(SendPortIdentifier spi,
-            Set<ReceivePortIdentifier> connected);
 }

@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class BufferedDataOutputStream extends DataOutputStream {
@@ -81,65 +80,83 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * Send to all the connected receive ports the message built so far.
      */
     private void stream(boolean isLastPart) throws IOException {
+        long start = System.currentTimeMillis();
+
         /*
          * All of our destinations.
          */
-        Set<ReceivePortIdentifier> rpis = new HashSet<ReceivePortIdentifier>(
+        Set<ReceivePortIdentifier> destRpis = new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(port.connectedTo()));
+        /*
+         * Subset of destionation RPIs of which we have their permission to
+         * write to them.
+         */
+        Set<ReceivePortIdentifier> gotAttention;
 
-        while (!rpis.isEmpty()) {
+        while (!destRpis.isEmpty()) {
             /*
-             * These connections are alive, but because I'm releasing the lock
-             * on cacheManager, any other port could try and cache these
-             * connections (for which I've worked so hard to get). So these
-             * connections are moved to limbo - becoming untouchable - and taken
-             * out when I say so, i.e. after I've written the message.
-             */
-            Set<ReceivePortIdentifier> connected = port.cacheManager.
-                    getSomeUntouchableConnections(port, rpis, 0, false);
-            /*
-             * I need to release the lock on cacheManager here, otherwise
-             * deadlock: too complicated to explain here.
-             */
-
-            assert connected.size() > 0;
-
-            rpis.removeAll(connected);
-
-            /*
-             * Before sending the message to the receive ports, make sure they
-             * have no other alive messages. Blocking until made certain of
-             * this.
+             * We want the destined RPIs to have their live read message from
+             * us, so as not to have interferance with other streaming messages.
              *
-             * I must not hold the lock on cacheManager whilst I wait here. This
-             * was the cause of a deadlock, but I have to wait.
+             * For this, either we have their attention from the 1st part of the
+             * logical streamed message or we need to signal them that we want
+             * to write a msg to them.
+             *
+             * Then, we need to wait for their approval, i.e. they will accept
+             * an incoming message from us.
+             *
+             * Wait for K approvals.
+             * 1 <= K <= min(MAX_CONNS, destRpis.size()).
+             *
+             * don't know what value for K!??!?!
              */
-            CacheManager.log.log(Level.INFO, "Getting targeted rpis' read msgs...");
-            yourLiveReadMessageIsFromMe(connected);
-            /*
-             * Send the message to whoever is connected.
-             */
-            WriteMessage msg = port.sendPort.newMessage();
-            try {
-                noMsg++;
-                msg.writeBoolean(isLastPart);
-                msg.writeInt(index);
-                msg.writeArray(buffer, 0, index);
-                msg.finish();
-            } catch (IOException ex) {
-                msg.finish(ex);
-                CacheManager.log.log(Level.SEVERE, "Failed to write {0} bytes message "
-                        + "to {1} ports.", new Object[]{index, rpis.size()});
-            }
-            CacheManager.log.log(Level.INFO, "\tSent msg: ({0}, {1})",
-                    new Object[]{isLastPart, index});
+            int K = 1;
+            gotAttention = iWantYouToReadFromMe(destRpis, K);
 
-            if (isLastPart) {
-                yourLiveMessageIsNotMyConcern(connected);
-            }
+            destRpis.removeAll(gotAttention);
 
-            port.cacheManager.doneWith(port.identifier(), connected);
+            synchronized (port.cacheManager) {
+                while (!gotAttention.isEmpty()) {
+                    /*
+                     * Get some connections from the rpis in gotAttention array.
+                     */
+                    Set<ReceivePortIdentifier> connected =
+                            port.cacheManager.getSomeConnections(
+                            port, gotAttention, 0, false);
+
+                    assert connected.size() > 0;
+
+                    gotAttention.removeAll(connected);
+
+                    /*
+                     * Send the message to whoever is connected.
+                     */
+                    WriteMessage msg = port.sendPort.newMessage();
+                    try {
+                        noMsg++;
+                        msg.writeBoolean(isLastPart);
+                        msg.writeInt(index);
+                        msg.writeArray(buffer, 0, index);
+                        msg.finish();
+                    } catch (IOException ex) {
+                        msg.finish(ex);
+                        CacheManager.log.log(Level.SEVERE, "Failed to write {0} bytes message "
+                                + "to {1} ports.", new Object[]{index, destRpis.size()});
+                    }
+                    CacheManager.log.log(Level.INFO, "\tSent msg: ({0}, {1})",
+                            new Object[]{isLastPart, index});
+
+                    /*
+                     * If this was the last part of the streamed message, I
+                     * don't have the receive ports attention anymore.
+                     */
+                    if (isLastPart) {
+                        yourLiveMessageIsNotMyConcern(connected);
+                    }
+                }
+            }
         }
+        CacheManager.addStreamTime(System.currentTimeMillis()-start);
         /*
          * Buffer is sent to everyone. Clear it.
          */
@@ -152,62 +169,41 @@ public class BufferedDataOutputStream extends DataOutputStream {
         }
     }
 
-    private void yourLiveReadMessageIsFromMe(Set<ReceivePortIdentifier> rpis) {
-        ExecutorService ex = Executors.newCachedThreadPool();
+    private Set<ReceivePortIdentifier> iWantYouToReadFromMe(
+            Set<ReceivePortIdentifier> rpis, int K) {
+        
         for (ReceivePortIdentifier rpi : rpis) {
-            /*
-             * I already got this receive port's alive read message.
-             */
-            if (yourReadMessageIsAliveFromMeSet.contains(rpi)) {
-                continue;
+            if (!yourReadMessageIsAliveFromMeSet.contains(rpi)) {
+                /*
+                 * I have to let the receive port know that I want him to read
+                 * my message.
+                 */
+                port.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                        port.identifier(), rpi,
+                        SideChannelProtocol.READ_MY_MESSAGE);
             }
-            ex.submit(new AwaitForSignalThread(this, rpi));
         }
 
-        ex.shutdown();
+        /*
+         * Need to wait for K approvals.
+         */
+        Set<ReceivePortIdentifier> result;
+        synchronized (yourReadMessageIsAliveFromMeSet) {
+            result = new HashSet<ReceivePortIdentifier>(yourReadMessageIsAliveFromMeSet);
+            result.retainAll(rpis);
 
-        boolean done;
-        do {
-            try {
-                done = ex.awaitTermination(10, TimeUnit.DAYS);
-            } catch (InterruptedException e) {
-                done = false;
-            }
-        } while (!done);
-    }
-
-    private static class AwaitForSignalThread extends Thread {
-
-        ReceivePortIdentifier rpi;
-        BufferedDataOutputStream out;
-
-        private AwaitForSignalThread(BufferedDataOutputStream out,
-                ReceivePortIdentifier rpi) {
-            this.rpi = rpi;
-            this.out = out;
-        }
-
-        @Override
-        public void run() {
-            /*
-             * I have to let the receive port know that I want him to read my
-             * message.
-             */
-            out.port.cacheManager.sideChannelHandler.newThreadSendProtocol(
-                    out.port.identifier(), rpi,
-                    SideChannelProtocol.READ_MY_MESSAGE);
-            /*
-             * Need to wait for approval.
-             */
-            synchronized (out.yourReadMessageIsAliveFromMeSet) {
-                while (!out.yourReadMessageIsAliveFromMeSet.contains(rpi)) {
-                    try {
-                        out.yourReadMessageIsAliveFromMeSet.wait();
-                    } catch (InterruptedException ignoreMe) {
-                    }
+            while (result.size() < K) {
+                try {
+                    yourReadMessageIsAliveFromMeSet.wait();
+                } catch (InterruptedException ignoreMe) {
                 }
+                result.clear();
+                result.addAll(yourReadMessageIsAliveFromMeSet);
+                result.retainAll(rpis);
             }
         }
+
+        return result;
     }
 
     @Override
