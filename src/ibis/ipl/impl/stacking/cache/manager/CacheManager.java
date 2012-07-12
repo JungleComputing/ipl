@@ -7,6 +7,7 @@ import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.*;
@@ -59,6 +60,10 @@ public abstract class CacheManager {
     public final CacheStatistics statistics;
     
     public final Lock lock;
+    public final Condition allClosedCondition;
+    public final Condition reservationsCondition;
+    public final Condition reserveAckCond;
+    public final Condition noLiveConnCondition;
 
     static {
         cacheLogString = "cacheIbis.log";
@@ -96,6 +101,10 @@ public abstract class CacheManager {
                     ultraLightPT, sideChnSPName);
             
             lock = new ReentrantLock(true);
+            allClosedCondition = lock.newCondition();
+            reservationsCondition = lock.newCondition();
+            reserveAckCond = lock.newCondition();
+            noLiveConnCondition = lock.newCondition();
         
             statistics = new CacheStatistics();
 

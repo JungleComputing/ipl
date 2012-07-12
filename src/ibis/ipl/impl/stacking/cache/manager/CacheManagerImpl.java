@@ -8,6 +8,7 @@ import ibis.ipl.impl.stacking.cache.CacheSendPort;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public abstract class CacheManagerImpl extends CacheManager {
@@ -34,13 +35,13 @@ public abstract class CacheManagerImpl extends CacheManager {
     abstract protected Connection cacheOneConnectionFor(Connection con);
 
     @Override
-    public synchronized void cacheConnection(SendPortIdentifier spi,
+    public void cacheConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
 
         while (reservedConns.contains(con)) {
             try {
-                wait();
+                super.reservationsCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -60,13 +61,13 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized void removeConnection(SendPortIdentifier spi,
+    public void removeConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
 
         while (reservedConns.contains(con)) {
             try {
-                wait();
+                super.reservationsCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -75,12 +76,14 @@ public abstract class CacheManagerImpl extends CacheManager {
 
         fromSPCacheConns.remove(con);
         fromSPLiveConns.remove(con);
+        
+        super.allClosedCondition.signal();
 
         logReport();
     }
 
     @Override
-    public synchronized void removeAllConnections(SendPortIdentifier spi) {
+    public void removeAllConnections(SendPortIdentifier spi) {
         boolean notAvailable;
         while (true) {
             notAvailable = false;
@@ -92,7 +95,8 @@ public abstract class CacheManagerImpl extends CacheManager {
             }
             if (notAvailable) {
                 try {
-                    wait();
+//                    wait();
+                    super.reservationsCondition.await();
                 } catch (InterruptedException ignoreMe) {
                 }
             } else {
@@ -114,22 +118,26 @@ public abstract class CacheManagerImpl extends CacheManager {
                 statistics.remove(conn);
             }
         }
+        
+        super.allClosedCondition.signal();
 
         logReport();
     }
 
     @Override
-    public synchronized void addConnection(ReceivePortIdentifier rpi,
+    public void addConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         /*
          * The connection was reserved and now it's actually created.
          */
         if (reservedConns.contains(con)) {
-            reservedConns.remove(con);
-            fromRPLiveConns.add(con);
 
-            notifyAll();
+            reservedConns.remove(con);
+            super.reservationsCondition.signalAll();
+            
+            fromRPLiveConns.add(con);
+            super.noLiveConnCondition.signalAll();
 
             statistics.add(con);
 
@@ -144,6 +152,7 @@ public abstract class CacheManagerImpl extends CacheManager {
         }
 
         fromRPLiveConns.add(con);
+        super.noLiveConnCondition.signalAll();
 
         statistics.add(con);
 
@@ -151,13 +160,13 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized void cacheConnection(ReceivePortIdentifier rpi,
+    public void cacheConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
 
         while (reservedConns.contains(con)) {
             try {
-                wait();
+                super.reservationsCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -176,13 +185,13 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized void removeConnection(ReceivePortIdentifier rpi,
+    public void removeConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
 
         while (reservedConns.contains(con)) {
             try {
-                wait();
+                super.reservationsCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -196,7 +205,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized void restoreConnection(ReceivePortIdentifier rpi,
+    public void restoreConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
 
@@ -205,12 +214,14 @@ public abstract class CacheManagerImpl extends CacheManager {
          * restored.
          */
         if (reservedConns.contains(con)) {
+            
             reservedConns.remove(con);
+            super.reservationsCondition.signalAll();
+            
             fromRPCacheConns.remove(con);
-
+            
             fromRPLiveConns.add(con);
-
-            notifyAll();
+            super.noLiveConnCondition.signalAll();
 
             statistics.restore(con);
 
@@ -226,6 +237,7 @@ public abstract class CacheManagerImpl extends CacheManager {
 
         fromRPCacheConns.remove(con);
         fromRPLiveConns.add(con);
+        super.noLiveConnCondition.signalAll();
 
         statistics.restore(con);
 
@@ -233,20 +245,20 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized boolean isConnAlive(SendPortIdentifier spi,
+    public boolean isConnAlive(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
         return fromSPLiveConns.contains(con);
     }
 
     @Override
-    public synchronized boolean isConnCached(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    public boolean isConnCached(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         return fromRPCacheConns.contains(con);
     }
 
     @Override
-    public synchronized boolean hasConnections(ReceivePortIdentifier rpi) {
+    public boolean hasConnections(ReceivePortIdentifier rpi) {
         for (Connection con : fromRPLiveConns) {
             if (con.contains(rpi)) {
                 return true;
@@ -268,7 +280,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized List<ReceivePortIdentifier> cachedRpisFrom(
+    public List<ReceivePortIdentifier> cachedRpisFrom(
             SendPortIdentifier spi) {
         List<ReceivePortIdentifier> result =
                 new LinkedList<ReceivePortIdentifier>();
@@ -281,7 +293,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized ReceivePortIdentifier[] allRpisFrom(SendPortIdentifier spi) {
+    public ReceivePortIdentifier[] allRpisFrom(SendPortIdentifier spi) {
         List<ReceivePortIdentifier> result = new LinkedList<ReceivePortIdentifier>();
 
         for (Connection con : fromSPLiveConns) {
@@ -300,7 +312,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized SendPortIdentifier[] allSpisFrom(ReceivePortIdentifier rpi) {
+    public SendPortIdentifier[] allSpisFrom(ReceivePortIdentifier rpi) {
         List<SendPortIdentifier> result = new LinkedList<SendPortIdentifier>();
 
         for (Connection con : fromRPLiveConns) {
@@ -319,7 +331,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized Set<ReceivePortIdentifier> getSomeConnections(
+    public Set<ReceivePortIdentifier> getSomeConnections(
             CacheSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionsFailedException, ibis.ipl.IbisIOException {
@@ -371,7 +383,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     /*
      * for each rpi in rpis[]: (port, rpi) is not alive.
      */
-    private synchronized Set<ReceivePortIdentifier> getSomeConnections(
+    private Set<ReceivePortIdentifier> getSomeConnections(
             CacheSendPort port,
             Set<ReceivePortIdentifier> rpis,
             int aliveConnsNo, long timeoutMillis, boolean fillTimeout) {
@@ -439,9 +451,9 @@ public abstract class CacheManagerImpl extends CacheManager {
                                         rpi, SideChannelProtocol.CANCEL_RESERVATION);
                                 break loop;
                             }
-                            wait(timeout);
+                            super.reserveAckCond.await(timeout, TimeUnit.MILLISECONDS);
                         } else {
-                            wait();
+                            super.reserveAckCond.await();
                         }
                     } catch (InterruptedException ignoreMe) {
                     }
@@ -455,6 +467,18 @@ public abstract class CacheManagerImpl extends CacheManager {
                                 rpi, SideChannelProtocol.CANCEL_RESERVATION);
                         break;
                     }
+                    
+                    /*
+                     * For this I changed every synchronized to lock.
+                     * I need to release the lock whilst connecting,
+                     * because I can get deadlock:
+                     * two machines simultaneously connect and they both
+                     * enter in the gotConnection upcall where they
+                     * need the lock again;
+                     * but neither of them can get it, because both of them
+                     * hold it here.
+                     */
+                    super.lock.unlock();
 
                     try {
                         port.sendPort.connect(rpi, timeout, fillTimeout);
@@ -469,8 +493,14 @@ public abstract class CacheManagerImpl extends CacheManager {
                         super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
                                 rpi, SideChannelProtocol.CANCEL_RESERVATION);
                         continue;
+                    } finally {
+                        /*
+                         * Ironic, huh? locking in the finally block.
+                         */
+                        super.lock.lock();
                     }
                 } else {
+                    super.lock.unlock();
                     try {
                         port.sendPort.connect(rpi);
                         CacheManager.log.log(Level.INFO, "Base send port connected:\t"
@@ -483,6 +513,8 @@ public abstract class CacheManagerImpl extends CacheManager {
                         super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
                                 rpi, SideChannelProtocol.CANCEL_RESERVATION);
                         continue;
+                    } finally {
+                        super.lock.lock();
                     }
                 }
 
@@ -496,16 +528,11 @@ public abstract class CacheManagerImpl extends CacheManager {
              * live list.
              */
             unReserve(port.identifier(), result);
-            /*
-             * Maybe someone was waiting to cache one connection and needs live
-             * connections for that to happen.
-             */
-            notifyAll();
         }
     }
 
     @Override
-    public synchronized void reserveConnection(SendPortIdentifier spi,
+    public void reserveConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
         if (fullConns()) {
@@ -521,7 +548,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized void reserveConnection(ReceivePortIdentifier rpi,
+    public void reserveConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         if (fullConns()) {
@@ -537,21 +564,29 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public synchronized void cancelReservation(SendPortIdentifier spi,
+    public void cancelReservation(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
         canceledReservations.add(new Connection(spi, rpi));
 
-        notifyAll();
+        /*
+         * The reservation is waitinf on this condition.
+         * ignore the name and use it.
+         */
+        super.noLiveConnCondition.signalAll();
 
         logReport();
     }
 
     @Override
-    public synchronized void cancelReservation(ReceivePortIdentifier rpi,
+    public void cancelReservation(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         canceledReservations.add(new Connection(rpi, spi));
 
-        notifyAll();
+        /*
+         * The reservation is waitinf on this condition.
+         * ignore the name and use it.
+         */
+        super.noLiveConnCondition.signalAll();
 
         logReport();
     }
@@ -571,7 +606,18 @@ public abstract class CacheManagerImpl extends CacheManager {
         }
 
         reservedConns.removeAll(toBeMoved);
+        /*
+         * Notify anyone who was waiting on the reservations to clear.
+         */
+        super.reservationsCondition.signalAll();
+        
         fromSPLiveConns.addAll(toBeMoved);
+        /*
+         * Maybe someone was waiting to cache one connection and needs live
+         * connections for that to happen.
+         */
+        super.noLiveConnCondition.signalAll();
+
         fromSPCacheConns.removeAll(toBeMoved);
 
         logReport();

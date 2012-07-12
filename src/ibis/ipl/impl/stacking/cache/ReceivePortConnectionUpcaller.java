@@ -32,7 +32,8 @@ public class ReceivePortConnectionUpcaller
 
         boolean accepted = true;
 
-        synchronized (port.cacheManager) {            
+        port.cacheManager.lock.lock();
+        try {            
             if (port.cacheManager.isConnCached(this.port.identifier(), spi)) {
                 CacheManager.log.log(Level.INFO, "\t\trestoring from {0}", spi);
                 // connection was cached
@@ -45,7 +46,8 @@ public class ReceivePortConnectionUpcaller
                 // new connection
                 port.cacheManager.addConnection(port.identifier(), spi);
             }
-            port.cacheManager.notifyAll();
+        } finally {
+            port.cacheManager.lock.unlock();
         }
 
         return accepted;
@@ -73,7 +75,8 @@ public class ReceivePortConnectionUpcaller
             CacheManager.log.log(Level.INFO, "\tcause was:\n{0}", reason.toString());
         }
 
-        synchronized (port.cacheManager) {
+        port.cacheManager.lock.lock();
+        try {
 
             if (me == null) {
                 /*
@@ -115,7 +118,8 @@ public class ReceivePortConnectionUpcaller
                  */
                 port.cacheManager.removeConnection(me.identifier(), spi);
             }
-            port.cacheManager.notifyAll();
+        } finally {
+            port.cacheManager.lock.unlock();
         }
 
         if (upcaller != null) {

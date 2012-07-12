@@ -150,7 +150,8 @@ public final class CacheSendPort implements SendPort {
                         "Trying to close the send port while a message is alive!");
             }
         }
-        synchronized (cacheManager) {
+        cacheManager.lock.lock();
+        try {
             /*
              * Send a DISCONNECT message to the receive ports with whom we have
              * cached connections. Otherwise, they won't get the
@@ -169,6 +170,8 @@ public final class CacheSendPort implements SendPort {
              * Disconnect from whoever is connected to the base send port.
              */
             sendPort.close();
+        } finally {
+            cacheManager.lock.unlock();
         }
     }
 
@@ -275,6 +278,7 @@ public final class CacheSendPort implements SendPort {
              * receive ports received as params. This method guarantees at least
              * 1 successfull connection.
              */
+            cacheManager.lock.lock();
             try {
                 if (deadline > 0) {
                     connected = cacheManager.getSomeConnections(
@@ -296,13 +300,20 @@ public final class CacheSendPort implements SendPort {
                 throw ex;
             } catch (ibis.ipl.IbisIOException connFailed) {
                 throw (ConnectionsFailedException) connFailed;
+            } finally {
+                cacheManager.lock.unlock();
             }
         }
     }
 
     @Override
     public ReceivePortIdentifier[] connectedTo() {
-        return cacheManager.allRpisFrom(this.identifier());
+        cacheManager.lock.lock(); 
+        try {
+            return cacheManager.allRpisFrom(this.identifier());
+        } finally {
+            cacheManager.lock.unlock();
+        }
     }
 
     @Override
@@ -314,7 +325,8 @@ public final class CacheSendPort implements SendPort {
                         "Trying to disconnect while a message is alive!");
             }
         }
-        synchronized (cacheManager) {
+        cacheManager.lock.lock();
+        try {
             if (cacheManager.isConnAlive(this.identifier(), rpi)) {
                 sendPort.disconnect(rpi);
             } else {
@@ -330,6 +342,8 @@ public final class CacheSendPort implements SendPort {
              * Remove the connection.
              */
             cacheManager.removeConnection(this.identifier(), rpi);
+        } finally {
+            cacheManager.lock.unlock();
         }
     }
 

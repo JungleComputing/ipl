@@ -24,9 +24,11 @@ public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
         CacheManager.log.log(Level.INFO, "\n\tGot lost connection at send port...");
         CacheManager.log.log(Level.INFO, "\tcause was:\n{0}", cause);
 
-        synchronized (port.cacheManager) {
+        port.cacheManager.lock.lock();
+        try {
             port.cacheManager.removeConnection(sendPort.identifier(), rpi);
-            port.cacheManager.notifyAll();
+        } finally {
+            port.cacheManager.lock.unlock();
         }
 
         if (upcaller != null) {

@@ -11,13 +11,13 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
     }
     
     @Override
-    protected synchronized Connection cacheOneConnection() {
+    protected Connection cacheOneConnection() {
         /*
          * Nothing to cache. Wait until some live connections arive.
          */
         while (fromSPLiveConns.size() + fromRPLiveConns.size() == 0) {
             try {
-                wait();
+                super.noLiveConnCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -58,14 +58,14 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
     }
 
     @Override
-    protected synchronized Connection cacheOneConnectionFor(Connection conn) {
+    protected Connection cacheOneConnectionFor(Connection conn) {
         /*
          * Nothing to cache. Wait until some live connections arive.
          */
         while ((fromSPLiveConns.size() + fromRPLiveConns.size() == 0)
                 && (!canceledReservations.contains(conn))){
             try {
-                wait();
+                super.noLiveConnCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }

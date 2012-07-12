@@ -6,6 +6,7 @@ import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -163,7 +164,8 @@ public final class CacheReceivePort implements ReceivePort {
         /*
          * Wait until all logically alive connections are closed.
          */
-        synchronized (cacheManager) {
+        cacheManager.lock.lock();
+        try {
             if (closed) {
                 return;
             }
@@ -173,10 +175,14 @@ public final class CacheReceivePort implements ReceivePort {
                 try {
                     CacheManager.log.log(Level.INFO, "Waiting for some"
                             + " connections to close.");
-                    cacheManager.wait(deadline - System.currentTimeMillis());
+//                    cacheManager.wait(deadline - System.currentTimeMillis());
+                    cacheManager.allClosedCondition.await(
+                            deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
                 } catch (InterruptedException ignoreMe) {
                 }
             }
+        } finally {
+            cacheManager.lock.unlock();
         }
         
         CacheManager.log.log(Level.INFO, "Closing base receive port...");
@@ -185,7 +191,12 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public SendPortIdentifier[] connectedTo() {
-        return cacheManager.allSpisFrom(this.identifier());
+        cacheManager.lock.lock();
+        try {
+            return cacheManager.allSpisFrom(this.identifier());
+        } finally {
+            cacheManager.lock.unlock();
+        }
     }
 
     @Override
@@ -270,7 +281,15 @@ public final class CacheReceivePort implements ReceivePort {
         synchronized (this) {
             while (currentReadMsg != null) {
                 try {
-                    this.wait();
+                    if(deadline > 0) {
+                        long timeout = deadline - System.currentTimeMillis();
+                        if(timeout <= 0) {
+                            throw new ReceiveTimedOutException();
+                        }
+                        wait(timeout);
+                    } else {
+                        wait();
+                    }
                 } catch (InterruptedException ignoreMe) {
                 }
             }

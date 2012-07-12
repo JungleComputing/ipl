@@ -50,10 +50,15 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         switch (opcode) {
             /*
              * At ReceivePortSide: the sender machine will establish a future
-             * conneciton. Make room for it.
+             * connection. Make room for it.
              */
             case RESERVE:
-                cacheManager.reserveConnection(rpi, spi);
+                cacheManager.lock.lock();
+                try {
+                    cacheManager.reserveConnection(rpi, spi);
+                } finally {
+                    cacheManager.lock.unlock();
+                }
                 /*
                  * Now send ack back.
                  */
@@ -64,9 +69,12 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * connection.
              */
             case RESERVE_ACK:
-                synchronized (cacheManager) {
+                cacheManager.lock.lock();
+                try {
                     sp.reserveAckReceived.add(rpi);
-                    cacheManager.notifyAll();
+                    cacheManager.reserveAckCond.signal();
+                } finally {
+                    cacheManager.lock.unlock();
                 }
                 break;
 
@@ -75,7 +83,12 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * The promised connection will arive no more.
              */
             case CANCEL_RESERVATION:
-                cacheManager.cancelReservation(rpi, spi);
+                cacheManager.lock.lock();
+                try {
+                    cacheManager.cancelReservation(rpi, spi);
+                } finally {
+                    cacheManager.lock.unlock();
+                }
                 break;
             /*
              * At SendPortSide: This upcall comes when the receive port at the
@@ -83,10 +96,13 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * its receiveport.
              */
             case CACHE_FROM_RP_AT_SP:
-                synchronized (cacheManager) {
+                cacheManager.lock.lock();
+                try {
                     boolean heKnows = true;
                     CacheSendPort.map.get(spi).cache(rpi, heKnows);
                     cacheManager.cacheConnection(spi, rpi);
+                } finally {
+                    cacheManager.lock.unlock();
                 }
                 break;
 

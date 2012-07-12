@@ -14,18 +14,17 @@ public class RandomCacheManagerImpl extends CacheManagerImpl {
     }
 
     @Override
-    protected synchronized Connection cacheOneConnection() {
+    protected Connection cacheOneConnection() {
         /*
          * Nothing to cache. Wait until some live connections arive.
          */
         while (fromSPLiveConns.size() + fromRPLiveConns.size() == 0) {
             try {
-                wait();
+                super.noLiveConnCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
 
-        
         int idx = r.nextInt(fromSPLiveConns.size() + fromRPLiveConns.size());
         if (idx < fromSPLiveConns.size()) {
             Connection con = fromSPLiveConns.remove(idx);
@@ -58,14 +57,14 @@ public class RandomCacheManagerImpl extends CacheManagerImpl {
     }
 
     @Override
-    protected synchronized Connection cacheOneConnectionFor(Connection conn) {
+    protected Connection cacheOneConnectionFor(Connection conn) {
         /*
          * Nothing to cache. Wait until some live connections arive.
          */
         while ((fromSPLiveConns.size() + fromRPLiveConns.size() == 0)
                 && (!canceledReservations.contains(conn))){
             try {
-                wait();
+                super.noLiveConnCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -74,7 +73,6 @@ public class RandomCacheManagerImpl extends CacheManagerImpl {
             return null;
         }
 
-        
         int idx = r.nextInt(fromSPLiveConns.size() + fromRPLiveConns.size());
         if (idx < fromSPLiveConns.size()) {
             Connection con = fromSPLiveConns.remove(idx);
