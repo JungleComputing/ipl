@@ -12,8 +12,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class BufferedDataOutputStream extends DataOutputStream {
@@ -106,16 +104,17 @@ public class BufferedDataOutputStream extends DataOutputStream {
              * an incoming message from us.
              *
              * Wait for K approvals.
-             * 1 <= K <= min(MAX_CONNS, destRpis.size()).
+             * 1 <= K <= destRpis.size().
              *
              * don't know what value for K!??!?!
              */
-            int K = 1;
+            int K = destRpis.size();
             gotAttention = iWantYouToReadFromMe(destRpis, K);
 
             destRpis.removeAll(gotAttention);
 
-            synchronized (port.cacheManager) {
+            port.cacheManager.lock.lock();
+            try {
                 while (!gotAttention.isEmpty()) {
                     /*
                      * Get some connections from the rpis in gotAttention array.
@@ -154,6 +153,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
                         yourLiveMessageIsNotMyConcern(connected);
                     }
                 }
+            } finally {
+                port.cacheManager.lock.unlock();
             }
         }
         CacheManager.addStreamTime(System.currentTimeMillis()-start);

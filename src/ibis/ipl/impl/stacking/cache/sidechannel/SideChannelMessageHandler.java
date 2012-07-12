@@ -5,13 +5,27 @@ import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class SideChannelMessageHandler implements MessageUpcall, SideChannelProtocol {
 
     final CacheManager cacheManager;
-    public static final Object ackLock = new Object();
-    public static boolean ackReceived = false;
+    
+    public static final Map<Byte, String> map = new HashMap<Byte, String>();
+    
+    static {
+        map.put(RESERVE, "RESERVE");
+        map.put(RESERVE_ACK, "RESERVE_ACK");
+        map.put(CANCEL_RESERVATION, "CANCEL_RESERVATION");
+        map.put(CACHE_FROM_RP_AT_SP, "CACHE_FROM_RP_AT_SP");
+        map.put(CACHE_FROM_SP, "CACHE_FROM_SP");
+        map.put(CACHE_FROM_SP_ACK, "CACHE_FROM_SP_ACK");
+        map.put(DISCONNECT, "DISCONNECT");
+        map.put(READ_MY_MESSAGE, "READ_MY_MESSAGE");
+        map.put(GIVE_ME_YOUR_MESSAGE, "GIVE_ME_YOUR_MESSAGE");
+    }
 
     public SideChannelMessageHandler(CacheManager cache) {
         this.cacheManager = cache;
@@ -26,26 +40,47 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
         CacheReceivePort rp = CacheReceivePort.map.get(rpi);
         CacheSendPort sp = CacheSendPort.map.get(spi);
-        
-        CacheManager.log.log(Level.INFO,"\tGot side-message: \t["
+
+        CacheManager.log.log(Level.INFO, "\tGot side-message: \t["
                 + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
-                new Object[] {spi.name(), spi.ibisIdentifier().name(),
-                    rpi.name(), rpi.ibisIdentifier().name(), opcode});
+                new Object[]{spi.name(), spi.ibisIdentifier().name(),
+                    rpi.name(), rpi.ibisIdentifier().name(), 
+                    map.get(opcode)});
 
         switch (opcode) {
             /*
-             * The sender machine wants a free port at this machine.
-             *
-             * useless: with connection_upcalls, when a sendport connects, the
-             * receiveport will get a gotConnection upcall.
+             * At ReceivePortSide: the sender machine will establish a future
+             * conneciton. Make room for it.
              */
-//            case RESERVE_RP:
-//                cache.reserve(msg.origin().ibisIdentifier());
-//                break;
+            case RESERVE:
+                cacheManager.reserveConnection(rpi, spi);
+                /*
+                 * Now send ack back.
+                 */
+                newThreadSendProtocol(rpi, spi, SideChannelProtocol.RESERVE_ACK);
+                break;
             /*
-             * At SendPortSide: This upcall comes when the receive port
-             * at the sending machine wants
-             * to cache a connection from this sendport to its receiveport.
+             * At SendPortSide: the ack received after our request for a
+             * connection.
+             */
+            case RESERVE_ACK:
+                synchronized (cacheManager) {
+                    sp.reserveAckReceived.add(rpi);
+                    cacheManager.notifyAll();
+                }
+                break;
+
+            /*
+             * At ReceivePortSide:
+             * The promised connection will arive no more.
+             */
+            case CANCEL_RESERVATION:
+                cacheManager.cancelReservation(rpi, spi);
+                break;
+            /*
+             * At SendPortSide: This upcall comes when the receive port at the
+             * sending machine wants to cache a connection from this sendport to
+             * its receiveport.
              */
             case CACHE_FROM_RP_AT_SP:
                 synchronized (cacheManager) {
@@ -56,7 +91,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 break;
 
             /*
-             * At ReceivePortSide: This upcall comes when the sendport cached
+             * At ReceivePortSide: This upcall comes when the sendport caches
              * the connection. The actual disconnection will take place at the
              * lostConnection() upcall. Here we merely want to mark that the
              * disconnect call to come is caching and not a true disconnect
@@ -68,7 +103,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 /*
                  * Now send ack back.
                  */
-                newThreadSendProtocol(rpi, spi, SideChannelProtocol.ACK);
+                newThreadSendProtocol(rpi, spi, SideChannelProtocol.CACHE_FROM_SP_ACK);
 
                 /*
                  * Done.
@@ -78,10 +113,10 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
             /*
              * At SendPortSide: Ack received from the above scenario.
              */
-            case ACK:
-                synchronized (ackLock) {
-                    ackReceived = true;
-                    ackLock.notifyAll();
+            case CACHE_FROM_SP_ACK:
+                synchronized (sp.cacheAckLock) {
+                    sp.cacheAckReceived = true;
+                    sp.cacheAckLock.notifyAll();
                 }
                 break;
 
@@ -96,21 +131,18 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
             /*
              * At ReceivePortSide: the send port which sent this protocol
-             * requests that we will read his message. 
-             * Place it in the waiting queue, because we might have
-             * now some other alive read message.
+             * requests that we will read his message. Place it in the waiting
+             * queue, because we might have now some other alive read message.
              */
             case READ_MY_MESSAGE:
-                synchronized(rp) {
+                synchronized (rp) {
                     /*
-                     * If I have a current alive message
-                     * OR
-                     * if I already gave permision to
-                     * another send port, 
-                     * then store this request for later.
+                     * If I have a current alive message OR if I already gave
+                     * permision to another send port, then store this request
+                     * for later.
                      */
-                    if((rp.currentReadMsg != null) ||
-                            rp.readMsgRequested) {
+                    if ((rp.currentReadMsg != null)
+                            || rp.readMsgRequested) {
                         rp.toHaveMyFutureAttention.add(spi);
                         rp.notifyAll();
                     } else {
@@ -129,7 +161,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * sendport of this so it can start writting to it.
              */
             case GIVE_ME_YOUR_MESSAGE:
-                synchronized(sp.currentMsg.dataOut.yourReadMessageIsAliveFromMeSet) {
+                synchronized (sp.currentMsg.dataOut.yourReadMessageIsAliveFromMeSet) {
                     sp.currentMsg.dataOut.yourReadMessageIsAliveFromMeSet.add(rpi);
                     sp.currentMsg.dataOut.yourReadMessageIsAliveFromMeSet.notifyAll();
                 }
@@ -137,12 +169,13 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         }
     }
 
-    private void sendProtocol(SendPortIdentifier spi, 
+    private void sendProtocol(SendPortIdentifier spi,
             ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode) {
-        CacheManager.log.log(Level.INFO,"\tSending side-message: \t["
+        CacheManager.log.log(Level.INFO, "\tSending side-message: \t["
                 + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
-                new Object[] {spi.name(), spi.ibisIdentifier().name(),
-                    rpi.name(), rpi.ibisIdentifier().name(), opcode});
+                new Object[]{spi.name(), spi.ibisIdentifier().name(),
+                    rpi.name(), rpi.ibisIdentifier().name(), 
+                    map.get(opcode)});
         /*
          * Synchronize on the sideChannelSendPort so as not to send multiple
          * messages at the same time.
@@ -163,10 +196,10 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
             }
         }
     }
-    
+
     public void newThreadSendProtocol(final ReceivePortIdentifier rpi,
             final SendPortIdentifier spi, final byte opcode) {
-        
+
         new Thread() {
 
             @Override
@@ -175,10 +208,10 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
             }
         }.start();
     }
-    
+
     public void newThreadSendProtocol(final SendPortIdentifier spi,
             final ReceivePortIdentifier rpi, final byte opcode) {
-        
+
         new Thread() {
 
             @Override

@@ -1,15 +1,8 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.CapabilitySet;
-import ibis.ipl.Credentials;
-import ibis.ipl.Ibis;
-import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisCreationFailedException;
-import ibis.ipl.IbisFactory;
-import ibis.ipl.PortType;
-import ibis.ipl.RegistryEventHandler;
-import java.util.*;
-
+import ibis.ipl.*;
+import java.util.ArrayList;
+import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

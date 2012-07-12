@@ -7,6 +7,8 @@ import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.*;
 
 /**
@@ -20,7 +22,7 @@ public abstract class CacheManager {
      */
     public static final int BUFFER_CAPACITY = 1 << 16;
     public static final int MAX_CONNS;
-    public static final int MAX_CONNS_DEFAULT = 6;
+    public static final int MAX_CONNS_DEFAULT = 100;
     /**
      * Fields for logging.
      */
@@ -53,6 +55,10 @@ public abstract class CacheManager {
      * This field handles the upcalls and provides a sendProtocol method.
      */
     public final SideChannelMessageHandler sideChannelHandler;
+    
+    public final CacheStatistics statistics;
+    
+    public final Lock lock;
 
     static {
         cacheLogString = "cacheIbis.log";
@@ -88,12 +94,16 @@ public abstract class CacheManager {
 
             sideChannelSendPort = ibis.baseIbis.createSendPort(
                     ultraLightPT, sideChnSPName);
+            
+            lock = new ReentrantLock(true);
+        
+            statistics = new CacheStatistics();
 
             log.log(Level.INFO, "Cache manager instantiated on {0}", ibis.identifier().name());
         } catch (IOException ex) {
             log.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.");
             throw new RuntimeException(ex);
-        }
+        }        
     }
 
     public void end() {
@@ -101,6 +111,9 @@ public abstract class CacheManager {
             if(count>0) {
                 log.log(Level.INFO, "Stream avg:\t{0} ms", totalTime/count);
             }
+            
+            statistics.printStatistics(log);
+            
             sideChannelSendPort.close();
             // will this block?
             sideChannelReceivePort.close();
@@ -180,5 +193,17 @@ public abstract class CacheManager {
     abstract public Set<ReceivePortIdentifier> getSomeConnections(
             CacheSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
-            ConnectionTimedOutException, ConnectionsFailedException;
+            ConnectionsFailedException, ibis.ipl.IbisIOException;
+
+    abstract public void reserveConnection(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
+    
+    abstract public void reserveConnection(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
+    
+    abstract public void cancelReservation(SendPortIdentifier spi, 
+            ReceivePortIdentifier rpi);
+
+    abstract public void cancelReservation(ReceivePortIdentifier rpi, 
+            SendPortIdentifier spi);
 }

@@ -85,7 +85,12 @@ public class Connection {
     
     @Override
     public String toString() {
-        return "(" + spi.name() +"-" + spi.ibisIdentifier().name() + ", " +
+        if(atSendPortSide) {
+            return "(" + spi.name() +"-" + spi.ibisIdentifier().name() + ", " +
                rpi.name() +"-" + rpi.ibisIdentifier().name() + ")";
+        } else {
+            return "(" + rpi.name() +"-" + rpi.ibisIdentifier().name() + ", " +
+               spi.name() +"-" + spi.ibisIdentifier().name() + ")";
+        }
     }
 }

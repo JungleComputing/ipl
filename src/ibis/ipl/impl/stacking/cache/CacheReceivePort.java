@@ -140,7 +140,7 @@ public final class CacheReceivePort implements ReceivePort {
          * Tell the SP side to cache the connection. I will count this
          * connection at the lostConnection upcall.
          */
-        cacheManager.sideChannelHandler.newThreadSendProtocol(spi, this.identifier(),
+        cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), spi,
                 SideChannelProtocol.CACHE_FROM_RP_AT_SP);
     }
 
@@ -160,9 +160,6 @@ public final class CacheReceivePort implements ReceivePort {
             deadline = System.currentTimeMillis() + timeoutMillis;
         }
         
-        CacheManager.log.log(Level.INFO, "Closing base receive port...");
-        recvPort.close(timeoutMillis);
-        
         /*
          * Wait until all logically alive connections are closed.
          */
@@ -181,6 +178,9 @@ public final class CacheReceivePort implements ReceivePort {
                 }
             }
         }
+        
+        CacheManager.log.log(Level.INFO, "Closing base receive port...");
+        recvPort.close(timeoutMillis);
     }
 
     @Override

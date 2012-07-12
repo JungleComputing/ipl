@@ -91,21 +91,21 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                             + "has finished and exited the wrapper upcall:\t{0}", ex.toString());
                 } finally {
                     /*
-                     * Notify the end of this message, so we may pick up another
-                     * upcall.
-                     */
-                    synchronized (MessageUpcaller.currentLogicalMsgLock) {
-                        in.port.msgUpcall.messageDepleted = true;
-                        try {
-                            msg.finish();
-                        } catch (IOException ex) {}
-                        MessageUpcaller.currentLogicalMsgLock.notifyAll();
-                    }
-                    /*  
                      * Notify that there is available data in the buffer.
                      */
                     in.notifyAll();
                 }
+            }
+            /*
+             * Notify the end of this message, so we may pick up another upcall.
+             */
+            synchronized (MessageUpcaller.currentLogicalMsgLock) {
+                in.port.msgUpcall.messageDepleted = true;
+                try {
+                    msg.finish();
+                } catch (IOException ex) {
+                }
+                MessageUpcaller.currentLogicalMsgLock.notifyAll();
             }
             CacheManager.log.log(Level.INFO, "Data offering thread finishing...");
         }
@@ -137,9 +137,16 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
         currentMsg = msg;
         try {
             ex.submit(new DataOfferingThread(this, msg));
-        } catch(Exception ex) {
+        } catch (Exception e) {
             CacheManager.log.log(Level.WARNING, "Got exception when submiting"
-                    + " a new dataThread:\t" + ex.toString());
+                    + " a new dataThread:\t{0}", e.toString());
+            synchronized (MessageUpcaller.currentLogicalMsgLock) {
+                port.msgUpcall.messageDepleted = true;
+                try {
+                    msg.finish();
+                } catch (IOException ignoreMe) {}
+                MessageUpcaller.currentLogicalMsgLock.notifyAll();
+            }
         }
     }
 
@@ -154,8 +161,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                             + "requestedLen={1}", new Object[]{buffered_bytes, len});
                     notifyAll();
                     wait();
-                } catch (InterruptedException ignoreMe) {
-                }
+                } catch (InterruptedException ignoreMe) {}
             }
         }
     }

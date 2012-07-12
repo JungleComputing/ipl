@@ -28,34 +28,27 @@ public class ReceivePortConnectionUpcaller
     @Override
     public synchronized boolean gotConnection(ReceivePort me,
             SendPortIdentifier spi) {
-        if (port.closed) {
-            return false;
-        }
-        CacheManager.log.log(Level.INFO, "Got Connection");
+        CacheManager.log.log(Level.INFO, "\tGot Connection");
 
         boolean accepted = true;
 
-        if (upcaller != null) {
-            accepted = upcaller.gotConnection(port, spi);
-        }
-
-        if (!accepted) {
-            return false;
-        }
-
-        synchronized (port.cacheManager) {
+        synchronized (port.cacheManager) {            
             if (port.cacheManager.isConnCached(this.port.identifier(), spi)) {
+                CacheManager.log.log(Level.INFO, "\t\trestoring from {0}", spi);
                 // connection was cached
                 port.cacheManager.restoreConnection(port.identifier(), spi);
-                port.cacheManager.notifyAll();
             } else {
+                if (upcaller != null) {
+                    accepted = upcaller.gotConnection(port, spi);
+                }
+                CacheManager.log.log(Level.INFO, "\t\tnew from {0}", spi);
                 // new connection
                 port.cacheManager.addConnection(port.identifier(), spi);
             }
             port.cacheManager.notifyAll();
         }
 
-        return true;
+        return accepted;
     }
 
     /**

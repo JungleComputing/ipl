@@ -9,10 +9,12 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.io.BufferedDataInputStream;
 import ibis.ipl.impl.stacking.cache.io.DowncallBufferedDataInputStream;
 import ibis.ipl.impl.stacking.cache.io.UpcallBufferedDataInputStream;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
+import java.util.logging.Level;
 
 public abstract class CacheReadMessage implements ReadMessage {
 
@@ -48,6 +50,7 @@ public abstract class CacheReadMessage implements ReadMessage {
     protected CacheReadMessage(ReadMessage m, CacheReceivePort port,
             BufferedDataInputStream dataIn)
             throws IOException {
+        CacheManager.log.log(Level.INFO, "{0}: Read message created.", port);
         this.recvPort = port;
         this.origin = m.origin();
 

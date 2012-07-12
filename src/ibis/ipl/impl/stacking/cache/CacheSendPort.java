@@ -2,12 +2,12 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public final class CacheSendPort implements SendPort {
 
@@ -51,6 +51,9 @@ public final class CacheSendPort implements SendPort {
      * The current written message.
      */
     public CacheWriteMessage currentMsg;
+    public final Object cacheAckLock = new Object();
+    public boolean cacheAckReceived = false;
+    public final Set<ReceivePortIdentifier> reserveAckReceived;
 
     public CacheSendPort(PortType portType, CacheIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
@@ -80,6 +83,8 @@ public final class CacheSendPort implements SendPort {
         cacheManager = ibis.cacheManager;
         messageLock = new Object();
         currentMsg = null;
+        
+        reserveAckReceived = new HashSet<ReceivePortIdentifier>();
         /*
          * Send this to the map only when it has been filled up with all data.
          */
@@ -103,6 +108,7 @@ public final class CacheSendPort implements SendPort {
     public void cache(ReceivePortIdentifier rpi, boolean doesHeKnow)
             throws IOException {
         if (!doesHeKnow) {
+            cacheAckReceived = false;
             /*
              * Send message through the side channel of this connection, because
              * the receive port alone cannot distinguish caching from true
@@ -115,7 +121,7 @@ public final class CacheSendPort implements SendPort {
              * Wait for ack from ReceivePort side, so we know that the RP side
              * knows about the to-be-cached-connection.
              */
-            waitForAck();
+            waitForCacheAck();
         }
 
         /*
@@ -125,35 +131,25 @@ public final class CacheSendPort implements SendPort {
         sendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
     }
 
-    /**
-     * This method will restore the connection between this send port and the
-     * given receive port. This method is to be called when we know the
-     * connection is actually closed.
-     *
-     * This method will be called only from the Cache Manager under a
-     * synchronized context.
-     *
-     * @param rpi
-     * @throws IOException
-     */
-    public void revive(ReceivePortIdentifier rpi) throws IOException {
-        sendPort.connect(rpi);
-    }
-
-    private void waitForAck() {
-        synchronized (SideChannelMessageHandler.ackLock) {
-            while (!SideChannelMessageHandler.ackReceived) {
+    private void waitForCacheAck() {
+        synchronized (cacheAckLock) {
+            while (!cacheAckReceived) {
                 try {
-                    SideChannelMessageHandler.ackLock.wait();
+                    cacheAckLock.wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
-            SideChannelMessageHandler.ackReceived = false;
         }
     }
 
     @Override
     public void close() throws IOException {
+        synchronized (messageLock) {
+            while (currentMsg != null) {
+                throw new IOException(
+                        "Trying to close the send port while a message is alive!");
+            }
+        }
         synchronized (cacheManager) {
             /*
              * Send a DISCONNECT message to the receive ports with whom we have
@@ -249,7 +245,7 @@ public final class CacheSendPort implements SendPort {
     // Don't modify anything above this.-------------------------------
 
     @Override
-    public void connect(ReceivePortIdentifier[] rpis,
+    public synchronized void connect(ReceivePortIdentifier[] rpis,
             long timeoutMillis, boolean fillTimeout)
             throws ConnectionsFailedException {
         synchronized (messageLock) {
@@ -258,7 +254,7 @@ public final class CacheSendPort implements SendPort {
                         "A message was alive while adding new connections");
             }
         }
-
+        
         long deadline = 0;
         if (timeoutMillis > 0) {
             deadline = System.currentTimeMillis() + timeoutMillis;
@@ -268,40 +264,38 @@ public final class CacheSendPort implements SendPort {
                 Arrays.asList(rpis));
         Set<ReceivePortIdentifier> connected;
 
-        synchronized (cacheManager) {
+        /*
+         * While there still are some receive ports to which I have to
+         * connect...
+         */
+        while (!rpiSet.isEmpty()) {
+            int initialSize = rpiSet.size();
             /*
-             * While there still are some receive ports to which I have to
-             * connect...
+             * Tell the cache manager to connect the send port to some of the
+             * receive ports received as params. This method guarantees at least
+             * 1 successfull connection.
              */
-            while (!rpiSet.isEmpty()) {
-                int initialSize = rpiSet.size();
-                /*
-                 * Tell the cache manager to connect the send port to some of
-                 * the receive ports received as params. This method guarantees
-                 * at least 1 successfull connection.
-                 */
-                try {
-                    if (deadline > 0) {
-                        connected = cacheManager.getSomeConnections(
-                                this, rpiSet,
-                                deadline - System.currentTimeMillis(), fillTimeout);
-                    } else {
-                        connected = cacheManager.getSomeConnections(
-                                this, rpiSet,
-                                0, true);
-                    }
-                    rpiSet.removeAll(connected);
-                    assert rpiSet.size() < initialSize;
-                } catch (ConnectionTimedOutException timeout) {
-                    ConnectionsFailedException ex = new ConnectionsFailedException();
-                    for (ReceivePortIdentifier rpi : rpiSet) {
-                        ex.add(new ConnectionTimedOutException(
-                                "Out of time, connection not even tried", rpi));
-                    }
-                    throw ex;
-                } catch (IbisIOException connFailed) {
-                    throw (ConnectionsFailedException) connFailed;
+            try {
+                if (deadline > 0) {
+                    connected = cacheManager.getSomeConnections(
+                            this, rpiSet,
+                            deadline - System.currentTimeMillis(), fillTimeout);
+                } else {
+                    connected = cacheManager.getSomeConnections(
+                            this, rpiSet,
+                            0, true);
                 }
+                rpiSet.removeAll(connected);
+                assert rpiSet.size() < initialSize;
+            } catch (ConnectionsFailedException timedout) {
+                ConnectionsFailedException ex = new ConnectionsFailedException();
+                for (ReceivePortIdentifier rpi : rpiSet) {
+                    ex.add(new ConnectionTimedOutException(
+                            "Out of time, connection not even tried", rpi));
+                }
+                throw ex;
+            } catch (ibis.ipl.IbisIOException connFailed) {
+                throw (ConnectionsFailedException) connFailed;
             }
         }
     }
@@ -333,7 +327,7 @@ public final class CacheSendPort implements SendPort {
                         rpi, SideChannelProtocol.DISCONNECT);
             }
             /*
-             * Remove the connection only if it was trully alive.
+             * Remove the connection.
              */
             cacheManager.removeConnection(this.identifier(), rpi);
         }

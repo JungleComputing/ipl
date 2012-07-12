@@ -1,12 +1,11 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.io.DataOutputStream;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.PortType;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
+import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
@@ -110,7 +109,10 @@ public final class CacheWriteMessage implements WriteMessage {
          */
 //        serOut.close();
 
-        port.currentMsg = null;
+        synchronized(port.messageLock) {
+            port.currentMsg = null;
+            port.messageLock.notifyAll();
+        }
         return bytesWritten();
     }
 
@@ -138,7 +140,10 @@ public final class CacheWriteMessage implements WriteMessage {
 
         serOut = null;
         dataOut = null;
-        port.currentMsg = null;
+        synchronized(port.messageLock) {
+            port.currentMsg = null;
+            port.messageLock.notifyAll();
+        }
     }
 
     @Override
