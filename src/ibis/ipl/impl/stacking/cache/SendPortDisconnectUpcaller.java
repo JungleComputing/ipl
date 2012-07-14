@@ -3,7 +3,6 @@ package ibis.ipl.impl.stacking.cache;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.util.logging.Level;
 
 public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
@@ -21,12 +20,12 @@ public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
     public void lostConnection(SendPort sendPort, ReceivePortIdentifier rpi,
             Throwable cause) {
 
-        CacheManager.log.log(Level.INFO, "\n\tGot lost connection at send port...");
-        CacheManager.log.log(Level.INFO, "\tcause was:\n{0}", cause);
+        Loggers.conLog.log(Level.INFO, "\n\tGot lost connection at send port...");
+        Loggers.conLog.log(Level.INFO, "\tcause was:\n{0}", cause);
 
         port.cacheManager.lock.lock();
         try {
-            port.cacheManager.removeConnection(sendPort.identifier(), rpi);
+            port.cacheManager.lostConnection(sendPort.identifier(), rpi);
         } finally {
             port.cacheManager.lock.unlock();
         }

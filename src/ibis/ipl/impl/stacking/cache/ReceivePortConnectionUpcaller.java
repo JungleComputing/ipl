@@ -28,23 +28,23 @@ public class ReceivePortConnectionUpcaller
     @Override
     public synchronized boolean gotConnection(ReceivePort me,
             SendPortIdentifier spi) {
-        CacheManager.log.log(Level.INFO, "\tGot Connection");
+        Loggers.conLog.log(Level.INFO, "\t{0} got connection", port.identifier());
 
         boolean accepted = true;
 
         port.cacheManager.lock.lock();
         try {            
             if (port.cacheManager.isConnCached(this.port.identifier(), spi)) {
-                CacheManager.log.log(Level.INFO, "\t\trestoring from {0}", spi);
+                Loggers.conLog.log(Level.INFO, "\t\trestoring from {0}\n", spi);
                 // connection was cached
-                port.cacheManager.restoreConnection(port.identifier(), spi);
+                port.cacheManager.restoreReservedConnection(port.identifier(), spi);
             } else {
                 if (upcaller != null) {
                     accepted = upcaller.gotConnection(port, spi);
                 }
-                CacheManager.log.log(Level.INFO, "\t\tnew from {0}", spi);
+                Loggers.conLog.log(Level.INFO, "\t\tnew from {0}\n", spi);
                 // new connection
-                port.cacheManager.addConnection(port.identifier(), spi);
+                port.cacheManager.activateReservedConnection(port.identifier(), spi);
             }
         } finally {
             port.cacheManager.lock.unlock();
@@ -70,9 +70,10 @@ public class ReceivePortConnectionUpcaller
     @Override
     public synchronized void lostConnection(ReceivePort me,
             SendPortIdentifier spi, Throwable reason) {
-        CacheManager.log.log(Level.INFO, "\n\tGot lost connection at receive port...");
+        Loggers.conLog.log(Level.INFO, "\n\t{0} got lost connection to {1}",
+                new Object[] {port.identifier(), spi});
         if (reason != null) {
-            CacheManager.log.log(Level.INFO, "\tcause was:\n{0}", reason.toString());
+            Loggers.conLog.log(Level.INFO, "\tcause was:\t{0}\n", reason.toString());
         }
 
         port.cacheManager.lock.lock();

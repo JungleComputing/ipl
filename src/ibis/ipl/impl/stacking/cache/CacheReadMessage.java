@@ -50,7 +50,7 @@ public abstract class CacheReadMessage implements ReadMessage {
     protected CacheReadMessage(ReadMessage m, CacheReceivePort port,
             BufferedDataInputStream dataIn)
             throws IOException {
-        CacheManager.log.log(Level.INFO, "{0}: Read message created.", port);
+        Loggers.readMsgLog.log(Level.INFO, "{0}: Read message created.", port);
         this.recvPort = port;
         this.origin = m.origin();
 
@@ -81,6 +81,7 @@ public abstract class CacheReadMessage implements ReadMessage {
     @Override
     public long finish() throws IOException {
         checkNotFinished();
+        Loggers.readMsgLog.log(Level.INFO, "Finishing read message.");
         dataIn.close();
 //            in.clear();
         in.close();
@@ -88,6 +89,8 @@ public abstract class CacheReadMessage implements ReadMessage {
         long retVal = bytesRead();
         synchronized (recvPort) {
             recvPort.currentReadMsg = null;
+            
+            Loggers.readMsgLog.log(Level.INFO, "Read message finished.");
 
             /*
              * Need to send signal to the next in line send port who wishes to
@@ -126,6 +129,7 @@ public abstract class CacheReadMessage implements ReadMessage {
         isFinished = true;
         synchronized (recvPort) {
             recvPort.currentReadMsg = null;
+            Loggers.readMsgLog.log(Level.INFO, "Read message finished:\t{0}",e.toString());
 
             /*
              * Need to send signal to the next in line send port who wishes to

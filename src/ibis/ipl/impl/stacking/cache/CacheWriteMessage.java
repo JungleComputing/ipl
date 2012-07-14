@@ -5,7 +5,6 @@ import ibis.io.SerializationOutput;
 import ibis.ipl.PortType;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
@@ -24,7 +23,7 @@ public final class CacheWriteMessage implements WriteMessage {
     long bytes;
 
     public CacheWriteMessage(CacheSendPort sendPort) throws IOException {
-        CacheManager.log.log(Level.INFO,"Created CacheWriteMessage...");
+        Loggers.writeMsgLog.log(Level.INFO,"Creating CacheWriteMessage...");
         this.port = sendPort;
 
         PortType type = this.port.getPortType();
@@ -97,7 +96,10 @@ public final class CacheWriteMessage implements WriteMessage {
 
     @Override
     public long finish() throws IOException {
-        checkNotFinished();        
+        checkNotFinished();
+        
+        Loggers.writeMsgLog.log(Level.INFO, "Finishing a write message from"
+                + " send port {0}", this.port.identifier());
         
         serOut.flush();
         dataOut.close();
@@ -108,6 +110,9 @@ public final class CacheWriteMessage implements WriteMessage {
          * it can do: stream(true).
          */
 //        serOut.close();
+        
+        Loggers.writeMsgLog.log(Level.INFO, "{0} has finished a write message.",
+                port.identifier());
 
         synchronized(port.messageLock) {
             port.currentMsg = null;
@@ -118,9 +123,12 @@ public final class CacheWriteMessage implements WriteMessage {
 
     @Override
     public void finish(IOException e) {
-        if (port.currentMsg == null) {
-            return;
+        try {
+            checkNotFinished();
+        } catch (IOException ex) {
+            // ignored
         }
+        
         try {
             serOut.flush();
         } catch (Throwable e2) {
@@ -138,9 +146,12 @@ public final class CacheWriteMessage implements WriteMessage {
             // ignored
         }
 
+        Loggers.writeMsgLog.log(Level.INFO, "{0} has finished a write message.",
+                port.identifier());
+
         serOut = null;
         dataOut = null;
-        synchronized(port.messageLock) {
+        synchronized (port.messageLock) {
             port.currentMsg = null;
             port.messageLock.notifyAll();
         }

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 
 public final class CacheSendPort implements SendPort {
 
@@ -34,7 +33,7 @@ public final class CacheSendPort implements SendPort {
     /**
      * Under-the-hood send port.
      */
-    public final SendPort sendPort;
+    public final SendPort baseSendPort;
     /**
      * Reference to the cache manager.
      */
@@ -75,7 +74,7 @@ public final class CacheSendPort implements SendPort {
         SendPortDisconnectUpcall wrapperDiscUp =
                 new SendPortDisconnectUpcaller(cU, this);
 
-        sendPort = ibis.baseIbis.createSendPort(wrapperPortType, name,
+        baseSendPort = ibis.baseIbis.createSendPort(wrapperPortType, name,
                 wrapperDiscUp, props);
 
         intialPortType = portType;
@@ -128,7 +127,7 @@ public final class CacheSendPort implements SendPort {
          * Now we can safely disconnect from the receive port, since we are
          * guaranteed that he will know to cache this connection.
          */
-        sendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
+        baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
     }
 
     private void waitForCacheAck() {
@@ -152,24 +151,7 @@ public final class CacheSendPort implements SendPort {
         }
         cacheManager.lock.lock();
         try {
-            /*
-             * Send a DISCONNECT message to the receive ports with whom we have
-             * cached connections. Otherwise, they won't get the
-             * lostConnection() upcall.
-             */
-            for (ReceivePortIdentifier rpi :
-                    cacheManager.cachedRpisFrom(this.identifier())) {
-
-                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
-                        rpi, SideChannelProtocol.DISCONNECT);
-
-            }
-
-            cacheManager.removeAllConnections(this.identifier());
-            /*
-             * Disconnect from whoever is connected to the base send port.
-             */
-            sendPort.close();
+            cacheManager.closeSendPort(this.identifier());
         } finally {
             cacheManager.lock.unlock();
         }
@@ -327,17 +309,6 @@ public final class CacheSendPort implements SendPort {
         }
         cacheManager.lock.lock();
         try {
-            if (cacheManager.isConnAlive(this.identifier(), rpi)) {
-                sendPort.disconnect(rpi);
-            } else {
-                /*
-                 * Send a DISCONNECT message to the receive ports with whom we
-                 * have cached connections. Otherwise, they won't get the
-                 * lostConnection() upcall.
-                 */
-                cacheManager.sideChannelHandler.sendProtocol(this.identifier(),
-                        rpi, SideChannelProtocol.DISCONNECT);
-            }
             /*
              * Remove the connection.
              */
@@ -354,17 +325,17 @@ public final class CacheSendPort implements SendPort {
 
     @Override
     public String name() {
-        return sendPort.name();
+        return baseSendPort.name();
     }
 
     @Override
     public SendPortIdentifier identifier() {
-        return sendPort.identifier();
+        return baseSendPort.identifier();
     }
 
     @Override
     public ReceivePortIdentifier[] lostConnections() {
-        return sendPort.lostConnections();
+        return baseSendPort.lostConnections();
     }
 
     @Override
@@ -388,28 +359,28 @@ public final class CacheSendPort implements SendPort {
     @Override
     public String getManagementProperty(String key)
             throws NoSuchPropertyException {
-        return sendPort.getManagementProperty(key);
+        return baseSendPort.getManagementProperty(key);
     }
 
     @Override
     public Map<String, String> managementProperties() {
-        return sendPort.managementProperties();
+        return baseSendPort.managementProperties();
     }
 
     @Override
     public void printManagementProperties(PrintStream stream) {
-        sendPort.printManagementProperties(stream);
+        baseSendPort.printManagementProperties(stream);
     }
 
     @Override
     public void setManagementProperties(Map<String, String> properties)
             throws NoSuchPropertyException {
-        sendPort.setManagementProperties(properties);
+        baseSendPort.setManagementProperties(properties);
     }
 
     @Override
     public void setManagementProperty(String key, String value)
             throws NoSuchPropertyException {
-        sendPort.setManagementProperty(key, value);
+        baseSendPort.setManagementProperty(key, value);
     }
 }

@@ -49,12 +49,14 @@ public abstract class BufferedDataInputStream extends DataInputStream{
      * Object used to convert primitive types to bytes.
      */
     protected Conversion conversion;
+    public boolean closed;
     
     protected BufferedDataInputStream(CacheReceivePort port) {
         this.port = port;
         this.capacity = CacheManager.BUFFER_CAPACITY;
         this.buffer = new byte[this.capacity];
         this.conversion = Conversion.loadConversion(false);
+        this.closed = false;
     }
     
     @Override

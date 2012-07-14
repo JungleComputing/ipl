@@ -2,6 +2,7 @@ package ibis.ipl.impl.stacking.cache.io;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
+import ibis.ipl.impl.stacking.cache.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.EOFException;
 import java.io.IOException;
@@ -19,7 +20,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
         this.isLastPart = m.readBoolean();
         super.remainingBytes = m.readInt();
 
-        CacheManager.log.log(Level.INFO, "Got a msg: isLastPart={1}, size={0}",
+        Loggers.readMsgLog.log(Level.INFO, "Got a msg: isLastPart={1}, size={0}",
                 new Object[] {remainingBytes, isLastPart});
     }
 
@@ -73,7 +74,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                      */
                     isLastPart = currentMsg.readBoolean();
                     remainingBytes = currentMsg.readInt();
-                    CacheManager.log.log(Level.INFO, "Got a message: isLastPart={1}, size={0}",
+                    Loggers.readMsgLog.log(Level.INFO, "Got a message: isLastPart={1}, size={0}",
                             new Object[]{remainingBytes, isLastPart});
                 }
             }
@@ -106,7 +107,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
             skipped++;
         }
         currentMsg.finish();
-        CacheManager.log.log(Level.INFO, "Closed dataIn and pulled out {0}"
+        Loggers.readMsgLog.log(Level.INFO, "Closed dataIn and pulled out {0}"
                 + " skipped messages.", skipped);
     }
 

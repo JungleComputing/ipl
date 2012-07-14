@@ -1,15 +1,18 @@
 package ibis.ipl.impl.stacking.cache.manager;
 
 import ibis.ipl.impl.stacking.cache.CacheIbis;
-import java.io.IOException;
-import java.util.logging.Level;
 
 public class LruCacheManagerImpl extends CacheManagerImpl {
+    
+    /*
+     * When caching, the recv port doesn't know we will cache the connection.
+     */
+    private boolean heKnows = false;
 
     public LruCacheManagerImpl(CacheIbis ibis) {
         super(ibis);
     }
-    
+
     @Override
     protected Connection cacheOneConnection() {
         /*
@@ -29,14 +32,7 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
              * Faster to cache.
              */
             Connection con = fromSPLiveConns.remove(0);
-            try {
-                con.cache();
-            } catch (IOException ex) {
-                CacheManager.log.log(Level.SEVERE, "Connection:\t{0} failed"
-                        + " to be cached, but still counted."
-                        + "\nException occured:\t{1}",
-                        new Object[]{con.toString(), ex.toString()});
-            }
+            con.cache(heKnows);
             fromSPCacheConns.add(con);
             return con;
         } else {
@@ -44,14 +40,7 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
              * Get the one from the receive port side.
              */
             Connection con = fromRPLiveConns.remove(0);
-            try {
-                con.cache();
-            } catch (IOException ex) {
-                CacheManager.log.log(Level.SEVERE, "Connection:\t{0} failed"
-                        + " to be cached, but still counted."
-                        + "\nException occured:\t{1}",
-                        new Object[]{con.toString(), ex.toString()});
-            }
+            con.cache(heKnows);
             fromRPCacheConns.add(con);
             return con;
         }
@@ -63,14 +52,14 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
          * Nothing to cache. Wait until some live connections arive.
          */
         while ((fromSPLiveConns.size() + fromRPLiveConns.size() == 0)
-                && (!canceledReservations.contains(conn))){
+                && (!canceledReservations.contains(conn))) {
             try {
                 super.noLiveConnCondition.await();
             } catch (InterruptedException ignoreMe) {
             }
         }
-        
-        if(canceledReservations.contains(conn)) {
+
+        if (canceledReservations.contains(conn)) {
             return null;
         }
 
@@ -81,14 +70,7 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
              * Faster to cache.
              */
             Connection con = fromSPLiveConns.remove(0);
-            try {
-                con.cache();
-            } catch (IOException ex) {
-                CacheManager.log.log(Level.SEVERE, "Connection:\t{0} failed"
-                        + " to be cached, but still counted."
-                        + "\nException occured:\t{1}",
-                        new Object[]{con.toString(), ex.toString()});
-            }
+            con.cache(heKnows);
             fromSPCacheConns.add(con);
             return con;
         } else {
@@ -96,14 +78,7 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
              * Get the one from the receive port side.
              */
             Connection con = fromRPLiveConns.remove(0);
-            try {
-                con.cache();
-            } catch (IOException ex) {
-                CacheManager.log.log(Level.SEVERE, "Connection:\t{0} failed"
-                        + " to be cached, but still counted."
-                        + "\nException occured:\t{1}",
-                        new Object[]{con.toString(), ex.toString()});
-            }
+            con.cache(heKnows);
             fromRPCacheConns.add(con);
             return con;
         }

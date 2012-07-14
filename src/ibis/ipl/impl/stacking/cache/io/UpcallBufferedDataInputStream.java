@@ -3,8 +3,7 @@ package ibis.ipl.impl.stacking.cache.io;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
-import ibis.ipl.impl.stacking.cache.MessageUpcaller;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.Loggers;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,7 +18,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
         public DataOfferingThread(UpcallBufferedDataInputStream in,
                 ReadMessage msg) {
-            CacheManager.log.log(Level.INFO, "Thread created for filling up "
+            Loggers.readMsgLog.log(Level.INFO, "Thread created for filling up "
                     + "the buffer with data.");
             this.in = in;
             this.msg = msg;
@@ -27,15 +26,16 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
         @Override
         public void run() {
-            CacheManager.log.log(Level.INFO, "Thread started.");
-            /*
-             * Need this sync to protect the buffer from adding data and
-             * removing it.
-             */
-            synchronized (in) {
-                try {
+            try {
+                /*
+                 * Need this sync to protect the buffer from adding data and
+                 * removing it simultaneously.
+                 */
+                synchronized (in) {
                     int remaining = msg.readInt();
-                    CacheManager.log.log(Level.INFO, "bufferSize={0}", remaining);
+                    Loggers.readMsgLog.log(Level.INFO, "Thread started."
+                            + " Got bufferSize={0}", remaining);
+
                     assert in.index + in.buffered_bytes <= in.capacity;
                     assert in.len <= in.capacity;
 
@@ -45,6 +45,16 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                          * him take over.
                          */
                         while (in.buffered_bytes >= in.len) {
+                            if (in.closed) {
+                                Loggers.readMsgLog.log(Level.INFO, "Closing the current"
+                                        + " supplying thread. bufBytes={0}, "
+                                        + "lenReq={1}", new Object[] {in.buffered_bytes,
+                                        in.len});
+                                /*
+                                 * Execute finally and get out.
+                                 */
+                                return;
+                            }
                             try {
                                 in.notifyAll();
                                 in.wait();
@@ -69,6 +79,9 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                                 /*
                                  * I'm done with this message.
                                  */
+                                Loggers.readMsgLog.log(Level.INFO, "Message drained."
+                                        + " Current buffered bytes = {0}, len requested = {1}",
+                                        new Object[]{in.buffered_bytes, in.len});
                                 in.notifyAll();
                                 return;
                             }
@@ -85,29 +98,36 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                             remaining -= n;
                         }
                     }
-                } catch (Exception ex) {
-                    CacheManager.log.log(Level.INFO, "Message closed "
-                            + "most likely because the user upcall "
-                            + "has finished and exited the wrapper upcall:\t{0}", ex.toString());
-                } finally {
-                    /*
-                     * Notify that there is available data in the buffer.
-                     */
+
+                    Loggers.readMsgLog.log(Level.INFO, "Message drained."
+                            + " Current buffered bytes = {0}, len requested = {1}",
+                            new Object[]{in.buffered_bytes, in.len});
+                    
                     in.notifyAll();
+                } // end sync
+            } catch (Exception ex) {
+                Loggers.readMsgLog.log(Level.INFO, "Message closed "
+                        + "most likely because the user upcall "
+                        + "has finished and exited the wrapper upcall:\t{0}", ex.toString());
+            } finally {
+                /*
+                 * Notify the end of this message, so we may pick up another
+                 * upcall.
+                 * This is always executed: even if the message was depleted,
+                 * or a close was forced on the read message.
+                 */
+                synchronized (in.port.msgUpcall.currentLogicalMsgLock) {
+                    in.port.msgUpcall.messageDepleted = true;
+                    try {
+                        msg.finish();
+                    } catch (IOException ex) {
+                        Loggers.readMsgLog.log(Level.WARNING, "Base message"
+                                + " finish threw:\t{0}", ex.toString());
+                    }
+                    in.port.msgUpcall.currentLogicalMsgLock.notifyAll();
                 }
+                Loggers.readMsgLog.log(Level.INFO, "Data offering thread finishing...");
             }
-            /*
-             * Notify the end of this message, so we may pick up another upcall.
-             */
-            synchronized (MessageUpcaller.currentLogicalMsgLock) {
-                in.port.msgUpcall.messageDepleted = true;
-                try {
-                    msg.finish();
-                } catch (IOException ex) {
-                }
-                MessageUpcaller.currentLogicalMsgLock.notifyAll();
-            }
-            CacheManager.log.log(Level.INFO, "Data offering thread finishing...");
         }
     }
     /*
@@ -138,14 +158,18 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
         try {
             ex.submit(new DataOfferingThread(this, msg));
         } catch (Exception e) {
-            CacheManager.log.log(Level.WARNING, "Got exception when submiting"
-                    + " a new dataThread:\t{0}", e.toString());
-            synchronized (MessageUpcaller.currentLogicalMsgLock) {
+            Loggers.readMsgLog.log(Level.WARNING, "Couldn''t submit another data"
+                    + " offering thread. The executor was shutdown because"
+                    + " the user shutdown the read message."
+                    + " and any other following streaming msgs are discarded:\t{0}",
+                    e.toString());
+            synchronized (port.msgUpcall.currentLogicalMsgLock) {
                 port.msgUpcall.messageDepleted = true;
                 try {
                     msg.finish();
-                } catch (IOException ignoreMe) {}
-                MessageUpcaller.currentLogicalMsgLock.notifyAll();
+                } catch (IOException ignoreMe) {
+                }
+                port.msgUpcall.currentLogicalMsgLock.notifyAll();
             }
         }
     }
@@ -154,20 +178,55 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     protected void requestFromBuffer(int n) {
         synchronized (this) {
             len = n;
-            while (super.buffered_bytes < len) {
+            while (buffered_bytes < len) {
                 try {
-                    CacheManager.log.log(Level.INFO, "Waiting for buffer "
+                    Loggers.readMsgLog.log(Level.INFO, "Waiting for buffer "
                             + "to fill: currBufBytes={0}, "
                             + "requestedLen={1}", new Object[]{buffered_bytes, len});
                     notifyAll();
                     wait();
-                } catch (InterruptedException ignoreMe) {}
+                } catch (InterruptedException ignoreMe) {
+                }
             }
+            Loggers.readMsgLog.log(Level.INFO, "Got my data. bufferedBytes = {0},"
+                    + " lenRequested = {1}", new Object[]{buffered_bytes, len});
         }
     }
 
     @Override
     public void close() throws IOException {
-        ex.shutdown();
+        /*
+         * Wait for the last part.
+         */
+        synchronized (port.msgUpcall.currentLogicalMsgLock) {
+            /*
+             * Start sending any future data to a sink.
+             */
+            closed = true;
+            /*
+             * Notify (if any) the thread standing by with data to be taken out.
+             * This close was called forcefully and any other data remaining in
+             * the buffer/pipe will be discarded.
+             */
+            synchronized (this) {
+                notifyAll();
+            }
+            /*
+             * Now wait until we have got all the messages, so we can
+             * properly finish.
+             */
+            while (!port.msgUpcall.gotLastPart) {
+                try {
+                    port.msgUpcall.currentLogicalMsgLock.wait();
+                } catch (InterruptedException ignoreMe) {
+                }
+            }
+        }
+        /*
+         * The threads which handle the intermediate messages live until all the
+         * data has been pulled out. If by any chance, the user forces a finish
+         * without reading everything, they will still live on and on and on...
+         */
+        ex.shutdownNow();
     }
 }

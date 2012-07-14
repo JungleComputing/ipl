@@ -5,6 +5,7 @@ import ibis.io.DataOutputStream;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
+import ibis.ipl.impl.stacking.cache.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
@@ -90,34 +91,49 @@ public class BufferedDataOutputStream extends DataOutputStream {
          * write to them.
          */
         Set<ReceivePortIdentifier> gotAttention;
+       
+        /*
+         * We want the destined RPIs to have their live read message from us, so
+         * as not to have interferance with other streaming messages.
+         *
+         * For this, either we have their attention from the 1st part of the
+         * logical streamed message or we need to signal them that we want to
+         * write a msg to them.
+         */
+        iWantYouToReadFromMe(destRpis);
 
         while (!destRpis.isEmpty()) {
             /*
-             * We want the destined RPIs to have their live read message from
-             * us, so as not to have interferance with other streaming messages.
-             *
-             * For this, either we have their attention from the 1st part of the
-             * logical streamed message or we need to signal them that we want
-             * to write a msg to them.
-             *
              * Then, we need to wait for their approval, i.e. they will accept
              * an incoming message from us.
              *
              * Wait for K approvals.
              * 1 <= K <= destRpis.size().
-             *
-             * don't know what value for K!??!?!
              */
-            int K = destRpis.size();
-            gotAttention = iWantYouToReadFromMe(destRpis, K);
-
+            gotAttention = waitForSomeRepliesFrom(destRpis);
+            
             destRpis.removeAll(gotAttention);
 
             port.cacheManager.lock.lock();
             try {
                 while (!gotAttention.isEmpty()) {
                     /*
-                     * Get some connections from the rpis in gotAttention array.
+                     * I can send the message only to the rpis from gotAttention.
+                     * Any other rpi to which I'm currently connected
+                     * cannot and will not receive this message I am 
+                     * about to stream.
+                     */
+                    boolean heKnows = false;
+                    for(ReceivePortIdentifier rpi : port.baseSendPort.connectedTo()) {
+                        if(!gotAttention.contains(rpi)) {
+                            port.cacheManager.cacheConnection(port.identifier(), 
+                                    rpi, heKnows);
+                        }
+                    }
+                    
+                    /*
+                     * Now connect (eventually) to all the rpis
+                     * which will certainly read our message.
                      */
                     Set<ReceivePortIdentifier> connected =
                             port.cacheManager.getSomeConnections(
@@ -130,7 +146,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                     /*
                      * Send the message to whoever is connected.
                      */
-                    WriteMessage msg = port.sendPort.newMessage();
+                    WriteMessage msg = port.baseSendPort.newMessage();
                     try {
                         noMsg++;
                         msg.writeBoolean(isLastPart);
@@ -139,15 +155,16 @@ public class BufferedDataOutputStream extends DataOutputStream {
                         msg.finish();
                     } catch (IOException ex) {
                         msg.finish(ex);
-                        CacheManager.log.log(Level.SEVERE, "Failed to write {0} bytes message "
-                                + "to {1} ports.", new Object[]{index, destRpis.size()});
+                        Loggers.writeMsgLog.log(Level.SEVERE, "Failed to write {0} bytes message "
+                                + "to {1} ports.\n", new Object[]{index, destRpis.size()});
                     }
-                    CacheManager.log.log(Level.INFO, "\tSent msg: ({0}, {1})",
-                            new Object[]{isLastPart, index});
+                    Loggers.writeMsgLog.log(Level.INFO, "\tSent msg: ({0}, {1}) to {2}"
+                            + " receive ports.\n",
+                            new Object[]{isLastPart, index, port.baseSendPort.connectedTo().length});
 
                     /*
                      * If this was the last part of the streamed message, I
-                     * don't have the receive ports attention anymore.
+                     * don't have the receive ports' attention anymore.
                      */
                     if (isLastPart) {
                         yourLiveMessageIsNotMyConcern(connected);
@@ -165,37 +182,72 @@ public class BufferedDataOutputStream extends DataOutputStream {
     }
 
     private void yourLiveMessageIsNotMyConcern(Set<ReceivePortIdentifier> rpis) {
-        for (ReceivePortIdentifier rpi : rpis) {
-            yourReadMessageIsAliveFromMeSet.remove(rpi);
+        synchronized (yourReadMessageIsAliveFromMeSet) {
+            for (ReceivePortIdentifier rpi : rpis) {
+                yourReadMessageIsAliveFromMeSet.remove(rpi);
+            }
         }
     }
 
-    private Set<ReceivePortIdentifier> iWantYouToReadFromMe(
-            Set<ReceivePortIdentifier> rpis, int K) {
-        
-        for (ReceivePortIdentifier rpi : rpis) {
-            if (!yourReadMessageIsAliveFromMeSet.contains(rpi)) {
-                /*
-                 * I have to let the receive port know that I want him to read
-                 * my message.
-                 */
-                port.cacheManager.sideChannelHandler.newThreadSendProtocol(
-                        port.identifier(), rpi,
-                        SideChannelProtocol.READ_MY_MESSAGE);
+    private void iWantYouToReadFromMe(Set<ReceivePortIdentifier> rpis) {
+        synchronized (yourReadMessageIsAliveFromMeSet) {
+            for (ReceivePortIdentifier rpi : rpis) {
+                if (!yourReadMessageIsAliveFromMeSet.contains(rpi)) {
+                    /*
+                     * I have to let the receive port know that I want him to
+                     * read my message.
+                     */
+                    port.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                            port.identifier(), rpi,
+                            SideChannelProtocol.READ_MY_MESSAGE);
+                }
             }
         }
+    }
 
+    private Set<ReceivePortIdentifier> waitForSomeRepliesFrom(Set<ReceivePortIdentifier> rpis) {
         /*
-         * Need to wait for K approvals.
+         * Need to wait for at most rpis.size() approvals.
          */
         Set<ReceivePortIdentifier> result;
         synchronized (yourReadMessageIsAliveFromMeSet) {
             result = new HashSet<ReceivePortIdentifier>(yourReadMessageIsAliveFromMeSet);
             result.retainAll(rpis);
 
-            while (result.size() < K) {
+            /*
+             * Wait for at most a timeout,
+             * because we can get deadlock:
+             * 3 machines all behave the same: they all want to send a message
+             * to the other 2;
+             * they all send READ_MY_MESSAGE but the 3rd sends ack to the 2nd,
+             * the 2nd send ack to the 1st and the 1st sends ack to the 3rd.
+             * 
+             *
+             * so if we wait for 2 ack's back, we are stuck.
+             */
+            long defaultTimeout = 10; // millis
+            long deadline = System.currentTimeMillis() + defaultTimeout;
+            while (result.size() < rpis.size()) {
                 try {
-                    yourReadMessageIsAliveFromMeSet.wait();
+                    long timeout = deadline - System.currentTimeMillis();
+                    if (timeout <= 0) {
+                        /*
+                         * Return if I have at least 1 guy to whom I can write
+                         * my message. don't wait for all approvals now.
+                         */
+                        if (result.size() > 0) {
+                            return result;
+                        }
+
+                        /*
+                         * I need more time.
+                         */
+                        timeout = defaultTimeout;
+                        deadline = System.currentTimeMillis() + defaultTimeout;
+                    } else {
+                        timeout = defaultTimeout;
+                    }
+                    yourReadMessageIsAliveFromMeSet.wait(timeout);
                 } catch (InterruptedException ignoreMe) {
                 }
                 result.clear();
@@ -213,20 +265,20 @@ public class BufferedDataOutputStream extends DataOutputStream {
             return;
         }
         stream(false);
-        CacheManager.log.log(Level.INFO, "\n\tFlushed {0} intermediate messages to"
+        Loggers.writeMsgLog.log(Level.INFO, "\n\tFlushed {0} intermediate messages to"
                 + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});
         noMsg = 0;
     }
 
     @Override
     public void close() throws IOException {
-        CacheManager.log.log(Level.INFO, "dataOut closing. closed was {0}", closed);
+        Loggers.writeMsgLog.log(Level.INFO, "dataOut closing.");
         if (closed) {
             return;
         }
         closed = true;
         stream(true);
-        CacheManager.log.log(Level.INFO, "\n\tStreamed {0} intermediate messages to"
+        Loggers.writeMsgLog.log(Level.INFO, "\n\tStreamed {0} intermediate messages to"
                 + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});
         noMsg = 0;
     }

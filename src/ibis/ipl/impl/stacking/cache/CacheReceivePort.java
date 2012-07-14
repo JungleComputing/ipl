@@ -173,9 +173,8 @@ public final class CacheReceivePort implements ReceivePort {
             while (cacheManager.hasConnections(this.identifier()) && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
-                    CacheManager.log.log(Level.INFO, "Waiting for some"
-                            + " connections to close.");
-//                    cacheManager.wait(deadline - System.currentTimeMillis());
+                    Loggers.conLog.log(Level.INFO, "{0} is waiting for some"
+                            + " connections to close.", this.identifier());
                     cacheManager.allClosedCondition.await(
                             deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
                 } catch (InterruptedException ignoreMe) {
@@ -185,7 +184,8 @@ public final class CacheReceivePort implements ReceivePort {
             cacheManager.lock.unlock();
         }
         
-        CacheManager.log.log(Level.INFO, "Closing base receive port...");
+        Loggers.conLog.log(Level.INFO, "{0} is closing base receive port...",
+                this.identifier());
         recvPort.close(timeoutMillis);
     }
 

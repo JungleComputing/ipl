@@ -5,11 +5,13 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheIbis;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
+import ibis.ipl.impl.stacking.cache.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class CacheManagerImpl extends CacheManager {
 
@@ -36,7 +38,7 @@ public abstract class CacheManagerImpl extends CacheManager {
 
     @Override
     public void cacheConnection(SendPortIdentifier spi,
-            ReceivePortIdentifier rpi) {
+            ReceivePortIdentifier rpi, boolean heKnows) {
         Connection con = new Connection(spi, rpi);
 
         while (reservedConns.contains(con)) {
@@ -46,6 +48,8 @@ public abstract class CacheManagerImpl extends CacheManager {
             }
         }
 
+        con.cache(heKnows);
+        
         /*
          * Situation: the two sides (SP and RP) want to cache the same
          * connection. Then this method will be called x2.
@@ -71,6 +75,8 @@ public abstract class CacheManagerImpl extends CacheManager {
             } catch (InterruptedException ignoreMe) {
             }
         }
+        
+        con.remove();
 
         statistics.remove(con);
 
@@ -81,9 +87,25 @@ public abstract class CacheManagerImpl extends CacheManager {
 
         logReport();
     }
+    
+    @Override
+    public void lostConnection(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi) {
+        Connection con = new Connection(spi, rpi);
+
+        statistics.remove(con);
+
+        fromSPCacheConns.remove(con);
+        fromSPLiveConns.remove(con);
+        reservedConns.remove(con);
+
+        super.allClosedCondition.signal();
+
+        logReport();
+    }
 
     @Override
-    public void removeAllConnections(SendPortIdentifier spi) {
+    public void closeSendPort(SendPortIdentifier spi) {
         boolean notAvailable;
         while (true) {
             notAvailable = false;
@@ -95,7 +117,6 @@ public abstract class CacheManagerImpl extends CacheManager {
             }
             if (notAvailable) {
                 try {
-//                    wait();
                     super.reservationsCondition.await();
                 } catch (InterruptedException ignoreMe) {
                 }
@@ -103,6 +124,8 @@ public abstract class CacheManagerImpl extends CacheManager {
                 break;
             }
         }
+        
+        Connection.closeSendPort(spi);
 
         for (Iterator it = fromSPCacheConns.iterator(); it.hasNext();) {
             Connection conn = (Connection) it.next();
@@ -125,31 +148,16 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public void addConnection(ReceivePortIdentifier rpi,
+    public void activateReservedConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         /*
          * The connection was reserved and now it's actually created.
          */
-        if (reservedConns.contains(con)) {
+        assert reservedConns.contains(con);
 
-            reservedConns.remove(con);
-            super.reservationsCondition.signalAll();
-            
-            fromRPLiveConns.add(con);
-            super.noLiveConnCondition.signalAll();
-
-            statistics.add(con);
-
-            logReport();
-            return;
-        }
-
-        if (fullConns()) {
-            Connection cachedCon = this.cacheOneConnection();
-
-            statistics.cache(cachedCon);
-        }
+        reservedConns.remove(con);
+        super.reservationsCondition.signalAll();
 
         fromRPLiveConns.add(con);
         super.noLiveConnCondition.signalAll();
@@ -205,7 +213,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     @Override
-    public void restoreConnection(ReceivePortIdentifier rpi,
+    public void restoreReservedConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
 
@@ -213,29 +221,13 @@ public abstract class CacheManagerImpl extends CacheManager {
          * The connection was reserved and cached and now it's actually
          * restored.
          */
-        if (reservedConns.contains(con)) {
-            
-            reservedConns.remove(con);
-            super.reservationsCondition.signalAll();
-            
-            fromRPCacheConns.remove(con);
-            
-            fromRPLiveConns.add(con);
-            super.noLiveConnCondition.signalAll();
+        assert reservedConns.contains(con);
 
-            statistics.restore(con);
-
-            logReport();
-            return;
-        }
-
-        if (fullConns()) {
-            Connection cached = cacheOneConnection();
-
-            statistics.cache(cached);
-        }
+        reservedConns.remove(con);
+        super.reservationsCondition.signalAll();
 
         fromRPCacheConns.remove(con);
+
         fromRPLiveConns.add(con);
         super.noLiveConnCondition.signalAll();
 
@@ -339,17 +331,21 @@ public abstract class CacheManagerImpl extends CacheManager {
         if (rpis == null || rpis.isEmpty()) {
             throw new ibis.ipl.IbisIOException("Array of send ports is null or empty.");
         }
+        
+        Loggers.cacheLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}", rpis);
 
         /*
          * Get the alive connections from this send port.
          */
         Set<ReceivePortIdentifier> aliveConn =
                 new HashSet<ReceivePortIdentifier>(
-                Arrays.asList(port.sendPort.connectedTo()));
+                Arrays.asList(port.baseSendPort.connectedTo()));
+        Loggers.cacheLog.log(Level.INFO, "\n\t\tBase port connected to:\t{0}", aliveConn);
         /*
          * Filter all the connections with the ones received as params.
          */
         aliveConn.retainAll(rpis);
+        Loggers.cacheLog.log(Level.INFO, "\n\t\tIntersection:\t{0}", aliveConn);
 
         if (aliveConn.size() > 0) {
             rpis.removeAll(aliveConn);
@@ -357,19 +353,24 @@ public abstract class CacheManagerImpl extends CacheManager {
         }
 
         if (rpis.isEmpty()) {
+            Loggers.cacheLog.log(Level.INFO, "\n\t\tResult returned:\t{0}", aliveConn);
+            Loggers.cacheLog.log(Level.INFO, "\n\t\tBase port connected to:\t{0} ports.", port.baseSendPort.connectedTo().length);
             /*
              * I'm already connected to every receive port passed as param.
              */
             return aliveConn;
         }
 
-        CacheManager.log.log(Level.SEVERE, "Getting some connections"
+        Loggers.cacheLog.log(Level.INFO, "Getting some connections"
                 + " from the following set:\t{0}", rpis);
-        System.out.flush();
+
         Set<ReceivePortIdentifier> result = getSomeConnections(port,
                 rpis, aliveConn.size(), timeoutMillis, fillTimeout);
 
         result.addAll(aliveConn);
+        
+        Loggers.cacheLog.log(Level.INFO, "\n\t\tResult returned:\t{0}", result);
+        Loggers.cacheLog.log(Level.INFO, "\n\t\tBase port connected to:\t{0} ports.", port.baseSendPort.connectedTo().length);
 
         if (result.size() <= 0) {
             throw new ConnectionsFailedException("Coulnd't connect to even one RP.");
@@ -481,12 +482,12 @@ public abstract class CacheManagerImpl extends CacheManager {
                     super.lock.unlock();
 
                     try {
-                        port.sendPort.connect(rpi, timeout, fillTimeout);
-                        CacheManager.log.log(Level.INFO, "Base send port connected:\t"
+                        port.baseSendPort.connect(rpi, timeout, fillTimeout);
+                        Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
                                 + "({0}, {1}, {2})",
                                 new Object[]{rpi, timeout, fillTimeout});
                     } catch (IOException ex) {
-                        CacheManager.log.log(Level.WARNING, "Base send port "
+                        Loggers.cacheLog.log(Level.WARNING, "Base send port "
                                 + "failed to connect to receive port. Got"
                                 + "exception:\t{0}", ex.toString());
                         cancelReservation(port.identifier(), rpi);
@@ -502,11 +503,11 @@ public abstract class CacheManagerImpl extends CacheManager {
                 } else {
                     super.lock.unlock();
                     try {
-                        port.sendPort.connect(rpi);
-                        CacheManager.log.log(Level.INFO, "Base send port connected:\t"
+                        port.baseSendPort.connect(rpi);
+                        Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
                                 + "({0})", rpi);
                     } catch (IOException ex) {
-                        CacheManager.log.log(Level.WARNING, "Base send port "
+                        Loggers.cacheLog.log(Level.WARNING, "Base send port "
                                 + "failed to connect to receive port. Got"
                                 + "exception:\t{0}", ex.toString());
                         cancelReservation(port.identifier(), rpi);
@@ -636,7 +637,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     private void logReport() {
-        CacheManager.log.log(Level.INFO, "\n\t{0} alive connections:\t{1}, {2}"
+        Loggers.cacheLog.log(Level.INFO, "\n\t{0} alive connections:\t{1}, {2}"
                 + "\n\t{3} cached connections:\t{4}, {5}"
                 + "\n\t{6} reserved connections:\t {7}",
                 new Object[]{fromSPLiveConns.size() + fromRPLiveConns.size(),

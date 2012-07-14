@@ -3,6 +3,7 @@ package ibis.ipl.impl.stacking.cache.manager;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.CacheIbis;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
+import ibis.ipl.impl.stacking.cache.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
 import java.io.IOException;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Abstract class for different types of cache managers.
@@ -24,11 +26,7 @@ public abstract class CacheManager {
     public static final int BUFFER_CAPACITY = 1 << 16;
     public static final int MAX_CONNS;
     public static final int MAX_CONNS_DEFAULT = 100;
-    /**
-     * Fields for logging.
-     */
-    public static final Logger log;
-    public static final String cacheLogString;
+    
     /**
      * Port type used for the creation of hub-based ports for the side-channel
      * communication.
@@ -66,18 +64,6 @@ public abstract class CacheManager {
     public final Condition noLiveConnCondition;
 
     static {
-        cacheLogString = "cacheIbis.log";
-        log = Logger.getAnonymousLogger();
-        log.removeHandler(new ConsoleHandler());
-
-        try {
-            FileHandler fh = new FileHandler(cacheLogString);
-            fh.setFormatter(new SimpleFormatter());
-            log.addHandler(fh);
-        } catch (Exception ex) {
-            Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         MAX_CONNS = Integer.parseInt(
                 System.getProperty("MAX_CONNS", Integer.toString(MAX_CONNS_DEFAULT)));
 
@@ -108,9 +94,9 @@ public abstract class CacheManager {
         
             statistics = new CacheStatistics();
 
-            log.log(Level.INFO, "Cache manager instantiated on {0}", ibis.identifier().name());
+            Loggers.cacheLog.log(Level.INFO, "Cache manager instantiated on {0}", ibis.identifier().name());
         } catch (IOException ex) {
-            log.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.");
+            Loggers.cacheLog.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.");
             throw new RuntimeException(ex);
         }        
     }
@@ -118,27 +104,30 @@ public abstract class CacheManager {
     public void end() {
         try {
             if(count>0) {
-                log.log(Level.INFO, "Stream avg:\t{0} ms", totalTime/count);
+                Loggers.cacheLog.log(Level.INFO, "Stream avg:\t{0} ms", totalTime/count);
             }
             
-            statistics.printStatistics(log);
+            statistics.printStatistics(Loggers.cacheLog);
             
             sideChannelSendPort.close();
             // will this block?
             sideChannelReceivePort.close();
-            log.log(Level.INFO, "Closed the cache manager.");
+            Loggers.cacheLog.log(Level.INFO, "Closed the cache manager.");
         } catch (IOException ex) {
-            log.log(Level.SEVERE, "Failed to close the cache manager.");
+            Loggers.cacheLog.log(Level.SEVERE, "Failed to close the cache manager.");
             Logger.getLogger(CacheManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    abstract public void removeAllConnections(SendPortIdentifier spi);
+    abstract public void closeSendPort(SendPortIdentifier spi);
 
     abstract public void cacheConnection(SendPortIdentifier spi,
-            ReceivePortIdentifier rpi);
+            ReceivePortIdentifier rpi, boolean heKnows);
 
     abstract public void removeConnection(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
+    
+    abstract public void lostConnection(SendPortIdentifier identifier, 
             ReceivePortIdentifier rpi);
 
     abstract public void cacheConnection(ReceivePortIdentifier rpi,
@@ -147,10 +136,10 @@ public abstract class CacheManager {
     abstract public void removeConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
 
-    abstract public void addConnection(ReceivePortIdentifier rpi,
+    abstract public void activateReservedConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
 
-    abstract public void restoreConnection(ReceivePortIdentifier rpi,
+    abstract public void restoreReservedConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
 
     abstract public List<ReceivePortIdentifier> cachedRpisFrom(

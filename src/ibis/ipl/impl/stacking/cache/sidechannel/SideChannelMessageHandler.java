@@ -3,6 +3,7 @@ package ibis.ipl.impl.stacking.cache.sidechannel;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
+import ibis.ipl.impl.stacking.cache.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         CacheReceivePort rp = CacheReceivePort.map.get(rpi);
         CacheSendPort sp = CacheSendPort.map.get(spi);
 
-        CacheManager.log.log(Level.INFO, "\tGot side-message: \t["
+        Loggers.sideLog.log(Level.INFO, "\tGot side-message: \t["
                 + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
                 new Object[]{spi.name(), spi.ibisIdentifier().name(),
                     rpi.name(), rpi.ibisIdentifier().name(), 
@@ -98,9 +99,8 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
             case CACHE_FROM_RP_AT_SP:
                 cacheManager.lock.lock();
                 try {
-                    boolean heKnows = true;
-                    CacheSendPort.map.get(spi).cache(rpi, heKnows);
-                    cacheManager.cacheConnection(spi, rpi);
+                    boolean heKnows = true;                    
+                    cacheManager.cacheConnection(spi, rpi, heKnows);
                 } finally {
                     cacheManager.lock.unlock();
                 }
@@ -187,7 +187,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
     private void sendProtocol(SendPortIdentifier spi,
             ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode) {
-        CacheManager.log.log(Level.INFO, "\tSending side-message: \t["
+        Loggers.sideLog.log(Level.INFO, "\tSending side-message: \t["
                 + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
                 new Object[]{spi.name(), spi.ibisIdentifier().name(),
                     rpi.name(), rpi.ibisIdentifier().name(), 
@@ -207,7 +207,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 msg.finish();
                 cacheManager.sideChannelSendPort.disconnect(sideRpi);
             } catch (Exception ex) {
-                CacheManager.log.log(Level.SEVERE,
+                Loggers.sideLog.log(Level.SEVERE,
                         "Error at side channel:\n{0}", ex.toString());
             }
         }
