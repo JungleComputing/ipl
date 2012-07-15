@@ -1,6 +1,10 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cache.util;
 
-import java.util.logging.*;
+import ibis.ipl.impl.stacking.cache.CacheIbis;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public class Loggers {
 
@@ -16,6 +20,7 @@ public class Loggers {
 //    public static final String writeMsgLogString;
     public static final Logger sideLog;
 //    public static final String sideLogString;
+    public static final Logger lockLog;
 
     static {
 
@@ -30,6 +35,8 @@ public class Loggers {
         writeMsgLog = Logger.getLogger("write");
 
         sideLog = Logger.getLogger("side");
+        
+        lockLog = Logger.getLogger("lock");
 
         cacheLogString = "cacheIbis.log";
 
@@ -45,8 +52,9 @@ public class Loggers {
             readMsgLog.addHandler(fh);
             writeMsgLog.addHandler(fh);
             sideLog.addHandler(fh);
+            lockLog.addHandler(fh);
         } catch (Exception ex) {
             Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    }   
 }

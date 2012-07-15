@@ -4,7 +4,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.Loggers;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -44,14 +44,16 @@ public class Connection {
                  * This takes time.
                  */
                 port.cache(spi);
-                synchronized (port.initiatedCachingByMe) {
-                    while (port.initiatedCachingByMe.contains(spi)) {
+                synchronized (port.cachingInitiatedByMeSet) {
+                    while (port.cachingInitiatedByMeSet.contains(spi)) {
                         try {
-                            port.initiatedCachingByMe.wait();
+                            port.cachingInitiatedByMeSet.wait();
                         } catch (InterruptedException ignoreMe) {
                         }
                     }
                 }
+                Loggers.lockLog.log(Level.INFO, "Base receive port connected to"
+                        + " {0} send ports.", port.recvPort.connectedTo().length);                
             }
         } catch (IOException ex) {
             Loggers.cacheLog.log(Level.SEVERE, "Caching failed:\t{0}", ex);
@@ -75,6 +77,8 @@ public class Connection {
             /*
              * Disconnect from whoever is connected to the base send port.
              */
+            Loggers.conLog.log(Level.INFO, "Closing base send port\t{0}", 
+                    sendPort.baseSendPort.identifier());
             sendPort.baseSendPort.close();
         } catch (IOException ex) {
             Loggers.cacheLog.log(Level.SEVERE, "Could not close send port.", ex);

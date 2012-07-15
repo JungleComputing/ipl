@@ -3,8 +3,9 @@ package ibis.ipl.impl.stacking.cache.manager;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.CacheIbis;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.Loggers;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
+import ibis.ipl.impl.stacking.cache.util.Timers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -20,12 +21,16 @@ import java.util.logging.Logger;
 public abstract class CacheManager {
 
     /*
-     * TODO: move it from here, it's ugly This is the maximum size of the buffer
+     * TODO: move buffer capacity from here, it's ugly This is the maximum size of the buffer
      * used to stream data.
      */
     public static final int BUFFER_CAPACITY = 1 << 16;
+    
     public static final int MAX_CONNS;
-    public static final int MAX_CONNS_DEFAULT = 100;
+    public static final int MAX_CONNS_DEFAULT = 1;
+    
+    public static final int MSG_MAX_ARRIVAL_TIME_MILLIS;
+    public static final int MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT = 30;
     
     /**
      * Port type used for the creation of hub-based ports for the side-channel
@@ -60,18 +65,17 @@ public abstract class CacheManager {
     public final Lock lock;
     public final Condition allClosedCondition;
     public final Condition reservationsCondition;
-    public final Condition reserveAckCond;
+    public final Condition reserveAcksCond;
     public final Condition noLiveConnCondition;
+    public final Condition sleepCondition;
 
     static {
         MAX_CONNS = Integer.parseInt(
-                System.getProperty("MAX_CONNS", Integer.toString(MAX_CONNS_DEFAULT)));
-
-    }
-    private static long totalTime, count;
-    public static void addStreamTime(long l) {
-        totalTime += l;
-        count++;
+                System.getProperty("maxConns", Integer.toString(MAX_CONNS_DEFAULT)));
+        
+        MSG_MAX_ARRIVAL_TIME_MILLIS = Integer.parseInt(
+                System.getProperty("msgMaxArrivalTime", 
+                Integer.toString(MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT)));
     }
 
     CacheManager(CacheIbis ibis) {
@@ -89,8 +93,9 @@ public abstract class CacheManager {
             lock = new ReentrantLock(true);
             allClosedCondition = lock.newCondition();
             reservationsCondition = lock.newCondition();
-            reserveAckCond = lock.newCondition();
+            reserveAcksCond = lock.newCondition();
             noLiveConnCondition = lock.newCondition();
+            sleepCondition = lock.newCondition();
         
             statistics = new CacheStatistics();
 
@@ -103,8 +108,9 @@ public abstract class CacheManager {
 
     public void end() {
         try {
-            if(count>0) {
-                Loggers.cacheLog.log(Level.INFO, "Stream avg:\t{0} ms", totalTime/count);
+            
+            for(Timers timer : Timers.list) {
+                timer.print(System.out);
             }
             
             statistics.printStatistics(Loggers.cacheLog);
@@ -152,6 +158,9 @@ public abstract class CacheManager {
 
     abstract public boolean isConnCached(ReceivePortIdentifier identifier,
             SendPortIdentifier spi);
+    
+    abstract public boolean isConnCached(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
 
     abstract public ReceivePortIdentifier[] allRpisFrom(
             SendPortIdentifier identifier);
@@ -204,4 +213,8 @@ public abstract class CacheManager {
 
     abstract public void cancelReservation(ReceivePortIdentifier rpi, 
             SendPortIdentifier spi);
+    
+    abstract public boolean fullConns();
+    
+    abstract public boolean canCache();
 }

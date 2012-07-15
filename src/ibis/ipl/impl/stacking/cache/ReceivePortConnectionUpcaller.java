@@ -3,7 +3,7 @@ package ibis.ipl.impl.stacking.cache;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.util.logging.Level;
 
 /**
@@ -12,12 +12,12 @@ import java.util.logging.Level;
 public class ReceivePortConnectionUpcaller
         implements ReceivePortConnectUpcall {
 
-    CacheReceivePort port;
+    CacheReceivePort recvPort;
     ReceivePortConnectUpcall upcaller;
 
     public ReceivePortConnectionUpcaller(ReceivePortConnectUpcall upcaller,
             CacheReceivePort port) {
-        this.port = port;
+        this.recvPort = port;
         this.upcaller = upcaller;
     }
 
@@ -28,26 +28,28 @@ public class ReceivePortConnectionUpcaller
     @Override
     public synchronized boolean gotConnection(ReceivePort me,
             SendPortIdentifier spi) {
-        Loggers.conLog.log(Level.INFO, "\t{0} got connection", port.identifier());
+        Loggers.conLog.log(Level.INFO, "\t{0} got connection", recvPort.identifier());
 
         boolean accepted = true;
 
-        port.cacheManager.lock.lock();
+        recvPort.cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {            
-            if (port.cacheManager.isConnCached(this.port.identifier(), spi)) {
+            if (recvPort.cacheManager.isConnCached(this.recvPort.identifier(), spi)) {
                 Loggers.conLog.log(Level.INFO, "\t\trestoring from {0}\n", spi);
                 // connection was cached
-                port.cacheManager.restoreReservedConnection(port.identifier(), spi);
+                recvPort.cacheManager.restoreReservedConnection(recvPort.identifier(), spi);
             } else {
                 if (upcaller != null) {
-                    accepted = upcaller.gotConnection(port, spi);
+                    accepted = upcaller.gotConnection(recvPort, spi);
                 }
                 Loggers.conLog.log(Level.INFO, "\t\tnew from {0}\n", spi);
                 // new connection
-                port.cacheManager.activateReservedConnection(port.identifier(), spi);
+                recvPort.cacheManager.activateReservedConnection(recvPort.identifier(), spi);
             }
         } finally {
-            port.cacheManager.lock.unlock();
+            recvPort.cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
 
         return accepted;
@@ -71,60 +73,80 @@ public class ReceivePortConnectionUpcaller
     public synchronized void lostConnection(ReceivePort me,
             SendPortIdentifier spi, Throwable reason) {
         Loggers.conLog.log(Level.INFO, "\n\t{0} got lost connection to {1}",
-                new Object[] {port.identifier(), spi});
+                new Object[] {recvPort.identifier(), spi});
         if (reason != null) {
             Loggers.conLog.log(Level.INFO, "\tcause was:\t{0}\n", reason.toString());
         }
 
-        port.cacheManager.lock.lock();
-        try {
+        /*
+         * Sync-ed because the place from where the caching was initiated would
+         * like a notification on when it has actually been accomplished.
+         */
+        synchronized (recvPort.cachingInitiatedByMeSet) {
+            if (recvPort.cachingInitiatedByMeSet.contains(spi)) {
+                /*
+                 * The connection is cached because I wanted it cached. scenario
+                 * 4)
+                 */
+                /*
+                 * Don't call port.cacheManager.cacheConnection() because this
+                 * connection caching was initiated by me from some place, so I
+                 * already know of this cached connection.
+                 */
+                /*
+                 * port.cacheManager.cacheConnection(me.identifier(), spi);
+                 */
+                recvPort.cachingInitiatedByMeSet.remove(spi);
+                recvPort.cachingInitiatedByMeSet.notifyAll();
+                /*
+                 * A SPI can be in both toBeCachedSet and
+                 * cachingInitiatedByMeSet. scenario: simultaneously, both
+                 * sendPort and recvPort want to cache the same connection.
+                 */
+                recvPort.toBeCachedSet.remove(spi);
+                Loggers.conLog.log(Level.INFO, "Got lost connection"
+                        + " initiated by me. Connection now trully cached"
+                        + " from {0} to {1}.", 
+                        new Object[] {spi, recvPort.identifier()});
+                return;
+            }
+        }
 
+        recvPort.cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        try {
             if (me == null) {
                 /*
                  * The connection was cached, but now it needs to be closed.
                  * scenario 3).
                  */
-                port.cacheManager.removeConnection(port.identifier(), spi);
-            } else if (port.toBeCachedSet.contains(spi)) {
+                recvPort.cacheManager.removeConnection(recvPort.identifier(), spi);
+                if (upcaller != null) {
+                    upcaller.lostConnection(recvPort, spi, reason);
+                }
+                return;
+            }
+            
+            if (recvPort.toBeCachedSet.contains(spi)) {
                 /*
                  * This disconnect call is actually a connection caching.
                  * scenario 2).
                  */
-                port.cacheManager.cacheConnection(me.identifier(), spi);
-                port.toBeCachedSet.remove(spi);
-            } else if (port.initiatedCachingByMe.contains(spi)) {
-                /*
-                 * The connection is cached because 
-                 * I wanted it cached. scenario 4)
-                 */
-                /*
-                 * Don't call port.cacheManager.cacheConnection()
-                 * because this connection caching was initiated by
-                 * me from some place, so I already know of this cached connection.
-                 */
-//                port.cacheManager.cacheConnection(me.identifier(), spi);
-                /*
-                 * Sync-ed because the place from where the caching was
-                 * initiated would like a notification on when it has
-                 * actually been accomplished.
-                 */
-                synchronized(port.initiatedCachingByMe) {
-                    port.initiatedCachingByMe.remove(spi);
-                    port.initiatedCachingByMe.notifyAll();
-                }
+                recvPort.cacheManager.cacheConnection(me.identifier(), spi);
+                recvPort.toBeCachedSet.remove(spi);
             } else {
                 /*
                  * This connection is lost for good - and it was't cached.
                  * scenario 1).
                  */
-                port.cacheManager.removeConnection(me.identifier(), spi);
+                recvPort.cacheManager.removeConnection(me.identifier(), spi);
+                if (upcaller != null) {
+                    upcaller.lostConnection(recvPort, spi, reason);
+                }
             }
         } finally {
-            port.cacheManager.lock.unlock();
-        }
-
-        if (upcaller != null) {
-            upcaller.lostConnection(port, spi, reason);
+            recvPort.cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 }

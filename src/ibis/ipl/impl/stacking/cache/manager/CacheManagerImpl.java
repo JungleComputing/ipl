@@ -5,13 +5,13 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheIbis;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cache.util.Timers;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public abstract class CacheManagerImpl extends CacheManager {
 
@@ -21,6 +21,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     protected final List<Connection> fromRPCacheConns;
     protected final List<Connection> reservedConns;
     protected final List<Connection> canceledReservations;
+    private Random r;
 
     protected CacheManagerImpl(CacheIbis ibis) {
         super(ibis);
@@ -30,6 +31,7 @@ public abstract class CacheManagerImpl extends CacheManager {
         fromRPCacheConns = new LinkedList<Connection>();
         reservedConns = new LinkedList<Connection>();
         canceledReservations = new LinkedList<Connection>();
+        r = new Random();
     }
 
     abstract protected Connection cacheOneConnection();
@@ -47,19 +49,17 @@ public abstract class CacheManagerImpl extends CacheManager {
             } catch (InterruptedException ignoreMe) {
             }
         }
-
-        con.cache(heKnows);
         
         /*
          * Situation: the two sides (SP and RP) want to cache the same
          * connection. Then this method will be called x2.
          */
         if (!fromSPCacheConns.contains(con)) {
+            con.cache(heKnows);
             fromSPCacheConns.add(con);
+            statistics.cache(con);
         }
         fromSPLiveConns.remove(con);
-
-        statistics.cache(con);
 
         logReport();
     }
@@ -75,19 +75,19 @@ public abstract class CacheManagerImpl extends CacheManager {
             } catch (InterruptedException ignoreMe) {
             }
         }
-        
+
         con.remove();
 
         statistics.remove(con);
 
         fromSPCacheConns.remove(con);
         fromSPLiveConns.remove(con);
-        
+
         super.allClosedCondition.signal();
 
         logReport();
     }
-    
+
     @Override
     public void lostConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
@@ -98,8 +98,9 @@ public abstract class CacheManagerImpl extends CacheManager {
         fromSPCacheConns.remove(con);
         fromSPLiveConns.remove(con);
         reservedConns.remove(con);
-
-        super.allClosedCondition.signal();
+        
+        super.reservationsCondition.signalAll();
+        super.allClosedCondition.signalAll();
 
         logReport();
     }
@@ -124,7 +125,7 @@ public abstract class CacheManagerImpl extends CacheManager {
                 break;
             }
         }
-        
+
         Connection.closeSendPort(spi);
 
         for (Iterator it = fromSPCacheConns.iterator(); it.hasNext();) {
@@ -141,7 +142,7 @@ public abstract class CacheManagerImpl extends CacheManager {
                 statistics.remove(conn);
             }
         }
-        
+
         super.allClosedCondition.signal();
 
         logReport();
@@ -209,6 +210,8 @@ public abstract class CacheManagerImpl extends CacheManager {
 
         statistics.remove(con);
 
+        super.allClosedCondition.signal();
+
         logReport();
     }
 
@@ -247,6 +250,12 @@ public abstract class CacheManagerImpl extends CacheManager {
     public boolean isConnCached(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
         return fromRPCacheConns.contains(con);
+    }
+    
+    @Override
+    public boolean isConnCached(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        Connection con = new Connection(spi, rpi);
+        return fromSPCacheConns.contains(con);
     }
 
     @Override
@@ -331,7 +340,7 @@ public abstract class CacheManagerImpl extends CacheManager {
         if (rpis == null || rpis.isEmpty()) {
             throw new ibis.ipl.IbisIOException("Array of send ports is null or empty.");
         }
-        
+
         Loggers.cacheLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}", rpis);
 
         /*
@@ -340,12 +349,10 @@ public abstract class CacheManagerImpl extends CacheManager {
         Set<ReceivePortIdentifier> aliveConn =
                 new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(port.baseSendPort.connectedTo()));
-        Loggers.cacheLog.log(Level.INFO, "\n\t\tBase port connected to:\t{0}", aliveConn);
         /*
          * Filter all the connections with the ones received as params.
          */
         aliveConn.retainAll(rpis);
-        Loggers.cacheLog.log(Level.INFO, "\n\t\tIntersection:\t{0}", aliveConn);
 
         if (aliveConn.size() > 0) {
             rpis.removeAll(aliveConn);
@@ -353,24 +360,16 @@ public abstract class CacheManagerImpl extends CacheManager {
         }
 
         if (rpis.isEmpty()) {
-            Loggers.cacheLog.log(Level.INFO, "\n\t\tResult returned:\t{0}", aliveConn);
-            Loggers.cacheLog.log(Level.INFO, "\n\t\tBase port connected to:\t{0} ports.", port.baseSendPort.connectedTo().length);
             /*
              * I'm already connected to every receive port passed as param.
              */
             return aliveConn;
         }
 
-        Loggers.cacheLog.log(Level.INFO, "Getting some connections"
-                + " from the following set:\t{0}", rpis);
-
         Set<ReceivePortIdentifier> result = getSomeConnections(port,
                 rpis, aliveConn.size(), timeoutMillis, fillTimeout);
 
         result.addAll(aliveConn);
-        
-        Loggers.cacheLog.log(Level.INFO, "\n\t\tResult returned:\t{0}", result);
-        Loggers.cacheLog.log(Level.INFO, "\n\t\tBase port connected to:\t{0} ports.", port.baseSendPort.connectedTo().length);
 
         if (result.size() <= 0) {
             throw new ConnectionsFailedException("Coulnd't connect to even one RP.");
@@ -387,142 +386,229 @@ public abstract class CacheManagerImpl extends CacheManager {
     private Set<ReceivePortIdentifier> getSomeConnections(
             CacheSendPort port,
             Set<ReceivePortIdentifier> rpis,
-            int aliveConnsNo, long timeoutMillis, boolean fillTimeout) {
+            int alreadyAliveConnsNo, long timeoutMillis, boolean fillTimeout) {
 
         Set<ReceivePortIdentifier> result = new HashSet<ReceivePortIdentifier>();
         try {
-            int maxPossibleConns;
 
             long deadline = 0, timeout;
             if (timeoutMillis > 0) {
                 deadline = System.currentTimeMillis() + timeoutMillis;
             }
 
-            maxPossibleConns = Math.min(MAX_CONNS - aliveConnsNo, rpis.size());
+            int maxPossibleConns = Math.min(MAX_CONNS - alreadyAliveConnsNo, rpis.size());
+            long sleepMillis = 3;
 
-            /*
-             * Create some connections.
-             */
-            loop:
-            for (Iterator<ReceivePortIdentifier> it = rpis.iterator();
-                    maxPossibleConns > 0 && it.hasNext();) {
-
-                ReceivePortIdentifier rpi = it.next();
-
-                if (deadline > 0 && deadline - System.currentTimeMillis() <= 0) {
-                    break loop;
-                }
-
+            whileLoop:
+            while (true) {
                 /*
-                 * Check if I'm full of connections.
+                 * Create some connections.
                  */
-                if (fullConns()) {
+                forLoop:
+                for (Iterator<ReceivePortIdentifier> it = rpis.iterator();
+                        maxPossibleConns > 0 && it.hasNext();) {
+
+                    ReceivePortIdentifier rpi = it.next();
+
+                    if (deadline > 0 && deadline - System.currentTimeMillis() <= 0) {
+                        break forLoop;
+                    }
+
                     /*
-                     * If I can't cache anything, but I do have at least some
-                     * connections to offer, exit now.
+                     * Check if I'm full of connections.
                      */
-                    if (!canCache() && result.size() + aliveConnsNo > 0) {
-                        break loop;
-                    }
-                }
-                
-                /*
-                 * Reserve the connection from the send port side.
-                 */
-                reserveConnection(port.identifier(), rpi);
-
-                /*
-                 * We do not have the rpi's ack.
-                 */
-                port.reserveAckReceived.remove(rpi);
-
-                /*
-                 * Reserve the connection on the receive port side.
-                 */
-                super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
-                        rpi, SideChannelProtocol.RESERVE);
-
-                while (!port.reserveAckReceived.contains(rpi)) {
-                    try {
-                        if (deadline > 0) {
-                            timeout = deadline - System.currentTimeMillis();
-                            if (timeout <= 0) {
-                                cancelReservation(port.identifier(), rpi);
-                                super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
-                                        rpi, SideChannelProtocol.CANCEL_RESERVATION);
-                                break loop;
-                            }
-                            super.reserveAckCond.await(timeout, TimeUnit.MILLISECONDS);
-                        } else {
-                            super.reserveAckCond.await();
+                    if (fullConns()) {
+                        /*
+                         * If I can't cache anything, but I do have at least
+                         * some connections to offer, exit now.
+                         */
+                        if (!canCache() && result.size() + alreadyAliveConnsNo > 0) {
+                            break forLoop;
                         }
-                    } catch (InterruptedException ignoreMe) {
                     }
-                }
 
-                if (deadline > 0) {
-                    timeout = deadline - System.currentTimeMillis();
-                    if (timeout <= 0) {
-                        cancelReservation(port.identifier(), rpi);
-                        super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
-                                rpi, SideChannelProtocol.CANCEL_RESERVATION);
-                        break;
+                    /*
+                     * Reserve the connection over here, because we will 
+                     * release the lock before doing
+                     * baseSendPort.connect() (see reason below).
+                     */
+                    reserveConnection(port.identifier(), rpi);
+                    
+                    Timers.ackTimer.start();
+                    
+                    /*
+                     * We do not have the rpi's ack.
+                     */
+                    port.reserveAcks.remove(rpi);
+
+                    /*
+                     * Reserve the connection on the receive port side.
+                     */
+                    super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
+                            rpi, SideChannelProtocol.RESERVE);
+
+                    while (!port.reserveAcks.containsKey(rpi)) {
+                        try {
+                            if (deadline > 0) {
+                                timeout = deadline - System.currentTimeMillis();
+                                if (timeout <= 0) {
+                                    cancelReservation(port.identifier(), rpi);
+                                    super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
+                                            rpi, SideChannelProtocol.CANCEL_RESERVATION);
+                                    break forLoop;
+                                }
+                                super.reserveAcksCond.await(timeout, TimeUnit.MILLISECONDS);
+                            } else {
+                                super.reserveAcksCond.await();
+                            }
+                        } catch (InterruptedException ignoreMe) {
+                        }
+                    }
+                    
+                    Timers.ackTimer.stop();
+                    
+                    /*
+                     * The connection was refused. 
+                     * It was unreserve it from this side;
+                     * now move on.
+                     */
+                    if(port.reserveAcks.get(rpi).equals(SideChannelProtocol.RESERVE_NACK)) {
+                        continue forLoop;
                     }
                     
                     /*
-                     * For this I changed every synchronized to lock.
-                     * I need to release the lock whilst connecting,
-                     * because I can get deadlock:
-                     * two machines simultaneously connect and they both
-                     * enter in the gotConnection upcall where they
-                     * need the lock again;
-                     * but neither of them can get it, because both of them
-                     * hold it here.
+                     * We got the connection reserved at both sides.
+                     * Feel free to connect now.
                      */
-                    super.lock.unlock();
 
-                    try {
-                        port.baseSendPort.connect(rpi, timeout, fillTimeout);
-                        Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
-                                + "({0}, {1}, {2})",
-                                new Object[]{rpi, timeout, fillTimeout});
-                    } catch (IOException ex) {
-                        Loggers.cacheLog.log(Level.WARNING, "Base send port "
-                                + "failed to connect to receive port. Got"
-                                + "exception:\t{0}", ex.toString());
-                        cancelReservation(port.identifier(), rpi);
-                        super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
-                                rpi, SideChannelProtocol.CANCEL_RESERVATION);
-                        continue;
-                    } finally {
+                    if (deadline > 0) {
+                        timeout = deadline - System.currentTimeMillis();
+                        if (timeout <= 0) {
+                            cancelReservation(port.identifier(), rpi);
+                            super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
+                                    rpi, SideChannelProtocol.CANCEL_RESERVATION);
+                            break;
+                        }
+
                         /*
-                         * Ironic, huh? locking in the finally block.
+                         * For this I changed every synchronized to lock. I need
+                         * to release the lock whilst connecting, because I can
+                         * get deadlock: two machines simultaneously connect and
+                         * they both enter in the gotConnection upcall where
+                         * they need the lock again; but neither of them can get
+                         * it, because both of them hold it here.
                          */
-                        super.lock.lock();
-                    }
-                } else {
-                    super.lock.unlock();
-                    try {
-                        port.baseSendPort.connect(rpi);
-                        Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
-                                + "({0})", rpi);
-                    } catch (IOException ex) {
-                        Loggers.cacheLog.log(Level.WARNING, "Base send port "
-                                + "failed to connect to receive port. Got"
-                                + "exception:\t{0}", ex.toString());
-                        cancelReservation(port.identifier(), rpi);
-                        super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
-                                rpi, SideChannelProtocol.CANCEL_RESERVATION);
-                        continue;
-                    } finally {
-                        super.lock.lock();
-                    }
-                }
+                        super.lock.unlock();
+                        Loggers.lockLog.log(Level.INFO, "Lock unlocked before"
+                                + " base sendport connection.");
 
-                result.add(rpi);
-                maxPossibleConns--;
+                        try {
+                            port.baseSendPort.connect(rpi, timeout, fillTimeout);
+                            Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
+                                    + "({0}, {1}, {2})",
+                                    new Object[]{rpi, timeout, fillTimeout});
+                        } catch (IOException ex) {
+                            Loggers.cacheLog.log(Level.WARNING, "Base send port "
+                                    + "failed to connect to receive port. Got"
+                                    + "exception:\t{0}", ex.toString());
+                            cancelReservation(port.identifier(), rpi);
+                            super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
+                                    rpi, SideChannelProtocol.CANCEL_RESERVATION);
+                            continue forLoop;
+                        } finally {
+                            /*
+                             * Ironic, huh? locking in the finally block.
+                             */
+                            super.lock.lock();
+                            Loggers.lockLog.log(Level.INFO, "Lock locked after"
+                                + " base sendport connection.");
+                        }
+                    } else {
+                        super.lock.unlock();
+                        Loggers.lockLog.log(Level.INFO, "Lock unlocked before"
+                                + " base sendport connection.");
+                        try {
+                            port.baseSendPort.connect(rpi);
+                            Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
+                                    + "({0})", rpi);
+                        } catch (IOException ex) {
+                            Loggers.cacheLog.log(Level.WARNING, "Base send port "
+                                    + "failed to connect to receive port. Got"
+                                    + "exception:\t{0}", ex.toString());
+                            cancelReservation(port.identifier(), rpi);
+                            super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
+                                    rpi, SideChannelProtocol.CANCEL_RESERVATION);
+                            continue forLoop;
+                        } finally {
+                            super.lock.lock();
+                            Loggers.lockLog.log(Level.INFO, "Lock locked after"
+                                + " base sendport connection.");
+                        }
+                    }
+
+                    result.add(rpi);
+                    maxPossibleConns--;
+                }
+                /*
+                 * It is possible that we have no connections, i.e. result is empty.
+                 * this has happened because we got all NACKs.
+                 * 
+                 * Either the machines which sent us NACKS had been busy 
+                 * with other connections - good for them
+                 * OR (the actual reason for the code below)
+                 * this machine and the other one were simultaneously 
+                 * requesting connections to one another, but
+                 * the reservations filled up until the MAX no of conns was reached.
+                 * And they are both replying to each other a NACK.
+                 * 
+                 * solution: inspired from the root contension situation
+                 * in the FireWire election algorithm, we randomly choose 
+                 * to wait or not to wait a small period of time before
+                 * retrying the connections.
+                 */
+                if(result.size() + alreadyAliveConnsNo == 0) {
+                    /*
+                     * Would it be better to have a bigger chance to 
+                     * immediatly send again than to sleep?
+                     */
+                    if (r.nextDouble() > 0.5) {
+                        Loggers.cacheLog.log(Level.INFO, "\n\tCould not connect"
+                                + " to anyone. Sleeping now for {0}"
+                                + " millis.", sleepMillis);
+                        try {
+                            long sleepDeadline = System.nanoTime() + 
+                                    TimeUnit.MILLISECONDS.toNanos(sleepMillis);
+                            
+                            while (System.nanoTime() < sleepDeadline) {
+                                /*
+                                 * In this timeout, the other machine should
+                                 * have enough time to get some free or cacheble
+                                 * connections.
+                                 */
+                                super.sleepCondition.awaitNanos(
+                                        sleepDeadline - System.nanoTime());
+                            }
+                            /*
+                             * Exp backoff, because we might be in the deadlock
+                             * situation and the connection is just slow.
+                             * So I need to wait more.
+                             */
+                            sleepMillis = Math.min(sleepMillis * 2,
+                                    /*
+                                     * x2 because we need a send and an ack.
+                                     */
+                                    2 * MSG_MAX_ARRIVAL_TIME_MILLIS);
+                        } catch (InterruptedException ignoreMe) {}
+                    }
+                    
+                    /*
+                     * Done waiting, go again.
+                     */
+                    continue whileLoop;
+                }
+                      
+                return result;
             }
-            return result;
         } finally {
             /*
              * Move the successful connections from the reserved list to the
@@ -538,7 +624,9 @@ public abstract class CacheManagerImpl extends CacheManager {
         Connection con = new Connection(spi, rpi);
         if (fullConns()) {
             Connection temp = cacheOneConnectionFor(con);
-            statistics.cache(temp);
+            if (temp != null) {
+                statistics.cache(temp);
+            }
         }
         if (canceledReservations.contains(con)) {
             canceledReservations.remove(con);
@@ -552,9 +640,12 @@ public abstract class CacheManagerImpl extends CacheManager {
     public void reserveConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
+
         if (fullConns()) {
             Connection temp = cacheOneConnectionFor(con);
-            statistics.cache(temp);
+            if (temp != null) {
+                statistics.cache(temp);
+            }
         }
         if (canceledReservations.contains(con)) {
             canceledReservations.remove(con);
@@ -567,13 +658,29 @@ public abstract class CacheManagerImpl extends CacheManager {
     @Override
     public void cancelReservation(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
-        canceledReservations.add(new Connection(spi, rpi));
+        Connection con = new Connection(spi, rpi);
 
-        /*
-         * The reservation is waitinf on this condition.
-         * ignore the name and use it.
-         */
-        super.noLiveConnCondition.signalAll();
+        if (reservedConns.contains(con)) {
+            /*
+             * If it was reserved, remove it.
+             */
+            reservedConns.remove(con);
+            /*
+             * Notify.
+             */
+            super.reservationsCondition.signalAll();
+        } else {
+            /*
+             * If the cache manager is caching something to make way for the
+             * reservation, then it's not in the reserved array, so mark it.
+             */
+            canceledReservations.add(con);
+            /*
+             * The reservation is waiting on this condition. ignore the name and
+             * use it.
+             */
+            super.noLiveConnCondition.signalAll();
+        }
 
         logReport();
     }
@@ -581,13 +688,25 @@ public abstract class CacheManagerImpl extends CacheManager {
     @Override
     public void cancelReservation(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
-        canceledReservations.add(new Connection(rpi, spi));
+        Connection con = new Connection(rpi, spi);
 
-        /*
-         * The reservation is waitinf on this condition.
-         * ignore the name and use it.
-         */
-        super.noLiveConnCondition.signalAll();
+        if (reservedConns.contains(con)) {
+            /*
+             * If it was reserved, remove it.
+             */
+            reservedConns.remove(con);
+            /*
+             * Notify.
+             */
+            super.reservationsCondition.signalAll();
+        } else {
+            canceledReservations.add(con);
+            /*
+             * The reservation is waiting on this condition. ignore the name and
+             * use it.
+             */
+            super.noLiveConnCondition.signalAll();
+        }
 
         logReport();
     }
@@ -611,7 +730,7 @@ public abstract class CacheManagerImpl extends CacheManager {
          * Notify anyone who was waiting on the reservations to clear.
          */
         super.reservationsCondition.signalAll();
-        
+
         fromSPLiveConns.addAll(toBeMoved);
         /*
          * Maybe someone was waiting to cache one connection and needs live
@@ -647,7 +766,8 @@ public abstract class CacheManagerImpl extends CacheManager {
                     reservedConns.size(), reservedConns});
     }
 
-    private boolean fullConns() {
+    @Override
+    public boolean fullConns() {
         Set<Connection> all = new HashSet<Connection>();
         all.addAll(fromSPLiveConns);
         all.addAll(fromRPLiveConns);
@@ -655,8 +775,9 @@ public abstract class CacheManagerImpl extends CacheManager {
 
         return all.size() >= MAX_CONNS;
     }
-
-    private boolean canCache() {
+    
+    @Override
+    public boolean canCache() {
         return fromSPLiveConns.size() + fromRPLiveConns.size() > 0;
     }
 }

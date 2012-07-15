@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cache.CacheReadMessage.CacheReadUpcallMessage;
@@ -39,7 +40,8 @@ public final class MessageUpcaller implements MessageUpcall {
         messageDepleted = false;
         boolean isLastPart = m.readBoolean();
 
-        Loggers.upcallLog.log(Level.INFO, "\n\tGot message upcall. isLastPart={0}", isLastPart);
+        Loggers.upcallLog.log(Level.INFO, "\n\tGot message upcall from {0}. isLastPart={1}", 
+                new Object[] {m.origin(), isLastPart});
 
         /*
          * This is a logically new message.

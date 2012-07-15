@@ -1,16 +1,21 @@
-package ibis.ipl.impl.stacking.cache.manager;
+package ibis.ipl.impl.stacking.cache.manager.impl;
 
 import ibis.ipl.impl.stacking.cache.CacheIbis;
+import ibis.ipl.impl.stacking.cache.manager.CacheManagerImpl;
+import ibis.ipl.impl.stacking.cache.manager.Connection;
+import java.util.Random;
 
-public class LruCacheManagerImpl extends CacheManagerImpl {
-    
+public class RandomCacheManagerImpl extends CacheManagerImpl {
+
     /*
      * When caching, the recv port doesn't know we will cache the connection.
      */
     private boolean heKnows = false;
+    private Random r;
 
-    public LruCacheManagerImpl(CacheIbis ibis) {
+    public RandomCacheManagerImpl(CacheIbis ibis) {
         super(ibis);
+        r = new Random();
     }
 
     @Override
@@ -25,13 +30,9 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
             }
         }
 
-
-        if (!fromSPLiveConns.isEmpty()) {
-            /*
-             * Try to get first from the connection from the send port side.
-             * Faster to cache.
-             */
-            Connection con = fromSPLiveConns.remove(0);
+        int idx = r.nextInt(fromSPLiveConns.size() + fromRPLiveConns.size());
+        if (idx < fromSPLiveConns.size()) {
+            Connection con = fromSPLiveConns.remove(idx);
             con.cache(heKnows);
             fromSPCacheConns.add(con);
             return con;
@@ -39,7 +40,7 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
             /*
              * Get the one from the receive port side.
              */
-            Connection con = fromRPLiveConns.remove(0);
+            Connection con = fromRPLiveConns.remove(idx - fromSPLiveConns.size());
             con.cache(heKnows);
             fromRPCacheConns.add(con);
             return con;
@@ -63,13 +64,9 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
             return null;
         }
 
-
-        if (!fromSPLiveConns.isEmpty()) {
-            /*
-             * Try to get first from the connection from the send port side.
-             * Faster to cache.
-             */
-            Connection con = fromSPLiveConns.remove(0);
+        int idx = r.nextInt(fromSPLiveConns.size() + fromRPLiveConns.size());
+        if (idx < fromSPLiveConns.size()) {
+            Connection con = fromSPLiveConns.remove(idx);
             con.cache(heKnows);
             fromSPCacheConns.add(con);
             return con;
@@ -77,7 +74,7 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
             /*
              * Get the one from the receive port side.
              */
-            Connection con = fromRPLiveConns.remove(0);
+            Connection con = fromRPLiveConns.remove(idx - fromSPLiveConns.size());
             con.cache(heKnows);
             fromRPCacheConns.add(con);
             return con;

@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
@@ -40,7 +41,7 @@ public final class CacheReceivePort implements ReceivePort {
      * Set containing the send ports which will disconnect from me, but only
      * because I asked them to.
      */
-    public final Set<SendPortIdentifier> initiatedCachingByMe;
+    public final Set<SendPortIdentifier> cachingInitiatedByMeSet;
     /**
      * Under-the-hood send port.
      */
@@ -113,7 +114,7 @@ public final class CacheReceivePort implements ReceivePort {
                 wrapperPortType, name, this.msgUpcall, this.connectUpcall, properties);
 
         toBeCachedSet = new HashSet<SendPortIdentifier>();
-        initiatedCachingByMe = new HashSet<SendPortIdentifier>();
+        cachingInitiatedByMeSet = new HashSet<SendPortIdentifier>();
 
         cacheManager = ibis.cacheManager;
         intialPortType = portType;
@@ -136,13 +137,15 @@ public final class CacheReceivePort implements ReceivePort {
      * receiveport.
      */
     public void cache(SendPortIdentifier spi) throws IOException {
-        initiatedCachingByMe.add(spi);
-        /*
-         * Tell the SP side to cache the connection. I will count this
-         * connection at the lostConnection upcall.
-         */
-        cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), spi,
-                SideChannelProtocol.CACHE_FROM_RP_AT_SP);
+        synchronized (cachingInitiatedByMeSet) {
+            cachingInitiatedByMeSet.add(spi);
+            /*
+             * Tell the SP side to cache the connection. I will count this
+             * connection at the lostConnection upcall.
+             */
+            cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), spi,
+                    SideChannelProtocol.CACHE_FROM_RP_AT_SP);
+        }
     }
 
     @Override
@@ -154,17 +157,20 @@ public final class CacheReceivePort implements ReceivePort {
     public void close(long timeoutMillis) throws IOException {
         long deadline;
         if(timeoutMillis < 0) {
-            deadline = -1;
+            throw new IOException("Negative timeout value at receivePort.close()");
         } else if(timeoutMillis == 0) {
             deadline = Long.MAX_VALUE;
         } else {
             deadline = System.currentTimeMillis() + timeoutMillis;
         }
         
+        Loggers.conLog.log(Level.INFO, "Closing receive port\t{0}", this.identifier());
+        
         /*
          * Wait until all logically alive connections are closed.
          */
         cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             if (closed) {
                 return;
@@ -182,6 +188,7 @@ public final class CacheReceivePort implements ReceivePort {
             }
         } finally {
             cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
         
         Loggers.conLog.log(Level.INFO, "{0} is closing base receive port...",
@@ -192,10 +199,12 @@ public final class CacheReceivePort implements ReceivePort {
     @Override
     public SendPortIdentifier[] connectedTo() {
         cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             return cacheManager.allSpisFrom(this.identifier());
         } finally {
             cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 

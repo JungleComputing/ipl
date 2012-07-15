@@ -2,7 +2,7 @@ package ibis.ipl.impl.stacking.cache.io;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
-import ibis.ipl.impl.stacking.cache.Loggers;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.EOFException;
 import java.io.IOException;

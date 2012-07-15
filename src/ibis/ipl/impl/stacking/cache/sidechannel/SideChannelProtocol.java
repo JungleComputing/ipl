@@ -6,7 +6,9 @@ public interface SideChannelProtocol {
     
     public static final byte RESERVE_ACK = 1;
     
-    public static final byte CANCEL_RESERVATION = 2;
+    public static final byte RESERVE_NACK = 2;
+    
+    public static final byte CANCEL_RESERVATION = 3;
 
     public static final byte CACHE_FROM_RP_AT_SP = 8;
     

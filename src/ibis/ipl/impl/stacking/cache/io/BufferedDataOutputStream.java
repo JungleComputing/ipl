@@ -5,9 +5,10 @@ import ibis.io.DataOutputStream;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.Loggers;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.Timers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -79,7 +80,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * Send to all the connected receive ports the message built so far.
      */
     private void stream(boolean isLastPart) throws IOException {
-        long start = System.currentTimeMillis();
+        Timers.streamTimer.start();
 
         /*
          * All of our destinations.
@@ -115,6 +116,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
             destRpis.removeAll(gotAttention);
 
             port.cacheManager.lock.lock();
+            Loggers.lockLog.log(Level.INFO, "Lock locked.");
             try {
                 while (!gotAttention.isEmpty()) {
                     /*
@@ -172,9 +174,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 }
             } finally {
                 port.cacheManager.lock.unlock();
+                Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
             }
         }
-        CacheManager.addStreamTime(System.currentTimeMillis()-start);
+        Timers.streamTimer.stop();
         /*
          * Buffer is sent to everyone. Clear it.
          */

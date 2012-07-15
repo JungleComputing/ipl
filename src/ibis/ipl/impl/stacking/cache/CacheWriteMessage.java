@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.PortType;

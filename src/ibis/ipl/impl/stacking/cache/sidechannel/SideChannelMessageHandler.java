@@ -3,7 +3,7 @@ package ibis.ipl.impl.stacking.cache.sidechannel;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.Loggers;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.IOException;
 import java.util.HashMap;
@@ -19,6 +19,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
     static {
         map.put(RESERVE, "RESERVE");
         map.put(RESERVE_ACK, "RESERVE_ACK");
+        map.put(RESERVE_NACK, "RESERVE_NACK");
         map.put(CANCEL_RESERVATION, "CANCEL_RESERVATION");
         map.put(CACHE_FROM_RP_AT_SP, "CACHE_FROM_RP_AT_SP");
         map.put(CACHE_FROM_SP, "CACHE_FROM_SP");
@@ -51,19 +52,30 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         switch (opcode) {
             /*
              * At ReceivePortSide: the sender machine will establish a future
-             * connection. Make room for it.
+             * connection. Make room for it if possible.
              */
             case RESERVE:
+                byte answer = RESERVE_NACK;
                 cacheManager.lock.lock();
+                Loggers.lockLog.log(Level.INFO, "Lock locked in RESERVE");
                 try {
-                    cacheManager.reserveConnection(rpi, spi);
+                    /*
+                     * If I'm not full, or if I am but I can cache something,
+                     * then I'm good to go.
+                     */
+                    if(!cacheManager.fullConns() ||
+                            cacheManager.canCache()) {
+                        cacheManager.reserveConnection(rpi, spi);
+                        answer = RESERVE_ACK;
+                    }                    
                 } finally {
                     cacheManager.lock.unlock();
+                    Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE");
                 }
                 /*
-                 * Now send ack back.
+                 * Now send ack/nack back.
                  */
-                newThreadSendProtocol(rpi, spi, SideChannelProtocol.RESERVE_ACK);
+                newThreadSendProtocol(rpi, spi, answer);
                 break;
             /*
              * At SendPortSide: the ack received after our request for a
@@ -71,11 +83,30 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case RESERVE_ACK:
                 cacheManager.lock.lock();
+                Loggers.lockLog.log(Level.INFO, "Lock locked in RESERVE_ACK");
                 try {
-                    sp.reserveAckReceived.add(rpi);
-                    cacheManager.reserveAckCond.signal();
+                    sp.reserveAcks.put(rpi, RESERVE_ACK);
+                    cacheManager.reserveAcksCond.signal();
                 } finally {
                     cacheManager.lock.unlock();
+                    Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE_ACK");
+                }
+                break;
+            /*
+             * At SendPortSide: the negative ack received after our request
+             * for a connection.
+             */    
+            case RESERVE_NACK:
+                cacheManager.lock.lock();
+                Loggers.lockLog.log(Level.INFO, "Lock locked in RESERVE_NACK");
+                try {
+                    cacheManager.cancelReservation(spi, rpi);
+                    
+                    sp.reserveAcks.put(rpi, RESERVE_NACK);
+                    cacheManager.reserveAcksCond.signal();
+                } finally {
+                    cacheManager.lock.unlock();
+                    Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE_NACK");
                 }
                 break;
 
@@ -85,10 +116,12 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case CANCEL_RESERVATION:
                 cacheManager.lock.lock();
+                Loggers.lockLog.log(Level.INFO, "Lock locked in CANCEL_RESERVATION");
                 try {
                     cacheManager.cancelReservation(rpi, spi);
                 } finally {
                     cacheManager.lock.unlock();
+                    Loggers.lockLog.log(Level.INFO, "Lock unlocked in CANCEL_RESERVATION");
                 }
                 break;
             /*
@@ -98,11 +131,34 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case CACHE_FROM_RP_AT_SP:
                 cacheManager.lock.lock();
+                Loggers.lockLog.log(Level.INFO, "Lock locked in CACHE_FROM_RP_AT_SP");
                 try {
-                    boolean heKnows = true;                    
-                    cacheManager.cacheConnection(spi, rpi, heKnows);
+                    boolean heKnows = true;
+                    /*
+                     * It may be that this connection is already
+                     * cached or even closed if a caching/disconnection
+                     * came from the SendPort simultaneously (but a bit faster).
+                     */
+                    if(cacheManager.isConnAlive(spi, rpi)) {
+                        cacheManager.cacheConnection(spi, rpi, heKnows);
+                    } else if(!cacheManager.isConnCached(spi, rpi)) {
+                        /*
+                         * It is not alive and not even cached.
+                         * The sendport closed the connection while
+                         * the receive port wanted it cached.
+                         * 
+                         * The ReceivePort thinks the lostConnection() upcall 
+                         * he got is a connection caching, but it
+                         * actually is a real disconnect call.
+                         * 
+                         * send him a disconnect message to wake him up.
+                         */
+                        cacheManager.sideChannelHandler.sendProtocol(spi,
+                                rpi, SideChannelProtocol.DISCONNECT);
+                    }
                 } finally {
                     cacheManager.lock.unlock();
+                    Loggers.lockLog.log(Level.INFO, "Lock unlocked in CACHE_FROM_RP_AT_SP");
                 }
                 break;
 
@@ -159,6 +215,19 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                      */
                     if ((rp.currentReadMsg != null)
                             || rp.readMsgRequested) {
+
+                        if (rp.currentReadMsg != null) {
+                            Loggers.readMsgLog.log(Level.INFO, "I have a current alive"
+                                    + " read message, and I will handle this"
+                                    + " message later.");
+                        }
+                        if (rp.readMsgRequested) {
+                            Loggers.readMsgLog.log(Level.INFO, "I have "
+                                    + "requested a read message from someone, "
+                                    + "and I will handle this"
+                                    + " message later.");
+                        }
+
                         rp.toHaveMyFutureAttention.add(spi);
                         rp.notifyAll();
                     } else {

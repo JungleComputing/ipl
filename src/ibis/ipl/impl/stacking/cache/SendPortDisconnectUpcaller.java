@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
@@ -24,10 +25,12 @@ public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
         Loggers.conLog.log(Level.INFO, "\tcause was:\n{0}", cause);
 
         port.cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             port.cacheManager.lostConnection(sendPort.identifier(), rpi);
         } finally {
             port.cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
 
         if (upcaller != null) {

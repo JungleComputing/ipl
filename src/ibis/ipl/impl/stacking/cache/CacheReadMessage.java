@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
@@ -81,7 +82,8 @@ public abstract class CacheReadMessage implements ReadMessage {
     @Override
     public long finish() throws IOException {
         checkNotFinished();
-        Loggers.readMsgLog.log(Level.INFO, "Finishing read message.");
+        Loggers.readMsgLog.log(Level.INFO, "Finishing read message from {0}.",
+                this.origin());
         dataIn.close();
 //            in.clear();
         in.close();
@@ -89,8 +91,10 @@ public abstract class CacheReadMessage implements ReadMessage {
         long retVal = bytesRead();
         synchronized (recvPort) {
             recvPort.currentReadMsg = null;
+            recvPort.readMsgRequested = false;
             
-            Loggers.readMsgLog.log(Level.INFO, "Read message finished.");
+            Loggers.readMsgLog.log(Level.INFO, "\n\tRead message from {0} finished.",
+                    this.origin());
 
             /*
              * Need to send signal to the next in line send port who wishes to

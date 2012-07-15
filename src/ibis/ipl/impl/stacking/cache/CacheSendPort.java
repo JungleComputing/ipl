@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public final class CacheSendPort implements SendPort {
 
@@ -52,7 +54,7 @@ public final class CacheSendPort implements SendPort {
     public CacheWriteMessage currentMsg;
     public final Object cacheAckLock = new Object();
     public boolean cacheAckReceived = false;
-    public final Set<ReceivePortIdentifier> reserveAckReceived;
+    public final Map<ReceivePortIdentifier, Byte> reserveAcks;
 
     public CacheSendPort(PortType portType, CacheIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
@@ -83,7 +85,7 @@ public final class CacheSendPort implements SendPort {
         messageLock = new Object();
         currentMsg = null;
         
-        reserveAckReceived = new HashSet<ReceivePortIdentifier>();
+        reserveAcks = new HashMap<ReceivePortIdentifier, Byte>();
         /*
          * Send this to the map only when it has been filled up with all data.
          */
@@ -95,18 +97,20 @@ public final class CacheSendPort implements SendPort {
      * given receive port. This method is to be called when we know the
      * connection is actually alive.
      *
-     * This method will be called only from the Cache Manager under a
-     * synchronized context. If so, I am guaranteed that the underlying
+     * This method will be called only from the Cache Manager with the
+     * lock locked. Thus, I am guaranteed that the underlying
      * connection will have no alive message. (search for sendPort.newMessage())
      *
      * @param rpi the receive port to which to cache the connection
-     * @param doesHeKnow if the receive port knows the next disconnect call he
+     * @param heKnows if the receive port knows the next disconnect call he
      * gets from this send port is for caching purposes.
      * @throws IOException
      */
-    public void cache(ReceivePortIdentifier rpi, boolean doesHeKnow)
+    public void cache(ReceivePortIdentifier rpi, boolean heKnows)
             throws IOException {
-        if (!doesHeKnow) {
+        Loggers.cacheLog.log(Level.INFO, "Going to cache: heKnows={0}",
+                heKnows);
+        if (!heKnows) {
             cacheAckReceived = false;
             /*
              * Send message through the side channel of this connection, because
@@ -122,6 +126,9 @@ public final class CacheSendPort implements SendPort {
              */
             waitForCacheAck();
         }
+        
+        Loggers.cacheLog.log(Level.INFO, "baseSendPort connected to "
+                + "{0} recv ports.", baseSendPort.connectedTo().length);
 
         /*
          * Now we can safely disconnect from the receive port, since we are
@@ -149,11 +156,15 @@ public final class CacheSendPort implements SendPort {
                         "Trying to close the send port while a message is alive!");
             }
         }
+        
         cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        Loggers.conLog.log(Level.INFO, "Closing cache send port\t{0}", this.identifier());
         try {
             cacheManager.closeSendPort(this.identifier());
         } finally {
             cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 
@@ -261,6 +272,7 @@ public final class CacheSendPort implements SendPort {
              * 1 successfull connection.
              */
             cacheManager.lock.lock();
+            Loggers.lockLog.log(Level.INFO, "Lock locked.");
             try {
                 if (deadline > 0) {
                     connected = cacheManager.getSomeConnections(
@@ -284,17 +296,20 @@ public final class CacheSendPort implements SendPort {
                 throw (ConnectionsFailedException) connFailed;
             } finally {
                 cacheManager.lock.unlock();
+                Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
             }
         }
     }
 
     @Override
     public ReceivePortIdentifier[] connectedTo() {
-        cacheManager.lock.lock(); 
+        cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             return cacheManager.allRpisFrom(this.identifier());
         } finally {
             cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 
@@ -308,6 +323,7 @@ public final class CacheSendPort implements SendPort {
             }
         }
         cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             /*
              * Remove the connection.
@@ -315,6 +331,7 @@ public final class CacheSendPort implements SendPort {
             cacheManager.removeConnection(this.identifier(), rpi);
         } finally {
             cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 
