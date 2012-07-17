@@ -33,16 +33,18 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
              * Try to get first from the connection from the send port side.
              * Faster to cache.
              */
-            Connection con = fromSPLiveConns.remove(0);
+            Connection con = fromSPLiveConns.get(0);
             con.cache(heKnows);
+            fromSPLiveConns.remove(con);
             fromSPCacheConns.add(con);
             return con;
         } else {
             /*
              * Get the one from the receive port side.
              */
-            Connection con = fromRPLiveConns.remove(0);
+            Connection con = fromRPLiveConns.get(0);
             con.cache(heKnows);
+            fromRPLiveConns.remove(con);
             fromRPCacheConns.add(con);
             return con;
         }
@@ -71,16 +73,18 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
              * Try to get first from the connection from the send port side.
              * Faster to cache.
              */
-            Connection con = fromSPLiveConns.remove(0);
+            Connection con = fromSPLiveConns.get(0);
             con.cache(heKnows);
+            fromSPLiveConns.remove(con);
             fromSPCacheConns.add(con);
             return con;
         } else {
             /*
              * Get the one from the receive port side.
              */
-            Connection con = fromRPLiveConns.remove(0);
+            Connection con = fromRPLiveConns.get(0);
             con.cache(heKnows);
+            fromRPLiveConns.remove(con);
             fromRPCacheConns.add(con);
             return con;
         }

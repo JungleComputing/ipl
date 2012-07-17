@@ -108,8 +108,9 @@ public final class CacheSendPort implements SendPort {
      */
     public void cache(ReceivePortIdentifier rpi, boolean heKnows)
             throws IOException {
-        Loggers.cacheLog.log(Level.INFO, "Going to cache: heKnows={0}",
-                heKnows);
+        Loggers.cacheLog.log(Level.INFO, "\nGoing to cache from"
+                + " {0} to {1}; heKnows={2}", new Object[] {
+                    this.identifier(), rpi, heKnows});
         if (!heKnows) {
             cacheAckReceived = false;
             /*
@@ -127,14 +128,43 @@ public final class CacheSendPort implements SendPort {
             waitForCacheAck();
         }
         
-        Loggers.cacheLog.log(Level.INFO, "baseSendPort connected to "
+        Loggers.cacheLog.log(Level.INFO, "\nbaseSendPort connected to "
                 + "{0} recv ports.", baseSendPort.connectedTo().length);
 
         /*
          * Now we can safely disconnect from the receive port, since we are
          * guaranteed that he will know to cache this connection.
          */
-        baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
+        cacheManager.reserveLiveConnection(this.identifier(), rpi);
+        Loggers.cacheLog.log(Level.INFO, "\nBEFORE RELEASING LOCK:"
+                + "\nBase send port connections:\t{0}."
+                    + "\nNow disconnecting from {1}",
+                    new Object[] {
+                        Arrays.asList(baseSendPort.connectedTo()), rpi});
+        Loggers.lockLog.log(Level.INFO, "Releasing lock for {0} to disconnect.", this.identifier());
+        
+        cacheManager.lock.unlock();        
+        try {
+            Loggers.cacheLog.log(Level.INFO, "\nNO LOCK HERE:"
+                    + "\nBase send port connections:\t{0}."
+                    + "\nNow disconnecting from {1}",
+                    new Object[] {
+                        Arrays.asList(baseSendPort.connectedTo()), rpi});
+            
+            baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
+            
+            Loggers.cacheLog.log(Level.INFO, "\nBase send port now connected"
+                + " to {0} recv ports.", baseSendPort.connectedTo().length);
+        } catch(Exception ex) {
+            Loggers.cacheLog.log(Level.SEVERE, "\nBase send port "
+                    + this.identifier() + " failed to "
+                    + "properly disconnect from "
+                    + rpi + ".", ex);
+        } finally {
+            cacheManager.lock.lock();
+            Loggers.lockLog.log(Level.INFO, "\nREAQUIRED LOCK: {0} reaquired lock.", this.identifier());
+            cacheManager.unReserveLiveConnection(this.identifier(), rpi);
+        }
     }
 
     private void waitForCacheAck() {

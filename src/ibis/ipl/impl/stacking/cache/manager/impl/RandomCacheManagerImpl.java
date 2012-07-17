@@ -32,16 +32,18 @@ public class RandomCacheManagerImpl extends CacheManagerImpl {
 
         int idx = r.nextInt(fromSPLiveConns.size() + fromRPLiveConns.size());
         if (idx < fromSPLiveConns.size()) {
-            Connection con = fromSPLiveConns.remove(idx);
+            Connection con = fromSPLiveConns.get(idx);
             con.cache(heKnows);
+            fromSPLiveConns.remove(con);
             fromSPCacheConns.add(con);
             return con;
         } else {
             /*
              * Get the one from the receive port side.
              */
-            Connection con = fromRPLiveConns.remove(idx - fromSPLiveConns.size());
+            Connection con = fromRPLiveConns.get(idx - fromSPLiveConns.size());
             con.cache(heKnows);
+            fromRPLiveConns.remove(con);
             fromRPCacheConns.add(con);
             return con;
         }
@@ -66,16 +68,18 @@ public class RandomCacheManagerImpl extends CacheManagerImpl {
 
         int idx = r.nextInt(fromSPLiveConns.size() + fromRPLiveConns.size());
         if (idx < fromSPLiveConns.size()) {
-            Connection con = fromSPLiveConns.remove(idx);
+            Connection con = fromSPLiveConns.get(idx);
             con.cache(heKnows);
+            fromSPLiveConns.remove(con);
             fromSPCacheConns.add(con);
             return con;
         } else {
             /*
              * Get the one from the receive port side.
              */
-            Connection con = fromRPLiveConns.remove(idx - fromSPLiveConns.size());
+            Connection con = fromRPLiveConns.get(idx - fromSPLiveConns.size());
             con.cache(heKnows);
+            fromRPLiveConns.remove(con);
             fromRPCacheConns.add(con);
             return con;
         }

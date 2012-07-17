@@ -27,7 +27,7 @@ public abstract class CacheManager {
     public static final int BUFFER_CAPACITY = 1 << 16;
     
     public static final int MAX_CONNS;
-    public static final int MAX_CONNS_DEFAULT = 1;
+    public static final int MAX_CONNS_DEFAULT = 2;
     
     public static final int MSG_MAX_ARRIVAL_TIME_MILLIS;
     public static final int MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT = 30;
@@ -207,6 +207,12 @@ public abstract class CacheManager {
     
     abstract public void reserveConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
+    
+    abstract public void reserveLiveConnection(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
+    
+    abstract public void unReserveLiveConnection(SendPortIdentifier spi,
+            ReceivePortIdentifier rpi);
     
     abstract public void cancelReservation(SendPortIdentifier spi, 
             ReceivePortIdentifier rpi);

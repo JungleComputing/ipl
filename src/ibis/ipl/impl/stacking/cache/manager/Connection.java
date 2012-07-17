@@ -7,6 +7,8 @@ import ibis.ipl.impl.stacking.cache.CacheSendPort;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -72,26 +74,69 @@ public class Connection {
             sendPort.cacheManager.sideChannelHandler.sendProtocol(spi,
                     rpi, SideChannelProtocol.DISCONNECT);
         }
+        List<ReceivePortIdentifier> tempList =
+                new LinkedList<ReceivePortIdentifier>();
+        /*
+         * Move live connections to safe place.
+         */
+        for (ReceivePortIdentifier rpi : sendPort.baseSendPort.connectedTo()) {
+            sendPort.cacheManager.reserveLiveConnection(spi, rpi);
+            tempList.add(rpi);
+        }
+        /*
+         * Release the lock.
+         */
+        Loggers.lockLog.log(Level.INFO, "Releasing the lock so that"
+                + " sendport {0} can close.", sendPort.identifier());
+        sendPort.cacheManager.lock.unlock();
         
         try {
             /*
-             * Disconnect from whoever is connected to the base send port.
+             * Close now.
              */
-            Loggers.conLog.log(Level.INFO, "Closing base send port\t{0}", 
-                    sendPort.baseSendPort.identifier());
+            Loggers.cacheLog.log(Level.INFO, "Base send port now closing...");
             sendPort.baseSendPort.close();
-        } catch (IOException ex) {
+            Loggers.cacheLog.log(Level.INFO, "Base send port now closed.");
+        } catch (Exception ex) {
             Loggers.cacheLog.log(Level.SEVERE, "Could not close send port.", ex);
+        } finally {
+            /*
+             * Reaquire the lock.
+             */
+            sendPort.cacheManager.lock.lock();
+            Loggers.lockLog.log(Level.INFO, "{0} reaquired the lock.", sendPort.identifier());
+            /*
+             * Move back connections.
+             */
+            for(ReceivePortIdentifier rpi : tempList) {
+                sendPort.cacheManager.unReserveLiveConnection(spi, rpi);
+            }
         }
     }
 
     void remove() {
         CacheSendPort sendPort = CacheSendPort.map.get(spi);
         if (sendPort.cacheManager.isConnAlive(spi, rpi)) {
+            
+            sendPort.cacheManager.reserveLiveConnection(spi, rpi);
+
+            Loggers.lockLog.log(Level.INFO, "Releasing lock for {0} to disconnect.", spi);
+            sendPort.cacheManager.lock.unlock();
+
             try {
-                sendPort.disconnect(rpi);
-            } catch (IOException ex) {
-                Loggers.cacheLog.log(Level.SEVERE, "Could not disconnect send port.", ex);
+                Loggers.cacheLog.log(Level.INFO, "Base send port now disconnecting...");
+                sendPort.baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
+                Loggers.cacheLog.log(Level.INFO, "Base send port now connected"
+                        + " to {0} recv ports.", sendPort.baseSendPort.connectedTo().length);
+            } catch (Exception ex) {
+                Loggers.cacheLog.log(Level.SEVERE, "Base send port "
+                        + spi + " failed to "
+                        + "properly disconnect from "
+                        + rpi + ".", ex);
+            } finally {
+                sendPort.cacheManager.lock.lock();
+                Loggers.lockLog.log(Level.INFO, "{0} reaquired lock.", spi);
+                sendPort.cacheManager.unReserveLiveConnection(spi, rpi);
             }
         } else {
             /*

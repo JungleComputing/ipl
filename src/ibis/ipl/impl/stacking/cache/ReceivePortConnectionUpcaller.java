@@ -41,6 +41,7 @@ public class ReceivePortConnectionUpcaller
                 recvPort.cacheManager.restoreReservedConnection(recvPort.identifier(), spi);
             } else {
                 if (upcaller != null) {
+                    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                     accepted = upcaller.gotConnection(recvPort, spi);
                 }
                 Loggers.conLog.log(Level.INFO, "\t\tnew from {0}\n", spi);
@@ -122,6 +123,7 @@ public class ReceivePortConnectionUpcaller
                  */
                 recvPort.cacheManager.removeConnection(recvPort.identifier(), spi);
                 if (upcaller != null) {
+                    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                     upcaller.lostConnection(recvPort, spi, reason);
                 }
                 return;
@@ -141,6 +143,7 @@ public class ReceivePortConnectionUpcaller
                  */
                 recvPort.cacheManager.removeConnection(me.identifier(), spi);
                 if (upcaller != null) {
+                    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                     upcaller.lostConnection(recvPort, spi, reason);
                 }
             }
