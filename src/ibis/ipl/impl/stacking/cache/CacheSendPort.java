@@ -1,9 +1,9 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -134,6 +134,20 @@ public final class CacheSendPort implements SendPort {
         /*
          * Now we can safely disconnect from the receive port, since we are
          * guaranteed that he will know to cache this connection.
+         */
+        /*
+         * ISSUE:
+         * the disconnect() will block until the lostConnection() upcall
+         * is finished.
+         * 
+         * SCENARIO: 
+         * 2 machines simultaneously disconnect (whilst holding
+         * the lock here) and they both are blocked in the upcall
+         * because none of them can get the lock.
+         * 
+         * SOLUTION:
+         * move the connection to reserved state, release the lock,
+         * disconnect, reaquire the lock and move the connection back.
          */
         cacheManager.reserveLiveConnection(this.identifier(), rpi);
         Loggers.cacheLog.log(Level.INFO, "\nBEFORE RELEASING LOCK:"
@@ -334,12 +348,10 @@ public final class CacheSendPort implements SendPort {
     @Override
     public ReceivePortIdentifier[] connectedTo() {
         cacheManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             return cacheManager.allRpisFrom(this.identifier());
         } finally {
             cacheManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 

@@ -4,8 +4,8 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,20 +42,23 @@ public class Connection {
                 port.cache(rpi, heKnows);
             } else {
                 CacheReceivePort port = CacheReceivePort.map.get(rpi);
-                /*
-                 * This takes time.
-                 */
-                port.cache(spi);
-                synchronized (port.cachingInitiatedByMeSet) {
-                    while (port.cachingInitiatedByMeSet.contains(spi)) {
-                        try {
-                            port.cachingInitiatedByMeSet.wait();
-                        } catch (InterruptedException ignoreMe) {
+
+                if (port.cacheManager.isAvailableAlive(rpi, spi)) {
+                    /*
+                     * This takes time.
+                     */
+                    port.cache(spi);
+                    synchronized (port.cachingInitiatedByMeSet) {
+                        while (port.cachingInitiatedByMeSet.contains(spi)) {
+                            try {
+                                port.cachingInitiatedByMeSet.wait();
+                            } catch (InterruptedException ignoreMe) {
+                            }
                         }
                     }
                 }
                 Loggers.lockLog.log(Level.INFO, "Base receive port connected to"
-                        + " {0} send ports.", port.recvPort.connectedTo().length);                
+                        + " {0} send ports.", port.recvPort.connectedTo().length);
             }
         } catch (IOException ex) {
             Loggers.cacheLog.log(Level.SEVERE, "Caching failed:\t{0}", ex);
@@ -98,7 +101,8 @@ public class Connection {
             sendPort.baseSendPort.close();
             Loggers.cacheLog.log(Level.INFO, "Base send port now closed.");
         } catch (Exception ex) {
-            Loggers.cacheLog.log(Level.SEVERE, "Could not close send port.", ex);
+            Loggers.conLog.log(Level.SEVERE, "Failed to close send port "
+                    + sendPort.identifier(), ex);
         } finally {
             /*
              * Reaquire the lock.

@@ -1,6 +1,5 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
@@ -10,8 +9,8 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.io.BufferedDataInputStream;
 import ibis.ipl.impl.stacking.cache.io.DowncallBufferedDataInputStream;
 import ibis.ipl.impl.stacking.cache.io.UpcallBufferedDataInputStream;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;

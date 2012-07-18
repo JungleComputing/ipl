@@ -1,9 +1,9 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.util.logging.Level;
 
 public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {

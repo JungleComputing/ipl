@@ -1,10 +1,9 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cache.CacheReadMessage.CacheReadUpcallMessage;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -115,6 +114,11 @@ public final class MessageUpcaller implements MessageUpcall {
                  * User upcall.
                  */
                 Loggers.upcallLog.log(Level.INFO, "Calling user upcall...");
+                /*
+                 * Give way to the user upcall;
+                 * don't let my caching/uncaching get in the way.
+                 */
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 upcaller.upcall(currentLogicalMsg);
                 Loggers.upcallLog.log(Level.INFO, "User upcall finished.");
 

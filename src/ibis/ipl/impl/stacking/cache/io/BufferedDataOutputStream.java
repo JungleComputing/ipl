@@ -160,9 +160,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
                         Loggers.writeMsgLog.log(Level.SEVERE, "Failed to write {0} bytes message "
                                 + "to {1} ports.\n", new Object[]{index, destRpis.size()});
                     }
-                    Loggers.writeMsgLog.log(Level.INFO, "\tSent msg: ({0}, {1}) to {2}"
-                            + " receive ports.\n",
-                            new Object[]{isLastPart, index, port.baseSendPort.connectedTo().length});
+                    Loggers.writeMsgLog.log(Level.INFO, "\tWrite msg finished. "
+                            + "Sent: ({0}, {1}) to {2}.\n",
+                            new Object[]{isLastPart, index,
+                                Arrays.asList(port.baseSendPort.connectedTo())});
 
                     /*
                      * If this was the last part of the streamed message, I
@@ -174,7 +175,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 }
             } finally {
                 port.cacheManager.lock.unlock();
-                Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
+                Loggers.lockLog.log(Level.INFO, "Streaming finished. Lock released.");
             }
         }
         Timers.streamTimer.stop();

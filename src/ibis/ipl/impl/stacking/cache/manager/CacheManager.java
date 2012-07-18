@@ -155,6 +155,9 @@ public abstract class CacheManager {
 
     abstract public boolean isConnAlive(SendPortIdentifier identifier,
             ReceivePortIdentifier rpi);
+    
+    abstract public boolean isAvailableAlive(ReceivePortIdentifier rpi, 
+            SendPortIdentifier spi);
 
     abstract public boolean isConnCached(ReceivePortIdentifier identifier,
             SendPortIdentifier spi);
@@ -211,8 +214,14 @@ public abstract class CacheManager {
     abstract public void reserveLiveConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
     
+    abstract public void reserveLiveConnection(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
+    
     abstract public void unReserveLiveConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
+    
+    abstract public void unReserveLiveToCacheConnection(ReceivePortIdentifier rpi,
+            SendPortIdentifier spi);
     
     abstract public void cancelReservation(SendPortIdentifier spi, 
             ReceivePortIdentifier rpi);
@@ -223,4 +232,6 @@ public abstract class CacheManager {
     abstract public boolean fullConns();
     
     abstract public boolean canCache();
+
+    
 }

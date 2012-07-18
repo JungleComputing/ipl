@@ -21,12 +21,8 @@ public class ReceivePortConnectionUpcaller
         this.upcaller = upcaller;
     }
 
-    /*
-     * Sync-ed so no lost connection may come when a connection upcall
-     * is still alive.
-     */
     @Override
-    public synchronized boolean gotConnection(ReceivePort me,
+    public boolean gotConnection(ReceivePort me,
             SendPortIdentifier spi) {
         Loggers.conLog.log(Level.INFO, "\t{0} got connection", recvPort.identifier());
 
@@ -57,10 +53,6 @@ public class ReceivePortConnectionUpcaller
     }
 
     /**
-     * Synchronized in order to guarantee that at most 1 is alive at any time,
-     * because this method is also called manually from the side channel
-     * handling class.
-     *
      * This method is called in one of the following situations: 1) a true
      * disconnect()/close() from the receive port 2) a connection caching (but
      * the SPI would be in the toBeCachedSet thanks to the side channel) 3) a
@@ -71,7 +63,7 @@ public class ReceivePortConnectionUpcaller
      * will close this connection.
      */
     @Override
-    public synchronized void lostConnection(ReceivePort me,
+    public void lostConnection(ReceivePort me,
             SendPortIdentifier spi, Throwable reason) {
         Loggers.conLog.log(Level.INFO, "\n\t{0} got lost connection to {1}",
                 new Object[] {recvPort.identifier(), spi});
@@ -134,7 +126,7 @@ public class ReceivePortConnectionUpcaller
                  * This disconnect call is actually a connection caching.
                  * scenario 2).
                  */
-                recvPort.cacheManager.cacheConnection(me.identifier(), spi);
+                recvPort.cacheManager.unReserveLiveToCacheConnection(me.identifier(), spi);
                 recvPort.toBeCachedSet.remove(spi);
             } else {
                 /*

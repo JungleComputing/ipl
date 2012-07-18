@@ -1,9 +1,9 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -179,10 +179,11 @@ public final class CacheReceivePort implements ReceivePort {
             while (cacheManager.hasConnections(this.identifier()) && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
-                    Loggers.conLog.log(Level.INFO, "{0} is waiting for some"
-                            + " connections to close.", this.identifier());
+                    Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                            + " waiting on connections to be closed.");
                     cacheManager.allClosedCondition.await(
                             deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                    Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
                 } catch (InterruptedException ignoreMe) {
                 }
             }

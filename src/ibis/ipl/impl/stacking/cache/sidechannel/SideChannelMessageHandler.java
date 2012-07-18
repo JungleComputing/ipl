@@ -170,13 +170,27 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * call.
              */
             case CACHE_FROM_SP:
-                CacheReceivePort.map.get(rpi).toBeCachedSet.add(spi);
+                cacheManager.lock.lock();
+                try {
+                    if (cacheManager.isAvailableAlive(rpi, spi)) {
 
-                /*
-                 * Now send ack back.
-                 */
-                newThreadSendProtocol(rpi, spi, SideChannelProtocol.CACHE_FROM_SP_ACK);
+                        CacheReceivePort.map.get(rpi).toBeCachedSet.add(spi);
 
+                        /*
+                         * Move the alive connection to a reserved spot, so
+                         * nobody will try to cache this connection, since it
+                         * will already be cached.
+                         */
+                        cacheManager.reserveLiveConnection(rpi, spi);
+                    }
+
+                    /*
+                     * Now send ack back.
+                     */
+                    newThreadSendProtocol(rpi, spi, SideChannelProtocol.CACHE_FROM_SP_ACK);
+                } finally {
+                    cacheManager.lock.unlock();
+                }
                 /*
                  * Done.
                  */
@@ -255,17 +269,17 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
     }
 
     private void sendProtocol(SendPortIdentifier spi,
-            ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode) {
-        Loggers.sideLog.log(Level.INFO, "\tSending side-message: \t["
-                + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
-                new Object[]{spi.name(), spi.ibisIdentifier().name(),
-                    rpi.name(), rpi.ibisIdentifier().name(), 
-                    map.get(opcode)});
+            ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode) {        
         /*
          * Synchronize on the sideChannelSendPort so as not to send multiple
          * messages at the same time.
          */
         synchronized (cacheManager.sideChannelSendPort) {
+            Loggers.sideLog.log(Level.INFO, "\tSending side-message: \t["
+                    + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
+                    new Object[]{spi.name(), spi.ibisIdentifier().name(),
+                        rpi.name(), rpi.ibisIdentifier().name(),
+                        map.get(opcode)});
             try {
                 ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
                         destination, CacheManager.sideChnRPName);

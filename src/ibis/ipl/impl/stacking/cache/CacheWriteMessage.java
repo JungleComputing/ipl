@@ -1,11 +1,11 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.PortType;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
