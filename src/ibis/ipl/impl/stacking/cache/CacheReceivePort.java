@@ -137,14 +137,35 @@ public final class CacheReceivePort implements ReceivePort {
      * receiveport.
      */
     public void cache(SendPortIdentifier spi) throws IOException {
-        synchronized (cachingInitiatedByMeSet) {
-            cachingInitiatedByMeSet.add(spi);
-            /*
-             * Tell the SP side to cache the connection. I will count this
-             * connection at the lostConnection upcall.
-             */
-            cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), spi,
-                    SideChannelProtocol.CACHE_FROM_RP_AT_SP);
+        cacheManager.reserveLiveConnection(this.identifier(), spi);
+        cacheManager.lock.unlock();
+        Loggers.lockLog.log(Level.INFO, "Lock released before"
+                + " caching initiation from RP.");
+
+        try {
+            synchronized (cachingInitiatedByMeSet) {
+                cachingInitiatedByMeSet.add(spi);
+                /*
+                 * Tell the SP side to cache the connection. I will count this
+                 * connection at the lostConnection upcall.
+                 */
+                cacheManager.sideChannelHandler.newThreadSendProtocol(
+                        this.identifier(), spi,
+                        SideChannelProtocol.CACHE_FROM_RP_AT_SP);
+
+                while (cachingInitiatedByMeSet.contains(spi)) {
+                    try {
+                        cachingInitiatedByMeSet.wait();
+                    } catch (InterruptedException ignoreMe) {
+                    }
+                }
+            }
+        } finally {
+            cacheManager.lock.lock();
+            Loggers.lockLog.log(Level.INFO, "Lock reaquired and connection is "
+                    + "cached.");
+            Loggers.lockLog.log(Level.INFO, "");
+            cacheManager.unReserveLiveConnection(this.identifier(), spi);
         }
     }
 

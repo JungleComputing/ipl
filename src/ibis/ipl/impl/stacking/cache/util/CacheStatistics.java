@@ -1,5 +1,8 @@
-package ibis.ipl.impl.stacking.cache.manager;
+package ibis.ipl.impl.stacking.cache.util;
 
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.impl.stacking.cache.manager.Connection;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,14 +11,14 @@ import java.util.logging.Logger;
 
 public class CacheStatistics {
     
-    public final Map<Connection, Integer> timesCached;
+    public static final Map<Connection, Integer> timesCached;
 //    public final Map<Connection, Long> avgMillisCache;
-    public final Map<Connection, Long> createdOn;
-    public final Map<Connection, Long> destroyedOn;
-    public final Map<Connection, Long> totalAliveTime;
-    public final Map<Connection, Long> lastAliveOn;
+    public static final Map<Connection, Long> createdOn;
+    public static final Map<Connection, Long> destroyedOn;
+    public static final Map<Connection, Long> totalAliveTime;
+    public static final Map<Connection, Long> lastAliveOn;
 
-    public CacheStatistics() {
+    static {
         timesCached = new HashMap<Connection, Integer>();
 //        avgMillisCache = new HashMap<Connection, Long>();
         createdOn = new HashMap<Connection, Long>();
@@ -25,16 +28,19 @@ public class CacheStatistics {
     }
     
 
-    public void printStatistics(PrintStream out) {
-        out.println(toString());
+    public static void printStatistics(PrintStream out) {
+        out.println(getString());
     }
     
-    public void printStatistics(Logger log) {
-        log.log(Level.INFO, toString());
+    public static void printStatistics(Logger log) {
+        log.log(Level.INFO, getString());
+        
+        for (Timers timer : Timers.list) {
+            timer.log(log);
+        }
     }
-    
-    @Override
-    public String toString() {
+
+    private static String getString() {
         String border = "\n=====================================================";
         StringBuilder s = new StringBuilder();
         s.append(border);
@@ -55,7 +61,7 @@ public class CacheStatistics {
         return s.toString();
     }
     
-    private int perCentAlive(Connection con) {
+    private static int perCentAlive(Connection con) {
         if(!destroyedOn.containsKey(con)) {
             destroyedOn.put(con, System.nanoTime());
         }
@@ -66,27 +72,57 @@ public class CacheStatistics {
         return (int) (((double) totalAliveTime.get(con) / totalTime) * 100);
     }
 
-    void cache(Connection con) {
+    public static void cache(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        Connection con = new Connection(spi, rpi);
+        cache(con);
+    }
+    
+    public static void cache(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        Connection con = new Connection(rpi, spi);
+        cache(con);
+    }
+    
+    static void cache(Connection con) {
         timesCached.put(con, timesCached.get(con) + 1);
         long time = System.nanoTime() - lastAliveOn.get(con);
         totalAliveTime.put(con, totalAliveTime.get(con) + time);
     }
 
-    void remove(Connection con) {
+    public static void remove(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        Connection con = new Connection(spi, rpi);
+        remove(con);
+    }
+    
+    public static void remove(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        Connection con = new Connection(rpi, spi);
+        remove(con);
+    }
+    
+    static void remove(Connection con) {
         destroyedOn.put(con, System.nanoTime());
         long time = System.nanoTime() - lastAliveOn.get(con);
         totalAliveTime.put(con, totalAliveTime.get(con) + time);
     }
 
-    void add(Connection con) {
-        createdOn.put(con, System.nanoTime());
+    public static void connect(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        Connection con = new Connection(spi, rpi);
+        connect(con);
+    }
+    
+    public static void connect(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        Connection con = new Connection(rpi, spi);
+        connect(con);
+    }
+
+    static void connect(Connection con) {
+        if(createdOn.containsKey(con)) {
+            lastAliveOn.put(con, System.nanoTime());
+        } else {
+            createdOn.put(con, System.nanoTime());
         lastAliveOn.put(con, System.nanoTime());
         totalAliveTime.put(con, 0L);
         timesCached.put(con, 0);
 //        avgMillisCache.put(con, 0L);
-    }
-
-    void restore(Connection con) {
-        lastAliveOn.put(con, System.nanoTime());
+        }
     }
 }

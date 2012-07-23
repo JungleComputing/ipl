@@ -1,11 +1,11 @@
 package ibis.ipl.impl.stacking.cache.manager;
 
+import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.CacheIbis;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
-import ibis.ipl.impl.stacking.cache.util.Timers;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +27,7 @@ public abstract class CacheManager {
     public static final int BUFFER_CAPACITY = 1 << 16;
     
     public static final int MAX_CONNS;
-    public static final int MAX_CONNS_DEFAULT = 2;
+    public static final int MAX_CONNS_DEFAULT = 30;
     
     public static final int MSG_MAX_ARRIVAL_TIME_MILLIS;
     public static final int MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT = 30;
@@ -60,21 +60,19 @@ public abstract class CacheManager {
      */
     public final SideChannelMessageHandler sideChannelHandler;
     
-    public final CacheStatistics statistics;
-    
     public final Lock lock;
     public final Condition allClosedCondition;
     public final Condition reservationsCondition;
     public final Condition reserveAcksCond;
-    public final Condition noLiveConnCondition;
+    public final Condition gotSpaceCondition;
     public final Condition sleepCondition;
 
     static {
         MAX_CONNS = Integer.parseInt(
-                System.getProperty("maxConns", Integer.toString(MAX_CONNS_DEFAULT)));
+                System.getProperty("ipl.cache.maxConns", Integer.toString(MAX_CONNS_DEFAULT)));
         
         MSG_MAX_ARRIVAL_TIME_MILLIS = Integer.parseInt(
-                System.getProperty("msgMaxArrivalTime", 
+                System.getProperty("ipl.cache.msgMaxArrivalTime", 
                 Integer.toString(MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT)));
     }
 
@@ -94,14 +92,16 @@ public abstract class CacheManager {
             allClosedCondition = lock.newCondition();
             reservationsCondition = lock.newCondition();
             reserveAcksCond = lock.newCondition();
-            noLiveConnCondition = lock.newCondition();
+            gotSpaceCondition = lock.newCondition();
             sleepCondition = lock.newCondition();
         
-            statistics = new CacheStatistics();
-
-            Loggers.cacheLog.log(Level.INFO, "Cache manager instantiated on {0}", ibis.identifier().name());
+            Loggers.cacheLog.log(Level.INFO, "Cache manager instantiated on {0}."
+                    + "\n\tCacheManager class: {2}"
+                    + "\n\tmaxConns = {1}", new Object[] {
+                        ibis.identifier().name(), MAX_CONNS, this.getClass()
+                    });
         } catch (IOException ex) {
-            Loggers.cacheLog.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.");
+            Loggers.cacheLog.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.", ex);
             throw new RuntimeException(ex);
         }        
     }
@@ -109,14 +109,9 @@ public abstract class CacheManager {
     public void end() {
         try {
             
-            for(Timers timer : Timers.list) {
-                timer.print(System.out);
-            }
-            
-            statistics.printStatistics(Loggers.cacheLog);
+            CacheStatistics.printStatistics(Loggers.statsLog);
             
             sideChannelSendPort.close();
-            // will this block?
             sideChannelReceivePort.close();
             Loggers.cacheLog.log(Level.INFO, "Closed the cache manager.");
         } catch (IOException ex) {
@@ -153,17 +148,19 @@ public abstract class CacheManager {
 
     abstract public boolean hasConnections(ReceivePortIdentifier rpi);
 
-    abstract public boolean isConnAlive(SendPortIdentifier identifier,
+    abstract public boolean isConnAlive(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
     
-    abstract public boolean isAvailableAlive(ReceivePortIdentifier rpi, 
+    abstract public boolean isConnAlive(ReceivePortIdentifier rpi, 
             SendPortIdentifier spi);
-
-    abstract public boolean isConnCached(ReceivePortIdentifier identifier,
+    
+    abstract public boolean isConnCached(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);
     
     abstract public boolean isConnCached(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
+    
+    abstract public boolean containsReservedAlive(SendPortIdentifier spi);
 
     abstract public ReceivePortIdentifier[] allRpisFrom(
             SendPortIdentifier identifier);
@@ -219,6 +216,9 @@ public abstract class CacheManager {
     
     abstract public void unReserveLiveConnection(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
+    
+    abstract public void unReserveLiveConnection(ReceivePortIdentifier identifier, 
+            SendPortIdentifier spi);
     
     abstract public void unReserveLiveToCacheConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi);

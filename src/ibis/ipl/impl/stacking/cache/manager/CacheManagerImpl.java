@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache.manager;
 
+import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
@@ -15,10 +16,10 @@ import java.util.logging.Level;
 
 public abstract class CacheManagerImpl extends CacheManager {
 
-    protected final List<Connection> fromSPLiveConns;
-    protected final List<Connection> fromRPLiveConns;
-    protected final List<Connection> fromSPCacheConns;
-    protected final List<Connection> fromRPCacheConns;
+    protected final List<Connection> aliveConns;
+//    protected final List<Connection> fromRPLiveConns;
+    protected final List<Connection> cachedConns;
+//    protected final List<Connection> fromRPCacheConns;
     protected final List<Connection> aliveReservedConns;
     protected final List<Connection> notAliveReservedConns;
     protected final List<Connection> canceledReservations;
@@ -26,10 +27,10 @@ public abstract class CacheManagerImpl extends CacheManager {
 
     protected CacheManagerImpl(CacheIbis ibis) {
         super(ibis);
-        fromSPLiveConns = new LinkedList<Connection>();
-        fromSPCacheConns = new LinkedList<Connection>();
-        fromRPLiveConns = new LinkedList<Connection>();
-        fromRPCacheConns = new LinkedList<Connection>();
+        aliveConns = new LinkedList<Connection>();
+        cachedConns = new LinkedList<Connection>();
+//        fromRPLiveConns = new LinkedList<Connection>();
+//        fromRPCacheConns = new LinkedList<Connection>();
         aliveReservedConns = new LinkedList<Connection>();
         notAliveReservedConns = new LinkedList<Connection>();
         canceledReservations = new LinkedList<Connection>();
@@ -65,12 +66,13 @@ public abstract class CacheManagerImpl extends CacheManager {
          * Situation: the two sides (SP and RP) want to cache the same
          * connection. Then this method will be called x2.
          */
-        if (!fromSPCacheConns.contains(con)) {
+        if (!cachedConns.contains(con)) {
             con.cache(heKnows);
-            fromSPCacheConns.add(con);
-            statistics.cache(con);
+            cachedConns.add(con);
         }
-        fromSPLiveConns.remove(con);
+        aliveConns.remove(con);
+        
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -94,12 +96,10 @@ public abstract class CacheManagerImpl extends CacheManager {
 
         con.remove();
 
-        statistics.remove(con);
-
-        fromSPCacheConns.remove(con);
-        fromSPLiveConns.remove(con);
-
-        super.allClosedCondition.signal();
+        cachedConns.remove(con);
+        aliveConns.remove(con);
+        
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -109,15 +109,14 @@ public abstract class CacheManagerImpl extends CacheManager {
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
 
-        statistics.remove(con);
-
-        fromSPCacheConns.remove(con);
-        fromSPLiveConns.remove(con);
+        cachedConns.remove(con);
+        aliveConns.remove(con);
         aliveReservedConns.remove(con);
         notAliveReservedConns.remove(con);
         
         super.reservationsCondition.signalAll();
-        super.allClosedCondition.signalAll();
+        
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -151,22 +150,20 @@ public abstract class CacheManagerImpl extends CacheManager {
 
         Connection.closeSendPort(spi);
 
-        for (Iterator it = fromSPCacheConns.iterator(); it.hasNext();) {
+        for (Iterator it = cachedConns.iterator(); it.hasNext();) {
             Connection conn = (Connection) it.next();
             if (conn.contains(spi)) {
                 it.remove();
-                statistics.remove(conn);
             }
         }
-        for (Iterator it = fromSPLiveConns.iterator(); it.hasNext();) {
+        for (Iterator it = aliveConns.iterator(); it.hasNext();) {
             Connection conn = (Connection) it.next();
             if (conn.contains(spi)) {
                 it.remove();
-                statistics.remove(conn);
             }
         }
-
-        super.allClosedCondition.signal();
+        
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -181,12 +178,11 @@ public abstract class CacheManagerImpl extends CacheManager {
         assert notAliveReservedConns.contains(con);
 
         notAliveReservedConns.remove(con);
+        cachedConns.remove(con);
         super.reservationsCondition.signalAll();
 
-        fromRPLiveConns.add(con);
-        super.noLiveConnCondition.signalAll();
-
-        statistics.add(con);
+        aliveConns.add(con);
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -207,11 +203,12 @@ public abstract class CacheManagerImpl extends CacheManager {
          * Situation: the two sides (SP and RP) want to cache the same
          * connection. Then this method will be called x2.
          */
-        if (!fromRPCacheConns.contains(con)) {
-            fromRPCacheConns.add(con);
-            statistics.cache(con);
+        if (!cachedConns.contains(con)) {
+            cachedConns.add(con);
         }
-        fromRPLiveConns.remove(con);
+        aliveConns.remove(con);
+        
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -229,12 +226,11 @@ public abstract class CacheManagerImpl extends CacheManager {
             }
         }
 
-        fromRPCacheConns.remove(con);
-        fromRPLiveConns.remove(con);
-
-        statistics.remove(con);
+        cachedConns.remove(con);
+        aliveConns.remove(con);
 
         super.allClosedCondition.signal();
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -251,14 +247,11 @@ public abstract class CacheManagerImpl extends CacheManager {
         assert notAliveReservedConns.contains(con);
 
         notAliveReservedConns.remove(con);
+        cachedConns.remove(con);
         super.reservationsCondition.signalAll();
 
-        fromRPCacheConns.remove(con);
-
-        fromRPLiveConns.add(con);
-        super.noLiveConnCondition.signalAll();
-
-        statistics.restore(con);
+        aliveConns.add(con);
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -267,53 +260,64 @@ public abstract class CacheManagerImpl extends CacheManager {
     public boolean isConnAlive(SendPortIdentifier spi,
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
-        return fromSPLiveConns.contains(con) || aliveReservedConns.contains(con);
+        return aliveConns.contains(con);
     }
     
     @Override
-    public boolean isAvailableAlive(ReceivePortIdentifier rpi, 
+    public boolean isConnAlive(ReceivePortIdentifier rpi, 
             SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
-        return fromRPLiveConns.contains(con);
+        return aliveConns.contains(con);
     }
 
     @Override
     public boolean isConnCached(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         Connection con = new Connection(rpi, spi);
-        return fromRPCacheConns.contains(con);
+        return cachedConns.contains(con);
     }
     
     @Override
     public boolean isConnCached(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
-        return fromSPCacheConns.contains(con);
+        return cachedConns.contains(con);
     }
 
     @Override
     public boolean hasConnections(ReceivePortIdentifier rpi) {
-        for (Connection con : fromRPLiveConns) {
-            if (con.contains(rpi)) {
+        for (Connection con : aliveConns) {
+            if (!con.atSendPortSide && con.contains(rpi)) {
                 return true;
             }
         }
 
-        for (Connection con : fromRPCacheConns) {
-            if (con.contains(rpi)) {
+        for (Connection con : cachedConns) {
+            if (!con.atSendPortSide && con.contains(rpi)) {
                 return true;
             }
         }
 
         for (Connection con : aliveReservedConns) {
-            if (con.contains(rpi)) {
+            if (!con.atSendPortSide && con.contains(rpi)) {
                 return true;
             }
         }
         
         for (Connection con : notAliveReservedConns) {
-            if (con.contains(rpi)) {
+            if (!con.atSendPortSide && con.contains(rpi)) {
                 return true;
             }
         }
+        return false;
+    }
+    
+    @Override
+    public boolean containsReservedAlive(SendPortIdentifier spi) {
+        for(Connection con : aliveReservedConns) {
+            if(con.atSendPortSide && con.contains(spi)) {
+                return true;
+            }
+        }
+        
         return false;
     }
 
@@ -323,8 +327,8 @@ public abstract class CacheManagerImpl extends CacheManager {
         List<ReceivePortIdentifier> result =
                 new LinkedList<ReceivePortIdentifier>();
         
-        for (Connection con : fromSPCacheConns) {
-            if (con.contains(spi)) {
+        for (Connection con : cachedConns) {
+            if (con.atSendPortSide && con.contains(spi)) {
                 result.add(con.rpi);
             }
         }
@@ -335,14 +339,14 @@ public abstract class CacheManagerImpl extends CacheManager {
     public ReceivePortIdentifier[] allRpisFrom(SendPortIdentifier spi) {
         List<ReceivePortIdentifier> result = new LinkedList<ReceivePortIdentifier>();
 
-        for (Connection con : fromSPLiveConns) {
-            if (con.contains(spi)) {
+        for (Connection con : aliveConns) {
+            if (con.atSendPortSide && con.contains(spi)) {
                 result.add(con.rpi);
             }
         }
 
-        for (Connection con : fromSPCacheConns) {
-            if (con.contains(spi)) {
+        for (Connection con : cachedConns) {
+            if (con.atSendPortSide && con.contains(spi)) {
                 result.add(con.rpi);
             }
         }
@@ -366,14 +370,14 @@ public abstract class CacheManagerImpl extends CacheManager {
     public SendPortIdentifier[] allSpisFrom(ReceivePortIdentifier rpi) {
         List<SendPortIdentifier> result = new LinkedList<SendPortIdentifier>();
 
-        for (Connection con : fromRPLiveConns) {
-            if (con.contains(rpi)) {
+        for (Connection con : aliveConns) {
+            if (!con.atSendPortSide && con.contains(rpi)) {
                 result.add(con.spi);
             }
         }
 
-        for (Connection con : fromRPCacheConns) {
-            if (con.contains(rpi)) {
+        for (Connection con : cachedConns) {
+            if (!con.atSendPortSide && con.contains(rpi)) {
                 result.add(con.spi);
             }
         }
@@ -398,8 +402,8 @@ public abstract class CacheManagerImpl extends CacheManager {
         Set<ReceivePortIdentifier> result =
                 new HashSet<ReceivePortIdentifier>();
         
-        for (Connection con : fromSPLiveConns) {
-            if (con.contains(spi)) {
+        for (Connection con : aliveConns) {
+            if (con.atSendPortSide && con.contains(spi)) {
                 result.add(con.rpi);
             }
         }
@@ -542,7 +546,7 @@ public abstract class CacheManagerImpl extends CacheManager {
                     port.reserveAcks.remove(rpi);
 
                     /*
-                     * Reserve the connection on the receive port side.
+                     * Reserve the connection on the receive port side as well.
                      */
                     super.sideChannelHandler.newThreadSendProtocol(port.identifier(),
                             rpi, SideChannelProtocol.RESERVE);
@@ -609,6 +613,7 @@ public abstract class CacheManagerImpl extends CacheManager {
                                 + " base sendport connection.");
 
                         try {
+                            CacheStatistics.connect(port.identifier(), rpi);
                             port.baseSendPort.connect(rpi, timeout, fillTimeout);
                             Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
                                     + "({0}, {1}, {2})",
@@ -639,6 +644,7 @@ public abstract class CacheManagerImpl extends CacheManager {
                         Loggers.lockLog.log(Level.INFO, "Lock unlocked before"
                                 + " base sendport connection.");
                         try {
+                            CacheStatistics.connect(port.identifier(), rpi);
                             port.baseSendPort.connect(rpi);
                             Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
                                     + "({0})", rpi);
@@ -739,7 +745,7 @@ public abstract class CacheManagerImpl extends CacheManager {
             ReceivePortIdentifier rpi) {
         Connection con = new Connection(spi, rpi);
         
-        fromSPLiveConns.remove(con);
+        aliveConns.remove(con);
         aliveReservedConns.add(con);
         
         logReport();
@@ -751,36 +757,46 @@ public abstract class CacheManagerImpl extends CacheManager {
         Connection con = new Connection(spi, rpi);
         
         aliveReservedConns.remove(con);
-        fromSPLiveConns.add(con);
+        aliveConns.add(con);
         
         super.reservationsCondition.signalAll();
-        super.allClosedCondition.signalAll();
-        
-        logReport();
+        super.gotSpaceCondition.signalAll();
     }
 
     @Override
     public void reserveLiveConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
-        Connection con = new Connection(spi, rpi);
+        Connection con = new Connection(rpi, spi);
 
-        fromRPLiveConns.remove(con);
+        aliveConns.remove(con);
         aliveReservedConns.add(con);
 
         logReport();
+    }
+    
+    @Override
+    public void unReserveLiveConnection(ReceivePortIdentifier rpi, 
+            SendPortIdentifier spi) {
+        Connection con = new Connection(rpi, spi);
+
+        aliveReservedConns.remove(con);
+        aliveConns.add(con);
+        
+        super.reservationsCondition.signalAll();
+        super.gotSpaceCondition.signalAll();
     }
 
     @Override
     public void unReserveLiveToCacheConnection(ReceivePortIdentifier rpi,
             SendPortIdentifier spi) {
-        Connection con = new Connection(spi, rpi);
+        Connection con = new Connection(rpi, spi);
 
         aliveReservedConns.remove(con);
-        fromRPCacheConns.add(con);
+        cachedConns.add(con);
 
         super.reservationsCondition.signalAll();
-        super.allClosedCondition.signalAll();
-
+        super.gotSpaceCondition.signalAll();
+        
         logReport();
     }
 
@@ -790,18 +806,17 @@ public abstract class CacheManagerImpl extends CacheManager {
         Connection con = new Connection(spi, rpi);
 
         if (fullConns()) {
-            Connection temp = cacheOneConnectionFor(con);
-            if (temp != null) {
-                statistics.cache(temp);
-            }
+            cacheOneConnectionFor(con);
         }
         
         if (canceledReservations.contains(con)) {
             canceledReservations.remove(con);
         } else {
-            fromSPCacheConns.remove(con);
+            cachedConns.remove(con);
             notAliveReservedConns.add(con);
         }
+        
+        super.gotSpaceCondition.signalAll();
         
         logReport();
     }
@@ -812,11 +827,9 @@ public abstract class CacheManagerImpl extends CacheManager {
         Connection con = new Connection(rpi, spi);
 
         if (fullConns()) {
-            Connection temp = cacheOneConnectionFor(con);
-            if (temp != null) {
-                statistics.cache(temp);
-            }
+            cacheOneConnectionFor(con);
         }
+        
         if (canceledReservations.contains(con)) {
             canceledReservations.remove(con);
         } else {
@@ -828,6 +841,9 @@ public abstract class CacheManagerImpl extends CacheManager {
 //            fromRPCacheConns.remove(con);
             notAliveReservedConns.add(con);
         }
+        
+        super.gotSpaceCondition.signalAll();
+        
         logReport();
     }
 
@@ -841,22 +857,22 @@ public abstract class CacheManagerImpl extends CacheManager {
              * If it was reserved, remove it.
              */
             notAliveReservedConns.remove(con);
-            /*
-             * Notify.
-             */
-            super.reservationsCondition.signalAll();
         } else {
             /*
              * If the cache manager is caching something to make way for the
              * reservation, then it's not in the reserved array, so mark it.
              */
             canceledReservations.add(con);
-            /*
-             * The reservation is waiting on this condition. ignore the name and
-             * use it.
-             */
-            super.noLiveConnCondition.signalAll();
         }
+        /*
+         * Notify.
+         */
+        super.reservationsCondition.signalAll();
+        /*
+         * The reservation is waiting on this condition. ignore the name and use
+         * it.
+         */
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -871,18 +887,18 @@ public abstract class CacheManagerImpl extends CacheManager {
              * If it was reserved, remove it.
              */
             notAliveReservedConns.remove(con);
-            /*
-             * Notify.
-             */
-            super.reservationsCondition.signalAll();
         } else {
             canceledReservations.add(con);
-            /*
-             * The reservation is waiting on this condition. ignore the name and
-             * use it.
-             */
-            super.noLiveConnCondition.signalAll();
         }
+        /*
+         * Notify.
+         */
+        super.reservationsCondition.signalAll();
+        /*
+         * The reservation is waiting on this condition. ignore the name and use
+         * it.
+         */
+        super.gotSpaceCondition.signalAll();
 
         logReport();
     }
@@ -893,28 +909,23 @@ public abstract class CacheManagerImpl extends CacheManager {
         for (ReceivePortIdentifier rpi : rpiSet) {
             Connection temp = new Connection(spi, rpi);
             toBeMoved.add(temp);
-
-            if (fromSPCacheConns.contains(temp)) {
-                statistics.restore(temp);
-            } else {
-                statistics.add(temp);
-            }
         }
 
         notAliveReservedConns.removeAll(toBeMoved);
+        cachedConns.removeAll(toBeMoved);
         /*
          * Notify anyone who was waiting on the reservations to clear.
          */
         super.reservationsCondition.signalAll();
 
-        fromSPLiveConns.addAll(toBeMoved);
+        aliveConns.addAll(toBeMoved);
         /*
          * Maybe someone was waiting to cache one connection and needs live
          * connections for that to happen.
          */
-        super.noLiveConnCondition.signalAll();
+        super.gotSpaceCondition.signalAll();
 
-        fromSPCacheConns.removeAll(toBeMoved);
+        cachedConns.removeAll(toBeMoved);
 
         logReport();
     }
@@ -927,19 +938,17 @@ public abstract class CacheManagerImpl extends CacheManager {
             aliveConn.add(new Connection(spi, rpi));
         }
 
-        fromSPLiveConns.removeAll(aliveConn);
-        fromSPLiveConns.addAll(aliveConn);
+        aliveConns.removeAll(aliveConn);
+        aliveConns.addAll(aliveConn);
     }
 
     private void logReport() {
-        Loggers.cacheLog.log(Level.INFO, "\n\t{0} alive connections:\t{1}, {2}"
-                + "\n\t{3} cached connections:\t{4}, {5}"
-                + "\n\t{6} alive reserved connections:\t{7}"
-                + "\n\t{8} not alive reserved connections:\t{9}",
-                new Object[]{fromSPLiveConns.size() + fromRPLiveConns.size(),
-                    fromSPLiveConns, fromRPLiveConns,
-                    fromSPCacheConns.size() + fromRPCacheConns.size(),
-                    fromSPCacheConns, fromRPCacheConns,
+        Loggers.cacheLog.log(Level.INFO, "\n\t{0} alive connections:\t{1}"
+                + "\n\t{2} cached connections:\t{3}"
+                + "\n\t{4} alive reserved connections:\t{5}"
+                + "\n\t{6} not alive reserved connections:\t{7}",
+                new Object[]{aliveConns.size(), aliveConns, 
+                    cachedConns.size(), cachedConns,
                     aliveReservedConns.size(), aliveReservedConns,
                     notAliveReservedConns.size(), notAliveReservedConns});
     }
@@ -947,8 +956,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     @Override
     public boolean fullConns() {
         Set<Connection> all = new HashSet<Connection>();
-        all.addAll(fromSPLiveConns);
-        all.addAll(fromRPLiveConns);
+        all.addAll(aliveConns);
         all.addAll(aliveReservedConns);
         all.addAll(notAliveReservedConns);
 
@@ -957,6 +965,6 @@ public abstract class CacheManagerImpl extends CacheManager {
     
     @Override
     public boolean canCache() {
-        return fromSPLiveConns.size() + fromRPLiveConns.size() > 0;
+        return !aliveConns.isEmpty();
     }
 }

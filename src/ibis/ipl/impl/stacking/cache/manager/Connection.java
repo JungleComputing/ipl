@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.cache.manager;
 
+import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
@@ -20,11 +21,11 @@ public class Connection {
     final ReceivePortIdentifier rpi;
     final boolean atSendPortSide;
 
-    Connection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+    public Connection(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
         this(spi, rpi, true);
     }
 
-    Connection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+    public Connection(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
         this(spi, rpi, false);
     }
 
@@ -43,19 +44,12 @@ public class Connection {
             } else {
                 CacheReceivePort port = CacheReceivePort.map.get(rpi);
 
-                if (port.cacheManager.isAvailableAlive(rpi, spi)) {
+                if (port.cacheManager.isConnAlive(rpi, spi)) {
                     /*
                      * This takes time.
                      */
                     port.cache(spi);
-                    synchronized (port.cachingInitiatedByMeSet) {
-                        while (port.cachingInitiatedByMeSet.contains(spi)) {
-                            try {
-                                port.cachingInitiatedByMeSet.wait();
-                            } catch (InterruptedException ignoreMe) {
-                            }
-                        }
-                    }
+                    
                 }
                 Loggers.lockLog.log(Level.INFO, "Base receive port connected to"
                         + " {0} send ports.", port.recvPort.connectedTo().length);
@@ -88,16 +82,19 @@ public class Connection {
         }
         /*
          * Release the lock.
-         */
-        Loggers.lockLog.log(Level.INFO, "Releasing the lock so that"
-                + " sendport {0} can close.", sendPort.identifier());
+         */        
         sendPort.cacheManager.lock.unlock();
+        Loggers.lockLog.log(Level.INFO, "Lock released so that"
+                + " sendport {0} can close.", sendPort.identifier());
         
         try {
             /*
              * Close now.
              */
             Loggers.cacheLog.log(Level.INFO, "Base send port now closing...");
+            for(ReceivePortIdentifier rpi : sendPort.baseSendPort.connectedTo()) {
+                CacheStatistics.remove(sendPort.identifier(), rpi);
+            }
             sendPort.baseSendPort.close();
             Loggers.cacheLog.log(Level.INFO, "Base send port now closed.");
         } catch (Exception ex) {
@@ -124,11 +121,12 @@ public class Connection {
             
             sendPort.cacheManager.reserveLiveConnection(spi, rpi);
 
-            Loggers.lockLog.log(Level.INFO, "Releasing lock for {0} to disconnect.", spi);
             sendPort.cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock released so {0} can disconnect.", spi);
 
             try {
                 Loggers.cacheLog.log(Level.INFO, "Base send port now disconnecting...");
+                CacheStatistics.remove(sendPort.identifier(), rpi);
                 sendPort.baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
                 Loggers.cacheLog.log(Level.INFO, "Base send port now connected"
                         + " to {0} recv ports.", sendPort.baseSendPort.connectedTo().length);

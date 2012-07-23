@@ -2,7 +2,7 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.impl.stacking.cache.manager.impl.LruCacheManagerImpl;
+import ibis.ipl.impl.stacking.cache.manager.impl.RandomCacheManagerImpl;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -103,7 +103,7 @@ public class CacheIbis implements Ibis {
                     specifiedSubImplementation);
         
         // TODO: get the implementation version from somewhere
-        cacheManager = new LruCacheManagerImpl(this);
+        cacheManager = new RandomCacheManagerImpl(this);
     }
 
     @Override

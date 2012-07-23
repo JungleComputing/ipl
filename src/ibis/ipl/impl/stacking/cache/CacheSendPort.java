@@ -2,6 +2,7 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
@@ -111,34 +112,12 @@ public final class CacheSendPort implements SendPort {
         Loggers.cacheLog.log(Level.INFO, "\nGoing to cache from"
                 + " {0} to {1}; heKnows={2}", new Object[] {
                     this.identifier(), rpi, heKnows});
-        if (!heKnows) {
-            cacheAckReceived = false;
-            /*
-             * Send message through the side channel of this connection, because
-             * the receive port alone cannot distinguish caching from true
-             * disconnection.
-             */
-            cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), rpi,
-                    SideChannelProtocol.CACHE_FROM_SP);
-
-            /*
-             * Wait for ack from ReceivePort side, so we know that the RP side
-             * knows about the to-be-cached-connection.
-             */
-            waitForCacheAck();
-        }
         
-        Loggers.cacheLog.log(Level.INFO, "\nbaseSendPort connected to "
-                + "{0} recv ports.", baseSendPort.connectedTo().length);
-
         /*
-         * Now we can safely disconnect from the receive port, since we are
-         * guaranteed that he will know to cache this connection.
-         */
-        /*
-         * ISSUE:
-         * the disconnect() will block until the lostConnection() upcall
+         * ISSUES:
+         * - the disconnect() will block until the lostConnection() upcall
          * is finished.
+         * - waiting for RcvPort's ack whilst holding the lock.
          * 
          * SCENARIO: 
          * 2 machines simultaneously disconnect (whilst holding
@@ -147,36 +126,54 @@ public final class CacheSendPort implements SendPort {
          * 
          * SOLUTION:
          * move the connection to reserved state, release the lock,
-         * disconnect, reaquire the lock and move the connection back.
+         * wait for rcv port's ack, disconnect, 
+         * reaquire the lock and move the connection back.
          */
         cacheManager.reserveLiveConnection(this.identifier(), rpi);
-        Loggers.cacheLog.log(Level.INFO, "\nBEFORE RELEASING LOCK:"
-                + "\nBase send port connections:\t{0}."
-                    + "\nNow disconnecting from {1}",
-                    new Object[] {
-                        Arrays.asList(baseSendPort.connectedTo()), rpi});
-        Loggers.lockLog.log(Level.INFO, "Releasing lock for {0} to disconnect.", this.identifier());
-        
-        cacheManager.lock.unlock();        
+        cacheManager.lock.unlock();
+        Loggers.lockLog.log(Level.INFO, "Lock released for {0} to disconnect.", this.identifier());
+
         try {
-            Loggers.cacheLog.log(Level.INFO, "\nNO LOCK HERE:"
-                    + "\nBase send port connections:\t{0}."
-                    + "\nNow disconnecting from {1}",
-                    new Object[] {
+            if (!heKnows) {
+                cacheAckReceived = false;
+                /*
+                 * Send message through the side channel of this connection,
+                 * because the receive port alone cannot distinguish caching
+                 * from true disconnection.
+                 */
+                cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), rpi,
+                        SideChannelProtocol.CACHE_FROM_SP);
+
+                /*
+                 * Wait for ack from ReceivePort side, so we know that the RP
+                 * side knows about the to-be-cached-connection.
+                 */
+                waitForCacheAck();
+            }
+
+            /*
+             * Now we can safely disconnect from the receive port, since we are
+             * guaranteed that he will know to cache this connection.
+             */
+            Loggers.cacheLog.log(Level.FINEST, "\nNO LOCK HERE:"
+                    + "\n\tBase send port connections:\t{0}."
+                    + "\n\tNow disconnecting from:\t{1}",
+                    new Object[]{
                         Arrays.asList(baseSendPort.connectedTo()), rpi});
-            
+
+            CacheStatistics.cache(this.identifier(), rpi);
             baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
-            
-            Loggers.cacheLog.log(Level.INFO, "\nBase send port now connected"
-                + " to {0} recv ports.", baseSendPort.connectedTo().length);
-        } catch(Exception ex) {
+
+            Loggers.cacheLog.log(Level.FINEST, "\nBase send port now connected"
+                    + " to {0} recv ports.", baseSendPort.connectedTo().length);
+        } catch (Exception ex) {
             Loggers.cacheLog.log(Level.SEVERE, "\nBase send port "
                     + this.identifier() + " failed to "
                     + "properly disconnect from "
                     + rpi + ".", ex);
         } finally {
             cacheManager.lock.lock();
-            Loggers.lockLog.log(Level.INFO, "\nREAQUIRED LOCK: {0} reaquired lock.", this.identifier());
+            Loggers.lockLog.log(Level.INFO, "\n\tREAQUIRED LOCK: {0} reaquired lock.", this.identifier());
             cacheManager.unReserveLiveConnection(this.identifier(), rpi);
         }
     }

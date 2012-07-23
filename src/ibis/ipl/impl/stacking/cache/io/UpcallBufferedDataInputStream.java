@@ -199,6 +199,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
          * Wait for the last part.
          */
         synchronized (port.msgUpcall.currentLogicalMsgLock) {
+            Loggers.readMsgLog.log(Level.INFO, "Closing current read message...");
             /*
              * Start sending any future data to a sink.
              */
@@ -217,10 +218,12 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
              */
             while (!port.msgUpcall.gotLastPart) {
                 try {
+                    Loggers.readMsgLog.log(Level.INFO, "Waiting for the last part...");
                     port.msgUpcall.currentLogicalMsgLock.wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
+            Loggers.readMsgLog.log(Level.INFO, "Closed the current read message.");
         }
         /*
          * The threads which handle the intermediate messages live until all the

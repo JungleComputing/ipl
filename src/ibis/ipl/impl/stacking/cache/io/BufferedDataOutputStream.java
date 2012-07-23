@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BufferedDataOutputStream extends DataOutputStream {
 
@@ -87,12 +88,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
          */
         Set<ReceivePortIdentifier> destRpis = new HashSet<ReceivePortIdentifier>(
                 Arrays.asList(port.connectedTo()));
-        /*
-         * Subset of destionation RPIs of which we have their permission to
-         * write to them.
-         */
-        Set<ReceivePortIdentifier> gotAttention;
-       
+
         /*
          * We want the destined RPIs to have their live read message from us, so
          * as not to have interferance with other streaming messages.
@@ -102,82 +98,95 @@ public class BufferedDataOutputStream extends DataOutputStream {
          * write a msg to them.
          */
         iWantYouToReadFromMe(destRpis);
+        
+        Loggers.cacheLog.log(Level.INFO, "Waiting for replies from {0} recv ports...",
+                destRpis.size());
 
-        while (!destRpis.isEmpty()) {
-            /*
-             * Then, we need to wait for their approval, i.e. they will accept
-             * an incoming message from us.
-             *
-             * Wait for K approvals.
-             * 1 <= K <= destRpis.size().
-             */
-            gotAttention = waitForSomeRepliesFrom(destRpis);
-            
-            destRpis.removeAll(gotAttention);
+        /*
+         * Then, we need to wait for their approval, i.e. they will accept an
+         * incoming message from us.
+         *
+         * Wait for K approvals. 1 <= K <= destRpis.size().
+         */
 
-            port.cacheManager.lock.lock();
-            Loggers.lockLog.log(Level.INFO, "Lock locked.");
-            try {
-                while (!gotAttention.isEmpty()) {
-                    /*
-                     * I can send the message only to the rpis from gotAttention.
-                     * Any other rpi to which I'm currently connected
-                     * cannot and will not receive this message I am 
-                     * about to stream.
-                     */
-                    boolean heKnows = false;
-                    for(ReceivePortIdentifier rpi : port.baseSendPort.connectedTo()) {
-                        if(!gotAttention.contains(rpi)) {
-                            port.cacheManager.cacheConnection(port.identifier(), 
-                                    rpi, heKnows);
-                        }
-                    }
-                    
-                    /*
-                     * Now connect (eventually) to all the rpis
-                     * which will certainly read our message.
-                     */
-                    Set<ReceivePortIdentifier> connected =
-                            port.cacheManager.getSomeConnections(
-                            port, gotAttention, 0, false);
+        waitForAllRepliesFrom(destRpis);
+        Loggers.cacheLog.log(Level.INFO, "Got all replies.");
 
-                    assert connected.size() > 0;
-
-                    gotAttention.removeAll(connected);
-
-                    /*
-                     * Send the message to whoever is connected.
-                     */
-                    WriteMessage msg = port.baseSendPort.newMessage();
+        port.cacheManager.lock.lock();
+        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        try {
+            while (!destRpis.isEmpty()) {
+                /*
+                 * I need to wait for any reserved alive connection to be
+                 * handled.
+                 */
+                Loggers.lockLog.log(Level.FINE, "Lock will be released:"
+                        + " waiting on live reserved connections...");
+                while (port.cacheManager.containsReservedAlive(port.identifier())) {
                     try {
-                        noMsg++;
-                        msg.writeBoolean(isLastPart);
-                        msg.writeInt(index);
-                        msg.writeArray(buffer, 0, index);
-                        msg.finish();
-                    } catch (IOException ex) {
-                        msg.finish(ex);
-                        Loggers.writeMsgLog.log(Level.SEVERE, "Failed to write {0} bytes message "
-                                + "to {1} ports.\n", new Object[]{index, destRpis.size()});
-                    }
-                    Loggers.writeMsgLog.log(Level.INFO, "\tWrite msg finished. "
-                            + "Sent: ({0}, {1}) to {2}.\n",
-                            new Object[]{isLastPart, index,
-                                Arrays.asList(port.baseSendPort.connectedTo())});
-
-                    /*
-                     * If this was the last part of the streamed message, I
-                     * don't have the receive ports' attention anymore.
-                     */
-                    if (isLastPart) {
-                        yourLiveMessageIsNotMyConcern(connected);
+                        port.cacheManager.reservationsCondition.await();
+                    } catch (InterruptedException ignoreMe) {
                     }
                 }
-            } finally {
-                port.cacheManager.lock.unlock();
-                Loggers.lockLog.log(Level.INFO, "Streaming finished. Lock released.");
+                Loggers.lockLog.log(Level.FINE, "Lock reaquired.");
+                /*
+                 * I can send the message only to the rpis from gotAttention.
+                 * Any other rpi to which I'm currently connected cannot and
+                 * will not receive this message I am about to stream.
+                 */
+                boolean heKnows = false;
+                for (ReceivePortIdentifier rpi : port.baseSendPort.connectedTo()) {
+                    if (!destRpis.contains(rpi)) {
+                        port.cacheManager.cacheConnection(port.identifier(),
+                                rpi, heKnows);
+                    }
+                }
+
+                /*
+                 * Now connect to some rpis.
+                 */
+                Set<ReceivePortIdentifier> connected =
+                        port.cacheManager.getSomeConnections(
+                        port, destRpis, 0, false);
+
+                assert connected.size() > 0;
+
+                destRpis.removeAll(connected);
+
+                /*
+                 * Send the message to whoever is connected.
+                 */
+                WriteMessage msg = port.baseSendPort.newMessage();
+                try {
+                    noMsg++;
+                    msg.writeBoolean(isLastPart);
+                    msg.writeInt(index);
+                    msg.writeArray(buffer, 0, index);
+                    msg.finish();
+                } catch (IOException ex) {
+                    msg.finish(ex);
+                    Loggers.writeMsgLog.log(Level.SEVERE, "Failed to write {0} bytes message "
+                            + "to {1} ports.\n", new Object[]{index, destRpis.size()});
+                }
+                Loggers.writeMsgLog.log(Level.INFO, "\tWrite msg finished. "
+                        + "Sent: ({0}, {1}) to {2}.\n",
+                        new Object[]{isLastPart, index,
+                            Arrays.asList(port.baseSendPort.connectedTo())});
+
+                /*
+                 * If this was the last part of the streamed message, I don't
+                 * have the receive ports' attention anymore.
+                 */
+                if (isLastPart) {
+                    yourLiveMessageIsNotMyConcern(connected);
+                }
             }
+        } finally {
+            port.cacheManager.lock.unlock();
+            Loggers.lockLog.log(Level.INFO, "Lock released in stream.");
         }
+        Loggers.writeMsgLog.log(Level.INFO, "Streaming finished to all destined"
+                + " rpis.");
         Timers.streamTimer.stop();
         /*
          * Buffer is sent to everyone. Clear it.
@@ -209,58 +218,45 @@ public class BufferedDataOutputStream extends DataOutputStream {
         }
     }
 
-    private Set<ReceivePortIdentifier> waitForSomeRepliesFrom(Set<ReceivePortIdentifier> rpis) {
+    private void waitForAllRepliesFrom(Set<ReceivePortIdentifier> rpis) {
         /*
-         * Need to wait for at most rpis.size() approvals.
+         * Need to wait for rpis.size() approvals.
+         * 
+         * Here I have a critical deadlock,
+         * and kinda unsolvable.
+         * 
+         * Scenario: 
+         * 3 machines all behave the same: they all want to send a message to
+         * the other 2; they all send READ_MY_MESSAGE but the 3rd sends ack to
+         * the 2nd, the 2nd send ack to the 1st and the 1st sends ack to the
+         * 3rd.
+         *
+         * so if we wait for 2 ack's back, we are stuck.
+         * 
+         * But I need to wait for all the ack's, otherwise I cannot stream
+         * my message.
          */
         Set<ReceivePortIdentifier> result;
         synchronized (yourReadMessageIsAliveFromMeSet) {
             result = new HashSet<ReceivePortIdentifier>(yourReadMessageIsAliveFromMeSet);
             result.retainAll(rpis);
+            Loggers.cacheLog.log(Level.FINEST, "RPs reading my msgs: {0}", yourReadMessageIsAliveFromMeSet);
+            Loggers.cacheLog.log(Level.FINEST, "Temporary result is: {0}", result);
 
-            /*
-             * Wait for at most a timeout,
-             * because we can get deadlock:
-             * 3 machines all behave the same: they all want to send a message
-             * to the other 2;
-             * they all send READ_MY_MESSAGE but the 3rd sends ack to the 2nd,
-             * the 2nd send ack to the 1st and the 1st sends ack to the 3rd.
-             * 
-             *
-             * so if we wait for 2 ack's back, we are stuck.
-             */
-            long defaultTimeout = 10; // millis
-            long deadline = System.currentTimeMillis() + defaultTimeout;
             while (result.size() < rpis.size()) {
                 try {
-                    long timeout = deadline - System.currentTimeMillis();
-                    if (timeout <= 0) {
-                        /*
-                         * Return if I have at least 1 guy to whom I can write
-                         * my message. don't wait for all approvals now.
-                         */
-                        if (result.size() > 0) {
-                            return result;
-                        }
-
-                        /*
-                         * I need more time.
-                         */
-                        timeout = defaultTimeout;
-                        deadline = System.currentTimeMillis() + defaultTimeout;
-                    } else {
-                        timeout = defaultTimeout;
-                    }
-                    yourReadMessageIsAliveFromMeSet.wait(timeout);
+                    yourReadMessageIsAliveFromMeSet.wait();
                 } catch (InterruptedException ignoreMe) {
+                    // Gotcha!! -- pokemon style
                 }
+                
                 result.clear();
                 result.addAll(yourReadMessageIsAliveFromMeSet);
                 result.retainAll(rpis);
+                Loggers.cacheLog.log(Level.FINEST, "RPs reading my msgs:: {0}", yourReadMessageIsAliveFromMeSet);
+                Loggers.cacheLog.log(Level.FINEST, "Temporary result is:: {0}", result);
             }
         }
-
-        return result;
     }
 
     @Override

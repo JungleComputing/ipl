@@ -3,8 +3,8 @@ package ibis.ipl.impl.stacking.cache.sidechannel;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,7 +86,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 Loggers.lockLog.log(Level.INFO, "Lock locked in RESERVE_ACK");
                 try {
                     sp.reserveAcks.put(rpi, RESERVE_ACK);
-                    cacheManager.reserveAcksCond.signal();
+                    cacheManager.reserveAcksCond.signalAll();
                 } finally {
                     cacheManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE_ACK");
@@ -103,7 +103,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                     cacheManager.cancelReservation(spi, rpi);
                     
                     sp.reserveAcks.put(rpi, RESERVE_NACK);
-                    cacheManager.reserveAcksCond.signal();
+                    cacheManager.reserveAcksCond.signalAll();
                 } finally {
                     cacheManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE_NACK");
@@ -171,8 +171,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case CACHE_FROM_SP:
                 cacheManager.lock.lock();
+                Loggers.lockLog.log(Level.INFO, "Lock locked in CACHE_FROM_SP");
                 try {
-                    if (cacheManager.isAvailableAlive(rpi, spi)) {
+                    if (cacheManager.isConnAlive(rpi, spi)) {
 
                         CacheReceivePort.map.get(rpi).toBeCachedSet.add(spi);
 
@@ -190,6 +191,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                     newThreadSendProtocol(rpi, spi, SideChannelProtocol.CACHE_FROM_SP_ACK);
                 } finally {
                     cacheManager.lock.unlock();
+                    Loggers.lockLog.log(Level.INFO, "Lock released in CACHE_FROM_SP");
                 }
                 /*
                  * Done.

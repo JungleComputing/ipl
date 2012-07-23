@@ -21,6 +21,7 @@ public class Loggers {
     public static final Logger sideLog;
 //    public static final String sideLogString;
     public static final Logger lockLog;
+    public static final Logger statsLog;
 
     static {
 
@@ -37,6 +38,8 @@ public class Loggers {
         sideLog = Logger.getLogger("side");
         
         lockLog = Logger.getLogger("lock");
+        
+        statsLog = Logger.getLogger("stats");
 
         cacheLogString = "cacheIbis.log";
 
@@ -53,6 +56,7 @@ public class Loggers {
             writeMsgLog.addHandler(fh);
             sideLog.addHandler(fh);
             lockLog.addHandler(fh);
+            statsLog.addHandler(fh);
         } catch (Exception ex) {
             Logger.getLogger(CacheIbis.class.getName()).log(Level.SEVERE, null, ex);
         }

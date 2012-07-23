@@ -52,7 +52,8 @@ public class Timers {
     public String toString() {
         StringBuilder s = new StringBuilder();
         s.append("Timer ").append(name).append(":\t(count, avgMillis) = (").
-                append(count).append(", ").append(duration / count).append(")");
+                append(count).append(", ").append(
+                count == 0 ? 0 : duration / count).append(")");
 
         return s.toString();
     }

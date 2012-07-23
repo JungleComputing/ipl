@@ -7,7 +7,7 @@ import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.util.logging.Level;
 
 public class LruCacheManagerImpl extends CacheManagerImpl {
-    
+
     /*
      * When caching, the recv port doesn't know we will cache the connection.
      */
@@ -22,13 +22,18 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
         /*
          * Nothing to cache. Wait until some live connections arive.
          */
-        while ((fromSPLiveConns.size() + fromRPLiveConns.size() == 0)
+        while (!canCache()
                 && (!canceledReservations.contains(conn))
                 && super.fullConns()) {
             try {
                 Loggers.lockLog.log(Level.INFO, "Lock will be released:"
-                        + " waiting for a live connection to be available.");
-                super.noLiveConnCondition.await();
+                        + " waiting for: "
+                        + "a live connection to be available for caching"
+                        + " OR "
+                        + "an empty slot"
+                        + " OR "
+                        + "for a cancelation.");
+                super.gotSpaceCondition.await();
                 Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
             } catch (InterruptedException ignoreMe) {
             }
@@ -38,26 +43,14 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
                 || !super.fullConns()) {
             return null;
         }
-        
-        if (!fromSPLiveConns.isEmpty()) {
-            /*
-             * Try to get first from the connection from the send port side.
-             * Faster to cache.
-             */
-            Connection con = fromSPLiveConns.get(0);
-            con.cache(heKnows);
-            fromSPLiveConns.remove(con);
-            fromSPCacheConns.add(con);
-            return con;
-        } else {
-            /*
-             * Get the one from the receive port side.
-             */
-            Connection con = fromRPLiveConns.get(0);
-            con.cache(heKnows);
-            fromRPLiveConns.remove(con);
-            fromRPCacheConns.add(con);
-            return con;
-        }
+
+        /*
+         * Get the least recently used (the first) alive connection.
+         */
+        Connection con = aliveConns.get(0);
+        con.cache(heKnows);
+        aliveConns.remove(con);
+        cachedConns.add(con);
+        return con;
     }
 }
