@@ -5,9 +5,9 @@ import ibis.io.DataOutputStream;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.util.Timers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class BufferedDataOutputStream extends DataOutputStream {
 

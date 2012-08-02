@@ -1,11 +1,11 @@
 package ibis.ipl.impl.stacking.cache.manager;
 
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.util.LinkedList;

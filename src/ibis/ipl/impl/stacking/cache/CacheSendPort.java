@@ -2,8 +2,8 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -155,14 +155,8 @@ public final class CacheSendPort implements SendPort {
              * Now we can safely disconnect from the receive port, since we are
              * guaranteed that he will know to cache this connection.
              */
-            Loggers.cacheLog.log(Level.FINEST, "\nNO LOCK HERE:"
-                    + "\n\tBase send port connections:\t{0}."
-                    + "\n\tNow disconnecting from:\t{1}",
-                    new Object[]{
-                        Arrays.asList(baseSendPort.connectedTo()), rpi});
-
-            CacheStatistics.cache(this.identifier(), rpi);
             baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
+            CacheStatistics.cache(this.identifier(), rpi);
 
             Loggers.cacheLog.log(Level.FINEST, "\nBase send port now connected"
                     + " to {0} recv ports.", baseSendPort.connectedTo().length);
@@ -173,7 +167,7 @@ public final class CacheSendPort implements SendPort {
                     + rpi + ".", ex);
         } finally {
             cacheManager.lock.lock();
-            Loggers.lockLog.log(Level.INFO, "\n\tREAQUIRED LOCK: {0} reaquired lock.", this.identifier());
+            Loggers.lockLog.log(Level.INFO, "\n\t{0} reaquired lock.", this.identifier());
             cacheManager.unReserveLiveConnection(this.identifier(), rpi);
         }
     }

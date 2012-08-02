@@ -27,7 +27,7 @@ public abstract class CacheManager {
     public static final int BUFFER_CAPACITY = 1 << 16;
     
     public static final int MAX_CONNS;
-    public static final int MAX_CONNS_DEFAULT = 30;
+    public static final int MAX_CONNS_DEFAULT = 1000;
     
     public static final int MSG_MAX_ARRIVAL_TIME_MILLIS;
     public static final int MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT = 30;
@@ -37,7 +37,7 @@ public abstract class CacheManager {
      * communication.
      */
     public static final PortType ultraLightPT = new PortType(
-            //            PortType.CONNECTION_ULTRALIGHT,
+            PortType.CONNECTION_ULTRALIGHT,
             PortType.RECEIVE_AUTO_UPCALLS,
             PortType.SERIALIZATION_OBJECT,
             PortType.CONNECTION_MANY_TO_ONE);
