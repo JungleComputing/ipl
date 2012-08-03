@@ -22,12 +22,14 @@ public class CacheIbis implements Ibis {
     static final Set<String> additionalPortCapabilities;
     static final Set<PortType> additionalPortTypes;
     static final Set<String> offeredIbisCapabilities;
+    static final Set<String> offeredPortCapabilities;
     
     static {
         /*
          * Enforce these capabilities on the ibis creation.
          */
         offeredIbisCapabilities = new HashSet<String>();
+        offeredPortCapabilities = new HashSet<String>();
         additionalPortCapabilities = new HashSet<String>();
         additionalPortTypes = new HashSet<PortType>();
         
@@ -52,6 +54,7 @@ public class CacheIbis implements Ibis {
          * the under-the-hood ibis.
          */
         offeredIbisCapabilities.add(IbisCapabilities.CONNECTION_CACHING);
+        offeredPortCapabilities.add(PortType.COMMUNICATION_TOTALLY_ORDERED_MULTICASTS);
     }
 
     public CacheIbis(IbisFactory factory,

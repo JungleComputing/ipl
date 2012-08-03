@@ -31,14 +31,14 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
     public SideChannelMessageHandler(CacheManager cache) {
         this.cacheManager = cache;
+        
     }
 
     @Override
     public void upcall(ReadMessage msg) throws IOException, ClassNotFoundException {
         byte opcode = msg.readByte();
         SendPortIdentifier spi = (SendPortIdentifier) msg.readObject();
-        ReceivePortIdentifier rpi = (ReceivePortIdentifier) msg.readObject();
-        msg.finish();
+        ReceivePortIdentifier rpi = (ReceivePortIdentifier) msg.readObject();        
 
         CacheReceivePort rp = CacheReceivePort.map.get(rpi);
         CacheSendPort sp = CacheSendPort.map.get(spi);
@@ -224,13 +224,15 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case READ_MY_MESSAGE:
                 synchronized (rp) {
+                    long seqNo = msg.readLong();
                     /*
                      * If I have a current alive message OR if I already gave
                      * permision to another send port, then store this request
                      * for later.
                      */
                     if ((rp.currentReadMsg != null)
-                            || rp.readMsgRequested) {
+                            || rp.readMsgRequested
+                            || !rp.isNextSeqNo(seqNo)) {
 
                         if (rp.currentReadMsg != null) {
                             Loggers.readMsgLog.log(Level.INFO, "I have a current alive"
@@ -244,13 +246,15 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                                     + " message later.");
                         }
 
-                        rp.toHaveMyFutureAttention.add(spi);
+                        rp.toHaveMyFutureAttention.add(
+                                new CacheReceivePort.SequencedSpi(seqNo, spi));
                         rp.notifyAll();
                     } else {
                         /*
                          * Set to false when we actually receive the message.
                          */
                         rp.readMsgRequested = true;
+                        rp.incSeqNo(seqNo);
                         newThreadSendProtocol(rpi, spi, GIVE_ME_YOUR_MESSAGE);
                     }
                 }
@@ -271,7 +275,8 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
     }
 
     private void sendProtocol(SendPortIdentifier spi,
-            ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode) {        
+            ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode,
+            long seq) {        
         /*
          * Synchronize on the sideChannelSendPort so as not to send multiple
          * messages at the same time.
@@ -289,6 +294,11 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 msg.writeByte(opcode);
                 msg.writeObject(spi);
                 msg.writeObject(rpi);
+                
+                if(opcode == READ_MY_MESSAGE) {
+                    msg.writeLong(seq);
+                }
+                
                 msg.finish();
                 cacheManager.sideChannelSendPort.disconnect(sideRpi);
             } catch (Exception ex) {
@@ -305,7 +315,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
             @Override
             public void run() {
-                sendProtocol(spi, rpi, spi.ibisIdentifier(), opcode);
+                sendProtocol(spi, rpi, spi.ibisIdentifier(), opcode, -1);
             }
         }.start();
     }
@@ -317,12 +327,25 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
             @Override
             public void run() {
-                sendProtocol(spi, rpi, rpi.ibisIdentifier(), opcode);
+                sendProtocol(spi, rpi, rpi.ibisIdentifier(), opcode, -1);
             }
         }.start();
     }
+    
+    public void newThreadRMMProtocol(final SendPortIdentifier spi,
+            final ReceivePortIdentifier rpi, final byte opcode, final long seq) {
+        assert opcode == READ_MY_MESSAGE;
+        
+        new Thread() {
 
+            @Override
+            public void run() {
+                sendProtocol(spi, rpi, rpi.ibisIdentifier(), opcode, seq);
+            }
+        }.start();
+    }
+    
     public void sendProtocol(SendPortIdentifier spi, ReceivePortIdentifier rpi, byte opcode) {
-        sendProtocol(spi, rpi, rpi.ibisIdentifier(), opcode);
+        sendProtocol(spi, rpi, rpi.ibisIdentifier(), opcode, -1);
     }
 }

@@ -14,6 +14,7 @@ import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
+import java.util.Iterator;
 import java.util.logging.Level;
 
 public abstract class CacheReadMessage implements ReadMessage {
@@ -44,7 +45,6 @@ public abstract class CacheReadMessage implements ReadMessage {
     BufferedDataInputStream dataIn;
     SerializationInput in;
     boolean isFinished = false;
-    long sequenceNr = -1;
     private final SendPortIdentifier origin;
 
     protected CacheReadMessage(ReadMessage m, CacheReceivePort port,
@@ -97,16 +97,28 @@ public abstract class CacheReadMessage implements ReadMessage {
 
             /*
              * Need to send signal to the next in line send port who wishes to
-             * send us something.
+             * send us something only if he trully is the next in line.
              */
-            if (!recvPort.toHaveMyFutureAttention.isEmpty()) {
-                /*
-                 * Set to false when we actually receive the message.
-                 */
-                recvPort.readMsgRequested = true;
-                recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
-                        recvPort.identifier(), recvPort.toHaveMyFutureAttention.remove(),
-                        SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
+            for (Iterator<CacheReceivePort.SequencedSpi> it = 
+                    recvPort.toHaveMyFutureAttention.iterator(); it.hasNext();) {
+                CacheReceivePort.SequencedSpi seqSpi = it.next();
+                
+                if (recvPort.isNextSeqNo(seqSpi.seqNo)) {
+                    /*
+                     * This is set to false when we actually receive the
+                     * message.
+                     */
+                    recvPort.readMsgRequested = true;
+                    recvPort.incSeqNo(seqSpi.seqNo);
+                    recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                            recvPort.identifier(), seqSpi.spi,
+                            SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
+                    /*
+                     * got my next message. get out.
+                     */
+                    it.remove();
+                    break;
+                }
             }
 
             recvPort.notifyAll();
@@ -136,16 +148,28 @@ public abstract class CacheReadMessage implements ReadMessage {
 
             /*
              * Need to send signal to the next in line send port who wishes to
-             * send us something.
+             * send us something only if he trully is the next in line.
              */
-            if (!recvPort.toHaveMyFutureAttention.isEmpty()) {
-                /*
-                 * Set to false when we actually receive the message.
-                 */
-                recvPort.readMsgRequested = true;
-                recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
-                        recvPort.identifier(), recvPort.toHaveMyFutureAttention.remove(),
-                        SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
+            for (Iterator<CacheReceivePort.SequencedSpi> it = 
+                    recvPort.toHaveMyFutureAttention.iterator(); it.hasNext();) {
+                CacheReceivePort.SequencedSpi seqSpi = it.next();
+                
+                if (recvPort.isNextSeqNo(seqSpi.seqNo)) {
+                    /*
+                     * This is set to false when we actually receive the
+                     * message.
+                     */
+                    recvPort.readMsgRequested = true;
+                    recvPort.incSeqNo(seqSpi.seqNo);
+                    recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                            recvPort.identifier(), seqSpi.spi,
+                            SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
+                    /*
+                     * got my next message. get out.
+                     */
+                    it.remove();
+                    break;
+                }
             }
 
             recvPort.notifyAll();
@@ -186,11 +210,8 @@ public abstract class CacheReadMessage implements ReadMessage {
 
     @Override
     public long sequenceNumber() {
-        if (!recvPort.getPortType().hasCapability(PortType.COMMUNICATION_NUMBERED)) {
-            throw new IbisConfigurationException("No COMMUNICATION_NUMBERED "
-                    + "specified in port type");
-        }
-        return sequenceNr;
+        throw new IbisConfigurationException("COMMUNICATION_NUMBERED "
+                + "not supported.");
     }
 
     @Override

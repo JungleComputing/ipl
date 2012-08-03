@@ -25,8 +25,7 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
             PortType.SERIALIZATION_OBJECT_IBIS, PortType.SERIALIZATION_OBJECT,
             PortType.SERIALIZATION_DATA, PortType.SERIALIZATION_BYTE,
             PortType.COMMUNICATION_FIFO, 
-            // maybe later, need to write before sending and receive a number
-//            PortType.COMMUNICATION_NUMBERED,
+            PortType.COMMUNICATION_TOTALLY_ORDERED_MULTICASTS,
             PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_DOWNCALLS,
             PortType.CONNECTION_UPCALLS, PortType.CONNECTION_TIMEOUT,
             PortType.CONNECTION_MANY_TO_MANY, PortType.CONNECTION_MANY_TO_ONE,

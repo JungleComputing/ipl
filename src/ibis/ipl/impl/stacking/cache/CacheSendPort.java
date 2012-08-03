@@ -56,6 +56,11 @@ public final class CacheSendPort implements SendPort {
     public final Object cacheAckLock = new Object();
     public boolean cacheAckReceived = false;
     public final Map<ReceivePortIdentifier, Byte> reserveAcks;
+    
+    /**
+     * Reference to the Cache ibis.
+     */
+    public final CacheIbis cacheIbis;
 
     public CacheSendPort(PortType portType, CacheIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
@@ -63,6 +68,8 @@ public final class CacheSendPort implements SendPort {
             name = ANONYMOUS_PREFIX + " "
                     + anonymousPortCounter.getAndIncrement();
         }
+        
+        cacheIbis = ibis;
 
         /*
          * Add whatever additional port capablities are required. i.e.

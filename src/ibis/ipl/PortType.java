@@ -124,6 +124,9 @@ public final class PortType extends CapabilitySet {
      * to the receiveport(s) in the order in which they were sent.
      */
     public final static String COMMUNICATION_FIFO = COMMUNICATION + ".fifo";
+    
+    public final static String COMMUNICATION_TOTALLY_ORDERED_MULTICASTS = 
+            COMMUNICATION + ".totally.ordered.multicasts";
 
     /**
      * This capability describes that messages are given global sequence

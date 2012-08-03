@@ -80,8 +80,9 @@ public final class CacheReceivePort implements ReceivePort {
      * port must wait until the read message is no longer alive. thus they are
      * placed in a queue.
      */
-    public final Queue<SendPortIdentifier> toHaveMyFutureAttention;
+    public final List<SequencedSpi> toHaveMyFutureAttention;
     public boolean readMsgRequested;
+    private long localSeqNo;
 
     public CacheReceivePort(PortType portType, CacheIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
@@ -124,7 +125,8 @@ public final class CacheReceivePort implements ReceivePort {
         currentReadMsg = null;
         readMsgRequested = false;
 
-        toHaveMyFutureAttention = new LinkedList<SendPortIdentifier>();
+        toHaveMyFutureAttention = new LinkedList<SequencedSpi>();
+        localSeqNo = -1;
 
         /*
          * Send this to the map only when it has been filled up with all data.
@@ -276,7 +278,7 @@ public final class CacheReceivePort implements ReceivePort {
     public SendPortIdentifier[] newConnections() {
         return recvPort.newConnections();
     }
-
+    
     @Override
     public synchronized ReadMessage poll() throws IOException {
 
@@ -367,5 +369,31 @@ public final class CacheReceivePort implements ReceivePort {
     @Override
     public void printManagementProperties(PrintStream stream) {
         recvPort.printManagementProperties(stream);
+    }
+    
+    
+    public boolean isNextSeqNo(long seqNo) {
+        if(seqNo < 0 || localSeqNo == -1 || seqNo == localSeqNo + 1) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public void incSeqNo(long seqNo) {
+        if(seqNo >= 0) {
+            localSeqNo = seqNo;
+        }
+    }
+    
+    public static final class SequencedSpi {
+        
+        SendPortIdentifier spi;
+        long seqNo;
+
+        public SequencedSpi(long seqNo, SendPortIdentifier spi) {
+            this.seqNo = seqNo;
+            this.spi = spi;
+        }
     }
 }
