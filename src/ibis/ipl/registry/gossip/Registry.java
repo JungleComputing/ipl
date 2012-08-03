@@ -373,6 +373,12 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
         throw new IbisConfigurationException(
                 "Sequence numbers not supported by" + "gossip registry");
     }
+    
+    @Override
+    public long[] getMultipleSequenceNumbers(String[] names) throws IOException {
+        throw new IbisConfigurationException(
+                "Sequence numbers not supported by" + "gossip registry");
+    }
 
     public Map<String, String> managementProperties() {
         // no properties (as of yet)

@@ -19,6 +19,11 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
     public long getSequenceNumber(String name) throws IOException {
         return target.getSequenceNumber(name);
     }
+    
+    @Override
+    public long[] getMultipleSequenceNumbers(String[] names) throws IOException {
+        return target.getMultipleSequenceNumbers(names);
+    }
 
     @Override
     public void leave() throws IOException {

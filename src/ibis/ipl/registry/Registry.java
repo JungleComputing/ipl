@@ -2,15 +2,13 @@
 
 package ibis.ipl.registry;
 
-import ibis.ipl.Credentials;
-import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.IbisProperties;
-import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.*;
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * This implementation of the {@link ibis.ipl.Registry} interface defines the
@@ -38,7 +36,22 @@ public abstract class Registry implements ibis.ipl.Registry {
      *                    may be thrown when communication with the registry
      *                    fails.
      */
+    @Override
     public abstract long getSequenceNumber(String name) throws IOException;
+    
+    /**
+     * Obtains simultaneously a set of sequence numbers from the registry.
+     * Each sequencer has a name, which must be provided to this call.
+     * 
+     * @param names
+     *              the names of the sequencers.
+     * @return
+     * @throws IOException
+     *              may be thrown when communication with the registry fails.
+     */
+    @Override
+    public abstract long[] getMultipleSequenceNumbers(String[] names)
+            throws IOException;
 
     /**
      * Creates a registry for the specified Ibis instance.

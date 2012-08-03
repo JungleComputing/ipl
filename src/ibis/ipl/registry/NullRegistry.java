@@ -30,6 +30,12 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         throw new IbisConfigurationException(
                 "sequence numbers not supported by NullRegistry");
     }
+    
+    @Override
+    public long[] getMultipleSequenceNumbers(String[] name) throws IOException {
+        throw new IbisConfigurationException(
+                "sequence numbers not supported by NullRegistry");
+    }
 
     /**
      * Creates a Null Registry.

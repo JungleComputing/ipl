@@ -555,6 +555,15 @@ final class Pool implements Runnable {
 
         return result;
     }
+    
+    synchronized long[] getMultipleSequenceNumbers(String[] names) {
+        long[] result = new long[names.length];
+        for(int i = 0; i < names.length; i++) {
+            result[i] = getSequenceNumber(names[i]);
+        }
+        
+        return result;
+    }
 
     /*
      * (non-Javadoc)

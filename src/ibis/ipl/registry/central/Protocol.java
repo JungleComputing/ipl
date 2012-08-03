@@ -37,11 +37,13 @@ public final class Protocol {
     public static final byte OPCODE_HEARTBEAT = 13;
 
     public static final byte OPCODE_TERMINATE = 14;
+    
+    public static final byte OPCODE_MULTIPLE_SEQUENCE_NRS = 15;
 
-    public static final int NR_OF_OPCODES = 15;
+    public static final int NR_OF_OPCODES = 16;
 
     public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP",
-            "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING",
-            "PUSH", "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT",
-            "TERMINATE"};
+            "ELECT", "SEQUENCE_NR", "MULTIPLE_SEQUENCE_NR", "DEAD", "MAYBE_DEAD",
+            "SIGNAL", "PING", "PUSH", "BROADCAST", "FORWARD", "GET_STATE",
+            "HEARTBEAT", "TERMINATE"};
 }

@@ -236,6 +236,37 @@ final class ServerConnectionHandler implements Runnable {
         return pool;
 
     }
+    
+    private Pool handleGetMultipleSequenceNumbers(Connection connection)
+            throws Exception {
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        
+        int n = connection.in().readInt();
+        String[] names = new String[n];
+        
+        for(int i = 0; i < n; i++) {
+            names[i] = connection.in().readUTF();
+        }
+
+        Pool pool = server.getPool(identifier.poolName());
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            throw new Exception("pool " + identifier.poolName() + " not found");
+        }
+
+        long[] numbers = pool.getMultipleSequenceNumbers(names);
+
+        connection.sendOKReply();
+
+        connection.out().writeInt(numbers.length);
+        for(int i = 0; i < numbers.length; i++) {
+            connection.out().writeLong(numbers[i]);
+        }
+        pool.gotHeartbeat(identifier);
+        return pool;
+
+    }
 
     private Pool handleDead(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
@@ -449,6 +480,9 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_SEQUENCE_NR:
                 pool = handleGetSequenceNumber(connection);
+                break;
+            case Protocol.OPCODE_MULTIPLE_SEQUENCE_NRS:
+                pool = handleGetMultipleSequenceNumbers(connection);
                 break;
             case Protocol.OPCODE_DEAD:
                 pool = handleDead(connection);

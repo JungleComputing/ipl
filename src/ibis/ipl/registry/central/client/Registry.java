@@ -1,10 +1,6 @@
 package ibis.ipl.registry.central.client;
 
-import ibis.ipl.Credentials;
-import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.NoSuchPropertyException;
-import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.*;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
@@ -15,10 +11,7 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -365,6 +358,17 @@ public final class Registry extends ibis.ipl.registry.Registry {
         }
 
         return communicationHandler.getSeqno(name);
+    }
+
+    @Override
+    public long[] getMultipleSequenceNumbers(String[] names)
+            throws IOException {
+        if (pool.isStopped()) {
+            throw new IOException(
+                    "cannot send signals, registry already stopped");
+        }
+
+        return communicationHandler.getSeqnos(names);
     }
 
     @Override

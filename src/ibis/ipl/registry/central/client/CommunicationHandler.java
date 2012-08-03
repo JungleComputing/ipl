@@ -23,6 +23,8 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -511,6 +513,60 @@ final class CommunicationHandler implements Runnable {
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_SEQUENCE_NR, end - start,
+                        connection.read(), connection.written(), false);
+            }
+
+            return result;
+        } catch (IOException e) {
+            connection.close();
+            throw e;
+        }
+    }
+    
+    public long[] getSeqnos(String[] names) throws IOException {
+        long start = System.currentTimeMillis();
+
+        if (pool.isStopped()) {
+            throw new IOException(
+                    "cannot get sequence number, registry already stopped");
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("getting multiple sequence numbers");
+        }
+        Connection connection = new Connection(serverAddress, timeout, true,
+                virtualSocketFactory);
+
+        try {
+            connection.out().writeByte(Protocol.MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_MULTIPLE_SEQUENCE_NRS);
+            getIdentifier().writeTo(connection.out());
+            
+            connection.out().writeInt(names.length);
+            for(String name : names) {
+                connection.out().writeUTF(name);
+            }
+            connection.out().flush();
+
+            connection.getAndCheckReply();
+            
+            assert names.length == connection.in().readInt();
+
+            long[] result = new long[names.length];
+            for(int i = 0; i < names.length; i++) {
+                result[i] = connection.in().readLong();
+            }
+
+            connection.close();
+
+            if (logger.isDebugEnabled()) {
+        	logger.debug("obtained " + result.length + " sequence numbers.");
+            }
+
+            heartbeat.resetDeadlines();
+            long end = System.currentTimeMillis();
+            if (statistics != null) {
+                statistics.add(Protocol.OPCODE_MULTIPLE_SEQUENCE_NRS, end - start,
                         connection.read(), connection.written(), false);
             }
 
