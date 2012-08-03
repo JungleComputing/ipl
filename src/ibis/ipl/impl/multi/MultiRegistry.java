@@ -213,6 +213,11 @@ public class MultiRegistry implements Registry{
         // TODO: Any way to support sequences?
         throw new IOException("Sequences not supported!");
     }
+    
+    public long[] getMultipleSequenceNumbers(String[] names) throws IOException {
+        // TODO: Any way to support sequences?
+        throw new IOException("Sequences not supported!");
+    }
 
     public IbisIdentifier[] joinedIbises() {
         HashMap<IbisIdentifier, String> theJoined = new HashMap<IbisIdentifier, String>();
