@@ -259,7 +259,6 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.sendOKReply();
 
-        connection.out().writeInt(numbers.length);
         for(int i = 0; i < numbers.length; i++) {
             connection.out().writeLong(numbers[i]);
         }

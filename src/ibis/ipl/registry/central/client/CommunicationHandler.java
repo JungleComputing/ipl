@@ -523,12 +523,12 @@ final class CommunicationHandler implements Runnable {
         }
     }
     
-    public long[] getSeqnos(String[] names) throws IOException {
+    public long[] getMultipleSeqnos(String[] names) throws IOException {
         long start = System.currentTimeMillis();
 
         if (pool.isStopped()) {
             throw new IOException(
-                    "cannot get sequence number, registry already stopped");
+                    "cannot get sequence numbers, registry already stopped");
         }
 
         if (logger.isDebugEnabled()) {
@@ -550,8 +550,6 @@ final class CommunicationHandler implements Runnable {
 
             connection.getAndCheckReply();
             
-            assert names.length == connection.in().readInt();
-
             long[] result = new long[names.length];
             for(int i = 0; i < names.length; i++) {
                 result[i] = connection.in().readLong();

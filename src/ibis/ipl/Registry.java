@@ -244,6 +244,17 @@ public interface Registry extends Manageable {
      *                may be thrown when communication with the registry fails.
      */
     public long getSequenceNumber(String name) throws IOException;
+    
+    /**
+     * Obtains a sequence number from the registry. Each sequencer has a name,
+     * which must be provided to this call.
+     * 
+     * @param name
+     *            the name of this sequencer.
+     * @exception IOException
+     *                may be thrown when communication with the registry fails.
+     */
+    public long[] getMultipleSequenceNumbers(String[] name) throws IOException;
 
     /**
      * Send a termination event to all members of the pool, including this Ibis.

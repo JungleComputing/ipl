@@ -368,7 +368,7 @@ public final class Registry extends ibis.ipl.registry.Registry {
                     "cannot send signals, registry already stopped");
         }
 
-        return communicationHandler.getSeqnos(names);
+        return communicationHandler.getMultipleSeqnos(names);
     }
 
     @Override
