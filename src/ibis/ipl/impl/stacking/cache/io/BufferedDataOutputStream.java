@@ -201,17 +201,38 @@ public class BufferedDataOutputStream extends DataOutputStream {
         }
     }
 
-    private void iWantYouToReadFromMe(Set<ReceivePortIdentifier> rpis) {
+    private void iWantYouToReadFromMe(Set<ReceivePortIdentifier> rpis)
+            throws IOException {
         synchronized (yourReadMessageIsAliveFromMeSet) {
-            for (ReceivePortIdentifier rpi : rpis) {
-                if (!yourReadMessageIsAliveFromMeSet.contains(rpi)) {
+            ReceivePortIdentifier[] rpisArray 
+                        = (ReceivePortIdentifier[]) rpis.toArray();
+            
+            long[] seqNo;
+            if (rpis.size() > 1) {
+                /*
+                 * Get the next sequences for all these rpis.
+                 */
+                String[] rpiNames = new String[rpis.size()];
+                for (int i = 0; i < rpisArray.length; i++) {
+                    rpiNames[i] = rpisArray[i].toString();
+                }
+
+                seqNo = port.cacheIbis.registry().getMultipleSequenceNumbers(rpiNames);
+            } else {
+                seqNo = new long[1];
+                seqNo[0] = -1;
+            }
+
+            for (int i = 0; i < rpisArray.length; i++) {
+                if (!yourReadMessageIsAliveFromMeSet.contains(rpisArray[i])) {
                     /*
                      * I have to let the receive port know that I want him to
                      * read my message.
                      */
-                    port.cacheManager.sideChannelHandler.newThreadSendProtocol(
-                            port.identifier(), rpi,
-                            SideChannelProtocol.READ_MY_MESSAGE);
+                    port.cacheManager.sideChannelHandler.newThreadRMMProtocol(
+                            port.identifier(), rpisArray[i],
+                            SideChannelProtocol.READ_MY_MESSAGE,
+                            seqNo[i]);
                 }
             }
         }
