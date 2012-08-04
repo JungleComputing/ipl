@@ -19,18 +19,6 @@ import java.util.logging.Logger;
  * Abstract class for different types of cache managers.
  */
 public abstract class CacheManager {
-
-    /*
-     * TODO: move buffer capacity from here, it's ugly This is the maximum size of the buffer
-     * used to stream data.
-     */
-    public static final int BUFFER_CAPACITY = 1 << 16;
-    
-    public static final int MAX_CONNS;
-    public static final int MAX_CONNS_DEFAULT = 1000;
-    
-    public static final int MSG_MAX_ARRIVAL_TIME_MILLIS;
-    public static final int MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT = 30;
     
     /**
      * Port type used for the creation of hub-based ports for the side-channel
@@ -66,26 +54,20 @@ public abstract class CacheManager {
     public final Condition reserveAcksCond;
     public final Condition gotSpaceCondition;
     public final Condition sleepCondition;
+    
+    public final int MAX_CONNS;
 
-    static {
-        MAX_CONNS = Integer.parseInt(
-                System.getProperty("ipl.cache.maxConns", Integer.toString(MAX_CONNS_DEFAULT)));
-        
-        MSG_MAX_ARRIVAL_TIME_MILLIS = Integer.parseInt(
-                System.getProperty("ipl.cache.msgMaxArrivalTime", 
-                Integer.toString(MSG_MAX_ARRIVAL_TIME_MILLIS_DEFAULT)));
-    }
-
-    CacheManager(CacheIbis ibis) {
+    CacheManager(CacheIbis cacheIbis, int maxConns) {
         try {
+            this.MAX_CONNS = maxConns;
             sideChannelHandler = new SideChannelMessageHandler(this);
-            sideChannelReceivePort = ibis.baseIbis.createReceivePort(
+            sideChannelReceivePort = cacheIbis.baseIbis.createReceivePort(
                     ultraLightPT, sideChnRPName,
                     sideChannelHandler);
             sideChannelReceivePort.enableConnections();
             sideChannelReceivePort.enableMessageUpcalls();
 
-            sideChannelSendPort = ibis.baseIbis.createSendPort(
+            sideChannelSendPort = cacheIbis.baseIbis.createSendPort(
                     ultraLightPT, sideChnSPName);
             
             lock = new ReentrantLock(true);
@@ -98,7 +80,8 @@ public abstract class CacheManager {
             Loggers.cacheLog.log(Level.INFO, "Cache manager instantiated on {0}."
                     + "\n\tCacheManager class: {2}"
                     + "\n\tmaxConns = {1}", new Object[] {
-                        ibis.identifier().name(), MAX_CONNS, this.getClass()
+                        cacheIbis.identifier().name(), MAX_CONNS, 
+                        this.getClass()
                     });
         } catch (IOException ex) {
             Loggers.cacheLog.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.", ex);

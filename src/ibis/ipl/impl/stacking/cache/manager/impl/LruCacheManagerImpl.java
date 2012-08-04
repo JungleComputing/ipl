@@ -13,8 +13,8 @@ public class LruCacheManagerImpl extends CacheManagerImpl {
      */
     private boolean heKnows = false;
 
-    public LruCacheManagerImpl(CacheIbis ibis) {
-        super(ibis);
+    public LruCacheManagerImpl(CacheIbis ibis, int maxConns) {
+        super(ibis, maxConns);
     }
 
     @Override

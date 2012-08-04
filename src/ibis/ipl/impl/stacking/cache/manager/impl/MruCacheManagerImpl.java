@@ -13,8 +13,8 @@ public class MruCacheManagerImpl extends CacheManagerImpl {
      */
     private boolean heKnows = false;
 
-    public MruCacheManagerImpl(CacheIbis ibis) {
-        super(ibis);
+    public MruCacheManagerImpl(CacheIbis ibis, int maxConns) {
+        super(ibis, maxConns);
     }
 
     @Override

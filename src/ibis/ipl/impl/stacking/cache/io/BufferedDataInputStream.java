@@ -4,7 +4,6 @@ import ibis.io.Conversion;
 import ibis.io.DataInputStream;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -53,7 +52,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     
     protected BufferedDataInputStream(CacheReceivePort port) {
         this.port = port;
-        this.capacity = CacheManager.BUFFER_CAPACITY;
+        this.capacity = BufferedDataOutputStream.BUFFER_CAPACITY;
         this.buffer = new byte[this.capacity];
         this.conversion = Conversion.loadConversion(false);
         this.closed = false;

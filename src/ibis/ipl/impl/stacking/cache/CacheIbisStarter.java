@@ -19,21 +19,26 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
             IbisCapabilities.MEMBERSHIP_UNRELIABLE, IbisCapabilities.SIGNALS,
             IbisCapabilities.ELECTIONS_UNRELIABLE,
             IbisCapabilities.ELECTIONS_STRICT, IbisCapabilities.MALLEABLE,
-            IbisCapabilities.TERMINATION, IbisCapabilities.CONNECTION_CACHING);
+            IbisCapabilities.TERMINATION, 
+            // my capability
+            IbisCapabilities.CONNECTION_CACHING);
     static final PortType portCapabilities = new PortType(
             PortType.SERIALIZATION_OBJECT_SUN,
             PortType.SERIALIZATION_OBJECT_IBIS, PortType.SERIALIZATION_OBJECT,
             PortType.SERIALIZATION_DATA, PortType.SERIALIZATION_BYTE,
             PortType.COMMUNICATION_FIFO, 
+            // my capability
             PortType.COMMUNICATION_TOTALLY_ORDERED_MULTICASTS,
             PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_DOWNCALLS,
             PortType.CONNECTION_UPCALLS, PortType.CONNECTION_TIMEOUT,
             PortType.CONNECTION_MANY_TO_MANY, PortType.CONNECTION_MANY_TO_ONE,
             PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_ONE_TO_ONE,
-            PortType.CONNECTION_LIGHT, 
-            // can't support this, because I enrich the ports with
-            // connection upcalls, and this combination doesn't work.
-//            PortType.CONNECTION_ULTRALIGHT,
+            PortType.CONNECTION_LIGHT,
+            /*
+             * can't support ultra_ligth connection, because I enrich the ports
+             * with connection upcalls, and this combination doesn't work.
+             * PortType.CONNECTION_ULTRALIGHT,
+             */
             PortType.CONNECTION_DIRECT, PortType.RECEIVE_POLL,
             PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
             PortType.RECEIVE_POLL_UPCALLS, PortType.RECEIVE_TIMEOUT);    

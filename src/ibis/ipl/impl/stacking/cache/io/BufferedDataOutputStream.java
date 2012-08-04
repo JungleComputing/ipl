@@ -5,18 +5,20 @@ import ibis.io.DataOutputStream;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.util.Timers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 public class BufferedDataOutputStream extends DataOutputStream {
+    
+    /*
+     * This is the maximum size of the buffer used to stream data.
+     */
+    public static final int BUFFER_CAPACITY = 1 << 16;
 
     /*
      * The send port which generates for me new WriteMessages. I need them so I
@@ -61,7 +63,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
         this.port = sp;
         c = Conversion.loadConversion(false);
         this.index = 0;
-        this.capacity = CacheManager.BUFFER_CAPACITY;
+        this.capacity = BUFFER_CAPACITY;
         this.buffer = new byte[this.capacity];
         this.yourReadMessageIsAliveFromMeSet = new HashSet<ReceivePortIdentifier>();
     }
@@ -97,17 +99,14 @@ public class BufferedDataOutputStream extends DataOutputStream {
          * write a msg to them.
          */
         iWantYouToReadFromMe(destRpis);
-        
+
         Loggers.cacheLog.log(Level.INFO, "Waiting for replies from {0} recv ports...",
                 destRpis.size());
 
         /*
          * Then, we need to wait for their approval, i.e. they will accept an
          * incoming message from us.
-         *
-         * Wait for K approvals. 1 <= K <= destRpis.size().
          */
-
         waitForAllRepliesFrom(destRpis);
         Loggers.cacheLog.log(Level.INFO, "Got all replies.");
 
@@ -203,34 +202,49 @@ public class BufferedDataOutputStream extends DataOutputStream {
 
     private void iWantYouToReadFromMe(Set<ReceivePortIdentifier> rpis)
             throws IOException {
+
+        List<ReceivePortIdentifier> rpisList = new ArrayList<ReceivePortIdentifier>();
+
         synchronized (yourReadMessageIsAliveFromMeSet) {
-            ReceivePortIdentifier[] rpisArray 
-                        = (ReceivePortIdentifier[]) rpis.toArray();
+            for (ReceivePortIdentifier rpi : rpis) {
+                if (!yourReadMessageIsAliveFromMeSet.contains(rpi)) {
+                    rpisList.add(rpi);
+                }
+            }
             
+            if(rpisList.isEmpty()) {
+                return;
+            }
+
             long[] seqNo;
-            if (rpis.size() > 1) {
+            if (rpisList.size() > 1) {
                 /*
                  * Get the next sequences for all these rpis.
                  */
-                String[] rpiNames = new String[rpis.size()];
-                for (int i = 0; i < rpisArray.length; i++) {
-                    rpiNames[i] = rpisArray[i].toString();
+                String[] rpiNames = new String[rpisList.size()];
+                for (int i = 0; i < rpisList.size(); i++) {
+                    rpiNames[i] = rpisList.get(i).toString();
                 }
 
                 seqNo = port.cacheIbis.registry().getMultipleSequenceNumbers(rpiNames);
+
+                for (int i = 0; i < rpiNames.length; i++) {
+                    Loggers.cacheLog.log(Level.FINE, "{0} has seqNo:\t{1}",
+                            new Object[]{rpiNames[i], seqNo[i]});
+                }
             } else {
                 seqNo = new long[1];
                 seqNo[0] = -1;
             }
 
-            for (int i = 0; i < rpisArray.length; i++) {
-                if (!yourReadMessageIsAliveFromMeSet.contains(rpisArray[i])) {
+            for (int i = 0; i < rpisList.size(); i++) {
+                if (!yourReadMessageIsAliveFromMeSet.contains(rpisList.get(i))) {
                     /*
                      * I have to let the receive port know that I want him to
                      * read my message.
                      */
                     port.cacheManager.sideChannelHandler.newThreadRMMProtocol(
-                            port.identifier(), rpisArray[i],
+                            port.identifier(), rpisList.get(i),
                             SideChannelProtocol.READ_MY_MESSAGE,
                             seqNo[i]);
                 }
@@ -241,20 +255,18 @@ public class BufferedDataOutputStream extends DataOutputStream {
     private void waitForAllRepliesFrom(Set<ReceivePortIdentifier> rpis) {
         /*
          * Need to wait for rpis.size() approvals.
-         * 
-         * Here I have a critical deadlock,
-         * and kinda unsolvable.
-         * 
-         * Scenario: 
-         * 3 machines all behave the same: they all want to send a message to
-         * the other 2; they all send READ_MY_MESSAGE but the 3rd sends ack to
-         * the 2nd, the 2nd send ack to the 1st and the 1st sends ack to the
-         * 3rd.
+         *
+         * Here I have a critical deadlock, and kinda unsolvable.
+         *
+         * Scenario: 3 machines all behave the same: they all want to send a
+         * message to the other 2; they all send READ_MY_MESSAGE but the 3rd
+         * sends ack to the 2nd, the 2nd send ack to the 1st and the 1st sends
+         * ack to the 3rd.
          *
          * so if we wait for 2 ack's back, we are stuck.
-         * 
-         * But I need to wait for all the ack's, otherwise I cannot stream
-         * my message.
+         *
+         * But I need to wait for all the ack's, otherwise I cannot stream my
+         * message.
          */
         Set<ReceivePortIdentifier> result;
         synchronized (yourReadMessageIsAliveFromMeSet) {
@@ -269,7 +281,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 } catch (InterruptedException ignoreMe) {
                     // Gotcha!! -- pokemon style
                 }
-                
+
                 result.clear();
                 result.addAll(yourReadMessageIsAliveFromMeSet);
                 result.retainAll(rpis);

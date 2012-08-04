@@ -38,7 +38,12 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
     public void upcall(ReadMessage msg) throws IOException, ClassNotFoundException {
         byte opcode = msg.readByte();
         SendPortIdentifier spi = (SendPortIdentifier) msg.readObject();
-        ReceivePortIdentifier rpi = (ReceivePortIdentifier) msg.readObject();        
+        ReceivePortIdentifier rpi = (ReceivePortIdentifier) msg.readObject();
+        long seqNo = -1;        
+        if(opcode == READ_MY_MESSAGE) {
+            seqNo = msg.readLong();
+        }
+        msg.finish();
 
         CacheReceivePort rp = CacheReceivePort.map.get(rpi);
         CacheSendPort sp = CacheSendPort.map.get(spi);
@@ -223,8 +228,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * queue, because we might have now some other alive read message.
              */
             case READ_MY_MESSAGE:
-                synchronized (rp) {
-                    long seqNo = msg.readLong();
+                synchronized (rp) {                    
                     /*
                      * If I have a current alive message OR if I already gave
                      * permision to another send port, then store this request
@@ -276,17 +280,18 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
     private void sendProtocol(SendPortIdentifier spi,
             ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode,
-            long seq) {        
+            long seqNo) {        
         /*
          * Synchronize on the sideChannelSendPort so as not to send multiple
          * messages at the same time.
          */
         synchronized (cacheManager.sideChannelSendPort) {
             Loggers.sideLog.log(Level.INFO, "\tSending side-message: \t["
-                    + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
+                    + "({0}-{1}, {2}-{3}), OPCODE = {4}"
+                    + (opcode == READ_MY_MESSAGE ? ", seqNo = {5}]" : "]"),
                     new Object[]{spi.name(), spi.ibisIdentifier().name(),
                         rpi.name(), rpi.ibisIdentifier().name(),
-                        map.get(opcode)});
+                        map.get(opcode), seqNo});
             try {
                 ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
                         destination, CacheManager.sideChnRPName);
@@ -296,7 +301,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 msg.writeObject(rpi);
                 
                 if(opcode == READ_MY_MESSAGE) {
-                    msg.writeLong(seq);
+                    msg.writeLong(seqNo);
                 }
                 
                 msg.finish();

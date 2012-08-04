@@ -15,8 +15,8 @@ public class RandomCacheManagerImpl extends CacheManagerImpl {
     private boolean heKnows = false;
     private Random r;
 
-    public RandomCacheManagerImpl(CacheIbis ibis) {
-        super(ibis);
+    public RandomCacheManagerImpl(CacheIbis ibis, int maxConns) {
+        super(ibis, maxConns);
         r = new Random();
     }
 

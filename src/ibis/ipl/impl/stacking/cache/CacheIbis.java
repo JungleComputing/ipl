@@ -2,17 +2,24 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
+import ibis.ipl.impl.stacking.cache.manager.CacheManagerImpl;
 import ibis.ipl.impl.stacking.cache.manager.impl.LruCacheManagerImpl;
-import ibis.ipl.impl.stacking.cache.manager.impl.*;
+import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CacheIbis implements Ibis {
 
     public Ibis baseIbis;
     IbisStarter starter;
     CacheManager cacheManager;
+    
+    public static final int MAX_CONNS_DEFAULT = 1000;
+    public static final String CACHE_IMPL_DEFAULT_VERSION = "lru";
     
     /**
      * These capabilities need to be added to the list of capabilites
@@ -23,6 +30,8 @@ public class CacheIbis implements Ibis {
     static final Set<PortType> additionalPortTypes;
     static final Set<String> offeredIbisCapabilities;
     static final Set<String> offeredPortCapabilities;
+    
+    static final Map<String, String> qualNamesMap;
     
     static {
         /*
@@ -55,6 +64,14 @@ public class CacheIbis implements Ibis {
          */
         offeredIbisCapabilities.add(IbisCapabilities.CONNECTION_CACHING);
         offeredPortCapabilities.add(PortType.COMMUNICATION_TOTALLY_ORDERED_MULTICASTS);
+        
+        qualNamesMap = new HashMap<String, String>();
+        qualNamesMap.put("lru",
+                "ibis.ipl.impl.stacking.cache.manager.impl.LruCacheManagerImpl");
+        qualNamesMap.put("mru",
+                "ibis.ipl.impl.stacking.cache.manager.impl.MruCacheManagerImpl");
+        qualNamesMap.put("random",
+                "ibis.ipl.impl.stacking.cache.manager.impl.RandomCacheManagerImpl");
     }
 
     public CacheIbis(IbisFactory factory,
@@ -66,7 +83,6 @@ public class CacheIbis implements Ibis {
             throws IbisCreationFailedException {
 
         starter = cacheIbisStarter;
-        
         
         int newNoPorts = portTypes.length + additionalPortTypes.size();
         PortType[] newPorts = new PortType[newNoPorts];
@@ -105,9 +121,36 @@ public class CacheIbis implements Ibis {
         baseIbis = factory.createIbis(registryEventHandler, ibisCapabilities,
                     userProperties, credentials, applicationTag, portTypes,
                     specifiedSubImplementation);
-        
-        // TODO: get the implementation version from somewhere
-        cacheManager = new LruCacheManagerImpl(this);
+
+        try {
+            TypedProperties typedProp = new TypedProperties(baseIbis.properties());
+            
+            int maxConns = typedProp.getIntProperty("ipl.cache.maxConns",
+                    MAX_CONNS_DEFAULT);
+            String cacheImplVersion = typedProp.getProperty("ipl.cache.impl.version",
+                    CACHE_IMPL_DEFAULT_VERSION);
+            
+            String fullyQualName = qualNamesMap.get(cacheImplVersion);
+            
+            if(fullyQualName == null) {
+                StringBuilder msg = new StringBuilder();
+                msg.append("Specified cache implementation version unavailable."
+                        + " Try one from the following:\t");
+                for(String impl : qualNamesMap.keySet()) {
+                    msg.append(impl).append(", ");
+                }
+                throw new IbisCreationFailedException(msg.toString());
+            }
+
+            Class clazz = Class.forName(fullyQualName);
+            Class[] paramTypes = {CacheIbis.class, int.class};
+            Object[] params = {this, maxConns};
+            Constructor c = clazz.getConstructor(paramTypes);
+            cacheManager = (CacheManager) c.newInstance(params);
+            // new LruCacheManagerImpl(this, maxConns);
+        } catch (Exception ex) {
+            throw new IbisCreationFailedException(ex);
+        }
     }
 
     @Override

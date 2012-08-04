@@ -1,12 +1,12 @@
 package ibis.ipl.impl.stacking.cache.manager;
 
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheIbis;
 import ibis.ipl.impl.stacking.cache.CacheSendPort;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import ibis.ipl.impl.stacking.cache.util.Timers;
 import java.io.IOException;
@@ -25,8 +25,8 @@ public abstract class CacheManagerImpl extends CacheManager {
     protected final List<Connection> canceledReservations;
     private Random r;
 
-    protected CacheManagerImpl(CacheIbis ibis) {
-        super(ibis);
+    protected CacheManagerImpl(CacheIbis ibis, int maxConns) {
+        super(ibis, maxConns);
         aliveConns = new LinkedList<Connection>();
         cachedConns = new LinkedList<Connection>();
 //        fromRPLiveConns = new LinkedList<Connection>();
@@ -719,7 +719,7 @@ public abstract class CacheManagerImpl extends CacheManager {
                                     /*
                                      * x2 because we need a send and an ack.
                                      */
-                                    2 * MSG_MAX_ARRIVAL_TIME_MILLIS);
+                                    2 * 30);
                         } catch (InterruptedException ignoreMe) {}
                     }
                     

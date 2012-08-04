@@ -373,7 +373,7 @@ public final class CacheReceivePort implements ReceivePort {
     
     
     public boolean isNextSeqNo(long seqNo) {
-        if(seqNo < 0 || localSeqNo == -1 || seqNo == localSeqNo + 1) {
+        if(seqNo < 0 || seqNo == localSeqNo + 1) {
             return true;
         }
         
