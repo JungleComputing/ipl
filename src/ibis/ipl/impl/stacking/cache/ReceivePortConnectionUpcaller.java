@@ -38,7 +38,6 @@ public class ReceivePortConnectionUpcaller
                 recvPort.cacheManager.restoreReservedConnection(recvPort.identifier(), spi);
             } else {
                 if (upcaller != null) {
-                    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                     accepted = upcaller.gotConnection(recvPort, spi);
                 }
                 Loggers.conLog.log(Level.INFO, "\t\tnew from {0}\n", spi);
@@ -77,7 +76,7 @@ public class ReceivePortConnectionUpcaller
         Loggers.conLog.log(Level.INFO, "\n\t{0} got lost connection to {1}",
                 new Object[]{recvPort.identifier(), spi});
         if (reason != null) {
-            Loggers.conLog.log(Level.INFO, "\tcause was:\t{0}\n", reason.toString());
+            Loggers.conLog.log(Level.WARNING, "\tbecause of cause:\t", reason);
         }
         
         boolean isCached = false;
@@ -144,7 +143,6 @@ public class ReceivePortConnectionUpcaller
              */
             recvPort.cacheManager.removeConnection(recvPort.identifier(), spi);
             if (upcaller != null) {
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 upcaller.lostConnection(recvPort, spi, reason);
             }
             

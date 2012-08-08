@@ -1,6 +1,11 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.io.SerializationFactory;
+import ibis.io.SerializationInput;
 import ibis.ipl.*;
+import ibis.ipl.impl.stacking.cache.io.BufferedDataInputStream;
+import ibis.ipl.impl.stacking.cache.io.DowncallBufferedDataInputStream;
+import ibis.ipl.impl.stacking.cache.io.UpcallBufferedDataInputStream;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
@@ -83,6 +88,16 @@ public final class CacheReceivePort implements ReceivePort {
     public final List<SequencedSpi> toHaveMyFutureAttention;
     public boolean readMsgRequested;
     private long localSeqNo;
+    
+    /**
+     * For the ReadMessage.
+     */
+    protected final BufferedDataInputStream upcallDataIn;
+    protected final BufferedDataInputStream downcallDataIn;
+    protected final SerializationInput upcallSerIn;
+    protected final SerializationInput downcallSerIn;
+    protected BufferedDataInputStream dataIn;
+    protected SerializationInput serIn;
 
     public CacheReceivePort(PortType portType, CacheIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
@@ -127,6 +142,24 @@ public final class CacheReceivePort implements ReceivePort {
 
         toHaveMyFutureAttention = new LinkedList<SequencedSpi>();
         localSeqNo = -1;
+        
+        String serialization;
+        if (portType.hasCapability(PortType.SERIALIZATION_DATA)) {
+            serialization = "data";
+        } else if (portType.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
+            serialization = "sun";
+        } else if (portType.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
+            serialization = "ibis";
+        } else if (portType.hasCapability(PortType.SERIALIZATION_OBJECT)) {
+            serialization = "object";
+        } else {
+            serialization = "byte";
+        }
+        this.upcallDataIn = new UpcallBufferedDataInputStream(this);
+        this.upcallSerIn = SerializationFactory.createSerializationInput(serialization, upcallDataIn);
+        
+        this.downcallDataIn = new DowncallBufferedDataInputStream(this);
+        this.downcallSerIn = SerializationFactory.createSerializationInput(serialization, downcallDataIn);
 
         /*
          * Send this to the map only when it has been filled up with all data.
@@ -199,6 +232,7 @@ public final class CacheReceivePort implements ReceivePort {
                 return;
             }
             closed = true;
+            dataIn.close();
             while (cacheManager.hasConnections(this.identifier()) && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
@@ -217,6 +251,10 @@ public final class CacheReceivePort implements ReceivePort {
         
         Loggers.conLog.log(Level.INFO, "{0} is closing base receive port...",
                 this.identifier());
+        timeoutMillis = deadline - System.currentTimeMillis();
+        if(timeoutMillis == 0) {
+            timeoutMillis = -1;
+        }
         recvPort.close(timeoutMillis);
     }
 
@@ -235,23 +273,31 @@ public final class CacheReceivePort implements ReceivePort {
     @Override
     public void disableConnections() {
         recvPort.disableConnections();
+        dataIn = null;
+        serIn = null;
     }
 
     @Override
     public void disableMessageUpcalls() {
         enabledMessageUpcalls = false;
         recvPort.disableMessageUpcalls();
+        dataIn = downcallDataIn;
+        serIn = downcallSerIn;
     }
 
     @Override
     public void enableConnections() {
         recvPort.enableConnections();
+        dataIn = downcallDataIn;
+        serIn = downcallSerIn;
     }
 
     @Override
     public void enableMessageUpcalls() {
         recvPort.enableMessageUpcalls();
         enabledMessageUpcalls = true;
+        dataIn = upcallDataIn;
+        serIn = upcallSerIn;
     }
 
     @Override
@@ -289,7 +335,9 @@ public final class CacheReceivePort implements ReceivePort {
         ReadMessage msg = recvPort.poll();
         if (msg != null) {
             readMsgRequested = false;
-            currentReadMsg = new CacheReadMessage.CacheReadDowncallMessage(msg, this);
+            dataIn.isLastPart = msg.readBoolean();
+            dataIn.remainingBytes = msg.readInt();
+            currentReadMsg = new CacheReadMessage(msg, this);
             return currentReadMsg;
         }
         return null;
@@ -334,10 +382,12 @@ public final class CacheReceivePort implements ReceivePort {
                 throw new ReceiveTimedOutException();
             }
         }
-        ReadMessage m = recvPort.receive(timeoutMillis);
+        ReadMessage msg = recvPort.receive(timeoutMillis);
         synchronized (this) {
             readMsgRequested = false;
-            currentReadMsg = new CacheReadMessage.CacheReadDowncallMessage(m, this);
+            dataIn.isLastPart = msg.readBoolean();
+            dataIn.remainingBytes = msg.readInt();
+            currentReadMsg = new CacheReadMessage(msg, this);
         }
 
         return currentReadMsg;

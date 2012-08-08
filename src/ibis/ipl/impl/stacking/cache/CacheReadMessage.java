@@ -1,14 +1,8 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.io.SerializationFactory;
-import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.cache.io.BufferedDataInputStream;
-import ibis.ipl.impl.stacking.cache.io.DowncallBufferedDataInputStream;
-import ibis.ipl.impl.stacking.cache.io.UpcallBufferedDataInputStream;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
@@ -17,65 +11,33 @@ import java.nio.ReadOnlyBufferException;
 import java.util.Iterator;
 import java.util.logging.Level;
 
-public abstract class CacheReadMessage implements ReadMessage {
-
-    public static class CacheReadDowncallMessage extends CacheReadMessage {
-
-        public CacheReadDowncallMessage(ReadMessage m, CacheReceivePort port)
-                throws IOException {
-            super(m, port, new DowncallBufferedDataInputStream(m, port));
-        }
-    }
-
-    /*
-     * In this class, the boolean isLastPart has already been read.
-     */
-    public static class CacheReadUpcallMessage extends CacheReadMessage {
-
-        CacheReadUpcallMessage(ReadMessage m, CacheReceivePort port)
-                throws IOException {
-            super(m, port, new UpcallBufferedDataInputStream(m, port));
-        }
-    }
+public class CacheReadMessage implements ReadMessage {
 
     /*
      * The port which will give me base ReadMessages.
      */
     final CacheReceivePort recvPort;
-    BufferedDataInputStream dataIn;
-    SerializationInput in;
+    
     boolean isFinished = false;
     private final SendPortIdentifier origin;
 
-    protected CacheReadMessage(ReadMessage m, CacheReceivePort port,
-            BufferedDataInputStream dataIn)
+    public CacheReadMessage(ReadMessage m, CacheReceivePort port)
             throws IOException {
-        Loggers.readMsgLog.log(Level.INFO, "{0}: Read message created.", port);
         this.recvPort = port;
         this.origin = m.origin();
-
-        PortType type = this.recvPort.getPortType();
-        String serialization;
-        if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
-            serialization = "data";
-        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
-            serialization = "sun";
-        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
-            serialization = "ibis";
-        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
-            serialization = "object";
-        } else {
-            serialization = "byte";
-        }
-        this.dataIn = dataIn;
-        this.in = SerializationFactory.createSerializationInput(serialization, dataIn);
+        
+        port.dataIn.currentBaseMsg = m;
+        
+        Loggers.readMsgLog.log(Level.INFO, "{0}: Read message created.", port);
+        Loggers.readMsgLog.log(Level.FINE, "isLastPart={0}, bufSize={1}",
+                new Object[] {port.dataIn.isLastPart, port.dataIn.remainingBytes});
     }
 
     /*
-     * Glues the upcall in the CacheReceivePort to the BufferedDataInpustStream.
+     * Glues the upcall in the CacheReceivePort to the BufferedrecvPort.dataInputStream.
      */
-    protected void offerToBuffer(boolean isLastPart, ReadMessage msg) {
-        dataIn.offerToBuffer(isLastPart, msg);
+    protected void offerToBuffer(boolean isLastPart, int remaining,ReadMessage msg) {
+        recvPort.dataIn.offerToBuffer(isLastPart, remaining, msg);
     }
 
     @Override
@@ -83,9 +45,7 @@ public abstract class CacheReadMessage implements ReadMessage {
         checkNotFinished();
         Loggers.readMsgLog.log(Level.INFO, "Finishing read message from {0}.",
                 this.origin());
-        dataIn.close();
-//            in.clear();
-        in.close();
+        recvPort.dataIn.finish();
         isFinished = true;
         long retVal = bytesRead();
         synchronized (recvPort) {
@@ -132,13 +92,8 @@ public abstract class CacheReadMessage implements ReadMessage {
             return;
         }
         try {
-            dataIn.close();
+            recvPort.dataIn.finish();
         } catch (IOException ignoreMe) {
-        }
-        in.clear();
-        try {
-            in.close();
-        } catch (IOException ingoreMe) {
         }
 
         isFinished = true;
@@ -183,7 +138,7 @@ public abstract class CacheReadMessage implements ReadMessage {
 
     @Override
     public long bytesRead() {
-        return dataIn.bytesRead();
+        return recvPort.dataIn.bytesRead();
     }
 
     @Override
@@ -217,61 +172,61 @@ public abstract class CacheReadMessage implements ReadMessage {
     @Override
     public boolean readBoolean() throws IOException {
         checkNotFinished();
-        return in.readBoolean();
+        return recvPort.serIn.readBoolean();
     }
 
     @Override
     public byte readByte() throws IOException {
         checkNotFinished();
-        return in.readByte();
+        return recvPort.serIn.readByte();
     }
 
     @Override
     public char readChar() throws IOException {
         checkNotFinished();
-        return in.readChar();
+        return recvPort.serIn.readChar();
     }
 
     @Override
     public short readShort() throws IOException {
         checkNotFinished();
-        return in.readShort();
+        return recvPort.serIn.readShort();
     }
 
     @Override
     public int readInt() throws IOException {
         checkNotFinished();
-        return in.readInt();
+        return recvPort.serIn.readInt();
     }
 
     @Override
     public long readLong() throws IOException {
         checkNotFinished();
-        return in.readLong();
+        return recvPort.serIn.readLong();
     }
 
     @Override
     public float readFloat() throws IOException {
         checkNotFinished();
-        return in.readFloat();
+        return recvPort.serIn.readFloat();
     }
 
     @Override
     public double readDouble() throws IOException {
         checkNotFinished();
-        return in.readDouble();
+        return recvPort.serIn.readDouble();
     }
 
     @Override
     public String readString() throws IOException {
         checkNotFinished();
-        return in.readString();
+        return recvPort.serIn.readString();
     }
 
     @Override
     public Object readObject() throws IOException, ClassNotFoundException {
         checkNotFinished();
-        return in.readObject();
+        return recvPort.serIn.readObject();
     }
 
     @Override
@@ -324,69 +279,69 @@ public abstract class CacheReadMessage implements ReadMessage {
     public void readArray(boolean[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(byte[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(char[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(short[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(int[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(long[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(float[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(double[] destination, int offset, int size)
             throws IOException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readArray(Object[] destination, int offset, int size)
             throws IOException, ClassNotFoundException {
         checkNotFinished();
-        in.readArray(destination, offset, size);
+        recvPort.serIn.readArray(destination, offset, size);
     }
 
     @Override
     public void readByteBuffer(ByteBuffer value) throws IOException,
             ReadOnlyBufferException {
         checkNotFinished();
-        in.readByteBuffer(value);
+        recvPort.serIn.readByteBuffer(value);
     }
 }

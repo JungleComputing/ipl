@@ -18,7 +18,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
     /*
      * This is the maximum size of the buffer used to stream data.
      */
-    public static final int BUFFER_CAPACITY = 1 << 16;
+    public static final int BUFFER_CAPACITY = Integer.MAX_VALUE >> 1;
 
     /*
      * The send port which generates for me new WriteMessages. I need them so I
@@ -36,7 +36,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
     /*
      * The current index of the buffer.
      */
-    private int index;
+    public int index;
     /*
      * The buffer's capacity.
      */
@@ -49,10 +49,6 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * Number of messages streamed at one flush.
      */
     private int noMsg;
-    /*
-     * If this output stream is closed.
-     */
-    private boolean closed;
     /*
      * When writing a message (all its streaming parts), need to make sure that
      * the receive port(s) have no other alive read message.
@@ -82,6 +78,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * Send to all the connected receive ports the message built so far.
      */
     private void stream(boolean isLastPart) throws IOException {
+        Loggers.writeMsgLog.log(Level.FINE, "Now streaming buffer size: {0}",
+                index);
         Timers.streamTimer.start();
 
         /*
@@ -267,6 +265,9 @@ public class BufferedDataOutputStream extends DataOutputStream {
          *
          * But I need to wait for all the ack's, otherwise I cannot stream my
          * message.
+         * 
+         * 
+         * later edit: solved it by implementing totally ordered multicasting.
          */
         Set<ReceivePortIdentifier> result;
         synchronized (yourReadMessageIsAliveFromMeSet) {
@@ -293,9 +294,6 @@ public class BufferedDataOutputStream extends DataOutputStream {
 
     @Override
     public void flush() throws IOException {
-        if (closed) {
-            return;
-        }
         stream(false);
         Loggers.writeMsgLog.log(Level.INFO, "\n\tFlushed {0} intermediate messages to"
                 + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});
@@ -304,11 +302,6 @@ public class BufferedDataOutputStream extends DataOutputStream {
 
     @Override
     public void close() throws IOException {
-        Loggers.writeMsgLog.log(Level.INFO, "dataOut closing.");
-        if (closed) {
-            return;
-        }
-        closed = true;
         stream(true);
         Loggers.writeMsgLog.log(Level.INFO, "\n\tStreamed {0} intermediate messages to"
                 + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});

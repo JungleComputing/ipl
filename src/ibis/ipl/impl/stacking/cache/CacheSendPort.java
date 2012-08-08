@@ -1,6 +1,9 @@
 package ibis.ipl.impl.stacking.cache;
 
+import ibis.io.SerializationFactory;
+import ibis.io.SerializationOutput;
 import ibis.ipl.*;
+import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
 import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
 import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
@@ -61,6 +64,12 @@ public final class CacheSendPort implements SendPort {
      * Reference to the Cache ibis.
      */
     public final CacheIbis cacheIbis;
+    
+    /**
+     * For WriteMessage.
+     */
+    protected final SerializationOutput serOut;
+    public final BufferedDataOutputStream dataOut;
 
     public CacheSendPort(PortType portType, CacheIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
@@ -94,6 +103,24 @@ public final class CacheSendPort implements SendPort {
         currentMsg = null;
         
         reserveAcks = new HashMap<ReceivePortIdentifier, Byte>();
+
+        String serialization;
+        if (portType.hasCapability(PortType.SERIALIZATION_DATA)) {
+            serialization = "data";
+        } else if (portType.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
+            serialization = "sun";
+        } else if (portType.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
+            serialization = "ibis";
+        } else if (portType.hasCapability(PortType.SERIALIZATION_OBJECT)) {
+            serialization = "object";
+        } else {
+            serialization = "byte";
+        }
+
+        dataOut = new BufferedDataOutputStream(this);
+        serOut = SerializationFactory.createSerializationOutput(serialization,
+                dataOut);
+
         /*
          * Send this to the map only when it has been filled up with all data.
          */

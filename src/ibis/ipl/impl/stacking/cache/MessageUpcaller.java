@@ -2,7 +2,6 @@ package ibis.ipl.impl.stacking.cache;
 
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.impl.stacking.cache.CacheReadMessage.CacheReadUpcallMessage;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
@@ -38,9 +37,10 @@ public final class MessageUpcaller implements MessageUpcall {
     public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
         messageDepleted = false;
         boolean isLastPart = m.readBoolean();
+        int bufSize = m.readInt();
 
-        Loggers.upcallLog.log(Level.INFO, "\n\tGot message upcall from {0}. isLastPart={1}", 
-                new Object[] {m.origin(), isLastPart});
+        Loggers.upcallLog.log(Level.INFO, "\n\tGot message upcall from {0}. isLastPart={1}, bufSize={2}", 
+                new Object[] {m.origin(), isLastPart, bufSize});
 
         /*
          * This is a logically new message.
@@ -55,7 +55,7 @@ public final class MessageUpcaller implements MessageUpcall {
                 /*
                  * Initializations.
                  */
-                currentLogicalMsg = new CacheReadUpcallMessage(m, port);
+                currentLogicalMsg = new CacheReadMessage(m, port);
                 gotLastPart = isLastPart;
             } finally {
                 newLogicalMsgLock.unlock();
@@ -63,7 +63,7 @@ public final class MessageUpcaller implements MessageUpcall {
         }
 
         synchronized (currentLogicalMsgLock) {
-            if (currentLogicalMsg.dataIn.closed) {
+            if (currentLogicalMsg.recvPort.dataIn.closed) {
                 /*
                  * The read message has been closed. discard everything.
                  * also, if last part, notify the "main thread" of the message,
@@ -90,13 +90,12 @@ public final class MessageUpcaller implements MessageUpcall {
 
         /*
          * Feed the buffer of the DataInputStream with the data from this
-         * message. the format of the message is: (bufSize, byte[bufSize]
-         * buffer); When all data has been extracted, messageDepleted is set to
+         * message. When all data has been extracted, messageDepleted is set to
          * true, and this thread is notified. It will finish and let the next
          * streaming upcall come.
          */
         try {
-            currentLogicalMsg.offerToBuffer(isLastPart, m);
+            currentLogicalMsg.offerToBuffer(isLastPart, bufSize, m);
         } catch(Exception ex) {
             // nothing should be thrown here, but
             // just to be sure we don't leave the lock locked.
@@ -114,11 +113,6 @@ public final class MessageUpcaller implements MessageUpcall {
                  * User upcall.
                  */
                 Loggers.upcallLog.log(Level.INFO, "Calling user upcall...");
-                /*
-                 * Give way to the user upcall;
-                 * don't let my caching/uncaching get in the way.
-                 */
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 upcaller.upcall(currentLogicalMsg);
                 Loggers.upcallLog.log(Level.INFO, "User upcall finished.");
 

@@ -3,25 +3,15 @@ package ibis.ipl.impl.stacking.cache.io;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.logging.Level;
 
 public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
 
-    private boolean isLastPart;
-
-    public DowncallBufferedDataInputStream(ReadMessage m, CacheReceivePort port)
+    public DowncallBufferedDataInputStream(CacheReceivePort port)
             throws IOException {
         super(port);
-
-        super.currentMsg = m;
-        this.isLastPart = m.readBoolean();
-        super.remainingBytes = m.readInt();
-
-        Loggers.readMsgLog.log(Level.INFO, "Got a msg: isLastPart={1}, size={0}",
-                new Object[] {remainingBytes, isLastPart});
     }
 
     /**
@@ -60,7 +50,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                 /*
                  * The current message is depleted.
                  */
-                currentMsg.finish();
+                currentBaseMsg.finish();
                 if (isLastPart) {
                     throw new EOFException("Requiring more"
                             + " data after depleting the last streamed buffer.");
@@ -68,12 +58,12 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                     /*
                      * Get the next partial message to read from it.
                      */
-                    currentMsg = port.recvPort.receive();
+                    currentBaseMsg = port.recvPort.receive();
                     /*
                      * Read my protocol.
                      */
-                    isLastPart = currentMsg.readBoolean();
-                    remainingBytes = currentMsg.readInt();
+                    isLastPart = currentBaseMsg.readBoolean();
+                    remainingBytes = currentBaseMsg.readInt();
                     Loggers.readMsgLog.log(Level.INFO, "Got a message: isLastPart={1}, size={0}",
                             new Object[]{remainingBytes, isLastPart});
                 }
@@ -82,7 +72,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
              * I have at least some remaining bytes from which to read from.
              */
             int n = Math.min(capacity - (index + buffered_bytes), remainingBytes);
-            currentMsg.readArray(buffer, index + buffered_bytes, n);
+            currentBaseMsg.readArray(buffer, index + buffered_bytes, n);
             buffered_bytes += n;
             bytes += n;
             remainingBytes -= n;
@@ -90,7 +80,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
     }
 
     @Override
-    public void close() throws IOException {
+    public void finish() throws IOException {
         /*
          * The sender may have streamed N intermediate messages, but the
          * receiver does a close much sooner. Need to pull out the rest of the
@@ -98,22 +88,29 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
          */
         int skipped = 0;
         while (!isLastPart) {
-            currentMsg.finish();
+            currentBaseMsg.finish();
             /*
              * Drain the next partial message.
              */
-            currentMsg = port.recvPort.receive();
-            isLastPart = currentMsg.readBoolean();
+            currentBaseMsg = port.recvPort.receive();
+            isLastPart = currentBaseMsg.readBoolean();
+            remainingBytes = currentBaseMsg.readInt();
+            Loggers.readMsgLog.log(Level.FINE, "Skipping message: isLastPart={0},"
+                    + " bufSize={1}.", new Object[] {isLastPart, remainingBytes});
             skipped++;
         }
-        currentMsg.finish();
+        currentBaseMsg.finish();
         Loggers.readMsgLog.log(Level.INFO, "Closed dataIn and pulled out {0}"
                 + " skipped messages.", skipped);
     }
 
     @Override
-    public void offerToBuffer(boolean isLastPart, ReadMessage msg) {
+    public void offerToBuffer(boolean isLastPart, int remaining, ReadMessage msg) {
         throw new UnsupportedOperationException("DowncallBufferedDataInputStream"
                 + " feeds itself explicitly on received data.");
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

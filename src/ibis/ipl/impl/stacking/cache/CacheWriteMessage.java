@@ -1,19 +1,13 @@
 package ibis.ipl.impl.stacking.cache;
 
-import ibis.io.SerializationFactory;
-import ibis.io.SerializationOutput;
-import ibis.ipl.PortType;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
 public final class CacheWriteMessage implements WriteMessage {
-
-    SerializationOutput serOut;
-    public BufferedDataOutputStream dataOut;
+    
     /*
      * SendPort used to generate base WriteMessages.
      */
@@ -23,26 +17,10 @@ public final class CacheWriteMessage implements WriteMessage {
      */
     long bytes;
 
-    public CacheWriteMessage(CacheSendPort sendPort) throws IOException {
-        Loggers.writeMsgLog.log(Level.INFO,"Creating CacheWriteMessage...");
+    public CacheWriteMessage(CacheSendPort sendPort) throws IOException {        
         this.port = sendPort;
-
-        PortType type = this.port.getPortType();
-        String serialization;
-        if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
-            serialization = "data";
-        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
-            serialization = "sun";
-        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
-            serialization = "ibis";
-        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
-            serialization = "object";
-        } else {
-            serialization = "byte";
-        }
-        dataOut = new BufferedDataOutputStream(this.port);
-        serOut = SerializationFactory.createSerializationOutput(serialization,
-                dataOut);
+        Loggers.writeMsgLog.log(Level.FINE, "Created CacheWriteMessage");
+        Loggers.writeMsgLog.log(Level.FINEST, "buffer index = {0}", port.dataOut.index);
     }
 
     private void checkNotFinished() throws IOException {
@@ -65,12 +43,12 @@ public final class CacheWriteMessage implements WriteMessage {
 
     @Override
     public void reset() throws IOException {
-        serOut.reset();
+        port.serOut.reset();
     }
 
     @Override
     public long bytesWritten() {
-        return dataOut.bytesWritten();
+        return port.dataOut.bytesWritten();
     }
 
     @Override
@@ -86,13 +64,13 @@ public final class CacheWriteMessage implements WriteMessage {
     @Override
     public void sync(int ticket) throws IOException {
         checkNotFinished();
-        serOut.flush();
+        port.serOut.flush();
     }
 
     @Override
     public void flush() throws IOException {
         checkNotFinished();
-        serOut.flush();
+        port.serOut.flush();
     }
 
     @Override
@@ -102,15 +80,8 @@ public final class CacheWriteMessage implements WriteMessage {
         Loggers.writeMsgLog.log(Level.INFO, "Finishing a write message from"
                 + " send port {0}", this.port.identifier());
         
-        serOut.flush();
-        dataOut.close();
-        
-//        serOut.close();
-        /*
-         * serOut.close() actually just flushes dos. I need dataOut.close() so
-         * it can do: stream(true).
-         */
-//        serOut.close();
+        port.serOut.flush();
+        port.dataOut.close();
         
         Loggers.writeMsgLog.log(Level.INFO, "{0} has finished a write message.",
                 port.identifier());
@@ -131,27 +102,19 @@ public final class CacheWriteMessage implements WriteMessage {
         }
         
         try {
-            serOut.flush();
+            port.serOut.flush();
         } catch (Throwable e2) {
             // ignored
         }
 
         try {
-            dataOut.close();
+            port.dataOut.close();
         } catch (IOException ignoreMe) {
         }
         
-        try {
-            serOut.close();
-        } catch (Throwable e2) {
-            // ignored
-        }
-
         Loggers.writeMsgLog.log(Level.INFO, "{0} has finished a write message.",
                 port.identifier());
 
-        serOut = null;
-        dataOut = null;
         synchronized (port.messageLock) {
             port.currentMsg = null;
             port.messageLock.notifyAll();
@@ -161,183 +124,183 @@ public final class CacheWriteMessage implements WriteMessage {
     @Override
     public void writeBoolean(boolean value) throws IOException {
         checkNotFinished();
-        serOut.writeBoolean(value);
+        port.serOut.writeBoolean(value);
     }
 
     @Override
     public void writeByte(byte value) throws IOException {
         checkNotFinished();
-        serOut.writeByte(value);
+        port.serOut.writeByte(value);
     }
 
     @Override
     public void writeChar(char value) throws IOException {
         checkNotFinished();
-        serOut.writeChar(value);
+        port.serOut.writeChar(value);
     }
 
     @Override
     public void writeShort(short value) throws IOException {
         checkNotFinished();
-        serOut.writeShort(value);
+        port.serOut.writeShort(value);
     }
 
     @Override
     public void writeInt(int value) throws IOException {
         checkNotFinished();
-        serOut.writeInt(value);
+        port.serOut.writeInt(value);
     }
 
     @Override
     public void writeLong(long value) throws IOException {
         checkNotFinished();
-        serOut.writeLong(value);
+        port.serOut.writeLong(value);
     }
 
     @Override
     public void writeFloat(float value) throws IOException {
         checkNotFinished();
-        serOut.writeFloat(value);
+        port.serOut.writeFloat(value);
     }
 
     @Override
     public void writeDouble(double value) throws IOException {
         checkNotFinished();
-        serOut.writeDouble(value);
+        port.serOut.writeDouble(value);
     }
 
     @Override
     public void writeString(String value) throws IOException {
         checkNotFinished();
-        serOut.writeString(value);
+        port.serOut.writeString(value);
     }
 
     @Override
     public void writeObject(Object value) throws IOException {
         checkNotFinished();
-        serOut.writeObject(value);
+        port.serOut.writeObject(value);
     }
 
     @Override
     public void writeArray(boolean[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(byte[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(char[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(short[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(int[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(long[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(float[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(double[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(Object[] value) throws IOException {
         checkNotFinished();
-        serOut.writeArray(value);
+        port.serOut.writeArray(value);
     }
 
     @Override
     public void writeArray(boolean[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(byte[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(char[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(short[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(int[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(long[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(float[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(double[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeArray(Object[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        serOut.writeArray(value, offset, size);
+        port.serOut.writeArray(value, offset, size);
     }
 
     @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
         checkNotFinished();
-        serOut.writeByteBuffer(value);
+        port.serOut.writeByteBuffer(value);
     }
 }

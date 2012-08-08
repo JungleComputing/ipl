@@ -270,9 +270,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * sendport of this so it can start writting to it.
              */
             case GIVE_ME_YOUR_MESSAGE:
-                synchronized (sp.currentMsg.dataOut.yourReadMessageIsAliveFromMeSet) {
-                    sp.currentMsg.dataOut.yourReadMessageIsAliveFromMeSet.add(rpi);
-                    sp.currentMsg.dataOut.yourReadMessageIsAliveFromMeSet.notifyAll();
+                synchronized (sp.dataOut.yourReadMessageIsAliveFromMeSet) {
+                    sp.dataOut.yourReadMessageIsAliveFromMeSet.add(rpi);
+                    sp.dataOut.yourReadMessageIsAliveFromMeSet.notifyAll();
                 }
                 break;
         }

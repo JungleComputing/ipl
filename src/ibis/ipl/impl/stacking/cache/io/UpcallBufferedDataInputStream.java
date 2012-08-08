@@ -1,7 +1,6 @@
 package ibis.ipl.impl.stacking.cache.io;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cache.CacheReceivePort;
 import ibis.ipl.impl.stacking.cache.util.Loggers;
 import java.io.IOException;
@@ -15,13 +14,16 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
         final UpcallBufferedDataInputStream in;
         final ReadMessage msg;
+        private int remaining;
 
         public DataOfferingThread(UpcallBufferedDataInputStream in,
+                boolean isLastPart, int remaining,
                 ReadMessage msg) {
             Loggers.readMsgLog.log(Level.INFO, "Thread created for filling up "
                     + "the buffer with data.");
             this.in = in;
             this.msg = msg;
+            this.remaining = remaining;
         }
 
         @Override
@@ -32,7 +34,6 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                  * removing it simultaneously.
                  */
                 synchronized (in) {
-                    int remaining = msg.readInt();
                     Loggers.readMsgLog.log(Level.INFO, "Thread started."
                             + " Got bufferSize={0}", remaining);
 
@@ -90,7 +91,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                              * to read from.
                              */
                             int n = Math.min(in.capacity - (in.index + in.buffered_bytes),
-                                    remaining);
+                                   remaining);
                             msg.readArray(
                                     in.buffer, in.index + in.buffered_bytes, n);
                             in.buffered_bytes += n;
@@ -140,23 +141,17 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
      * Length required to be in the buffer at a given time.
      */
     public int len;
-    /*
-     * The origin of the message we are draining of data.
-     */
-    private final SendPortIdentifier origin;
 
-    public UpcallBufferedDataInputStream(ReadMessage m, CacheReceivePort port) {
+    public UpcallBufferedDataInputStream(CacheReceivePort port) {
         super(port);
-        this.origin = m.origin();
         this.ex = Executors.newSingleThreadExecutor();
     }
 
     @Override
-    public void offerToBuffer(boolean isLastPart, ReadMessage msg) {
-        assert origin.equals(msg.origin());
-        currentMsg = msg;
+    public void offerToBuffer(boolean isLastPart, int remaining, ReadMessage msg) {
+        currentBaseMsg = msg;
         try {
-            ex.submit(new DataOfferingThread(this, msg));
+            ex.submit(new DataOfferingThread(this, isLastPart, remaining, msg));
         } catch (Exception e) {
             Loggers.readMsgLog.log(Level.WARNING, "Couldn''t submit another data"
                     + " offering thread. The executor was shutdown because"
@@ -194,7 +189,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     }
 
     @Override
-    public void close() throws IOException {
+    public void finish() throws IOException {
         /*
          * Wait for the last part.
          */
@@ -224,12 +219,17 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                 }
             }
             Loggers.readMsgLog.log(Level.INFO, "Closed the current read message.");
+            
+            /*
+             * reset the variable.
+             */
+            closed = false;
         }
-        /*
-         * The threads which handle the intermediate messages live until all the
-         * data has been pulled out. If by any chance, the user forces a finish
-         * without reading everything, they will still live on and on and on...
-         */
-        ex.shutdownNow();
+    }
+    
+    @Override
+    public void close() throws IOException {
+        closed = true;
+        this.ex.shutdownNow();
     }
 }

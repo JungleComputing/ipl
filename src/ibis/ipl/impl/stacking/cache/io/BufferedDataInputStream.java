@@ -18,11 +18,15 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     /*
      * The current partial message.
      */
-    protected ReadMessage currentMsg;
+    public ReadMessage currentBaseMsg;
     /*
      * The number of bytes which can still be read from the currentMsg's sent buffer.
      */
-    protected int remainingBytes;
+    public int remainingBytes;
+    /*
+     * If it is the last part of the streamed message.
+     */
+    public boolean isLastPart;
     /*
      * The buffer.
      */
@@ -83,13 +87,16 @@ public abstract class BufferedDataInputStream extends DataInputStream{
      * to the DataInputStream.
      * For upcalls.
      */
-    abstract public void offerToBuffer(boolean isLastPart, ReadMessage msg);
+    abstract public void offerToBuffer(boolean isLastPart, int remaining, 
+            ReadMessage msg);
 
     /*
      * Block until it is guaranteed that there are at least n bytes 
      * available for reading.
      */
     abstract protected void requestFromBuffer(int n) throws IOException;
+    
+    abstract public void finish() throws IOException;
 
     @Override
     public final int available() throws IOException {

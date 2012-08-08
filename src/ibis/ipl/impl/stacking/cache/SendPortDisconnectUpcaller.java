@@ -22,7 +22,7 @@ public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
             Throwable cause) {
 
         Loggers.conLog.log(Level.INFO, "\n\tGot lost connection at send port...");
-        Loggers.conLog.log(Level.INFO, "\tcause was:\n{0}", cause);
+        Loggers.conLog.log(Level.INFO, "\tcause was:\t", cause);
 
         port.cacheManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
