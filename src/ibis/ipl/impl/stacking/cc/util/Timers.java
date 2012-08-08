@@ -1,4 +1,4 @@
-package ibis.ipl.impl.stacking.cache.util;
+package ibis.ipl.impl.stacking.cc.util;
 
 import java.io.PrintStream;
 import java.util.LinkedList;

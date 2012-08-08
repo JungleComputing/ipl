@@ -1,23 +1,20 @@
-package ibis.ipl.impl.stacking.cache.manager.impl;
+package ibis.ipl.impl.stacking.cc.manager.impl;
 
-import ibis.ipl.impl.stacking.cache.CacheIbis;
-import ibis.ipl.impl.stacking.cache.manager.CacheManagerImpl;
-import ibis.ipl.impl.stacking.cache.manager.Connection;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
-import java.util.Random;
+import ibis.ipl.impl.stacking.cc.CCIbis;
+import ibis.ipl.impl.stacking.cc.manager.CCManagerImpl;
+import ibis.ipl.impl.stacking.cc.manager.Connection;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.util.logging.Level;
 
-public class RandomCacheManagerImpl extends CacheManagerImpl {
+public class MruCCManagerImpl extends CCManagerImpl {
 
     /*
      * When caching, the recv port doesn't know we will cache the connection.
      */
     private boolean heKnows = false;
-    private Random r;
 
-    public RandomCacheManagerImpl(CacheIbis ibis, int maxConns) {
+    public MruCCManagerImpl(CCIbis ibis, int maxConns) {
         super(ibis, maxConns);
-        r = new Random();
     }
 
     @Override
@@ -46,12 +43,11 @@ public class RandomCacheManagerImpl extends CacheManagerImpl {
                 || !super.fullConns()) {
             return null;
         }
-        
-        Loggers.cacheLog.log(Level.FINER, "RandomCaching: random caching from a list of {0}"
-                + " alive connections.",  aliveConns.size());
 
-        int idx = r.nextInt(aliveConns.size());
-        Connection con = aliveConns.get(idx);
+        /*
+         * Get the last alive connection used.
+         */
+        Connection con = aliveConns.get(aliveConns.size() - 1);
         con.cache(heKnows);
         aliveConns.remove(con);
         cachedConns.add(con);

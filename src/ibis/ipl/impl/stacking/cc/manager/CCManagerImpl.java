@@ -1,20 +1,20 @@
-package ibis.ipl.impl.stacking.cache.manager;
+package ibis.ipl.impl.stacking.cc.manager;
 
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.cache.CacheIbis;
-import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
-import ibis.ipl.impl.stacking.cache.util.Timers;
+import ibis.ipl.impl.stacking.cc.CCIbis;
+import ibis.ipl.impl.stacking.cc.CCSendPort;
+import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cc.util.CCStatistics;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
+import ibis.ipl.impl.stacking.cc.util.Timers;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public abstract class CacheManagerImpl extends CacheManager {
+public abstract class CCManagerImpl extends CCManager {
 
     protected final List<Connection> aliveConns;
 //    protected final List<Connection> fromRPLiveConns;
@@ -25,7 +25,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     protected final List<Connection> canceledReservations;
     private Random r;
 
-    protected CacheManagerImpl(CacheIbis ibis, int maxConns) {
+    protected CCManagerImpl(CCIbis ibis, int maxConns) {
         super(ibis, maxConns);
         aliveConns = new LinkedList<Connection>();
         cachedConns = new LinkedList<Connection>();
@@ -418,7 +418,7 @@ public abstract class CacheManagerImpl extends CacheManager {
 
     @Override
     public Set<ReceivePortIdentifier> getSomeConnections(
-            CacheSendPort port, Set<ReceivePortIdentifier> rpis,
+            CCSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionsFailedException, ibis.ipl.IbisIOException {
 
@@ -426,7 +426,7 @@ public abstract class CacheManagerImpl extends CacheManager {
             throw new ibis.ipl.IbisIOException("Array of send ports is null or empty.");
         }
 
-        Loggers.cacheLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}", rpis);
+        Loggers.ccLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}", rpis);
 
         /*
          * Get the alive connections from this send port.
@@ -488,7 +488,7 @@ public abstract class CacheManagerImpl extends CacheManager {
      * for each rpi in rpis[]: (port, rpi) is not alive.
      */
     private Set<ReceivePortIdentifier> getSomeConnections(
-            CacheSendPort port,
+            CCSendPort port,
             Set<ReceivePortIdentifier> rpis,
             int alreadyAliveConnsNo, long timeoutMillis, boolean fillTimeout) {
 
@@ -613,13 +613,13 @@ public abstract class CacheManagerImpl extends CacheManager {
                                 + " base sendport connection.");
 
                         try {
-                            CacheStatistics.connect(port.identifier(), rpi);
+                            CCStatistics.connect(port.identifier(), rpi);
                             port.baseSendPort.connect(rpi, timeout, fillTimeout);
-                            Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
+                            Loggers.ccLog.log(Level.INFO, "Base send port connected:\t"
                                     + "({0}, {1}, {2})",
                                     new Object[]{rpi, timeout, fillTimeout});
                         } catch (IOException ex) {
-                            Loggers.cacheLog.log(Level.WARNING, "Base send port "
+                            Loggers.ccLog.log(Level.WARNING, "Base send port "
                                     + "failed to connect to receive port. Got"
                                     + "exception:\t{0}", ex.toString());
                             super.lock.lock();
@@ -644,12 +644,12 @@ public abstract class CacheManagerImpl extends CacheManager {
                         Loggers.lockLog.log(Level.INFO, "Lock unlocked before"
                                 + " base sendport connection.");
                         try {
-                            CacheStatistics.connect(port.identifier(), rpi);
+                            CCStatistics.connect(port.identifier(), rpi);
                             port.baseSendPort.connect(rpi);
-                            Loggers.cacheLog.log(Level.INFO, "Base send port connected:\t"
+                            Loggers.ccLog.log(Level.INFO, "Base send port connected:\t"
                                     + "({0})", rpi);
                         } catch (IOException ex) {
-                            Loggers.cacheLog.log(Level.WARNING, "Base send port "
+                            Loggers.ccLog.log(Level.WARNING, "Base send port "
                                     + "failed to connect to receive port. Got"
                                     + "exception:\t{0}", ex.toString());
                             super.lock.lock();
@@ -694,7 +694,7 @@ public abstract class CacheManagerImpl extends CacheManager {
                      * immediatly send again than to sleep?
                      */
                     if (r.nextDouble() > 0.5) {
-                        Loggers.cacheLog.log(Level.INFO, "\n\tCould not connect"
+                        Loggers.ccLog.log(Level.INFO, "\n\tCould not connect"
                                 + " to anyone. Sleeping now for {0}"
                                 + " millis.", sleepMillis);
                         try {
@@ -943,7 +943,7 @@ public abstract class CacheManagerImpl extends CacheManager {
     }
 
     private void logReport() {
-        Loggers.cacheLog.log(Level.INFO, "\n\t{0} alive connections:\t{1}"
+        Loggers.ccLog.log(Level.INFO, "\n\t{0} alive connections:\t{1}"
                 + "\n\t{2} cached connections:\t{3}"
                 + "\n\t{4} alive reserved connections:\t{5}"
                 + "\n\t{6} not alive reserved connections:\t{7}",

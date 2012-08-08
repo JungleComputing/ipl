@@ -1,11 +1,11 @@
-package ibis.ipl.impl.stacking.cache.manager;
+package ibis.ipl.impl.stacking.cc.manager;
 
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
+import ibis.ipl.impl.stacking.cc.util.CCStatistics;
 import ibis.ipl.*;
-import ibis.ipl.impl.stacking.cache.CacheIbis;
-import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelMessageHandler;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.CCIbis;
+import ibis.ipl.impl.stacking.cc.CCSendPort;
+import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelMessageHandler;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -16,16 +16,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Abstract class for different types of cache managers.
+ * Abstract class for different types of connection caching managers.
  */
-public abstract class CacheManager {
+public abstract class CCManager {
     
     /**
      * Port type used for the creation of hub-based ports for the side-channel
      * communication.
      */
     public static final PortType ultraLightPT = new PortType(
-            PortType.CONNECTION_ULTRALIGHT,
+//            PortType.CONNECTION_ULTRALIGHT,
             PortType.RECEIVE_AUTO_UPCALLS,
             PortType.SERIALIZATION_OBJECT,
             PortType.CONNECTION_MANY_TO_ONE);
@@ -38,7 +38,7 @@ public abstract class CacheManager {
     
     /**
      * The send and receive ports for the side channel should be static, i.e. 1
-     * SP and 1 RP per CacheManager = Ibis instance. but in order to instantiate
+     * SP and 1 RP per CCManager = CCIbis instance. but in order to instantiate
      * them I need the ibis reference from the constructor.
      */
     public final ReceivePort sideChannelReceivePort;
@@ -57,17 +57,17 @@ public abstract class CacheManager {
     
     public final int MAX_CONNS;
 
-    CacheManager(CacheIbis cacheIbis, int maxConns) {
+    CCManager(CCIbis ccIbis, int maxConns) {
         try {
             this.MAX_CONNS = maxConns;
             sideChannelHandler = new SideChannelMessageHandler(this);
-            sideChannelReceivePort = cacheIbis.baseIbis.createReceivePort(
+            sideChannelReceivePort = ccIbis.baseIbis.createReceivePort(
                     ultraLightPT, sideChnRPName,
                     sideChannelHandler);
             sideChannelReceivePort.enableConnections();
             sideChannelReceivePort.enableMessageUpcalls();
 
-            sideChannelSendPort = cacheIbis.baseIbis.createSendPort(
+            sideChannelSendPort = ccIbis.baseIbis.createSendPort(
                     ultraLightPT, sideChnSPName);
             
             lock = new ReentrantLock(true);
@@ -77,14 +77,14 @@ public abstract class CacheManager {
             gotSpaceCondition = lock.newCondition();
             sleepCondition = lock.newCondition();
         
-            Loggers.cacheLog.log(Level.INFO, "Cache manager instantiated on {0}."
-                    + "\n\tCacheManager class: {2}"
+            Loggers.ccLog.log(Level.INFO, "CCManager instantiated on {0}."
+                    + "\n\tCCManager class: {2}"
                     + "\n\tmaxConns = {1}", new Object[] {
-                        cacheIbis.identifier().name(), MAX_CONNS, 
+                        ccIbis.identifier().name(), MAX_CONNS, 
                         this.getClass()
                     });
         } catch (IOException ex) {
-            Loggers.cacheLog.log(Level.SEVERE, "Failed to properly instantiate the Cache Manager.", ex);
+            Loggers.ccLog.log(Level.SEVERE, "Failed to properly instantiate the CCManager.", ex);
             throw new RuntimeException(ex);
         }        
     }
@@ -92,14 +92,14 @@ public abstract class CacheManager {
     public void end() {
         try {
             
-            CacheStatistics.printStatistics(Loggers.statsLog);
+            CCStatistics.printStatistics(Loggers.statsLog);
             
             sideChannelSendPort.close();
             sideChannelReceivePort.close();
-            Loggers.cacheLog.log(Level.INFO, "Closed the cache manager.");
+            Loggers.ccLog.log(Level.INFO, "Closed the CCManager.");
         } catch (IOException ex) {
-            Loggers.cacheLog.log(Level.SEVERE, "Failed to close the cache manager.");
-            Logger.getLogger(CacheManager.class.getName()).log(Level.SEVERE, null, ex);
+            Loggers.ccLog.log(Level.SEVERE, "Failed to close the CCManager.");
+            Logger.getLogger(CCManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -181,7 +181,7 @@ public abstract class CacheManager {
      * @return
      */
     abstract public Set<ReceivePortIdentifier> getSomeConnections(
-            CacheSendPort port, Set<ReceivePortIdentifier> rpis,
+            CCSendPort port, Set<ReceivePortIdentifier> rpis,
             long timeoutMillis, boolean fillTimeout) throws
             ConnectionsFailedException, ibis.ipl.IbisIOException;
 

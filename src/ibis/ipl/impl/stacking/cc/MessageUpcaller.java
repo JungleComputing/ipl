@@ -1,8 +1,8 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,10 +17,10 @@ public final class MessageUpcaller implements MessageUpcall {
      * The user defined message upcaller.
      */
     MessageUpcall upcaller;
-    CacheReceivePort port;
+    CCReceivePort port;
     boolean wasLastPart = true;
     public boolean gotLastPart = false;
-    CacheReadMessage currentLogicalMsg;
+    CCReadMessage currentLogicalMsg;
     public final Object currentLogicalMsgLock = new Object();
     final Lock newLogicalMsgLock = new ReentrantLock();
     /*
@@ -28,7 +28,7 @@ public final class MessageUpcaller implements MessageUpcall {
      */
     public boolean messageDepleted;
 
-    public MessageUpcaller(MessageUpcall upcaller, CacheReceivePort port) {
+    public MessageUpcaller(MessageUpcall upcaller, CCReceivePort port) {
         this.upcaller = upcaller;
         this.port = port;
     }
@@ -55,7 +55,7 @@ public final class MessageUpcaller implements MessageUpcall {
                 /*
                  * Initializations.
                  */
-                currentLogicalMsg = new CacheReadMessage(m, port);
+                currentLogicalMsg = new CCReadMessage(m, port);
                 gotLastPart = isLastPart;
             } finally {
                 newLogicalMsgLock.unlock();
@@ -120,14 +120,14 @@ public final class MessageUpcaller implements MessageUpcall {
                  * User upcall finished. Either the message was finished inside
                  * the upcall or we have to do it here.
                  *
-                 * The finish method of the cache read message will wait for any
+                 * The finish method of the CC read message will wait for any
                  * remaining streaming intermediate upcall messages.
                  */
                 try {
                     currentLogicalMsg.finish();
                 } catch (Exception ex) {
                     Loggers.upcallLog.log(Level.WARNING, "Exception when"
-                            + " trying to finish cacheReadMsg; maybe "
+                            + " trying to finish CCReadMsg; maybe "
                             + "the user upcall finished it:\t{0}", ex.getMessage());
                 }
                 /*

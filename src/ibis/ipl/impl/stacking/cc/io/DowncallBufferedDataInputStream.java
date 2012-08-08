@@ -1,15 +1,15 @@
-package ibis.ipl.impl.stacking.cache.io;
+package ibis.ipl.impl.stacking.cc.io;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.impl.stacking.cache.CacheReceivePort;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.CCReceivePort;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.logging.Level;
 
 public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
 
-    public DowncallBufferedDataInputStream(CacheReceivePort port)
+    public DowncallBufferedDataInputStream(CCReceivePort port)
             throws IOException {
         super(port);
     }

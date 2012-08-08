@@ -1,15 +1,11 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.*;
 import java.util.ArrayList;
 import java.util.Properties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
+public final class CCIbisStarter extends ibis.ipl.IbisStarter {
 
-    static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.stacking.cache.CacheIbisStarter");
-    
     /**
      * The almost same capabilities as SmartSocketsIbisStarter.
      */
@@ -43,7 +39,7 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
             PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
             PortType.RECEIVE_POLL_UPCALLS, PortType.RECEIVE_TIMEOUT);    
 
-    public CacheIbisStarter(String nickName, String iplVersion,
+    public CCIbisStarter(String nickName, String iplVersion,
             String implementationVersion) {
         super(nickName, iplVersion, implementationVersion);
     }
@@ -87,7 +83,7 @@ public final class CacheIbisStarter extends ibis.ipl.IbisStarter {
             Credentials credentials, byte[] applicationTag,
             PortType[] portTypes, String specifiedSubImplementation)
             throws IbisCreationFailedException {
-        return new CacheIbis(factory, registryEventHandler, userProperties,
+        return new CCIbis(factory, registryEventHandler, userProperties,
                 capabilities, credentials, applicationTag, portTypes,
                 specifiedSubImplementation, this);
     }

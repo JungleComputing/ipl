@@ -1,10 +1,10 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.util.CCStatistics;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.util.logging.Level;
 
 /**
@@ -13,11 +13,11 @@ import java.util.logging.Level;
 public class ReceivePortConnectionUpcaller
         implements ReceivePortConnectUpcall {
 
-    CacheReceivePort recvPort;
+    CCReceivePort recvPort;
     ReceivePortConnectUpcall upcaller;
 
     public ReceivePortConnectionUpcaller(ReceivePortConnectUpcall upcaller,
-            CacheReceivePort port) {
+            CCReceivePort port) {
         this.recvPort = port;
         this.upcaller = upcaller;
     }
@@ -29,28 +29,28 @@ public class ReceivePortConnectionUpcaller
 
         boolean accepted = true;
 
-        recvPort.cacheManager.lock.lock();
+        recvPort.ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
-            if (recvPort.cacheManager.isConnCached(this.recvPort.identifier(), spi)) {
+            if (recvPort.ccManager.isConnCached(this.recvPort.identifier(), spi)) {
                 Loggers.conLog.log(Level.INFO, "\t\trestoring from {0}\n", spi);
                 // connection was cached
-                recvPort.cacheManager.restoreReservedConnection(recvPort.identifier(), spi);
+                recvPort.ccManager.restoreReservedConnection(recvPort.identifier(), spi);
             } else {
                 if (upcaller != null) {
                     accepted = upcaller.gotConnection(recvPort, spi);
                 }
                 Loggers.conLog.log(Level.INFO, "\t\tnew from {0}\n", spi);
                 // new connection
-                recvPort.cacheManager.activateReservedConnection(recvPort.identifier(), spi);
+                recvPort.ccManager.activateReservedConnection(recvPort.identifier(), spi);
             }
         } finally {
-            recvPort.cacheManager.lock.unlock();
+            recvPort.ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
         
         if(accepted) {
-            CacheStatistics.connect(recvPort.identifier(), spi);
+            CCStatistics.connect(recvPort.identifier(), spi);
         }
 
         return accepted;
@@ -81,7 +81,7 @@ public class ReceivePortConnectionUpcaller
         
         boolean isCached = false;
 
-        recvPort.cacheManager.lock.lock();
+        recvPort.ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             /*
@@ -104,9 +104,6 @@ public class ReceivePortConnectionUpcaller
                      * this connection caching was initiated by me from some
                      * place, so I already know of this cached connection.
                      */
-                    /*
-                     * port.cacheManager.cacheConnection(me.identifier(), spi);
-                     */
                     recvPort.cachingInitiatedByMeSet.remove(spi);
                     recvPort.cachingInitiatedByMeSet.notifyAll();
 
@@ -119,7 +116,7 @@ public class ReceivePortConnectionUpcaller
                  * This disconnect call is actually a connection caching.
                  * scenario 2).
                  */
-                recvPort.cacheManager.unReserveLiveToCacheConnection(recvPort.identifier(), spi);
+                recvPort.ccManager.unReserveLiveToCacheConnection(recvPort.identifier(), spi);
                 recvPort.toBeCachedSet.remove(spi);
                 
                 Loggers.conLog.log(Level.INFO, "Got lost connection. This"
@@ -130,7 +127,7 @@ public class ReceivePortConnectionUpcaller
             }
             
             if(isCached) {
-                CacheStatistics.cache(recvPort.identifier(), spi);
+                CCStatistics.cache(recvPort.identifier(), spi);
                 return ;
             }
 
@@ -141,14 +138,14 @@ public class ReceivePortConnectionUpcaller
              * it is alive (scenario 1),
              * but now it needs to be closed.
              */
-            recvPort.cacheManager.removeConnection(recvPort.identifier(), spi);
+            recvPort.ccManager.removeConnection(recvPort.identifier(), spi);
             if (upcaller != null) {
                 upcaller.lostConnection(recvPort, spi, reason);
             }
             
-            CacheStatistics.remove(recvPort.identifier(), spi);
+            CCStatistics.remove(recvPort.identifier(), spi);
         } finally {
-            recvPort.cacheManager.lock.unlock();
+            recvPort.ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }

@@ -1,27 +1,27 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.util.Iterator;
 import java.util.logging.Level;
 
-public class CacheReadMessage implements ReadMessage {
+public class CCReadMessage implements ReadMessage {
 
     /*
      * The port which will give me base ReadMessages.
      */
-    final CacheReceivePort recvPort;
+    final CCReceivePort recvPort;
     
     boolean isFinished = false;
     private final SendPortIdentifier origin;
 
-    public CacheReadMessage(ReadMessage m, CacheReceivePort port)
+    public CCReadMessage(ReadMessage m, CCReceivePort port)
             throws IOException {
         this.recvPort = port;
         this.origin = m.origin();
@@ -34,7 +34,7 @@ public class CacheReadMessage implements ReadMessage {
     }
 
     /*
-     * Glues the upcall in the CacheReceivePort to the BufferedrecvPort.dataInputStream.
+     * Glues the upcall in the CCReceivePort to the BufferedrecvPort.dataInputStream.
      */
     protected void offerToBuffer(boolean isLastPart, int remaining,ReadMessage msg) {
         recvPort.dataIn.offerToBuffer(isLastPart, remaining, msg);
@@ -59,9 +59,9 @@ public class CacheReadMessage implements ReadMessage {
              * Need to send signal to the next in line send port who wishes to
              * send us something only if he trully is the next in line.
              */
-            for (Iterator<CacheReceivePort.SequencedSpi> it = 
+            for (Iterator<CCReceivePort.SequencedSpi> it = 
                     recvPort.toHaveMyFutureAttention.iterator(); it.hasNext();) {
-                CacheReceivePort.SequencedSpi seqSpi = it.next();
+                CCReceivePort.SequencedSpi seqSpi = it.next();
                 
                 if (recvPort.isNextSeqNo(seqSpi.seqNo)) {
                     /*
@@ -70,7 +70,7 @@ public class CacheReadMessage implements ReadMessage {
                      */
                     recvPort.readMsgRequested = true;
                     recvPort.incSeqNo(seqSpi.seqNo);
-                    recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                    recvPort.ccManager.sideChannelHandler.newThreadSendProtocol(
                             recvPort.identifier(), seqSpi.spi,
                             SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
                     /*
@@ -105,9 +105,9 @@ public class CacheReadMessage implements ReadMessage {
              * Need to send signal to the next in line send port who wishes to
              * send us something only if he trully is the next in line.
              */
-            for (Iterator<CacheReceivePort.SequencedSpi> it = 
+            for (Iterator<CCReceivePort.SequencedSpi> it = 
                     recvPort.toHaveMyFutureAttention.iterator(); it.hasNext();) {
-                CacheReceivePort.SequencedSpi seqSpi = it.next();
+                CCReceivePort.SequencedSpi seqSpi = it.next();
                 
                 if (recvPort.isNextSeqNo(seqSpi.seqNo)) {
                     /*
@@ -116,7 +116,7 @@ public class CacheReadMessage implements ReadMessage {
                      */
                     recvPort.readMsgRequested = true;
                     recvPort.incSeqNo(seqSpi.seqNo);
-                    recvPort.cacheManager.sideChannelHandler.newThreadSendProtocol(
+                    recvPort.ccManager.sideChannelHandler.newThreadSendProtocol(
                             recvPort.identifier(), seqSpi.spi,
                             SideChannelProtocol.GIVE_ME_YOUR_MESSAGE);
                     /*

@@ -1,14 +1,14 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.ipl.*;
-import ibis.ipl.impl.stacking.cache.io.BufferedDataInputStream;
-import ibis.ipl.impl.stacking.cache.io.DowncallBufferedDataInputStream;
-import ibis.ipl.impl.stacking.cache.io.UpcallBufferedDataInputStream;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.io.BufferedDataInputStream;
+import ibis.ipl.impl.stacking.cc.io.DowncallBufferedDataInputStream;
+import ibis.ipl.impl.stacking.cc.io.UpcallBufferedDataInputStream;
+import ibis.ipl.impl.stacking.cc.manager.CCManager;
+import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
-public final class CacheReceivePort implements ReceivePort {
+public final class CCReceivePort implements ReceivePort {
 
     /**
      * Static variable which is incremented every time an anonymous (nameless)
@@ -28,15 +28,15 @@ public final class CacheReceivePort implements ReceivePort {
      */
     static final String ANONYMOUS_PREFIX;
     /**
-     * Map to store identifiers to the cachereceiveports.
+     * Map to store identifiers to the receive ports.
      */
-    public static final Map<ReceivePortIdentifier, CacheReceivePort> map;
+    public static final Map<ReceivePortIdentifier, CCReceivePort> map;
 
     static {
         anonymousPortCounter = new AtomicInteger(0);
-        ANONYMOUS_PREFIX = "anonymous cache receive port";
+        ANONYMOUS_PREFIX = "anonymous CC receive port";
 
-        map = new HashMap<ReceivePortIdentifier, CacheReceivePort>();
+        map = new HashMap<ReceivePortIdentifier, CCReceivePort>();
     }
     /*
      * Set containing live connections which will be cached.
@@ -52,9 +52,9 @@ public final class CacheReceivePort implements ReceivePort {
      */
     public final ReceivePort recvPort;
     /**
-     * Reference to the cache manager.
+     * Reference to the CCManager.
      */
-    public final CacheManager cacheManager;
+    public final CCManager ccManager;
     /**
      * Keep this port's original capabilities for the user to see.
      */
@@ -69,7 +69,7 @@ public final class CacheReceivePort implements ReceivePort {
      */
     public final MessageUpcaller msgUpcall;
     /*
-     * Boolean too see if this cacheReceivePort is closed.
+     * Boolean too see if this ReceivePort is closed.
      */
     protected boolean closed;
     /*
@@ -98,8 +98,10 @@ public final class CacheReceivePort implements ReceivePort {
     protected final SerializationInput downcallSerIn;
     protected BufferedDataInputStream dataIn;
     protected SerializationInput serIn;
+    
+    public CCIbis ccIbis;
 
-    public CacheReceivePort(PortType portType, CacheIbis ibis,
+    public CCReceivePort(PortType portType, CCIbis ccIbis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
             throws IOException {
@@ -107,6 +109,8 @@ public final class CacheReceivePort implements ReceivePort {
             name = ANONYMOUS_PREFIX + " "
                     + anonymousPortCounter.getAndIncrement();
         }
+        
+        this.ccIbis = ccIbis;
 
         this.connectUpcall = new ReceivePortConnectionUpcaller(connectUpcall, this);
 
@@ -122,17 +126,17 @@ public final class CacheReceivePort implements ReceivePort {
          */
         Set<String> portCap = new HashSet<String>(Arrays.asList(
                 portType.getCapabilities()));
-        portCap.addAll(CacheIbis.additionalPortCapabilities);
+        portCap.addAll(CCIbis.additionalPortCapabilities);
         PortType wrapperPortType = new PortType(portCap.toArray(
                 new String[portCap.size()]));
 
-        recvPort = ibis.baseIbis.createReceivePort(
+        recvPort = ccIbis.baseIbis.createReceivePort(
                 wrapperPortType, name, this.msgUpcall, this.connectUpcall, properties);
 
         toBeCachedSet = new HashSet<SendPortIdentifier>();
         cachingInitiatedByMeSet = new HashSet<SendPortIdentifier>();
 
-        cacheManager = ibis.cacheManager;
+        ccManager = ccIbis.ccManager;
         intialPortType = portType;
         closed = false;
 
@@ -172,8 +176,8 @@ public final class CacheReceivePort implements ReceivePort {
      * receiveport.
      */
     public void cache(SendPortIdentifier spi) throws IOException {
-        cacheManager.reserveLiveConnection(this.identifier(), spi);
-        cacheManager.lock.unlock();
+        ccManager.reserveLiveConnection(this.identifier(), spi);
+        ccManager.lock.unlock();
         Loggers.lockLog.log(Level.INFO, "Lock released before"
                 + " caching initiation from RP.");
 
@@ -184,7 +188,7 @@ public final class CacheReceivePort implements ReceivePort {
                  * Tell the SP side to cache the connection. I will count this
                  * connection at the lostConnection upcall.
                  */
-                cacheManager.sideChannelHandler.newThreadSendProtocol(
+                ccManager.sideChannelHandler.newThreadSendProtocol(
                         this.identifier(), spi,
                         SideChannelProtocol.CACHE_FROM_RP_AT_SP);
 
@@ -196,11 +200,11 @@ public final class CacheReceivePort implements ReceivePort {
                 }
             }
         } finally {
-            cacheManager.lock.lock();
+            ccManager.lock.lock();
             Loggers.lockLog.log(Level.INFO, "Lock reaquired and connection is "
                     + "cached.");
             Loggers.lockLog.log(Level.INFO, "");
-            cacheManager.unReserveLiveConnection(this.identifier(), spi);
+            ccManager.unReserveLiveConnection(this.identifier(), spi);
         }
     }
 
@@ -225,7 +229,7 @@ public final class CacheReceivePort implements ReceivePort {
         /*
          * Wait until all logically alive connections are closed.
          */
-        cacheManager.lock.lock();
+        ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             if (closed) {
@@ -233,19 +237,19 @@ public final class CacheReceivePort implements ReceivePort {
             }
             closed = true;
             dataIn.close();
-            while (cacheManager.hasConnections(this.identifier()) && 
+            while (ccManager.hasConnections(this.identifier()) && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
                     Loggers.lockLog.log(Level.INFO, "Lock will be released:"
                             + " waiting on connections to be closed.");
-                    cacheManager.allClosedCondition.await(
+                    ccManager.allClosedCondition.await(
                             deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
                     Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
                 } catch (InterruptedException ignoreMe) {
                 }
             }
         } finally {
-            cacheManager.lock.unlock();
+            ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
         
@@ -260,12 +264,12 @@ public final class CacheReceivePort implements ReceivePort {
 
     @Override
     public SendPortIdentifier[] connectedTo() {
-        cacheManager.lock.lock();
+        ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
-            return cacheManager.allSpisFrom(this.identifier());
+            return ccManager.allSpisFrom(this.identifier());
         } finally {
-            cacheManager.lock.unlock();
+            ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
@@ -337,7 +341,7 @@ public final class CacheReceivePort implements ReceivePort {
             readMsgRequested = false;
             dataIn.isLastPart = msg.readBoolean();
             dataIn.remainingBytes = msg.readInt();
-            currentReadMsg = new CacheReadMessage(msg, this);
+            currentReadMsg = new CCReadMessage(msg, this);
             return currentReadMsg;
         }
         return null;
@@ -387,7 +391,7 @@ public final class CacheReceivePort implements ReceivePort {
             readMsgRequested = false;
             dataIn.isLastPart = msg.readBoolean();
             dataIn.remainingBytes = msg.readInt();
-            currentReadMsg = new CacheReadMessage(msg, this);
+            currentReadMsg = new CCReadMessage(msg, this);
         }
 
         return currentReadMsg;

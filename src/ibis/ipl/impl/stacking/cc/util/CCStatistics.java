@@ -1,15 +1,15 @@
-package ibis.ipl.impl.stacking.cache.util;
+package ibis.ipl.impl.stacking.cc.util;
 
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.cache.manager.Connection;
+import ibis.ipl.impl.stacking.cc.manager.Connection;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CacheStatistics {
+public class CCStatistics {
     
     public static final Map<Connection, Integer> timesCached;
 //    public final Map<Connection, Long> avgMillisCache;

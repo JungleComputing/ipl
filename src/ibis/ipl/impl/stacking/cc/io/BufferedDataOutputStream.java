@@ -1,30 +1,24 @@
-package ibis.ipl.impl.stacking.cache.io;
+package ibis.ipl.impl.stacking.cc.io;
 
 import ibis.io.Conversion;
 import ibis.io.DataOutputStream;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
-import ibis.ipl.impl.stacking.cache.util.Timers;
+import ibis.ipl.impl.stacking.cc.CCSendPort;
+import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
+import ibis.ipl.impl.stacking.cc.util.Timers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.logging.Level;
 
 public class BufferedDataOutputStream extends DataOutputStream {
-    
-    /*
-     * This is the maximum size of the buffer used to stream data.
-     */
-    public static final int BUFFER_CAPACITY = Integer.MAX_VALUE >> 1;
-
     /*
      * The send port which generates for me new WriteMessages. I need them so I
      * can ship my buffer to the various receive ports.
      */
-    final CacheSendPort port;
+    final CCSendPort port;
     /*
      * Used to convert every primitive type to bytes.
      */
@@ -44,7 +38,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
     /*
      * No of bytes written, not counting the ones currently in the buffer.
      */
-    int bytes;
+    private int bytes;
     /*
      * Number of messages streamed at one flush.
      */
@@ -55,11 +49,11 @@ public class BufferedDataOutputStream extends DataOutputStream {
      */
     public final HashSet<ReceivePortIdentifier> yourReadMessageIsAliveFromMeSet;
 
-    public BufferedDataOutputStream(CacheSendPort sp) {
-        this.port = sp;
+    public BufferedDataOutputStream(CCSendPort port) {
+        this.port = port;
         c = Conversion.loadConversion(false);
         this.index = 0;
-        this.capacity = BUFFER_CAPACITY;
+        this.capacity = port.ccIbis.buffer_capacity;
         this.buffer = new byte[this.capacity];
         this.yourReadMessageIsAliveFromMeSet = new HashSet<ReceivePortIdentifier>();
     }
@@ -98,7 +92,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
          */
         iWantYouToReadFromMe(destRpis);
 
-        Loggers.cacheLog.log(Level.INFO, "Waiting for replies from {0} recv ports...",
+        Loggers.ccLog.log(Level.INFO, "Waiting for replies from {0} recv ports...",
                 destRpis.size());
 
         /*
@@ -106,9 +100,9 @@ public class BufferedDataOutputStream extends DataOutputStream {
          * incoming message from us.
          */
         waitForAllRepliesFrom(destRpis);
-        Loggers.cacheLog.log(Level.INFO, "Got all replies.");
+        Loggers.ccLog.log(Level.INFO, "Got all replies.");
 
-        port.cacheManager.lock.lock();
+        port.ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             while (!destRpis.isEmpty()) {
@@ -118,9 +112,9 @@ public class BufferedDataOutputStream extends DataOutputStream {
                  */
                 Loggers.lockLog.log(Level.FINE, "Lock will be released:"
                         + " waiting on live reserved connections...");
-                while (port.cacheManager.containsReservedAlive(port.identifier())) {
+                while (port.ccManager.containsReservedAlive(port.identifier())) {
                     try {
-                        port.cacheManager.reservationsCondition.await();
+                        port.ccManager.reservationsCondition.await();
                     } catch (InterruptedException ignoreMe) {
                     }
                 }
@@ -133,7 +127,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 boolean heKnows = false;
                 for (ReceivePortIdentifier rpi : port.baseSendPort.connectedTo()) {
                     if (!destRpis.contains(rpi)) {
-                        port.cacheManager.cacheConnection(port.identifier(),
+                        port.ccManager.cacheConnection(port.identifier(),
                                 rpi, heKnows);
                     }
                 }
@@ -142,7 +136,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                  * Now connect to some rpis.
                  */
                 Set<ReceivePortIdentifier> connected =
-                        port.cacheManager.getSomeConnections(
+                        port.ccManager.getSomeConnections(
                         port, destRpis, 0, false);
 
                 assert connected.size() > 0;
@@ -178,7 +172,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 }
             }
         } finally {
-            port.cacheManager.lock.unlock();
+            port.ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock released in stream.");
         }
         Loggers.writeMsgLog.log(Level.INFO, "Streaming finished to all destined"
@@ -224,10 +218,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
                     rpiNames[i] = rpisList.get(i).toString();
                 }
 
-                seqNo = port.cacheIbis.registry().getMultipleSequenceNumbers(rpiNames);
+                seqNo = port.ccIbis.registry().getMultipleSequenceNumbers(rpiNames);
 
                 for (int i = 0; i < rpiNames.length; i++) {
-                    Loggers.cacheLog.log(Level.FINE, "{0} has seqNo:\t{1}",
+                    Loggers.ccLog.log(Level.FINE, "{0} has seqNo:\t{1}",
                             new Object[]{rpiNames[i], seqNo[i]});
                 }
             } else {
@@ -241,7 +235,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                      * I have to let the receive port know that I want him to
                      * read my message.
                      */
-                    port.cacheManager.sideChannelHandler.newThreadRMMProtocol(
+                    port.ccManager.sideChannelHandler.newThreadRMMProtocol(
                             port.identifier(), rpisList.get(i),
                             SideChannelProtocol.READ_MY_MESSAGE,
                             seqNo[i]);
@@ -273,8 +267,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
         synchronized (yourReadMessageIsAliveFromMeSet) {
             result = new HashSet<ReceivePortIdentifier>(yourReadMessageIsAliveFromMeSet);
             result.retainAll(rpis);
-            Loggers.cacheLog.log(Level.FINEST, "RPs reading my msgs: {0}", yourReadMessageIsAliveFromMeSet);
-            Loggers.cacheLog.log(Level.FINEST, "Temporary result is: {0}", result);
+            Loggers.ccLog.log(Level.FINEST, "RPs reading my msgs: {0}", yourReadMessageIsAliveFromMeSet);
+            Loggers.ccLog.log(Level.FINEST, "Temporary result is: {0}", result);
 
             while (result.size() < rpis.size()) {
                 try {
@@ -286,8 +280,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 result.clear();
                 result.addAll(yourReadMessageIsAliveFromMeSet);
                 result.retainAll(rpis);
-                Loggers.cacheLog.log(Level.FINEST, "RPs reading my msgs:: {0}", yourReadMessageIsAliveFromMeSet);
-                Loggers.cacheLog.log(Level.FINEST, "Temporary result is:: {0}", result);
+                Loggers.ccLog.log(Level.FINEST, "RPs reading my msgs:: {0}", yourReadMessageIsAliveFromMeSet);
+                Loggers.ccLog.log(Level.FINEST, "Temporary result is:: {0}", result);
             }
         }
     }

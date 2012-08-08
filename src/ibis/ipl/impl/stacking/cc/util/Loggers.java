@@ -1,10 +1,10 @@
-package ibis.ipl.impl.stacking.cache.util;
+package ibis.ipl.impl.stacking.cc.util;
 
 import java.util.logging.Logger;
 
 public class Loggers {
 
-    public static final Logger cacheLog;
+    public static final Logger ccLog;
     public static final Logger conLog;
 //    public static final String conLogString;
     public static final Logger upcallLog;
@@ -19,7 +19,7 @@ public class Loggers {
     public static final Logger statsLog;
 
     static {
-        cacheLog = Logger.getLogger("cache");
+        ccLog = Logger.getLogger("connCache");
 
         conLog = Logger.getLogger("con");
 

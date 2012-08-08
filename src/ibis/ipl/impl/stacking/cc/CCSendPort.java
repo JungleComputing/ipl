@@ -1,20 +1,20 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.*;
-import ibis.ipl.impl.stacking.cache.io.BufferedDataOutputStream;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.io.BufferedDataOutputStream;
+import ibis.ipl.impl.stacking.cc.manager.CCManager;
+import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cc.util.CCStatistics;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
-public final class CacheSendPort implements SendPort {
+public final class CCSendPort implements SendPort {
 
     /**
      * Static variable which is incremented every time an anonymous (nameless)
@@ -26,24 +26,24 @@ public final class CacheSendPort implements SendPort {
      */
     static final String ANONYMOUS_PREFIX;
     /**
-     * Map to store identifiers to the cachesendports.
+     * Map to store identifiers to the send ports.
      */
-    public static final Map<SendPortIdentifier, CacheSendPort> map;
+    public static final Map<SendPortIdentifier, CCSendPort> map;
 
     static {
         anonymousPortCounter = new AtomicInteger(0);
-        ANONYMOUS_PREFIX = "anonymous cache send port";
+        ANONYMOUS_PREFIX = "anonymous CC send port";
 
-        map = new HashMap<SendPortIdentifier, CacheSendPort>();
+        map = new HashMap<SendPortIdentifier, CCSendPort>();
     }
     /**
      * Under-the-hood send port.
      */
     public final SendPort baseSendPort;
     /**
-     * Reference to the cache manager.
+     * Reference to the CCManager.
      */
-    public final CacheManager cacheManager;
+    public final CCManager ccManager;
     /**
      * Keep this port's original capabilities for the user to see.
      */
@@ -55,15 +55,15 @@ public final class CacheSendPort implements SendPort {
     /**
      * The current written message.
      */
-    public CacheWriteMessage currentMsg;
+    public CCWriteMessage currentMsg;
     public final Object cacheAckLock = new Object();
     public boolean cacheAckReceived = false;
     public final Map<ReceivePortIdentifier, Byte> reserveAcks;
     
     /**
-     * Reference to the Cache ibis.
+     * Reference to the ConnectionCaching ibis.
      */
-    public final CacheIbis cacheIbis;
+    public final CCIbis ccIbis;
     
     /**
      * For WriteMessage.
@@ -71,14 +71,14 @@ public final class CacheSendPort implements SendPort {
     protected final SerializationOutput serOut;
     public final BufferedDataOutputStream dataOut;
 
-    public CacheSendPort(PortType portType, CacheIbis ibis, String name,
+    public CCSendPort(PortType portType, CCIbis ibis, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
         if (name == null) {
             name = ANONYMOUS_PREFIX + " "
                     + anonymousPortCounter.getAndIncrement();
         }
         
-        cacheIbis = ibis;
+        ccIbis = ibis;
 
         /*
          * Add whatever additional port capablities are required. i.e.
@@ -86,7 +86,7 @@ public final class CacheSendPort implements SendPort {
          */
         Set<String> portCap = new HashSet<String>(Arrays.asList(
                 portType.getCapabilities()));
-        portCap.addAll(CacheIbis.additionalPortCapabilities);
+        portCap.addAll(CCIbis.additionalPortCapabilities);
         PortType wrapperPortType = new PortType(portCap.toArray(
                 new String[portCap.size()]));
 
@@ -98,7 +98,7 @@ public final class CacheSendPort implements SendPort {
 
         intialPortType = portType;
 
-        cacheManager = ibis.cacheManager;
+        ccManager = ibis.ccManager;
         messageLock = new Object();
         currentMsg = null;
         
@@ -132,7 +132,7 @@ public final class CacheSendPort implements SendPort {
      * given receive port. This method is to be called when we know the
      * connection is actually alive.
      *
-     * This method will be called only from the Cache Manager with the
+     * This method will be called only from the CCManager with the
      * lock locked. Thus, I am guaranteed that the underlying
      * connection will have no alive message. (search for sendPort.newMessage())
      *
@@ -143,7 +143,7 @@ public final class CacheSendPort implements SendPort {
      */
     public void cache(ReceivePortIdentifier rpi, boolean heKnows)
             throws IOException {
-        Loggers.cacheLog.log(Level.INFO, "\nGoing to cache from"
+        Loggers.ccLog.log(Level.INFO, "\nGoing to cache from"
                 + " {0} to {1}; heKnows={2}", new Object[] {
                     this.identifier(), rpi, heKnows});
         
@@ -163,8 +163,8 @@ public final class CacheSendPort implements SendPort {
          * wait for rcv port's ack, disconnect, 
          * reaquire the lock and move the connection back.
          */
-        cacheManager.reserveLiveConnection(this.identifier(), rpi);
-        cacheManager.lock.unlock();
+        ccManager.reserveLiveConnection(this.identifier(), rpi);
+        ccManager.lock.unlock();
         Loggers.lockLog.log(Level.INFO, "Lock released for {0} to disconnect.", this.identifier());
 
         try {
@@ -175,7 +175,7 @@ public final class CacheSendPort implements SendPort {
                  * because the receive port alone cannot distinguish caching
                  * from true disconnection.
                  */
-                cacheManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), rpi,
+                ccManager.sideChannelHandler.newThreadSendProtocol(this.identifier(), rpi,
                         SideChannelProtocol.CACHE_FROM_SP);
 
                 /*
@@ -190,19 +190,19 @@ public final class CacheSendPort implements SendPort {
              * guaranteed that he will know to cache this connection.
              */
             baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
-            CacheStatistics.cache(this.identifier(), rpi);
+            CCStatistics.cache(this.identifier(), rpi);
 
-            Loggers.cacheLog.log(Level.FINEST, "\nBase send port now connected"
+            Loggers.ccLog.log(Level.FINEST, "\nBase send port now connected"
                     + " to {0} recv ports.", baseSendPort.connectedTo().length);
         } catch (Exception ex) {
-            Loggers.cacheLog.log(Level.SEVERE, "\nBase send port "
+            Loggers.ccLog.log(Level.SEVERE, "\nBase send port "
                     + this.identifier() + " failed to "
                     + "properly disconnect from "
                     + rpi + ".", ex);
         } finally {
-            cacheManager.lock.lock();
+            ccManager.lock.lock();
             Loggers.lockLog.log(Level.INFO, "\n\t{0} reaquired lock.", this.identifier());
-            cacheManager.unReserveLiveConnection(this.identifier(), rpi);
+            ccManager.unReserveLiveConnection(this.identifier(), rpi);
         }
     }
 
@@ -226,13 +226,13 @@ public final class CacheSendPort implements SendPort {
             }
         }
         
-        cacheManager.lock.lock();
+        ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
-        Loggers.conLog.log(Level.INFO, "Closing cache send port\t{0}", this.identifier());
+        Loggers.conLog.log(Level.INFO, "Closing CC send port\t{0}", this.identifier());
         try {
-            cacheManager.closeSendPort(this.identifier());
+            ccManager.closeSendPort(this.identifier());
         } finally {
-            cacheManager.lock.unlock();
+            ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
@@ -336,19 +336,19 @@ public final class CacheSendPort implements SendPort {
         while (!rpiSet.isEmpty()) {
             int initialSize = rpiSet.size();
             /*
-             * Tell the cache manager to connect the send port to some of the
+             * Tell the CCManager to connect the send port to some of the
              * receive ports received as params. This method guarantees at least
              * 1 successfull connection.
              */
-            cacheManager.lock.lock();
+            ccManager.lock.lock();
             Loggers.lockLog.log(Level.INFO, "Lock locked.");
             try {
                 if (deadline > 0) {
-                    connected = cacheManager.getSomeConnections(
+                    connected = ccManager.getSomeConnections(
                             this, rpiSet,
                             deadline - System.currentTimeMillis(), fillTimeout);
                 } else {
-                    connected = cacheManager.getSomeConnections(
+                    connected = ccManager.getSomeConnections(
                             this, rpiSet,
                             0, true);
                 }
@@ -364,7 +364,7 @@ public final class CacheSendPort implements SendPort {
             } catch (ibis.ipl.IbisIOException connFailed) {
                 throw (ConnectionsFailedException) connFailed;
             } finally {
-                cacheManager.lock.unlock();
+                ccManager.lock.unlock();
                 Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
             }
         }
@@ -372,11 +372,11 @@ public final class CacheSendPort implements SendPort {
 
     @Override
     public ReceivePortIdentifier[] connectedTo() {
-        cacheManager.lock.lock();
+        ccManager.lock.lock();
         try {
-            return cacheManager.allRpisFrom(this.identifier());
+            return ccManager.allRpisFrom(this.identifier());
         } finally {
-            cacheManager.lock.unlock();
+            ccManager.lock.unlock();
         }
     }
 
@@ -389,15 +389,15 @@ public final class CacheSendPort implements SendPort {
                         "Trying to disconnect while a message is alive!");
             }
         }
-        cacheManager.lock.lock();
+        ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked.");
         try {
             /*
              * Remove the connection.
              */
-            cacheManager.removeConnection(this.identifier(), rpi);
+            ccManager.removeConnection(this.identifier(), rpi);
         } finally {
-            cacheManager.lock.unlock();
+            ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
@@ -435,7 +435,7 @@ public final class CacheSendPort implements SendPort {
              * The field currentMsg is set to null in this object's finish()
              * methods.
              */
-            currentMsg = new CacheWriteMessage(this);
+            currentMsg = new CCWriteMessage(this);
             return currentMsg;
         }
     }

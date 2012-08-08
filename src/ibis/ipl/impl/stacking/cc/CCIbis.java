@@ -1,25 +1,46 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.*;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.impl.stacking.cache.manager.CacheManagerImpl;
-import ibis.ipl.impl.stacking.cache.manager.impl.LruCacheManagerImpl;
+import ibis.ipl.impl.stacking.cc.manager.CCManager;
 import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class CacheIbis implements Ibis {
+/**
+ * A ConnectionCachingIbis. It offers the property that at most a given number
+ * of connections will be alive at any point in time, but transparently to the
+ * user.
+ * @author maricel
+ */
+public class CCIbis implements Ibis {
 
     public Ibis baseIbis;
-    IbisStarter starter;
-    CacheManager cacheManager;
+    public IbisStarter starter;
+    public CCManager ccManager;
+    public final int buffer_capacity;
     
-    public static final int MAX_CONNS_DEFAULT = 1000;
-    public static final String CACHE_IMPL_DEFAULT_VERSION = "lru";
+    /*
+     * Maximum number of alive connections at any time per ibis.
+     */
+    public static final int default_max_conns = 1000;
+    
+    /*
+     * Default caching implementation.
+     */
+    public static final String default_caching_version = "lru";
+    
+    /*
+     * Default value for buffer size. The buffer is used to store the message
+     * which is to be sent to receive ports.
+     */
+    private static final int default_buffer_capacity = 1 << 16;
+    
+    public static final String s_prefix = "ipl.stacking.connection.caching";
+    public static final String s_max_conns = s_prefix + ".maxConns";
+    public static final String s_caching_version = s_prefix + ".version";
+    public static final String s_buffer_size = s_prefix + ".bufferSize";
     
     /**
      * These capabilities need to be added to the list of capabilites
@@ -56,9 +77,9 @@ public class CacheIbis implements Ibis {
          * Add this port type to the ibis constructor - required for
          * the side channel.
          */
-        additionalPortTypes.add(CacheManager.ultraLightPT);
+        additionalPortTypes.add(CCManager.ultraLightPT);
         /*
-         * These are the ibis capabilities offered by CacheIbis.
+         * These are the ibis capabilities offered by the CCIbis.
          * These capabilities are to be removed when constructing 
          * the under-the-hood ibis.
          */
@@ -67,22 +88,22 @@ public class CacheIbis implements Ibis {
         
         qualNamesMap = new HashMap<String, String>();
         qualNamesMap.put("lru",
-                "ibis.ipl.impl.stacking.cache.manager.impl.LruCacheManagerImpl");
+                "ibis.ipl.impl.stacking.cc.manager.impl.LruCCManagerImpl");
         qualNamesMap.put("mru",
-                "ibis.ipl.impl.stacking.cache.manager.impl.MruCacheManagerImpl");
+                "ibis.ipl.impl.stacking.cc.manager.impl.MruCCManagerImpl");
         qualNamesMap.put("random",
-                "ibis.ipl.impl.stacking.cache.manager.impl.RandomCacheManagerImpl");
+                "ibis.ipl.impl.stacking.cc.manager.impl.RandomCCManagerImpl");
     }
 
-    public CacheIbis(IbisFactory factory,
+    public CCIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities ibisCapabilities,
             Credentials credentials, byte[] applicationTag, PortType[] portTypes,
             String specifiedSubImplementation,
-            CacheIbisStarter cacheIbisStarter)
+            CCIbisStarter ccIbisStarter)
             throws IbisCreationFailedException {
 
-        starter = cacheIbisStarter;
+        starter = ccIbisStarter;
         
         int newNoPorts = portTypes.length + additionalPortTypes.size();
         PortType[] newPorts = new PortType[newNoPorts];
@@ -123,18 +144,23 @@ public class CacheIbis implements Ibis {
                     specifiedSubImplementation);
 
         try {
-            TypedProperties typedProp = new TypedProperties(baseIbis.properties());
+            TypedProperties typedProps = new TypedProperties(baseIbis.properties());
             
-            int maxConns = typedProp.getIntProperty("ipl.cache.maxConns",
-                    MAX_CONNS_DEFAULT);
-            String cacheImplVersion = typedProp.getProperty("ipl.cache.impl.version",
-                    CACHE_IMPL_DEFAULT_VERSION);
+            int maxConns = typedProps.getIntProperty(s_max_conns,
+                    default_max_conns);
             
-            String fullyQualName = qualNamesMap.get(cacheImplVersion);
+            String cachingImplVersion = typedProps.getProperty(s_caching_version,
+                    default_caching_version);
+            
+            buffer_capacity = typedProps.getIntProperty(s_buffer_size,
+                    default_buffer_capacity);
+            
+            
+            String fullyQualName = qualNamesMap.get(cachingImplVersion);
             
             if(fullyQualName == null) {
                 StringBuilder msg = new StringBuilder();
-                msg.append("Specified cache implementation version unavailable."
+                msg.append("Specified caching implementation version unavailable."
                         + " Try one from the following:\t");
                 for(String impl : qualNamesMap.keySet()) {
                     msg.append(impl).append(", ");
@@ -143,11 +169,10 @@ public class CacheIbis implements Ibis {
             }
 
             Class clazz = Class.forName(fullyQualName);
-            Class[] paramTypes = {CacheIbis.class, int.class};
+            Class[] paramTypes = {CCIbis.class, int.class};
             Object[] params = {this, maxConns};
             Constructor c = clazz.getConstructor(paramTypes);
-            cacheManager = (CacheManager) c.newInstance(params);
-            // new LruCacheManagerImpl(this, maxConns);
+            ccManager = (CCManager) c.newInstance(params);
         } catch (Exception ex) {
             throw new IbisCreationFailedException(ex);
         }
@@ -155,7 +180,7 @@ public class CacheIbis implements Ibis {
 
     @Override
     public void end() throws IOException {
-        cacheManager.end();
+        ccManager.end();
         baseIbis.end();
     }
 
@@ -226,7 +251,7 @@ public class CacheIbis implements Ibis {
     @Override
     public SendPort createSendPort(PortType portType, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
-        return new CacheSendPort(portType, this, name, cU, props);
+        return new CCSendPort(portType, this, name, cU, props);
     }
 
     @Override
@@ -251,6 +276,6 @@ public class CacheIbis implements Ibis {
     public ReceivePort createReceivePort(PortType portType, String name,
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
-        return new CacheReceivePort(portType, this, name, u, cU, props);
+        return new CCReceivePort(portType, this, name, u, cU, props);
     }
 }

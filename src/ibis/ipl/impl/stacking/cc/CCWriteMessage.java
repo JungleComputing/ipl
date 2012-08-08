@@ -1,26 +1,26 @@
-package ibis.ipl.impl.stacking.cache;
+package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
-public final class CacheWriteMessage implements WriteMessage {
+public final class CCWriteMessage implements WriteMessage {
     
     /*
      * SendPort used to generate base WriteMessages.
      */
-    final CacheSendPort port;
+    final CCSendPort port;
     /*
-     * Number of bytes written by this CacheWriteMessage.
+     * Number of bytes written by this CCWriteMessage.
      */
     long bytes;
 
-    public CacheWriteMessage(CacheSendPort sendPort) throws IOException {        
+    public CCWriteMessage(CCSendPort sendPort) throws IOException {        
         this.port = sendPort;
-        Loggers.writeMsgLog.log(Level.FINE, "Created CacheWriteMessage");
-        Loggers.writeMsgLog.log(Level.FINEST, "buffer index = {0}", port.dataOut.index);
+        Loggers.writeMsgLog.log(Level.FINE, "Created CCWriteMessage");
+        this.port.serOut.reset(true);
     }
 
     private void checkNotFinished() throws IOException {

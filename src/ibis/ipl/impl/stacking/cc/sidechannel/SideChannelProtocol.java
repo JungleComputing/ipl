@@ -1,4 +1,4 @@
-package ibis.ipl.impl.stacking.cache.sidechannel;
+package ibis.ipl.impl.stacking.cc.sidechannel;
 
 public interface SideChannelProtocol {
     

@@ -1,10 +1,10 @@
-package ibis.ipl.impl.stacking.cache.sidechannel;
+package ibis.ipl.impl.stacking.cc.sidechannel;
 
 import ibis.ipl.*;
-import ibis.ipl.impl.stacking.cache.CacheReceivePort;
-import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.manager.CacheManager;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.CCReceivePort;
+import ibis.ipl.impl.stacking.cc.CCSendPort;
+import ibis.ipl.impl.stacking.cc.manager.CCManager;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 public class SideChannelMessageHandler implements MessageUpcall, SideChannelProtocol {
 
-    final CacheManager cacheManager;
+    final CCManager ccManager;
     
     public static final Map<Byte, String> map = new HashMap<Byte, String>();
     
@@ -29,8 +29,8 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         map.put(GIVE_ME_YOUR_MESSAGE, "GIVE_ME_YOUR_MESSAGE");
     }
 
-    public SideChannelMessageHandler(CacheManager cache) {
-        this.cacheManager = cache;
+    public SideChannelMessageHandler(CCManager manager) {
+        this.ccManager = manager;
         
     }
 
@@ -45,8 +45,8 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         }
         msg.finish();
 
-        CacheReceivePort rp = CacheReceivePort.map.get(rpi);
-        CacheSendPort sp = CacheSendPort.map.get(spi);
+        CCReceivePort rp = CCReceivePort.map.get(rpi);
+        CCSendPort sp = CCSendPort.map.get(spi);
 
         Loggers.sideLog.log(Level.INFO, "\tGot side-message: \t["
                 + "({0}-{1}, {2}-{3}), OPCODE = {4}]",
@@ -61,20 +61,20 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case RESERVE:
                 byte answer = RESERVE_NACK;
-                cacheManager.lock.lock();
+                ccManager.lock.lock();
                 Loggers.lockLog.log(Level.INFO, "Lock locked in RESERVE");
                 try {
                     /*
                      * If I'm not full, or if I am but I can cache something,
                      * then I'm good to go.
                      */
-                    if(!cacheManager.fullConns() ||
-                            cacheManager.canCache()) {
-                        cacheManager.reserveConnection(rpi, spi);
+                    if(!ccManager.fullConns() ||
+                            ccManager.canCache()) {
+                        ccManager.reserveConnection(rpi, spi);
                         answer = RESERVE_ACK;
                     }                    
                 } finally {
-                    cacheManager.lock.unlock();
+                    ccManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE");
                 }
                 /*
@@ -87,13 +87,13 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * connection.
              */
             case RESERVE_ACK:
-                cacheManager.lock.lock();
+                ccManager.lock.lock();
                 Loggers.lockLog.log(Level.INFO, "Lock locked in RESERVE_ACK");
                 try {
                     sp.reserveAcks.put(rpi, RESERVE_ACK);
-                    cacheManager.reserveAcksCond.signalAll();
+                    ccManager.reserveAcksCond.signalAll();
                 } finally {
-                    cacheManager.lock.unlock();
+                    ccManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE_ACK");
                 }
                 break;
@@ -102,15 +102,15 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * for a connection.
              */    
             case RESERVE_NACK:
-                cacheManager.lock.lock();
+                ccManager.lock.lock();
                 Loggers.lockLog.log(Level.INFO, "Lock locked in RESERVE_NACK");
                 try {
-                    cacheManager.cancelReservation(spi, rpi);
+                    ccManager.cancelReservation(spi, rpi);
                     
                     sp.reserveAcks.put(rpi, RESERVE_NACK);
-                    cacheManager.reserveAcksCond.signalAll();
+                    ccManager.reserveAcksCond.signalAll();
                 } finally {
-                    cacheManager.lock.unlock();
+                    ccManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock unlocked in RESERVE_NACK");
                 }
                 break;
@@ -120,12 +120,12 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * The promised connection will arive no more.
              */
             case CANCEL_RESERVATION:
-                cacheManager.lock.lock();
+                ccManager.lock.lock();
                 Loggers.lockLog.log(Level.INFO, "Lock locked in CANCEL_RESERVATION");
                 try {
-                    cacheManager.cancelReservation(rpi, spi);
+                    ccManager.cancelReservation(rpi, spi);
                 } finally {
-                    cacheManager.lock.unlock();
+                    ccManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock unlocked in CANCEL_RESERVATION");
                 }
                 break;
@@ -135,7 +135,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * its receiveport.
              */
             case CACHE_FROM_RP_AT_SP:
-                cacheManager.lock.lock();
+                ccManager.lock.lock();
                 Loggers.lockLog.log(Level.INFO, "Lock locked in CACHE_FROM_RP_AT_SP");
                 try {
                     boolean heKnows = true;
@@ -144,9 +144,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                      * cached or even closed if a caching/disconnection
                      * came from the SendPort simultaneously (but a bit faster).
                      */
-                    if(cacheManager.isConnAlive(spi, rpi)) {
-                        cacheManager.cacheConnection(spi, rpi, heKnows);
-                    } else if(!cacheManager.isConnCached(spi, rpi)) {
+                    if(ccManager.isConnAlive(spi, rpi)) {
+                        ccManager.cacheConnection(spi, rpi, heKnows);
+                    } else if(!ccManager.isConnCached(spi, rpi)) {
                         /*
                          * It is not alive and not even cached.
                          * The sendport closed the connection while
@@ -158,11 +158,11 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                          * 
                          * send him a disconnect message to wake him up.
                          */
-                        cacheManager.sideChannelHandler.sendProtocol(spi,
+                        ccManager.sideChannelHandler.sendProtocol(spi,
                                 rpi, SideChannelProtocol.DISCONNECT);
                     }
                 } finally {
-                    cacheManager.lock.unlock();
+                    ccManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock unlocked in CACHE_FROM_RP_AT_SP");
                 }
                 break;
@@ -175,19 +175,19 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              * call.
              */
             case CACHE_FROM_SP:
-                cacheManager.lock.lock();
+                ccManager.lock.lock();
                 Loggers.lockLog.log(Level.INFO, "Lock locked in CACHE_FROM_SP");
                 try {
-                    if (cacheManager.isConnAlive(rpi, spi)) {
+                    if (ccManager.isConnAlive(rpi, spi)) {
 
-                        CacheReceivePort.map.get(rpi).toBeCachedSet.add(spi);
+                        CCReceivePort.map.get(rpi).toBeCachedSet.add(spi);
 
                         /*
                          * Move the alive connection to a reserved spot, so
                          * nobody will try to cache this connection, since it
                          * will already be cached.
                          */
-                        cacheManager.reserveLiveConnection(rpi, spi);
+                        ccManager.reserveLiveConnection(rpi, spi);
                     }
 
                     /*
@@ -195,7 +195,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                      */
                     newThreadSendProtocol(rpi, spi, SideChannelProtocol.CACHE_FROM_SP_ACK);
                 } finally {
-                    cacheManager.lock.unlock();
+                    ccManager.lock.unlock();
                     Loggers.lockLog.log(Level.INFO, "Lock released in CACHE_FROM_SP");
                 }
                 /*
@@ -251,7 +251,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                         }
 
                         rp.toHaveMyFutureAttention.add(
-                                new CacheReceivePort.SequencedSpi(seqNo, spi));
+                                new CCReceivePort.SequencedSpi(seqNo, spi));
                         rp.notifyAll();
                     } else {
                         /*
@@ -285,7 +285,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
          * Synchronize on the sideChannelSendPort so as not to send multiple
          * messages at the same time.
          */
-        synchronized (cacheManager.sideChannelSendPort) {
+        synchronized (ccManager.sideChannelSendPort) {
             Loggers.sideLog.log(Level.INFO, "\tSending side-message: \t["
                     + "({0}-{1}, {2}-{3}), OPCODE = {4}"
                     + (opcode == READ_MY_MESSAGE ? ", seqNo = {5}]" : "]"),
@@ -293,9 +293,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                         rpi.name(), rpi.ibisIdentifier().name(),
                         map.get(opcode), seqNo});
             try {
-                ReceivePortIdentifier sideRpi = cacheManager.sideChannelSendPort.connect(
-                        destination, CacheManager.sideChnRPName);
-                WriteMessage msg = cacheManager.sideChannelSendPort.newMessage();
+                ReceivePortIdentifier sideRpi = ccManager.sideChannelSendPort.connect(
+                        destination, CCManager.sideChnRPName);
+                WriteMessage msg = ccManager.sideChannelSendPort.newMessage();
                 msg.writeByte(opcode);
                 msg.writeObject(spi);
                 msg.writeObject(rpi);
@@ -305,7 +305,7 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 }
                 
                 msg.finish();
-                cacheManager.sideChannelSendPort.disconnect(sideRpi);
+                ccManager.sideChannelSendPort.disconnect(sideRpi);
             } catch (Exception ex) {
                 Loggers.sideLog.log(Level.SEVERE,
                         "Error at side channel:\n{0}", ex.toString());

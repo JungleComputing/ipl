@@ -1,9 +1,10 @@
-package ibis.ipl.impl.stacking.cache.io;
+package ibis.ipl.impl.stacking.cc.io;
 
 import ibis.io.Conversion;
 import ibis.io.DataInputStream;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.impl.stacking.cache.CacheReceivePort;
+import ibis.ipl.impl.stacking.cc.CCIbis;
+import ibis.ipl.impl.stacking.cc.CCReceivePort;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,7 +15,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     /*
      * The port which gives me new Messages.
      */
-    public CacheReceivePort port;
+    public CCReceivePort port;
     /*
      * The current partial message.
      */
@@ -54,9 +55,9 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     protected Conversion conversion;
     public boolean closed;
     
-    protected BufferedDataInputStream(CacheReceivePort port) {
+    protected BufferedDataInputStream(CCReceivePort port) {
         this.port = port;
-        this.capacity = BufferedDataOutputStream.BUFFER_CAPACITY;
+        this.capacity = port.ccIbis.buffer_capacity;
         this.buffer = new byte[this.capacity];
         this.conversion = Conversion.loadConversion(false);
         this.closed = false;

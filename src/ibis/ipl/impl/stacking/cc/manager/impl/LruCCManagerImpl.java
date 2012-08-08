@@ -1,19 +1,19 @@
-package ibis.ipl.impl.stacking.cache.manager.impl;
+package ibis.ipl.impl.stacking.cc.manager.impl;
 
-import ibis.ipl.impl.stacking.cache.CacheIbis;
-import ibis.ipl.impl.stacking.cache.manager.CacheManagerImpl;
-import ibis.ipl.impl.stacking.cache.manager.Connection;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.CCIbis;
+import ibis.ipl.impl.stacking.cc.manager.CCManagerImpl;
+import ibis.ipl.impl.stacking.cc.manager.Connection;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.util.logging.Level;
 
-public class MruCacheManagerImpl extends CacheManagerImpl {
+public class LruCCManagerImpl extends CCManagerImpl {
 
     /*
      * When caching, the recv port doesn't know we will cache the connection.
      */
     private boolean heKnows = false;
 
-    public MruCacheManagerImpl(CacheIbis ibis, int maxConns) {
+    public LruCCManagerImpl(CCIbis ibis, int maxConns) {
         super(ibis, maxConns);
     }
 
@@ -45,9 +45,9 @@ public class MruCacheManagerImpl extends CacheManagerImpl {
         }
 
         /*
-         * Get the last alive connection used.
+         * Get the least recently used (the first) alive connection.
          */
-        Connection con = aliveConns.get(aliveConns.size() - 1);
+        Connection con = aliveConns.get(0);
         con.cache(heKnows);
         aliveConns.remove(con);
         cachedConns.add(con);

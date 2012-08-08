@@ -1,8 +1,8 @@
-package ibis.ipl.impl.stacking.cache.io;
+package ibis.ipl.impl.stacking.cc.io;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.impl.stacking.cache.CacheReceivePort;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.CCReceivePort;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -142,7 +142,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
      */
     public int len;
 
-    public UpcallBufferedDataInputStream(CacheReceivePort port) {
+    public UpcallBufferedDataInputStream(CCReceivePort port) {
         super(port);
         this.ex = Executors.newSingleThreadExecutor();
     }

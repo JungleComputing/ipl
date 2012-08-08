@@ -1,12 +1,12 @@
-package ibis.ipl.impl.stacking.cache.manager;
+package ibis.ipl.impl.stacking.cc.manager;
 
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.impl.stacking.cache.CacheReceivePort;
-import ibis.ipl.impl.stacking.cache.CacheSendPort;
-import ibis.ipl.impl.stacking.cache.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cache.util.CacheStatistics;
-import ibis.ipl.impl.stacking.cache.util.Loggers;
+import ibis.ipl.impl.stacking.cc.CCReceivePort;
+import ibis.ipl.impl.stacking.cc.CCSendPort;
+import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
+import ibis.ipl.impl.stacking.cc.util.CCStatistics;
+import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,14 +37,14 @@ public class Connection {
 
     public void cache(boolean heKnows) {
         try {
-            Loggers.cacheLog.log(Level.INFO, "Caching connection\t{0}.", this.toString());
+            Loggers.ccLog.log(Level.INFO, "Caching connection\t{0}.", this.toString());
             if (atSendPortSide) {
-                CacheSendPort port = CacheSendPort.map.get(spi);
+                CCSendPort port = CCSendPort.map.get(spi);
                 port.cache(rpi, heKnows);
             } else {
-                CacheReceivePort port = CacheReceivePort.map.get(rpi);
+                CCReceivePort port = CCReceivePort.map.get(rpi);
 
-                if (port.cacheManager.isConnAlive(rpi, spi)) {
+                if (port.ccManager.isConnAlive(rpi, spi)) {
                     /*
                      * This takes time.
                      */
@@ -55,20 +55,20 @@ public class Connection {
                         + " {0} send ports.", port.recvPort.connectedTo().length);
             }
         } catch (IOException ex) {
-            Loggers.cacheLog.log(Level.SEVERE, "Caching failed:\t{0}", ex);
+            Loggers.ccLog.log(Level.SEVERE, "Caching failed:\t{0}", ex);
         }
     }
     
     static void closeSendPort(SendPortIdentifier spi) {
-        CacheSendPort sendPort = CacheSendPort.map.get(spi);
+        CCSendPort sendPort = CCSendPort.map.get(spi);
         /*
          * Send a DISCONNECT message to the receive ports with whom we have
          * cached connections. Otherwise, they won't get the lostConnection()
          * upcall.
          */
         for (ReceivePortIdentifier rpi :
-                sendPort.cacheManager.cachedRpisFrom(spi)) {
-            sendPort.cacheManager.sideChannelHandler.sendProtocol(spi,
+                sendPort.ccManager.cachedRpisFrom(spi)) {
+            sendPort.ccManager.sideChannelHandler.sendProtocol(spi,
                     rpi, SideChannelProtocol.DISCONNECT);
         }
         List<ReceivePortIdentifier> tempList =
@@ -77,13 +77,13 @@ public class Connection {
          * Move live connections to safe place.
          */
         for (ReceivePortIdentifier rpi : sendPort.baseSendPort.connectedTo()) {
-            sendPort.cacheManager.reserveLiveConnection(spi, rpi);
+            sendPort.ccManager.reserveLiveConnection(spi, rpi);
             tempList.add(rpi);
         }
         /*
          * Release the lock.
          */        
-        sendPort.cacheManager.lock.unlock();
+        sendPort.ccManager.lock.unlock();
         Loggers.lockLog.log(Level.INFO, "Lock released so that"
                 + " sendport {0} can close.", sendPort.identifier());
         
@@ -91,12 +91,12 @@ public class Connection {
             /*
              * Close now.
              */
-            Loggers.cacheLog.log(Level.INFO, "Base send port now closing...");
+            Loggers.ccLog.log(Level.INFO, "Base send port now closing...");
             for(ReceivePortIdentifier rpi : sendPort.baseSendPort.connectedTo()) {
-                CacheStatistics.remove(sendPort.identifier(), rpi);
+                CCStatistics.remove(sendPort.identifier(), rpi);
             }
             sendPort.baseSendPort.close();
-            Loggers.cacheLog.log(Level.INFO, "Base send port now closed.");
+            Loggers.ccLog.log(Level.INFO, "Base send port now closed.");
         } catch (Exception ex) {
             Loggers.conLog.log(Level.SEVERE, "Failed to close send port "
                     + sendPort.identifier(), ex);
@@ -104,41 +104,41 @@ public class Connection {
             /*
              * Reaquire the lock.
              */
-            sendPort.cacheManager.lock.lock();
+            sendPort.ccManager.lock.lock();
             Loggers.lockLog.log(Level.INFO, "{0} reaquired the lock.", sendPort.identifier());
             /*
              * Move back connections.
              */
             for(ReceivePortIdentifier rpi : tempList) {
-                sendPort.cacheManager.unReserveLiveConnection(spi, rpi);
+                sendPort.ccManager.unReserveLiveConnection(spi, rpi);
             }
         }
     }
 
     void remove() {
-        CacheSendPort sendPort = CacheSendPort.map.get(spi);
-        if (sendPort.cacheManager.isConnAlive(spi, rpi)) {
+        CCSendPort sendPort = CCSendPort.map.get(spi);
+        if (sendPort.ccManager.isConnAlive(spi, rpi)) {
             
-            sendPort.cacheManager.reserveLiveConnection(spi, rpi);
+            sendPort.ccManager.reserveLiveConnection(spi, rpi);
 
-            sendPort.cacheManager.lock.unlock();
+            sendPort.ccManager.lock.unlock();
             Loggers.lockLog.log(Level.INFO, "Lock released so {0} can disconnect.", spi);
 
             try {
-                Loggers.cacheLog.log(Level.INFO, "Base send port now disconnecting...");
-                CacheStatistics.remove(sendPort.identifier(), rpi);
+                Loggers.ccLog.log(Level.INFO, "Base send port now disconnecting...");
+                CCStatistics.remove(sendPort.identifier(), rpi);
                 sendPort.baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
-                Loggers.cacheLog.log(Level.INFO, "Base send port now connected"
+                Loggers.ccLog.log(Level.INFO, "Base send port now connected"
                         + " to {0} recv ports.", sendPort.baseSendPort.connectedTo().length);
             } catch (Exception ex) {
-                Loggers.cacheLog.log(Level.SEVERE, "Base send port "
+                Loggers.ccLog.log(Level.SEVERE, "Base send port "
                         + spi + " failed to "
                         + "properly disconnect from "
                         + rpi + ".", ex);
             } finally {
-                sendPort.cacheManager.lock.lock();
+                sendPort.ccManager.lock.lock();
                 Loggers.lockLog.log(Level.INFO, "{0} reaquired lock.", spi);
-                sendPort.cacheManager.unReserveLiveConnection(spi, rpi);
+                sendPort.ccManager.unReserveLiveConnection(spi, rpi);
             }
         } else {
             /*
@@ -146,7 +146,7 @@ public class Connection {
              * cached connections. Otherwise, they won't get the
              * lostConnection() upcall.
              */
-            sendPort.cacheManager.sideChannelHandler.sendProtocol(spi,
+            sendPort.ccManager.sideChannelHandler.sendProtocol(spi,
                     rpi, SideChannelProtocol.DISCONNECT);
         }        
     }
