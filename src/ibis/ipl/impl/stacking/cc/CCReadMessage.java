@@ -24,6 +24,7 @@ public class CCReadMessage implements ReadMessage {
     public CCReadMessage(ReadMessage m, CCReceivePort port)
             throws IOException {
         this.recvPort = port;
+        this.recvPort.serIn.clear();
         this.origin = m.origin();
         
         port.dataIn.currentBaseMsg = m;
