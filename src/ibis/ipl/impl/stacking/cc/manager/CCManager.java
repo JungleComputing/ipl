@@ -1,10 +1,10 @@
 package ibis.ipl.impl.stacking.cc.manager;
 
-import ibis.ipl.impl.stacking.cc.util.CCStatistics;
 import ibis.ipl.*;
 import ibis.ipl.impl.stacking.cc.CCIbis;
 import ibis.ipl.impl.stacking.cc.CCSendPort;
 import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelMessageHandler;
+import ibis.ipl.impl.stacking.cc.util.CCStatistics;
 import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.List;
@@ -25,7 +25,7 @@ public abstract class CCManager {
      * communication.
      */
     public static final PortType ultraLightPT = new PortType(
-//            PortType.CONNECTION_ULTRALIGHT,
+            PortType.CONNECTION_ULTRALIGHT,
             PortType.RECEIVE_AUTO_UPCALLS,
             PortType.SERIALIZATION_OBJECT,
             PortType.CONNECTION_MANY_TO_ONE);
