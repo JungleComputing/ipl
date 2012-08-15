@@ -234,11 +234,11 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                      * permision to another send port, then store this request
                      * for later.
                      */
-                    if ((rp.currentReadMsg != null)
+                    if ((rp.currentLogicalReadMsg != null)
                             || rp.readMsgRequested
                             || !rp.isNextSeqNo(seqNo)) {
 
-                        if (rp.currentReadMsg != null) {
+                        if (rp.currentLogicalReadMsg != null) {
                             Loggers.readMsgLog.log(Level.INFO, "I have a current alive"
                                     + " read message, and I will handle this"
                                     + " message later.");

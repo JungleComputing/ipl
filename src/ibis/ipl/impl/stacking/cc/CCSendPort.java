@@ -55,7 +55,7 @@ public final class CCSendPort implements SendPort {
     /**
      * The current written message.
      */
-    public CCWriteMessage currentMsg;
+    public volatile CCWriteMessage currentMsg;
     public final Object cacheAckLock = new Object();
     public boolean cacheAckReceived = false;
     public final Map<ReceivePortIdentifier, Byte> reserveAcks;
@@ -424,13 +424,17 @@ public final class CCSendPort implements SendPort {
 
     @Override
     public WriteMessage newMessage() throws IOException {
+        Loggers.writeMsgLog.log(Level.INFO, "newWriteMessage requested; writing to {0}",
+                Arrays.asList(connectedTo()));
         synchronized (messageLock) {
+            Loggers.writeMsgLog.log(Level.INFO, "before curMsg={0}", currentMsg);
             while (currentMsg != null) {
-                try {
+                try {                    
                     messageLock.wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
+            Loggers.writeMsgLog.log(Level.INFO, "after curMsg={0}", currentMsg);
             /*
              * The field currentMsg is set to null in this object's finish()
              * methods.

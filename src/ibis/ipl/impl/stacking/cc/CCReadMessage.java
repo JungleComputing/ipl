@@ -50,7 +50,7 @@ public class CCReadMessage implements ReadMessage {
         isFinished = true;
         long retVal = bytesRead();
         synchronized (recvPort) {
-            recvPort.currentReadMsg = null;
+            recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
             
             Loggers.readMsgLog.log(Level.INFO, "\n\tRead message from {0} finished.",
@@ -99,7 +99,8 @@ public class CCReadMessage implements ReadMessage {
 
         isFinished = true;
         synchronized (recvPort) {
-            recvPort.currentReadMsg = null;
+            recvPort.currentLogicalReadMsg = null;
+            recvPort.readMsgRequested = false;
             Loggers.readMsgLog.log(Level.INFO, "Read message finished:\t{0}",e.toString());
 
             /*

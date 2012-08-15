@@ -424,9 +424,7 @@ public abstract class CCManagerImpl extends CCManager {
 
         if (rpis == null || rpis.isEmpty()) {
             throw new ibis.ipl.IbisIOException("Array of send ports is null or empty.");
-        }
-
-        Loggers.ccLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}", rpis);
+        }        
 
         /*
          * Get the alive connections from this send port.
@@ -458,6 +456,8 @@ public abstract class CCManagerImpl extends CCManager {
         }
         
         logReport();
+        
+        Loggers.ccLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}", rpis);
 
         Set<ReceivePortIdentifier> result = getSomeConnections(port,
                 rpis, aliveConn.size(), timeoutMillis, fillTimeout);
@@ -943,7 +943,7 @@ public abstract class CCManagerImpl extends CCManager {
     }
 
     private void logReport() {
-        Loggers.ccLog.log(Level.INFO, "\n\t{0} alive connections:\t{1}"
+        Loggers.ccLog.log(Level.FINEST, "\n\t{0} alive connections:\t{1}"
                 + "\n\t{2} cached connections:\t{3}"
                 + "\n\t{4} alive reserved connections:\t{5}"
                 + "\n\t{6} not alive reserved connections:\t{7}",

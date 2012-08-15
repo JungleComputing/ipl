@@ -75,7 +75,7 @@ public final class CCReceivePort implements ReceivePort {
     /*
      * The current message being read.
      */
-    public ReadMessage currentReadMsg;
+    public CCReadMessage currentLogicalReadMsg;
     /*
      * Boolean to check whether msg upcalls are enabled.
      */
@@ -92,7 +92,7 @@ public final class CCReceivePort implements ReceivePort {
     /**
      * For the ReadMessage.
      */
-    protected final BufferedDataInputStream upcallDataIn;
+    public final BufferedDataInputStream upcallDataIn;
     protected final BufferedDataInputStream downcallDataIn;
     protected final SerializationInput upcallSerIn;
     protected final SerializationInput downcallSerIn;
@@ -141,7 +141,7 @@ public final class CCReceivePort implements ReceivePort {
         closed = false;
 
         enabledMessageUpcalls = false;
-        currentReadMsg = null;
+        currentLogicalReadMsg = null;
         readMsgRequested = false;
 
         toHaveMyFutureAttention = new LinkedList<SequencedSpi>();
@@ -164,6 +164,9 @@ public final class CCReceivePort implements ReceivePort {
         
         this.downcallDataIn = new DowncallBufferedDataInputStream(this);
         this.downcallSerIn = SerializationFactory.createSerializationInput(serialization, downcallDataIn);
+        
+        this.dataIn = downcallDataIn;
+        this.serIn = downcallSerIn;
 
         /*
          * Send this to the map only when it has been filled up with all data.
@@ -277,13 +280,18 @@ public final class CCReceivePort implements ReceivePort {
     @Override
     public void disableConnections() {
         recvPort.disableConnections();
-        dataIn = null;
-        serIn = null;
     }
 
     @Override
     public void disableMessageUpcalls() {
         enabledMessageUpcalls = false;
+        synchronized(this) {
+            while (this.currentLogicalReadMsg != null) {
+                try {
+                    this.wait();
+                } catch (InterruptedException ex) {}
+            }
+        }
         recvPort.disableMessageUpcalls();
         dataIn = downcallDataIn;
         serIn = downcallSerIn;
@@ -292,14 +300,19 @@ public final class CCReceivePort implements ReceivePort {
     @Override
     public void enableConnections() {
         recvPort.enableConnections();
-        dataIn = downcallDataIn;
-        serIn = downcallSerIn;
     }
 
     @Override
     public void enableMessageUpcalls() {
-        recvPort.enableMessageUpcalls();
         enabledMessageUpcalls = true;
+        synchronized(this) {
+            while (this.currentLogicalReadMsg != null) {
+                try {
+                    this.wait();
+                } catch (InterruptedException ex) {}
+            }
+        }
+        recvPort.enableMessageUpcalls();
         dataIn = upcallDataIn;
         serIn = upcallSerIn;
     }
@@ -332,7 +345,7 @@ public final class CCReceivePort implements ReceivePort {
     @Override
     public synchronized ReadMessage poll() throws IOException {
 
-        if (currentReadMsg != null) {
+        if (currentLogicalReadMsg != null) {
             return null;
         }
 
@@ -341,8 +354,8 @@ public final class CCReceivePort implements ReceivePort {
             readMsgRequested = false;
             dataIn.isLastPart = msg.readBoolean();
             dataIn.remainingBytes = msg.readInt();
-            currentReadMsg = new CCReadMessage(msg, this);
-            return currentReadMsg;
+            currentLogicalReadMsg = new CCReadMessage(msg, this);
+            return currentLogicalReadMsg;
         }
         return null;
     }
@@ -364,7 +377,7 @@ public final class CCReceivePort implements ReceivePort {
         }
 
         synchronized (this) {
-            while (currentReadMsg != null) {
+            while (currentLogicalReadMsg != null) {
                 try {
                     if(deadline > 0) {
                         long timeout = deadline - System.currentTimeMillis();
@@ -391,10 +404,10 @@ public final class CCReceivePort implements ReceivePort {
             readMsgRequested = false;
             dataIn.isLastPart = msg.readBoolean();
             dataIn.remainingBytes = msg.readInt();
-            currentReadMsg = new CCReadMessage(msg, this);
+            currentLogicalReadMsg = new CCReadMessage(msg, this);
         }
 
-        return currentReadMsg;
+        return currentLogicalReadMsg;
     }
 
     @Override

@@ -4,6 +4,7 @@ import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 public final class CCWriteMessage implements WriteMessage {
@@ -19,7 +20,8 @@ public final class CCWriteMessage implements WriteMessage {
 
     public CCWriteMessage(CCSendPort sendPort) throws IOException {        
         this.port = sendPort;
-        Loggers.writeMsgLog.log(Level.FINE, "Created CCWriteMessage");
+        Loggers.writeMsgLog.log(Level.INFO, "Created CCWriteMessage; writing to {0}",
+                Arrays.asList(sendPort.connectedTo()));
         this.port.serOut.reset(true);
     }
 
@@ -78,12 +80,12 @@ public final class CCWriteMessage implements WriteMessage {
         checkNotFinished();
         
         Loggers.writeMsgLog.log(Level.INFO, "Finishing a write message from"
-                + " send port {0}", this.port.identifier());
+                + " {0}", this.port.identifier());
         
         port.serOut.flush();
         port.dataOut.close();
         
-        Loggers.writeMsgLog.log(Level.INFO, "{0} has finished a write message.",
+        Loggers.writeMsgLog.log(Level.INFO, "Finished writing a message from {0}.",
                 port.identifier());
 
         synchronized(port.messageLock) {

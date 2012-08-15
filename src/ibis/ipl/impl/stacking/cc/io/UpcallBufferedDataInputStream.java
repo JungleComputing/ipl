@@ -117,7 +117,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                  * This is always executed: even if the message was depleted,
                  * or a close was forced on the read message.
                  */
-                synchronized (in.port.msgUpcall.currentLogicalMsgLock) {
+                synchronized (in) {
                     in.port.msgUpcall.messageDepleted = true;
                     try {
                         msg.finish();
@@ -125,7 +125,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                         Loggers.readMsgLog.log(Level.WARNING, "Base message"
                                 + " finish threw:\t{0}", ex.toString());
                     }
-                    in.port.msgUpcall.currentLogicalMsgLock.notifyAll();
+                    in.notifyAll();
                 }
                 Loggers.readMsgLog.log(Level.INFO, "Data offering thread finishing...");
             }
@@ -158,13 +158,13 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                     + " the user shutdown the read message."
                     + " and any other following streaming msgs are discarded:\t{0}",
                     e.toString());
-            synchronized (port.msgUpcall.currentLogicalMsgLock) {
+            synchronized (this) {
                 port.msgUpcall.messageDepleted = true;
                 try {
                     msg.finish();
                 } catch (IOException ignoreMe) {
                 }
-                port.msgUpcall.currentLogicalMsgLock.notifyAll();
+                notifyAll();
             }
         }
     }
@@ -193,8 +193,10 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
         /*
          * Wait for the last part.
          */
-        synchronized (port.msgUpcall.currentLogicalMsgLock) {
-            Loggers.readMsgLog.log(Level.INFO, "Closing current read message...");
+        synchronized (this) {
+            Loggers.readMsgLog.log(Level.INFO, "Closing current read message: "
+                    + "{0}. gotLastPart={1}", new Object[] {port.currentLogicalReadMsg,
+                    port.msgUpcall.gotLastPart});
             /*
              * Start sending any future data to a sink.
              */
@@ -204,17 +206,16 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
              * This close was called forcefully and any other data remaining in
              * the buffer/pipe will be discarded.
              */
-            synchronized (this) {
-                notifyAll();
-            }
+            notifyAll();
             /*
              * Now wait until we have got all the messages, so we can
              * properly finish.
              */
             while (!port.msgUpcall.gotLastPart) {
                 try {
-                    Loggers.readMsgLog.log(Level.INFO, "Waiting for the last part...");
-                    port.msgUpcall.currentLogicalMsgLock.wait();
+                    Loggers.readMsgLog.log(Level.INFO, "Waiting for the last part from "
+                            + "{0}", port.currentLogicalReadMsg.origin());
+                    wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
