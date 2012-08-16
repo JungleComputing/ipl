@@ -17,6 +17,8 @@ public class CCStatistics {
     public static final Map<Connection, Long> destroyedOn;
     public static final Map<Connection, Long> totalAliveTime;
     public static final Map<Connection, Long> lastAliveOn;
+    
+    public static boolean worthPrinting = false;
 
     static {
         timesCached = new HashMap<Connection, Integer>();
@@ -35,30 +37,35 @@ public class CCStatistics {
     public static void printStatistics(Logger log) {
         log.log(Level.INFO, getString());
         
-        for (Timers timer : Timers.list) {
-            timer.log(log);
-        }
+//        for (Timers timer : Timers.list) {
+//            timer.log(log);
+//        }
     }
 
-    private static String getString() {
+    private synchronized static String getString() {
         String border = "\n=====================================================";
         StringBuilder s = new StringBuilder();
         s.append(border);
-        s.append("\n\t\t\tCaching Statistics:\n\n");
+        s.append("\n\t\t\tCaching Statistics for cached connections:\n\n");
         
         s.append("Connection\t\t\t\tTimes cached\t\t% time alive\n\n");
         
-        
+        boolean worth = false;
         for(Connection con : createdOn.keySet()) {
+            if(timesCached.containsKey(con) &&
+                timesCached.get(con) != 0) {
+                worth = true;
             s.append(con).append("\t").append(timesCached.get(con))
                     .append("\t\t")
 //                    .append(avgMillisCache.get(con))
                     .append("\t\t").append(perCentAlive(con))
                     .append("\n\n");
+            }
         }
         
-        s.append(border);        
-        return s.toString();
+        s.append(border);     
+        
+        return worth ? s.toString() : "";
     }
     
     private static int perCentAlive(Connection con) {
@@ -66,23 +73,26 @@ public class CCStatistics {
             destroyedOn.put(con, System.nanoTime());
         }
         long totalTime = destroyedOn.get(con) - createdOn.get(con);
-        if(timesCached.get(con) == 0) {
+        if(!timesCached.containsKey(con) ||
+            timesCached.get(con) == 0) {
             return 100;
         }
         return (int) (((double) totalAliveTime.get(con) / totalTime) * 100);
     }
 
     public static void cache(SendPortIdentifier spi, ReceivePortIdentifier rpi) {
+        worthPrinting = true;
         Connection con = new Connection(spi, rpi);
         cache(con);
     }
     
     public static void cache(ReceivePortIdentifier rpi, SendPortIdentifier spi) {
+        worthPrinting = true;
         Connection con = new Connection(rpi, spi);
         cache(con);
     }
     
-    static void cache(Connection con) {
+    static synchronized void cache(Connection con) {
         timesCached.put(con, timesCached.get(con) + 1);
         long time = System.nanoTime() - lastAliveOn.get(con);
         totalAliveTime.put(con, totalAliveTime.get(con) + time);
@@ -98,7 +108,7 @@ public class CCStatistics {
         remove(con);
     }
     
-    static void remove(Connection con) {
+    static synchronized void remove(Connection con) {
         destroyedOn.put(con, System.nanoTime());
         long time = System.nanoTime() - lastAliveOn.get(con);
         totalAliveTime.put(con, totalAliveTime.get(con) + time);
@@ -114,7 +124,7 @@ public class CCStatistics {
         connect(con);
     }
 
-    static void connect(Connection con) {
+    static synchronized void connect(Connection con) {
         if(createdOn.containsKey(con)) {
             lastAliveOn.put(con, System.nanoTime());
         } else {

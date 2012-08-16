@@ -25,7 +25,8 @@ public class ReceivePortConnectionUpcaller
     @Override
     public boolean gotConnection(ReceivePort me,
             SendPortIdentifier spi) {
-        Loggers.conLog.log(Level.INFO, "\t{0} got connection", recvPort.identifier());
+        Loggers.conLog.log(Level.INFO, "\t{0} got connection from {1}", 
+                new Object[] {recvPort.identifier(), spi});
 
         boolean accepted = true;
 
@@ -45,8 +46,8 @@ public class ReceivePortConnectionUpcaller
                 recvPort.ccManager.activateReservedConnection(recvPort.identifier(), spi);
             }
         } finally {
-            recvPort.ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
+            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+            recvPort.ccManager.lock.unlock();            
         }
         
         if(accepted) {
@@ -82,7 +83,7 @@ public class ReceivePortConnectionUpcaller
         boolean isCached = false;
 
         recvPort.ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        Loggers.lockLog.log(Level.INFO, "\n\tLock locked. me={0}", recvPort.identifier());
         try {
             /*
              * Sync-ed because the place from where the caching was initiated
@@ -140,13 +141,15 @@ public class ReceivePortConnectionUpcaller
              */
             recvPort.ccManager.removeConnection(recvPort.identifier(), spi);
             if (upcaller != null) {
+                Loggers.conLog.log(Level.FINE, "Lost connection user upcall starting...");
                 upcaller.lostConnection(recvPort, spi, reason);
+                Loggers.conLog.log(Level.FINE, "Lost connection user upcall finished.");
             }
             
             CCStatistics.remove(recvPort.identifier(), spi);
         } finally {
+            Loggers.lockLog.log(Level.INFO, "Unlocking lock...");
             recvPort.ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 }

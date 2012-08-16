@@ -103,7 +103,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
         Loggers.ccLog.log(Level.INFO, "Got all replies.");
 
         port.ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        Loggers.lockLog.log(Level.INFO, "Lock locked for streaming.");
         try {
             while (!destRpis.isEmpty()) {
                 /*
@@ -159,9 +159,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
                             + "to {1} ports.\n", new Object[]{index, destRpis.size()});
                 }
                 Loggers.writeMsgLog.log(Level.INFO, "\tWrite msg finished. "
-                        + "Sent: ({0}, {1}) to {2}.\n",
-                        new Object[]{isLastPart, index,
-                            Arrays.asList(port.baseSendPort.connectedTo())});
+                        + "Sent: ({0}, {1}).\n",
+                        new Object[]{isLastPart, index});
 
                 /*
                  * If this was the last part of the streamed message, I don't
@@ -172,8 +171,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 }
             }
         } finally {
+            Loggers.lockLog.log(Level.INFO, "Releasing lock in stream.");
             port.ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock released in stream.");
         }
         Loggers.writeMsgLog.log(Level.INFO, "Streaming finished to all destined"
                 + " rpis.");
@@ -289,7 +288,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
     @Override
     public void flush() throws IOException {
         stream(false);
-        Loggers.writeMsgLog.log(Level.INFO, "\n\tFlushed {0} intermediate messages to"
+        Loggers.writeMsgLog.log(Level.INFO, "\tFlushed {0} intermediate messages to"
                 + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});
         noMsg = 0;
     }
@@ -297,7 +296,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
     @Override
     public void close() throws IOException {
         stream(true);
-        Loggers.writeMsgLog.log(Level.INFO, "\n\tStreamed {0} intermediate messages to"
+        Loggers.writeMsgLog.log(Level.INFO, "\tStreamed {0} intermediate messages to"
                 + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});
         noMsg = 0;
     }

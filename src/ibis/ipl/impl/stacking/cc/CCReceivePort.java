@@ -180,9 +180,9 @@ public final class CCReceivePort implements ReceivePort {
      */
     public void cache(SendPortIdentifier spi) throws IOException {
         ccManager.reserveLiveConnection(this.identifier(), spi);
-        ccManager.lock.unlock();
-        Loggers.lockLog.log(Level.INFO, "Lock released before"
+        Loggers.lockLog.log(Level.INFO, "Releasing lock before"
                 + " caching initiation from RP.");
+        ccManager.lock.unlock();
 
         try {
             synchronized (cachingInitiatedByMeSet) {
@@ -206,9 +206,13 @@ public final class CCReceivePort implements ReceivePort {
             ccManager.lock.lock();
             Loggers.lockLog.log(Level.INFO, "Lock reaquired and connection is "
                     + "cached.");
-            Loggers.lockLog.log(Level.INFO, "");
             ccManager.unReserveLiveConnection(this.identifier(), spi);
         }
+        String trace = "";
+        for (StackTraceElement el : Thread.currentThread().getStackTrace()) {
+            trace += "\n\t" + el.toString();
+        }
+        Loggers.conLog.log(Level.FINEST, "Stack trace: {0}", trace);
     }
 
     @Override
@@ -252,8 +256,8 @@ public final class CCReceivePort implements ReceivePort {
                 }
             }
         } finally {
+            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
             ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
         
         Loggers.conLog.log(Level.INFO, "{0} is closing base receive port...",
@@ -272,8 +276,8 @@ public final class CCReceivePort implements ReceivePort {
         try {
             return ccManager.allSpisFrom(this.identifier());
         } finally {
+            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
             ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 

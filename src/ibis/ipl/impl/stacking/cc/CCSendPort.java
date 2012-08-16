@@ -13,6 +13,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class CCSendPort implements SendPort {
 
@@ -164,8 +165,8 @@ public final class CCSendPort implements SendPort {
          * reaquire the lock and move the connection back.
          */
         ccManager.reserveLiveConnection(this.identifier(), rpi);
+        Loggers.lockLog.log(Level.INFO, "Unlocking lock for {0} to disconnect.", this.identifier());
         ccManager.lock.unlock();
-        Loggers.lockLog.log(Level.INFO, "Lock released for {0} to disconnect.", this.identifier());
 
         try {
             if (!heKnows) {
@@ -191,9 +192,6 @@ public final class CCSendPort implements SendPort {
              */
             baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
             CCStatistics.cache(this.identifier(), rpi);
-
-            Loggers.ccLog.log(Level.FINEST, "\nBase send port now connected"
-                    + " to {0} recv ports.", baseSendPort.connectedTo().length);
         } catch (Exception ex) {
             Loggers.ccLog.log(Level.SEVERE, "\nBase send port "
                     + this.identifier() + " failed to "
@@ -221,8 +219,9 @@ public final class CCSendPort implements SendPort {
     public void close() throws IOException {
         synchronized (messageLock) {
             while (currentMsg != null) {
-                throw new IOException(
-                        "Trying to close the send port while a message is alive!");
+                try {
+                    messageLock.wait();
+                } catch (InterruptedException ex) {}
             }
         }
         
@@ -232,8 +231,8 @@ public final class CCSendPort implements SendPort {
         try {
             ccManager.closeSendPort(this.identifier());
         } finally {
+            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
             ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
         }
     }
 
@@ -364,8 +363,8 @@ public final class CCSendPort implements SendPort {
             } catch (ibis.ipl.IbisIOException connFailed) {
                 throw (ConnectionsFailedException) connFailed;
             } finally {
-                ccManager.lock.unlock();
-                Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
+                Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+                ccManager.lock.unlock();                
             }
         }
     }
@@ -384,9 +383,10 @@ public final class CCSendPort implements SendPort {
     public void disconnect(ReceivePortIdentifier rpi)
             throws IOException {
         synchronized (messageLock) {
-            if (currentMsg != null) {
-                throw new IOException(
-                        "Trying to disconnect while a message is alive!");
+            while (currentMsg != null) {
+                try {
+                    messageLock.wait();
+                } catch (InterruptedException ex) {}
             }
         }
         ccManager.lock.lock();
@@ -397,8 +397,8 @@ public final class CCSendPort implements SendPort {
              */
             ccManager.removeConnection(this.identifier(), rpi);
         } finally {
-            ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
+            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+            ccManager.lock.unlock();            
         }
     }
 

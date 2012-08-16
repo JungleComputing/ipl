@@ -92,7 +92,9 @@ public abstract class CCManager {
     public void end() {
         try {
             
-            CCStatistics.printStatistics(Loggers.statsLog);
+            if(CCStatistics.worthPrinting) {
+                CCStatistics.printStatistics(Loggers.statsLog);
+            }
             
             sideChannelSendPort.close();
             sideChannelReceivePort.close();

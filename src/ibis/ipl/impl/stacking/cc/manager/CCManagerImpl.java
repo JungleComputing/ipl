@@ -457,7 +457,8 @@ public abstract class CCManagerImpl extends CCManager {
         
         logReport();
         
-        Loggers.ccLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}", rpis);
+        Loggers.ccLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}. Timeout is {1} ms.",
+                new Object[] {rpis, timeoutMillis});
 
         Set<ReceivePortIdentifier> result = getSomeConnections(port,
                 rpis, aliveConn.size(), timeoutMillis, fillTimeout);
@@ -608,9 +609,9 @@ public abstract class CCManagerImpl extends CCManager {
                          * they need the lock again; but neither of them can get
                          * it, because both of them hold it here.
                          */
-                        super.lock.unlock();
-                        Loggers.lockLog.log(Level.INFO, "Lock unlocked before"
+                        Loggers.lockLog.log(Level.INFO, "Unlocking lock before"
                                 + " base sendport connection.");
+                        super.lock.unlock();
 
                         try {
                             CCStatistics.connect(port.identifier(), rpi);
@@ -640,9 +641,9 @@ public abstract class CCManagerImpl extends CCManager {
                                 + " base sendport connection.");
                         }
                     } else {
-                        super.lock.unlock();
-                        Loggers.lockLog.log(Level.INFO, "Lock unlocked before"
+                        Loggers.lockLog.log(Level.INFO, "Unlocking lock before"
                                 + " base sendport connection.");
+                        super.lock.unlock();                        
                         try {
                             CCStatistics.connect(port.identifier(), rpi);
                             port.baseSendPort.connect(rpi);
@@ -784,6 +785,8 @@ public abstract class CCManagerImpl extends CCManager {
         
         super.reservationsCondition.signalAll();
         super.gotSpaceCondition.signalAll();
+        
+        logReport();
     }
 
     @Override

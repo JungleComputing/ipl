@@ -49,10 +49,7 @@ public class Connection {
                      * This takes time.
                      */
                     port.cache(spi);
-                    
                 }
-                Loggers.lockLog.log(Level.INFO, "Base receive port connected to"
-                        + " {0} send ports.", port.recvPort.connectedTo().length);
             }
         } catch (IOException ex) {
             Loggers.ccLog.log(Level.SEVERE, "Caching failed:\t{0}", ex);
@@ -83,9 +80,9 @@ public class Connection {
         /*
          * Release the lock.
          */        
-        sendPort.ccManager.lock.unlock();
-        Loggers.lockLog.log(Level.INFO, "Lock released so that"
+        Loggers.lockLog.log(Level.INFO, "Releasing lock so that"
                 + " sendport {0} can close.", sendPort.identifier());
+        sendPort.ccManager.lock.unlock();
         
         try {
             /*
@@ -121,8 +118,8 @@ public class Connection {
             
             sendPort.ccManager.reserveLiveConnection(spi, rpi);
 
-            sendPort.ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock released so {0} can disconnect.", spi);
+            Loggers.lockLog.log(Level.INFO, "Releasing lock so {0} can disconnect.", spi);
+            sendPort.ccManager.lock.unlock();            
 
             try {
                 Loggers.ccLog.log(Level.INFO, "Base send port now disconnecting...");

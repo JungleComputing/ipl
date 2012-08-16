@@ -29,8 +29,8 @@ public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
         try {
             port.ccManager.lostConnection(sendPort.identifier(), rpi);
         } finally {
-            port.ccManager.lock.unlock();
-            Loggers.lockLog.log(Level.INFO, "Lock unlocked.");
+            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+            port.ccManager.lock.unlock();            
         }
 
         if (upcaller != null) {
