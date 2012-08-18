@@ -123,7 +123,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                         msg.finish();
                     } catch (IOException ex) {
                         Loggers.readMsgLog.log(Level.WARNING, "Base message"
-                                + " finish threw:\t{0}", ex.toString());
+                                + " finish threw:\t", ex);
                     }
                     in.notifyAll();
                 }
@@ -207,6 +207,14 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
              * the buffer/pipe will be discarded.
              */
             notifyAll();
+            
+            try {
+                currentBaseMsg.finish();
+            } catch(Throwable t) {
+                Loggers.upcallLog.log(Level.WARNING, "Exception when"
+                            + " trying to finish CCReadMsg; maybe "
+                            + "the user upcall finished it.", t);
+            }
             /*
              * Now wait until we have got all the messages, so we can
              * properly finish.

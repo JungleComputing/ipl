@@ -1,6 +1,7 @@
 package ibis.ipl.impl.stacking.cc.io;
 
 import ibis.ipl.ReadMessage;
+import ibis.ipl.impl.stacking.cc.CCReadMessage;
 import ibis.ipl.impl.stacking.cc.CCReceivePort;
 import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.EOFException;
@@ -62,8 +63,8 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                     /*
                      * Read my protocol.
                      */
-                    isLastPart = currentBaseMsg.readBoolean();
-                    remainingBytes = currentBaseMsg.readInt();
+                    isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
+                    remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
                     Loggers.readMsgLog.log(Level.INFO, "Got a message: isLastPart={1}, size={0}",
                             new Object[]{remainingBytes, isLastPart});
                 }
@@ -93,8 +94,8 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
              * Drain the next partial message.
              */
             currentBaseMsg = port.recvPort.receive();
-            isLastPart = currentBaseMsg.readBoolean();
-            remainingBytes = currentBaseMsg.readInt();
+            isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
+            remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
             Loggers.readMsgLog.log(Level.FINE, "Skipping message: isLastPart={0},"
                     + " bufSize={1}.", new Object[] {isLastPart, remainingBytes});
             skipped++;

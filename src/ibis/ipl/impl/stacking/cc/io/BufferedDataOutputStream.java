@@ -2,6 +2,7 @@ package ibis.ipl.impl.stacking.cc.io;
 
 import ibis.io.Conversion;
 import ibis.io.DataOutputStream;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cc.CCSendPort;
@@ -104,6 +105,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
 
         port.ccManager.lock.lock();
         Loggers.lockLog.log(Level.INFO, "Lock locked for streaming.");
+        byte one = 1, zero = 0;
         try {
             while (!destRpis.isEmpty()) {
                 /*
@@ -149,9 +151,28 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 WriteMessage msg = port.baseSendPort.newMessage();
                 try {
                     noMsg++;
-                    msg.writeBoolean(isLastPart);
-                    msg.writeInt(index);
-                    msg.writeArray(buffer, 0, index);
+                    msg.writeByte(isLastPart ? one : zero);
+                    msg.writeByte((byte) ((index >>> 24) & 0xff));
+                    msg.writeByte((byte) ((index >>> 16) & 0xff));
+                    msg.writeByte((byte) ((index >>> 8) & 0xff));
+                    msg.writeByte((byte) ((index) & 0xff));
+                    if (index > 0) {
+                        if (port.getPortType().hasCapability(PortType.SERIALIZATION_BYTE)) {
+                            /*
+                             * If serialization is byte only, then if we don't
+                             * write the whole array it will throw an exception.
+                             */
+                            if (index > capacity / 2) {
+                                msg.writeArray(buffer, 0, buffer.length);
+                            } else {
+                                byte[] temp = new byte[index];
+                                System.arraycopy(buffer, 0, temp, 0, index);
+                                msg.writeArray(temp, 0, temp.length);
+                            }
+                        } else {
+                            msg.writeArray(buffer, 0, index);
+                        }
+                    }
                     msg.finish();
                 } catch (IOException ex) {
                     msg.finish(ex);

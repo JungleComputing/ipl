@@ -47,8 +47,8 @@ public final class MessageUpcaller implements MessageUpcall {
     @Override
     public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
         messageDepleted = false;
-        boolean isLastPart = m.readBoolean();
-        int bufSize = m.readInt();
+        boolean isLastPart = m.readByte() == 1 ? true : false;
+        int bufSize = CCReadMessage.readIntFromBytes(m);
 
         Loggers.upcallLog.log(Level.INFO, "\n\tGot message upcall from {0}. "
                 + "isLastPart={1}, bufSize={2}",
@@ -93,7 +93,7 @@ public final class MessageUpcaller implements MessageUpcall {
                             m.finish();
                         } catch (IOException ex) {
                             Loggers.readMsgLog.log(Level.WARNING, "Base message"
-                                    + " finish threw:\t{0}", ex.toString());
+                                    + " finish threw:\t", ex);
                         }
                         recvPort.upcallDataIn.notifyAll();
                     }
@@ -146,10 +146,10 @@ public final class MessageUpcaller implements MessageUpcall {
                     }
                     Loggers.upcallLog.log(Level.INFO, "Finishing 1 logical message upcall.\n");
                     recvPort.currentLogicalReadMsg.finish();
-                } catch (Exception ex) {
+                } catch (Throwable t) {
                     Loggers.upcallLog.log(Level.WARNING, "Exception when"
                             + " trying to finish CCReadMsg; maybe "
-                            + "the user upcall finished it.", ex);
+                            + "the user upcall finished it.", t);
                 }
                 /*
                  * We are done.
@@ -180,7 +180,7 @@ public final class MessageUpcaller implements MessageUpcall {
                             m.finish();
                         } catch (IOException ex) {
                             Loggers.readMsgLog.log(Level.WARNING, "Base message"
-                                    + " finish threw:\t{0}", ex.toString());
+                                    + " finish threw:\t", ex);
                         }
                         recvPort.upcallDataIn.notifyAll();
                     }

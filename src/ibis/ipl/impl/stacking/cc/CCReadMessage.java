@@ -346,4 +346,9 @@ public class CCReadMessage implements ReadMessage {
         checkNotFinished();
         recvPort.serIn.readByteBuffer(value);
     }
+    
+    public static int readIntFromBytes(ReadMessage m) throws IOException {
+        return ((int) m.readByte() << 24) + ((m.readByte() & 0xFF) << 16) + 
+                ((m.readByte() & 0xFF) << 8) + (m.readByte() & 0xFF);
+    }
 }

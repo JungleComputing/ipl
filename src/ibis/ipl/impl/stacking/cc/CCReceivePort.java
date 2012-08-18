@@ -356,8 +356,8 @@ public final class CCReceivePort implements ReceivePort {
         ReadMessage msg = recvPort.poll();
         if (msg != null) {
             readMsgRequested = false;
-            dataIn.isLastPart = msg.readBoolean();
-            dataIn.remainingBytes = msg.readInt();
+            dataIn.isLastPart = (msg.readByte() == 1 ? true : false);
+            dataIn.remainingBytes = CCReadMessage.readIntFromBytes(msg);
             currentLogicalReadMsg = new CCReadMessage(msg, this);
             return currentLogicalReadMsg;
         }
@@ -406,8 +406,8 @@ public final class CCReceivePort implements ReceivePort {
         ReadMessage msg = recvPort.receive(timeoutMillis);
         synchronized (this) {
             readMsgRequested = false;
-            dataIn.isLastPart = msg.readBoolean();
-            dataIn.remainingBytes = msg.readInt();
+            dataIn.isLastPart = msg.readByte() == 1 ? true : false;
+            dataIn.remainingBytes = CCReadMessage.readIntFromBytes(msg);
             currentLogicalReadMsg = new CCReadMessage(msg, this);
         }
 

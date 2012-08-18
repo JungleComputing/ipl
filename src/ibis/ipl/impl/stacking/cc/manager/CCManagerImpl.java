@@ -622,7 +622,7 @@ public abstract class CCManagerImpl extends CCManager {
                         } catch (IOException ex) {
                             Loggers.ccLog.log(Level.WARNING, "Base send port "
                                     + "failed to connect to receive port. Got"
-                                    + "exception:\t{0}", ex.toString());
+                                    + "exception:\t", ex);
                             super.lock.lock();
                             try {
                                 cancelReservation(port.identifier(), rpi);
@@ -652,7 +652,7 @@ public abstract class CCManagerImpl extends CCManager {
                         } catch (IOException ex) {
                             Loggers.ccLog.log(Level.WARNING, "Base send port "
                                     + "failed to connect to receive port. Got"
-                                    + "exception:\t{0}", ex.toString());
+                                    + "exception:\t", ex);
                             super.lock.lock();
                             try {
                                 cancelReservation(port.identifier(), rpi);
