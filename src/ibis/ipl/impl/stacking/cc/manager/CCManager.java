@@ -28,7 +28,7 @@ public abstract class CCManager {
      * communication.
      */
     public static final PortType ultraLightPT = new PortType(
-//            PortType.CONNECTION_ULTRALIGHT,
+            PortType.CONNECTION_ULTRALIGHT,
             PortType.RECEIVE_AUTO_UPCALLS,
             PortType.SERIALIZATION_OBJECT,
             PortType.CONNECTION_MANY_TO_ONE);
