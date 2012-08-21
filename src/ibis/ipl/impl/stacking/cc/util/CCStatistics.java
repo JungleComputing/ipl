@@ -6,8 +6,7 @@ import ibis.ipl.impl.stacking.cc.manager.Connection;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 public class CCStatistics {
     
@@ -35,7 +34,7 @@ public class CCStatistics {
     }
     
     public static void printStatistics(Logger log) {
-        log.log(Level.INFO, getString());
+        log.info(getString());
         
 //        for (Timers timer : Timers.list) {
 //            timer.log(log);

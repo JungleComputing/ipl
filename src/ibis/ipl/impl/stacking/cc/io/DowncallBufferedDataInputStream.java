@@ -1,15 +1,19 @@
 package ibis.ipl.impl.stacking.cc.io;
 
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cc.CCReadMessage;
 import ibis.ipl.impl.stacking.cc.CCReceivePort;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.EOFException;
 import java.io.IOException;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
-
+    
+    protected final static Logger logger = 
+            LoggerFactory.getLogger(DowncallBufferedDataInputStream.class);
+    
     public DowncallBufferedDataInputStream(CCReceivePort port)
             throws IOException {
         super(port);
@@ -65,7 +69,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                      */
                     isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
                     remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
-                    Loggers.readMsgLog.log(Level.INFO, "Got a message: isLastPart={1}, size={0}",
+                    logger.debug("Got a message: isLastPart={}, size={}",
                             new Object[]{remainingBytes, isLastPart});
                 }
             }
@@ -73,7 +77,13 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
              * I have at least some remaining bytes from which to read from.
              */
             int n = Math.min(capacity - (index + buffered_bytes), remainingBytes);
-            currentBaseMsg.readArray(buffer, index + buffered_bytes, n);
+            /*
+             * When having BYTE_SERIALIZATION, if we don't read in the entire
+             * array, we get an exception.
+             */
+            byte[] temp = new byte[n];
+            currentBaseMsg.readArray(temp, 0, temp.length);
+            System.arraycopy(temp, 0, buffer, index + buffered_bytes, n);
             buffered_bytes += n;
             bytes += n;
             remainingBytes -= n;
@@ -96,12 +106,12 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
             currentBaseMsg = port.recvPort.receive();
             isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
             remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
-            Loggers.readMsgLog.log(Level.FINE, "Skipping message: isLastPart={0},"
-                    + " bufSize={1}.", new Object[] {isLastPart, remainingBytes});
+            logger.debug("Skipping message: isLastPart={},"
+                    + " bufSize={}.", new Object[] {isLastPart, remainingBytes});
             skipped++;
         }
         currentBaseMsg.finish();
-        Loggers.readMsgLog.log(Level.INFO, "Closed dataIn and pulled out {0}"
+        logger.debug("Closed dataIn and pulled out {}"
                 + " skipped messages.", skipped);
     }
 

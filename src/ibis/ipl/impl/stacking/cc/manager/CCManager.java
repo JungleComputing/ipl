@@ -5,7 +5,6 @@ import ibis.ipl.impl.stacking.cc.CCIbis;
 import ibis.ipl.impl.stacking.cc.CCSendPort;
 import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelMessageHandler;
 import ibis.ipl.impl.stacking.cc.util.CCStatistics;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -14,11 +13,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract class for different types of connection caching managers.
  */
 public abstract class CCManager {
+    
+    private final static org.slf4j.Logger logger = 
+            LoggerFactory.getLogger(CCManager.class);
     
     /**
      * Port type used for the creation of hub-based ports for the side-channel
@@ -76,32 +79,43 @@ public abstract class CCManager {
             reserveAcksCond = lock.newCondition();
             gotSpaceCondition = lock.newCondition();
             sleepCondition = lock.newCondition();
-        
-            Loggers.ccLog.log(Level.INFO, "CCManager instantiated on {0}."
-                    + "\n\tCCManager class: {2}"
-                    + "\n\tmaxConns = {1}", new Object[] {
-                        ccIbis.identifier().name(), MAX_CONNS, 
-                        this.getClass()
+
+            logger.debug("CCManager instantiated on {}."
+                    + "\n\tCCManager class: {}"
+                    + "\n\tmaxConns = {}", new Object[] {
+                        ccIbis.identifier().name(), 
+                        this.getClass(),
+                        MAX_CONNS
                     });
         } catch (IOException ex) {
-            Loggers.ccLog.log(Level.SEVERE, "Failed to properly instantiate the CCManager.", ex);
+            logger.error("Failed to properly instantiate the CCManager.", ex);
             throw new RuntimeException(ex);
         }        
     }
 
     public void end() {
+        lock.lock();
+        try {
+            while(hasAnyConnections()) {
+                try {
+                    this.gotSpaceCondition.await();
+                } catch (InterruptedException ignoreMe) {}
+            }
+        } finally {
+            lock.unlock();
+        }
+        
         try {
             
             if(CCStatistics.worthPrinting) {
-                CCStatistics.printStatistics(Loggers.statsLog);
+                CCStatistics.printStatistics(logger);
             }
             
             sideChannelSendPort.close();
             sideChannelReceivePort.close();
-            Loggers.ccLog.log(Level.INFO, "Closed the CCManager.");
+            logger.info("Closed the CCManager.");
         } catch (IOException ex) {
-            Loggers.ccLog.log(Level.SEVERE, "Failed to close the CCManager.");
-            Logger.getLogger(CCManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("Failed to close the CCManager.", ex);
         }
     }
 
@@ -132,6 +146,8 @@ public abstract class CCManager {
             SendPortIdentifier identifier);
 
     abstract public boolean hasConnections(ReceivePortIdentifier rpi);
+    
+    abstract public boolean hasAnyConnections();
 
     abstract public boolean isConnAlive(SendPortIdentifier spi,
             ReceivePortIdentifier rpi);
@@ -217,6 +233,4 @@ public abstract class CCManager {
     abstract public boolean fullConns();
     
     abstract public boolean canCache();
-
-    
 }

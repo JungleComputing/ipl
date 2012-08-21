@@ -7,14 +7,17 @@ import ibis.ipl.impl.stacking.cc.CCIbis;
 import ibis.ipl.impl.stacking.cc.CCSendPort;
 import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
 import ibis.ipl.impl.stacking.cc.util.CCStatistics;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import ibis.ipl.impl.stacking.cc.util.Timers;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class CCManagerImpl extends CCManager {
+    
+    protected final static Logger logger = 
+            LoggerFactory.getLogger(CCManagerImpl.class);
 
     protected final List<Connection> aliveConns;
 //    protected final List<Connection> fromRPLiveConns;
@@ -53,11 +56,11 @@ public abstract class CCManagerImpl extends CCManager {
 
         while (aliveReservedConns.contains(con)) {
             try {
-                Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                logger.debug("Lock will be released:"
                         + " waiting on some reservations to be"
                         + " removed.");
                 super.reservationsCondition.await();
-                Loggers.lockLog.log(Level.INFO, "Lock will reaquired.");
+                logger.debug("Lock will reaquired.");
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -85,11 +88,11 @@ public abstract class CCManagerImpl extends CCManager {
         while (aliveReservedConns.contains(con) ||
                 notAliveReservedConns.contains(con)) {
             try {
-                Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                logger.debug("Lock will be released:"
                         + " waiting on some reservations to be"
                         + " removed.");
                 super.reservationsCondition.await();
-                Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
+                logger.debug("Lock reaquired.");
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -309,11 +312,23 @@ public abstract class CCManagerImpl extends CCManager {
         }
         return false;
     }
-    
+
+    @Override
+    public boolean hasAnyConnections() {
+        if (!aliveConns.isEmpty()
+                || !cachedConns.isEmpty()
+                || !aliveReservedConns.isEmpty()
+                || !notAliveReservedConns.isEmpty()) {
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public boolean containsReservedAlive(SendPortIdentifier spi) {
-        for(Connection con : aliveReservedConns) {
-            if(con.atSendPortSide && con.contains(spi)) {
+        for (Connection con : aliveReservedConns) {
+            if (con.atSendPortSide && con.contains(spi)) {
                 return true;
             }
         }
@@ -457,7 +472,7 @@ public abstract class CCManagerImpl extends CCManager {
         
         logReport();
         
-        Loggers.ccLog.log(Level.INFO, "\n\t\tGetting some connections from:\t{0}. Timeout is {1} ms.",
+        logger.debug("\n\t\tGetting some connections from:\t{}. Timeout is {} ms.",
                 new Object[] {rpis, timeoutMillis});
 
         Set<ReceivePortIdentifier> result = getSomeConnections(port,
@@ -562,15 +577,15 @@ public abstract class CCManagerImpl extends CCManager {
                                             rpi, SideChannelProtocol.CANCEL_RESERVATION);
                                     break forLoop;
                                 }
-                                Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                                logger.debug("Lock will be released:"
                                         + " waiting on a reservation ack.");
                                 super.reserveAcksCond.await(timeout, TimeUnit.MILLISECONDS);
-                                Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
+                                logger.debug("Lock reaquired.");
                             } else {
-                                Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                                logger.debug("Lock will be released:"
                                         + " waiting on a reservation ack.");
                                 super.reserveAcksCond.await();
-                                Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
+                                logger.debug("Lock reaquired.");
                             }
                         } catch (InterruptedException ignoreMe) {
                         }
@@ -609,18 +624,18 @@ public abstract class CCManagerImpl extends CCManager {
                          * they need the lock again; but neither of them can get
                          * it, because both of them hold it here.
                          */
-                        Loggers.lockLog.log(Level.INFO, "Unlocking lock before"
+                        logger.debug("Unlocking lock before"
                                 + " base sendport connection.");
                         super.lock.unlock();
 
                         try {
                             CCStatistics.connect(port.identifier(), rpi);
                             port.baseSendPort.connect(rpi, timeout, fillTimeout);
-                            Loggers.ccLog.log(Level.INFO, "Base send port connected:\t"
-                                    + "({0}, {1}, {2})",
+                            logger.debug("Base send port connected:\t"
+                                    + "({}, {}, {})",
                                     new Object[]{rpi, timeout, fillTimeout});
                         } catch (IOException ex) {
-                            Loggers.ccLog.log(Level.WARNING, "Base send port "
+                            logger.warn("Base send port "
                                     + "failed to connect to receive port. Got"
                                     + "exception:\t", ex);
                             super.lock.lock();
@@ -637,20 +652,20 @@ public abstract class CCManagerImpl extends CCManager {
                              * Ironic, huh? locking in the finally block.
                              */
                             super.lock.lock();
-                            Loggers.lockLog.log(Level.INFO, "Lock locked after"
+                            logger.debug("Lock locked after"
                                 + " base sendport connection.");
                         }
                     } else {
-                        Loggers.lockLog.log(Level.INFO, "Unlocking lock before"
+                        logger.debug("Unlocking lock before"
                                 + " base sendport connection.");
                         super.lock.unlock();                        
                         try {
                             CCStatistics.connect(port.identifier(), rpi);
                             port.baseSendPort.connect(rpi);
-                            Loggers.ccLog.log(Level.INFO, "Base send port connected:\t"
-                                    + "({0})", rpi);
+                            logger.debug("Base send port connected:\t"
+                                    + "({})", rpi);
                         } catch (IOException ex) {
-                            Loggers.ccLog.log(Level.WARNING, "Base send port "
+                            logger.warn("Base send port "
                                     + "failed to connect to receive port. Got"
                                     + "exception:\t", ex);
                             super.lock.lock();
@@ -664,7 +679,7 @@ public abstract class CCManagerImpl extends CCManager {
                             continue forLoop;
                         } finally {
                             super.lock.lock();
-                            Loggers.lockLog.log(Level.INFO, "Lock locked after"
+                            logger.debug("Lock locked after"
                                 + " base sendport connection.");
                         }
                     }
@@ -695,8 +710,8 @@ public abstract class CCManagerImpl extends CCManager {
                      * immediatly send again than to sleep?
                      */
                     if (r.nextDouble() > 0.5) {
-                        Loggers.ccLog.log(Level.INFO, "\n\tCould not connect"
-                                + " to anyone. Sleeping now for {0}"
+                        logger.debug("\n\tCould not connect"
+                                + " to anyone. Sleeping now for {}"
                                 + " millis.", sleepMillis);
                         try {
                             long sleepDeadline = System.nanoTime() + 
@@ -946,10 +961,10 @@ public abstract class CCManagerImpl extends CCManager {
     }
 
     private void logReport() {
-        Loggers.ccLog.log(Level.FINEST, "\n\t{0} alive connections:\t{1}"
-                + "\n\t{2} cached connections:\t{3}"
-                + "\n\t{4} alive reserved connections:\t{5}"
-                + "\n\t{6} not alive reserved connections:\t{7}",
+        logger.debug("\n\t{} alive connections:\t{}"
+                + "\n\t{} cached connections:\t{}"
+                + "\n\t{} alive reserved connections:\t{}"
+                + "\n\t{} not alive reserved connections:\t{}",
                 new Object[]{aliveConns.size(), aliveConns, 
                     cachedConns.size(), cachedConns,
                     aliveReservedConns.size(), aliveReservedConns,

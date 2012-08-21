@@ -3,10 +3,13 @@ package ibis.ipl.impl.stacking.cc;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(SendPortDisconnectUpcaller.class);
 
     private final CCSendPort port;
     private final SendPortDisconnectUpcall upcaller;
@@ -21,15 +24,15 @@ public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
     public void lostConnection(SendPort sendPort, ReceivePortIdentifier rpi,
             Throwable cause) {
 
-        Loggers.conLog.log(Level.INFO, "\n\tGot lost connection at send port...");
-        Loggers.conLog.log(Level.INFO, "\tcause was:\t", cause);
+        logger.debug("\n\tGot lost connection at send port...");
+        logger.debug("\tcause was:\t", cause);
 
         port.ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        logger.debug("Lock locked.");
         try {
             port.ccManager.lostConnection(sendPort.identifier(), rpi);
         } finally {
-            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+            logger.debug("Unlocking lock.");
             port.ccManager.lock.unlock();            
         }
 

@@ -21,6 +21,8 @@ public class CCIbis implements Ibis {
     public CCManager ccManager;
     public final int buffer_capacity;
     
+    private boolean ended = false;
+    
     /*
      * Maximum number of alive connections at any time per ibis.
      */
@@ -42,6 +44,11 @@ public class CCIbis implements Ibis {
     public static final String s_caching_version = s_prefix + ".version";
     public static final String s_buffer_size = s_prefix + ".bufferSize";
     
+    /*
+     * I need to remove some capabilities in order to put the ones I need;
+     * for example: removing any serialization, and add byte_serialization.
+     */
+    static final Set<String> removablePortCapabilities;
     /**
      * These capabilities need to be added to the list of capabilites
      * the user requests.
@@ -58,11 +65,21 @@ public class CCIbis implements Ibis {
         /*
          * Enforce these capabilities on the ibis creation.
          */
+        removablePortCapabilities = new HashSet<String>();
         offeredIbisCapabilities = new HashSet<String>();
         offeredPortCapabilities = new HashSet<String>();
         additionalPortCapabilities = new HashSet<String>();
         additionalPortTypes = new HashSet<PortType>();
         
+        removablePortCapabilities.add(PortType.SERIALIZATION_DATA);
+        removablePortCapabilities.add(PortType.SERIALIZATION_OBJECT);
+        removablePortCapabilities.add(PortType.SERIALIZATION_OBJECT_IBIS);
+        removablePortCapabilities.add(PortType.SERIALIZATION_OBJECT_SUN);
+        
+        /*
+         * The buffers are only bytes.
+         */
+        additionalPortCapabilities.add(PortType.SERIALIZATION_BYTE);
         /*
          * I require this so I can handle caching connections at the
          * receive port side.
@@ -73,6 +90,7 @@ public class CCIbis implements Ibis {
          * in the right order.
          */
         additionalPortCapabilities.add(PortType.COMMUNICATION_FIFO);
+        
         /*
          * Add this port type to the ibis constructor - required for
          * the side channel.
@@ -115,6 +133,7 @@ public class CCIbis implements Ibis {
         for(int i = 0; i < portTypes.length; i++) {
             Set<String> portCap = new HashSet<String>(Arrays.asList(
                     portTypes[i].getCapabilities()));
+            portCap.removeAll(removablePortCapabilities);
             portCap.addAll(additionalPortCapabilities);
             newPorts[i] = new PortType(portCap.toArray(new String[portCap.size()]));
         }
@@ -171,6 +190,7 @@ public class CCIbis implements Ibis {
             Class clazz = Class.forName(fullyQualName);
             Class[] paramTypes = {CCIbis.class, int.class};
             Object[] params = {this, maxConns};
+            @SuppressWarnings("unchecked") 
             Constructor c = clazz.getConstructor(paramTypes);
             ccManager = (CCManager) c.newInstance(params);
         } catch (Exception ex) {
@@ -179,9 +199,16 @@ public class CCIbis implements Ibis {
     }
 
     @Override
-    public void end() throws IOException {
+    public void end() throws IOException {        
+        synchronized (this) {
+            if (ended) {
+                return;
+            }
+            ended = true;
+        }
+        
         ccManager.end();
-        baseIbis.end();
+        baseIbis.end();        
     }
 
     @Override

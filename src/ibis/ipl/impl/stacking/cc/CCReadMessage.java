@@ -4,14 +4,17 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.util.Iterator;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CCReadMessage implements ReadMessage {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(CCReadMessage.class);
 
     /*
      * The port which will give me base ReadMessages.
@@ -29,8 +32,8 @@ public class CCReadMessage implements ReadMessage {
         
         port.dataIn.currentBaseMsg = m;
         
-        Loggers.readMsgLog.log(Level.INFO, "{0}: Read message created.", port);
-        Loggers.readMsgLog.log(Level.FINE, "isLastPart={0}, bufSize={1}",
+        logger.debug("{}: Read message created.", port);
+        logger.debug("isLastPart={}, bufSize={}",
                 new Object[] {port.dataIn.isLastPart, port.dataIn.remainingBytes});
     }
 
@@ -43,17 +46,19 @@ public class CCReadMessage implements ReadMessage {
 
     @Override
     public long finish() throws IOException {
-        checkNotFinished();
-        Loggers.readMsgLog.log(Level.INFO, "Finishing read message from {0}.",
+        long retVal = bytesRead();
+        if(this.isFinished) {
+            return retVal;
+        }
+        logger.debug("Finishing read message from {}.",
                 this.origin());
         recvPort.dataIn.finish();
-        isFinished = true;
-        long retVal = bytesRead();
+        isFinished = true;        
         synchronized (recvPort) {
             recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
             
-            Loggers.readMsgLog.log(Level.INFO, "\n\tRead message from {0} finished.",
+            logger.debug("\n\tRead message from {} finished.",
                     this.origin());
 
             /*
@@ -101,7 +106,7 @@ public class CCReadMessage implements ReadMessage {
         synchronized (recvPort) {
             recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
-            Loggers.readMsgLog.log(Level.INFO, "Read message finished:\t{0}",e.toString());
+            logger.debug("Read message finished:\t{}",e.toString());
 
             /*
              * Need to send signal to the next in line send port who wishes to

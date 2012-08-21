@@ -7,14 +7,17 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cc.CCSendPort;
 import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import ibis.ipl.impl.stacking.cc.util.Timers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BufferedDataOutputStream extends DataOutputStream {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(BufferedDataOutputStream.class);
     /*
      * The send port which generates for me new WriteMessages. I need them so I
      * can ship my buffer to the various receive ports.
@@ -73,7 +76,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * Send to all the connected receive ports the message built so far.
      */
     private void stream(boolean isLastPart) throws IOException {
-        Loggers.writeMsgLog.log(Level.FINE, "Now streaming buffer size: {0}",
+        logger.debug("Now streaming buffer size: {}",
                 index);
         Timers.streamTimer.start();
 
@@ -93,7 +96,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
          */
         iWantYouToReadFromMe(destRpis);
 
-        Loggers.ccLog.log(Level.INFO, "Waiting for replies from {0} recv ports...",
+        logger.debug("Waiting for replies from {} recv ports...",
                 destRpis.size());
 
         /*
@@ -101,18 +104,17 @@ public class BufferedDataOutputStream extends DataOutputStream {
          * incoming message from us.
          */
         waitForAllRepliesFrom(destRpis);
-        Loggers.ccLog.log(Level.INFO, "Got all replies.");
+        logger.debug("Got all replies.");
 
         port.ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked for streaming.");
-        byte one = 1, zero = 0;
+        logger.debug("Lock locked for streaming.");
         try {
             while (!destRpis.isEmpty()) {
                 /*
                  * I need to wait for any reserved alive connection to be
                  * handled.
                  */
-                Loggers.lockLog.log(Level.FINE, "Lock will be released:"
+                logger.debug("Lock will be released:"
                         + " waiting on live reserved connections...");
                 while (port.ccManager.containsReservedAlive(port.identifier())) {
                     try {
@@ -120,7 +122,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                     } catch (InterruptedException ignoreMe) {
                     }
                 }
-                Loggers.lockLog.log(Level.FINE, "Lock reaquired.");
+                logger.debug("Lock reaquired.");
                 /*
                  * I can send the message only to the rpis from gotAttention.
                  * Any other rpi to which I'm currently connected cannot and
@@ -151,36 +153,30 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 WriteMessage msg = port.baseSendPort.newMessage();
                 try {
                     noMsg++;
-                    msg.writeByte(isLastPart ? one : zero);
+                    msg.writeByte(isLastPart ? (byte) 1 : (byte) 0);
                     msg.writeByte((byte) ((index >>> 24) & 0xff));
                     msg.writeByte((byte) ((index >>> 16) & 0xff));
                     msg.writeByte((byte) ((index >>> 8) & 0xff));
                     msg.writeByte((byte) ((index) & 0xff));
                     if (index > 0) {
-                        if (port.getPortType().hasCapability(PortType.SERIALIZATION_BYTE)) {
-                            /*
-                             * If serialization is byte only, then if we don't
-                             * write the whole array it will throw an exception.
-                             */
-                            if (index > capacity / 2) {
-                                msg.writeArray(buffer, 0, buffer.length);
-                            } else {
-                                byte[] temp = new byte[index];
-                                System.arraycopy(buffer, 0, temp, 0, index);
-                                msg.writeArray(temp, 0, temp.length);
-                            }
-                        } else {
-                            msg.writeArray(buffer, 0, index);
-                        }
+                        /*
+                         * When serialization is byte only, then if we don't
+                         * write the whole array it will throw an exception.
+                         * just look in ibis.io.ByteSerializationOutputStream, line 94.
+                         * kinda useless, if you ask me.
+                         */
+                        byte[] temp = new byte[index];
+                        System.arraycopy(buffer, 0, temp, 0, index);
+                        msg.writeArray(temp, 0, temp.length);
                     }
                     msg.finish();
                 } catch (IOException ex) {
                     msg.finish(ex);
-                    Loggers.writeMsgLog.log(Level.SEVERE, "Failed to write {0} bytes message "
-                            + "to {1} ports.\n", new Object[]{index, destRpis.size()});
+                    logger.error("Failed to write {} bytes message "
+                            + "to {} ports.\n", new Object[]{index, destRpis.size()});
                 }
-                Loggers.writeMsgLog.log(Level.INFO, "\tWrite msg finished. "
-                        + "Sent: ({0}, {1}).\n",
+                logger.debug("\tWrite msg finished. "
+                        + "Sent: ({}, {}).\n",
                         new Object[]{isLastPart, index});
 
                 /*
@@ -192,11 +188,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 }
             }
         } finally {
-            Loggers.lockLog.log(Level.INFO, "Releasing lock in stream.");
+            logger.debug("Releasing lock in stream.");
             port.ccManager.lock.unlock();
         }
-        Loggers.writeMsgLog.log(Level.INFO, "Streaming finished to all destined"
-                + " rpis.");
+        logger.debug("Streaming finished to all destined rpis.");
         Timers.streamTimer.stop();
         /*
          * Buffer is sent to everyone. Clear it.
@@ -241,7 +236,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 seqNo = port.ccIbis.registry().getMultipleSequenceNumbers(rpiNames);
 
                 for (int i = 0; i < rpiNames.length; i++) {
-                    Loggers.ccLog.log(Level.FINE, "{0} has seqNo:\t{1}",
+                    logger.debug("{} has seqNo:\t{}",
                             new Object[]{rpiNames[i], seqNo[i]});
                 }
             } else {
@@ -287,8 +282,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
         synchronized (yourReadMessageIsAliveFromMeSet) {
             result = new HashSet<ReceivePortIdentifier>(yourReadMessageIsAliveFromMeSet);
             result.retainAll(rpis);
-            Loggers.ccLog.log(Level.FINEST, "RPs reading my msgs: {0}", yourReadMessageIsAliveFromMeSet);
-            Loggers.ccLog.log(Level.FINEST, "Temporary result is: {0}", result);
+            logger.debug("RPs reading my msgs: {}", yourReadMessageIsAliveFromMeSet);
+            logger.debug("Temporary result is: {}", result);
 
             while (result.size() < rpis.size()) {
                 try {
@@ -300,8 +295,8 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 result.clear();
                 result.addAll(yourReadMessageIsAliveFromMeSet);
                 result.retainAll(rpis);
-                Loggers.ccLog.log(Level.FINEST, "RPs reading my msgs:: {0}", yourReadMessageIsAliveFromMeSet);
-                Loggers.ccLog.log(Level.FINEST, "Temporary result is:: {0}", result);
+                logger.debug("RPs reading my msgs:: {}", yourReadMessageIsAliveFromMeSet);
+                logger.debug("Temporary result is:: {}", result);
             }
         }
     }
@@ -309,16 +304,16 @@ public class BufferedDataOutputStream extends DataOutputStream {
     @Override
     public void flush() throws IOException {
         stream(false);
-        Loggers.writeMsgLog.log(Level.INFO, "\tFlushed {0} intermediate messages to"
-                + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});
+        logger.debug("\tFlushed {} intermediate messages to"
+                + " {} ports.\n", new Object[]{noMsg, port.connectedTo().length});
         noMsg = 0;
     }
 
     @Override
     public void close() throws IOException {
         stream(true);
-        Loggers.writeMsgLog.log(Level.INFO, "\tStreamed {0} intermediate messages to"
-                + " {1} ports.\n", new Object[]{noMsg, port.connectedTo().length});
+        logger.debug("\tStreamed {} intermediate messages to"
+                + " {} ports.\n", new Object[]{noMsg, port.connectedTo().length});
         noMsg = 0;
     }
 

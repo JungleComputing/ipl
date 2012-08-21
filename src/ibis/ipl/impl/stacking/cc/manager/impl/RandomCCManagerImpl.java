@@ -3,9 +3,7 @@ package ibis.ipl.impl.stacking.cc.manager.impl;
 import ibis.ipl.impl.stacking.cc.CCIbis;
 import ibis.ipl.impl.stacking.cc.manager.CCManagerImpl;
 import ibis.ipl.impl.stacking.cc.manager.Connection;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.util.Random;
-import java.util.logging.Level;
 
 public class RandomCCManagerImpl extends CCManagerImpl {
 
@@ -29,7 +27,7 @@ public class RandomCCManagerImpl extends CCManagerImpl {
                 && (!canceledReservations.contains(conn))
                 && super.fullConns()) {
             try {
-                Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                logger.debug("Lock will be released:"
                         + " waiting for: "
                         + "a live connection to be available for caching"
                         + " OR "
@@ -37,7 +35,7 @@ public class RandomCCManagerImpl extends CCManagerImpl {
                         + " OR "
                         + "for a cancelation.");
                 super.gotSpaceCondition.await();
-                Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
+                logger.debug("Lock reaquired.");
             } catch (InterruptedException ignoreMe) {
             }
         }
@@ -47,9 +45,6 @@ public class RandomCCManagerImpl extends CCManagerImpl {
             return null;
         }
         
-        Loggers.ccLog.log(Level.FINER, "RandomCaching: random caching from a list of {0}"
-                + " alive connections.",  aliveConns.size());
-
         int idx = r.nextInt(aliveConns.size());
         Connection con = aliveConns.get(idx);
         con.cache(heKnows);

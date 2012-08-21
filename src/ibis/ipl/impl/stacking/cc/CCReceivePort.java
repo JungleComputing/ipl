@@ -8,15 +8,18 @@ import ibis.ipl.impl.stacking.cc.io.DowncallBufferedDataInputStream;
 import ibis.ipl.impl.stacking.cc.io.UpcallBufferedDataInputStream;
 import ibis.ipl.impl.stacking.cc.manager.CCManager;
 import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class CCReceivePort implements ReceivePort {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(CCReceivePort.class);
 
     /**
      * Static variable which is incremented every time an anonymous (nameless)
@@ -121,11 +124,12 @@ public final class CCReceivePort implements ReceivePort {
         }
 
         /*
-         * Add whatever additional port capablities are required. i.e.
-         * CONNECTION_UPCALLS
+         * Remove and add whatever additional port capablities are required. 
+         * i.e. add CONNECTION_UPCALLS.
          */
         Set<String> portCap = new HashSet<String>(Arrays.asList(
                 portType.getCapabilities()));
+        portCap.removeAll(CCIbis.removablePortCapabilities);
         portCap.addAll(CCIbis.additionalPortCapabilities);
         PortType wrapperPortType = new PortType(portCap.toArray(
                 new String[portCap.size()]));
@@ -180,7 +184,7 @@ public final class CCReceivePort implements ReceivePort {
      */
     public void cache(SendPortIdentifier spi) throws IOException {
         ccManager.reserveLiveConnection(this.identifier(), spi);
-        Loggers.lockLog.log(Level.INFO, "Releasing lock before"
+        logger.debug("Releasing lock before"
                 + " caching initiation from RP.");
         ccManager.lock.unlock();
 
@@ -204,15 +208,10 @@ public final class CCReceivePort implements ReceivePort {
             }
         } finally {
             ccManager.lock.lock();
-            Loggers.lockLog.log(Level.INFO, "Lock reaquired and connection is "
+            logger.debug("Lock reaquired and connection is "
                     + "cached.");
             ccManager.unReserveLiveConnection(this.identifier(), spi);
         }
-        String trace = "";
-        for (StackTraceElement el : Thread.currentThread().getStackTrace()) {
-            trace += "\n\t" + el.toString();
-        }
-        Loggers.conLog.log(Level.FINEST, "Stack trace: {0}", trace);
     }
 
     @Override
@@ -231,13 +230,13 @@ public final class CCReceivePort implements ReceivePort {
             deadline = System.currentTimeMillis() + timeoutMillis;
         }
         
-        Loggers.conLog.log(Level.INFO, "Closing receive port\t{0}", this.identifier());
+        logger.debug("Closing receive port\t{}", this.identifier());
         
         /*
          * Wait until all logically alive connections are closed.
          */
         ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        logger.debug("Lock locked.");
         try {
             if (closed) {
                 return;
@@ -247,20 +246,20 @@ public final class CCReceivePort implements ReceivePort {
             while (ccManager.hasConnections(this.identifier()) && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
-                    Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                    logger.debug("Lock will be released:"
                             + " waiting on connections to be closed.");
                     ccManager.allClosedCondition.await(
                             deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-                    Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
+                    logger.debug("Lock reaquired.");
                 } catch (InterruptedException ignoreMe) {
                 }
             }
         } finally {
-            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+            logger.debug("Unlocking lock.");
             ccManager.lock.unlock();
         }
         
-        Loggers.conLog.log(Level.INFO, "{0} is closing base receive port...",
+        logger.debug("{} is closing base receive port...",
                 this.identifier());
         timeoutMillis = deadline - System.currentTimeMillis();
         if(timeoutMillis == 0) {
@@ -272,11 +271,11 @@ public final class CCReceivePort implements ReceivePort {
     @Override
     public SendPortIdentifier[] connectedTo() {
         ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        logger.debug("Lock locked.");
         try {
             return ccManager.allSpisFrom(this.identifier());
         } finally {
-            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+            logger.debug("Unlocking lock.");
             ccManager.lock.unlock();
         }
     }

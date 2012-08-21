@@ -3,11 +3,9 @@ package ibis.ipl.impl.stacking.cc.manager.impl;
 import ibis.ipl.impl.stacking.cc.CCIbis;
 import ibis.ipl.impl.stacking.cc.manager.CCManagerImpl;
 import ibis.ipl.impl.stacking.cc.manager.Connection;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
-import java.util.logging.Level;
 
 public class LruCCManagerImpl extends CCManagerImpl {
-
+    
     /*
      * When caching, the recv port doesn't know we will cache the connection.
      */
@@ -26,7 +24,7 @@ public class LruCCManagerImpl extends CCManagerImpl {
                 && (!canceledReservations.contains(conn))
                 && super.fullConns()) {
             try {
-                Loggers.lockLog.log(Level.INFO, "Lock will be released:"
+                logger.debug("Lock will be released:"
                         + " waiting for: "
                         + "a live connection to be available for caching"
                         + " OR "
@@ -34,7 +32,7 @@ public class LruCCManagerImpl extends CCManagerImpl {
                         + " OR "
                         + "for a cancelation.");
                 super.gotSpaceCondition.await();
-                Loggers.lockLog.log(Level.INFO, "Lock reaquired.");
+                logger.debug("Lock reaquired.");
             } catch (InterruptedException ignoreMe) {
             }
         }

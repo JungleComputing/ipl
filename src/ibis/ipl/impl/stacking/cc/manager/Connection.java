@@ -6,16 +6,19 @@ import ibis.ipl.impl.stacking.cc.CCReceivePort;
 import ibis.ipl.impl.stacking.cc.CCSendPort;
 import ibis.ipl.impl.stacking.cc.sidechannel.SideChannelProtocol;
 import ibis.ipl.impl.stacking.cc.util.CCStatistics;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper class for a pair of sendport and receive port identifiers.
  */
 public class Connection {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(Connection.class);
 
     final SendPortIdentifier spi;
     final ReceivePortIdentifier rpi;
@@ -37,7 +40,7 @@ public class Connection {
 
     public void cache(boolean heKnows) {
         try {
-            Loggers.ccLog.log(Level.INFO, "Caching connection\t{0}.", this.toString());
+            logger.debug("Caching connection\t{}.", this.toString());
             if (atSendPortSide) {
                 CCSendPort port = CCSendPort.map.get(spi);
                 port.cache(rpi, heKnows);
@@ -52,7 +55,7 @@ public class Connection {
                 }
             }
         } catch (IOException ex) {
-            Loggers.ccLog.log(Level.SEVERE, "Caching failed:\t{0}", ex);
+            logger.error("Caching failed:\t{}", ex);
         }
     }
     
@@ -80,29 +83,29 @@ public class Connection {
         /*
          * Release the lock.
          */        
-        Loggers.lockLog.log(Level.INFO, "Releasing lock so that"
-                + " sendport {0} can close.", sendPort.identifier());
+        logger.debug("Releasing lock so that"
+                + " sendport {} can close.", sendPort.identifier());
         sendPort.ccManager.lock.unlock();
         
         try {
             /*
              * Close now.
              */
-            Loggers.ccLog.log(Level.INFO, "Base send port now closing...");
+            logger.debug("Base send port now closing...");
             for(ReceivePortIdentifier rpi : sendPort.baseSendPort.connectedTo()) {
                 CCStatistics.remove(sendPort.identifier(), rpi);
             }
             sendPort.baseSendPort.close();
-            Loggers.ccLog.log(Level.INFO, "Base send port now closed.");
+            logger.debug("Base send port now closed.");
         } catch (Exception ex) {
-            Loggers.conLog.log(Level.SEVERE, "Failed to close send port "
+            logger.error("Failed to close send port "
                     + sendPort.identifier(), ex);
         } finally {
             /*
              * Reaquire the lock.
              */
             sendPort.ccManager.lock.lock();
-            Loggers.lockLog.log(Level.INFO, "{0} reaquired the lock.", sendPort.identifier());
+            logger.debug("{} reaquired the lock.", sendPort.identifier());
             /*
              * Move back connections.
              */
@@ -118,23 +121,23 @@ public class Connection {
             
             sendPort.ccManager.reserveLiveConnection(spi, rpi);
 
-            Loggers.lockLog.log(Level.INFO, "Releasing lock so {0} can disconnect.", spi);
+            logger.debug("Releasing lock so {} can disconnect.", spi);
             sendPort.ccManager.lock.unlock();            
 
             try {
-                Loggers.ccLog.log(Level.INFO, "Base send port now disconnecting...");
+                logger.debug("Base send port now disconnecting...");
                 CCStatistics.remove(sendPort.identifier(), rpi);
                 sendPort.baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
-                Loggers.ccLog.log(Level.INFO, "Base send port now connected"
-                        + " to {0} recv ports.", sendPort.baseSendPort.connectedTo().length);
+                logger.debug("Base send port now connected"
+                        + " to {} recv ports.", sendPort.baseSendPort.connectedTo().length);
             } catch (Exception ex) {
-                Loggers.ccLog.log(Level.SEVERE, "Base send port "
+                logger.error("Base send port "
                         + spi + " failed to "
                         + "properly disconnect from "
                         + rpi + ".", ex);
             } finally {
                 sendPort.ccManager.lock.lock();
-                Loggers.lockLog.log(Level.INFO, "{0} reaquired lock.", spi);
+                logger.debug("{} reaquired lock.", spi);
                 sendPort.ccManager.unReserveLiveConnection(spi, rpi);
             }
         } else {

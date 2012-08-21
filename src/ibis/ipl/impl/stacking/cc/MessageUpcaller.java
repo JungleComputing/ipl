@@ -2,16 +2,19 @@ package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class handles message upcalls.
  */
 public final class MessageUpcaller implements MessageUpcall {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(MessageUpcaller.class);
 
     /*
      * The user defined message upcaller.
@@ -50,15 +53,15 @@ public final class MessageUpcaller implements MessageUpcall {
         boolean isLastPart = m.readByte() == 1 ? true : false;
         int bufSize = CCReadMessage.readIntFromBytes(m);
 
-        Loggers.upcallLog.log(Level.INFO, "\n\tGot message upcall from {0}. "
-                + "isLastPart={1}, bufSize={2}",
+        logger.debug("\n\tGot message upcall from {}. "
+                + "isLastPart={}, bufSize={}",
                 new Object[]{m.origin(), isLastPart, bufSize});
 
         /*
          * This is a logically new message.
          */
         if (wasLastPart) {
-            Loggers.upcallLog.log(Level.INFO, "\n\tNew logical message from {0}", m.origin());
+            logger.debug("\n\tNew logical message from {}", m.origin());
             /*
              * Block until the old logical message has finished.
              */
@@ -92,7 +95,7 @@ public final class MessageUpcaller implements MessageUpcall {
                         try {
                             m.finish();
                         } catch (IOException ex) {
-                            Loggers.readMsgLog.log(Level.WARNING, "Base message"
+                            logger.warn("Base message"
                                     + " finish threw:\t", ex);
                         }
                         recvPort.upcallDataIn.notifyAll();
@@ -120,9 +123,9 @@ public final class MessageUpcaller implements MessageUpcall {
                 /*
                  * User upcall.
                  */
-                Loggers.upcallLog.log(Level.INFO, "Calling user upcall...");
+                logger.debug("Calling user upcall...");
                 upcaller.upcall(recvPort.currentLogicalReadMsg);
-                Loggers.upcallLog.log(Level.INFO, "User upcall finished.");
+                logger.debug("User upcall finished.");
 
                 /*
                  * User upcall finished. Either the message was finished inside
@@ -134,9 +137,9 @@ public final class MessageUpcaller implements MessageUpcall {
                 try {
                     synchronized (recvPort.upcallDataIn) {
                         while (!gotLastPart || !messageDepleted) {
-                            Loggers.upcallLog.log(Level.INFO, "I want to finish"
-                                    + " the read message, but gotLastPart={0},"
-                                    + " messageDepleted={1}",
+                            logger.debug("I want to finish"
+                                    + " the read message, but gotLastPart={},"
+                                    + " messageDepleted={}",
                                     new Object[]{gotLastPart, messageDepleted});
                             try {
                                 recvPort.upcallDataIn.wait();
@@ -144,12 +147,12 @@ public final class MessageUpcaller implements MessageUpcall {
                             }
                         }
                     }
-                    Loggers.upcallLog.log(Level.INFO, "Finishing 1 logical message upcall.\n");
+                    logger.debug("Finishing 1 logical message upcall.\n");
                     recvPort.currentLogicalReadMsg.finish();
                 } catch (Throwable t) {
-                    Loggers.upcallLog.log(Level.WARNING, "Exception when"
+                    logger.debug("Exception when"
                             + " trying to finish CCReadMsg; maybe "
-                            + "the user upcall finished it.", t);
+                            + "the user upcall finished it. Details: ", t);
                 }
                 /*
                  * We are done.
@@ -179,7 +182,7 @@ public final class MessageUpcaller implements MessageUpcall {
                         try {
                             m.finish();
                         } catch (IOException ex) {
-                            Loggers.readMsgLog.log(Level.WARNING, "Base message"
+                            logger.warn("Base message"
                                     + " finish threw:\t", ex);
                         }
                         recvPort.upcallDataIn.notifyAll();
@@ -209,7 +212,7 @@ public final class MessageUpcaller implements MessageUpcall {
             synchronized (recvPort.upcallDataIn) {
                 while (!messageDepleted) {
                     try {
-                        Loggers.upcallLog.log(Level.INFO, "Waiting on current "
+                        logger.debug("Waiting on current "
                                 + "streamed message to be depleted and "
                                 + "current logical message to be finished...");
                         recvPort.upcallDataIn.wait();

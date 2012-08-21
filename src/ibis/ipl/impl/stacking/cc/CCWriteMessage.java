@@ -1,13 +1,16 @@
 package ibis.ipl.impl.stacking.cc;
 
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class CCWriteMessage implements WriteMessage {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(CCWriteMessage.class);
     
     /*
      * SendPort used to generate base WriteMessages.
@@ -20,7 +23,7 @@ public final class CCWriteMessage implements WriteMessage {
 
     public CCWriteMessage(CCSendPort sendPort) throws IOException {        
         this.port = sendPort;
-        Loggers.writeMsgLog.log(Level.INFO, "Created CCWriteMessage; writing to {0}",
+        logger.debug("Created CCWriteMessage; writing to {}",
                 Arrays.asList(sendPort.connectedTo()));
         this.port.serOut.reset(true);
     }
@@ -79,13 +82,13 @@ public final class CCWriteMessage implements WriteMessage {
     public long finish() throws IOException {
         checkNotFinished();
         
-        Loggers.writeMsgLog.log(Level.INFO, "Finishing a write message from"
-                + " {0}", this.port.identifier());
+        logger.debug("Finishing a write message from"
+                + " {}", this.port.identifier());
         
         port.serOut.flush();
         port.dataOut.close();
         
-        Loggers.writeMsgLog.log(Level.INFO, "Finished writing a message from {0}.",
+        logger.debug("Finished writing a message from {}.",
                 port.identifier());
 
         synchronized(port.messageLock) {
@@ -114,7 +117,7 @@ public final class CCWriteMessage implements WriteMessage {
         } catch (IOException ignoreMe) {
         }
         
-        Loggers.writeMsgLog.log(Level.INFO, "{0} has finished a write message.",
+        logger.debug("{} has finished a write message.",
                 port.identifier());
 
         synchronized (port.messageLock) {

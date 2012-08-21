@@ -4,14 +4,17 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.cc.util.CCStatistics;
-import ibis.ipl.impl.stacking.cc.util.Loggers;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class forwards upcalls with the proper receive port.
  */
 public class ReceivePortConnectionUpcaller
         implements ReceivePortConnectUpcall {
+    
+    private final static Logger logger = 
+            LoggerFactory.getLogger(ReceivePortConnectionUpcaller.class);
 
     CCReceivePort recvPort;
     ReceivePortConnectUpcall upcaller;
@@ -25,28 +28,28 @@ public class ReceivePortConnectionUpcaller
     @Override
     public boolean gotConnection(ReceivePort me,
             SendPortIdentifier spi) {
-        Loggers.conLog.log(Level.INFO, "\t{0} got connection from {1}", 
+        logger.debug("\t{} got connection from {}", 
                 new Object[] {recvPort.identifier(), spi});
 
         boolean accepted = true;
 
         recvPort.ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "Lock locked.");
+        logger.debug("Lock locked.");
         try {
             if (recvPort.ccManager.isConnCached(this.recvPort.identifier(), spi)) {
-                Loggers.conLog.log(Level.INFO, "\t\trestoring from {0}\n", spi);
+                logger.debug("\t\trestoring from {}\n", spi);
                 // connection was cached
                 recvPort.ccManager.restoreReservedConnection(recvPort.identifier(), spi);
             } else {
                 if (upcaller != null) {
                     accepted = upcaller.gotConnection(recvPort, spi);
                 }
-                Loggers.conLog.log(Level.INFO, "\t\tnew from {0}\n", spi);
+                logger.debug("\t\tnew from {}\n", spi);
                 // new connection
                 recvPort.ccManager.activateReservedConnection(recvPort.identifier(), spi);
             }
         } finally {
-            Loggers.lockLog.log(Level.INFO, "Unlocking lock.");
+            logger.debug("Unlocking lock.");
             recvPort.ccManager.lock.unlock();            
         }
         
@@ -74,16 +77,16 @@ public class ReceivePortConnectionUpcaller
     @Override
     public void lostConnection(ReceivePort me,
             SendPortIdentifier spi, Throwable reason) {
-        Loggers.conLog.log(Level.INFO, "\n\t{0} got lost connection to {1}",
+        logger.debug("\n\t{} got lost connection to {}",
                 new Object[]{recvPort.identifier(), spi});
         if (reason != null) {
-            Loggers.conLog.log(Level.WARNING, "\tbecause of cause:\t", reason);
+            logger.warn("\tbecause of cause:\t", reason);
         }
         
         boolean isCached = false;
 
         recvPort.ccManager.lock.lock();
-        Loggers.lockLog.log(Level.INFO, "\n\tLock locked. me={0}", recvPort.identifier());
+        logger.debug("\n\tLock locked. me={}", recvPort.identifier());
         try {
             /*
              * Sync-ed because the place from where the caching was initiated
@@ -92,9 +95,9 @@ public class ReceivePortConnectionUpcaller
              */
             synchronized (recvPort.cachingInitiatedByMeSet) {
                 if (recvPort.cachingInitiatedByMeSet.contains(spi)) {
-                    Loggers.conLog.log(Level.INFO, "Got lost connection"
+                    logger.debug("Got lost connection"
                             + " initiated by me. Connection now trully cached"
-                            + " from {0} to {1}.",
+                            + " from {} to {}.",
                             new Object[]{spi, recvPort.identifier()});
                     /*
                      * The connection is cached because I wanted it cached.
@@ -120,8 +123,8 @@ public class ReceivePortConnectionUpcaller
                 recvPort.ccManager.unReserveLiveToCacheConnection(recvPort.identifier(), spi);
                 recvPort.toBeCachedSet.remove(spi);
                 
-                Loggers.conLog.log(Level.INFO, "Got lost connection. This"
-                        + " connection will be cached because the send port {0} "
+                logger.debug("Got lost connection. This"
+                        + " connection will be cached because the send port {} "
                         + " asked it.", spi);
 
                 isCached = true;
@@ -141,14 +144,14 @@ public class ReceivePortConnectionUpcaller
              */
             recvPort.ccManager.removeConnection(recvPort.identifier(), spi);
             if (upcaller != null) {
-                Loggers.conLog.log(Level.FINE, "Lost connection user upcall starting...");
+                logger.debug("Lost connection user upcall starting...");
                 upcaller.lostConnection(recvPort, spi, reason);
-                Loggers.conLog.log(Level.FINE, "Lost connection user upcall finished.");
+                logger.debug("Lost connection user upcall finished.");
             }
             
             CCStatistics.remove(recvPort.identifier(), spi);
         } finally {
-            Loggers.lockLog.log(Level.INFO, "Unlocking lock...");
+            logger.debug("Unlocking lock...");
             recvPort.ccManager.lock.unlock();
         }
     }
