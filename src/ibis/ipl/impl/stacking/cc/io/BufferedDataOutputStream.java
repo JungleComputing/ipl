@@ -2,7 +2,6 @@ package ibis.ipl.impl.stacking.cc.io;
 
 import ibis.io.Conversion;
 import ibis.io.DataOutputStream;
-import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.cc.CCSendPort;

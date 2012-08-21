@@ -1,6 +1,5 @@
 package ibis.ipl.impl.stacking.cc.io;
 
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.cc.CCReceivePort;
 import java.io.IOException;

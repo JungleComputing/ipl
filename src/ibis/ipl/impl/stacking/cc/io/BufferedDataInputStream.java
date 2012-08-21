@@ -3,14 +3,11 @@ package ibis.ipl.impl.stacking.cc.io;
 import ibis.io.Conversion;
 import ibis.io.DataInputStream;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.impl.stacking.cc.CCIbis;
 import ibis.ipl.impl.stacking.cc.CCReceivePort;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class BufferedDataInputStream extends DataInputStream{
 
