@@ -221,7 +221,7 @@ final class CommunicationHandler implements Runnable {
                     virtualSocketFactory);
         } catch (IOException e) {
             throw new IbisConfigurationException("Cannot connect to server at "
-                    + serverAddress + ", please check if it has been started");
+                    + serverAddress + ", please check if it has been started", e);
         }
 
         if (logger.isDebugEnabled()) {
