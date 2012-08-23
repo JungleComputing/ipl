@@ -71,13 +71,15 @@ public class CCIbis implements Ibis {
         additionalPortCapabilities = new HashSet<String>();
         additionalPortTypes = new HashSet<PortType>();
         
+        removablePortCapabilities.add(PortType.SERIALIZATION_BYTE);
         removablePortCapabilities.add(PortType.SERIALIZATION_DATA);
         removablePortCapabilities.add(PortType.SERIALIZATION_OBJECT);
         removablePortCapabilities.add(PortType.SERIALIZATION_OBJECT_IBIS);
         removablePortCapabilities.add(PortType.SERIALIZATION_OBJECT_SUN);
         
         /*
-         * The buffers are only bytes.
+         * The buffers are only bytes. but I need to debug it cause I
+         * have some problems, but no time, so put ser_data.
          */
         additionalPortCapabilities.add(PortType.SERIALIZATION_BYTE);
         /*
@@ -208,7 +210,7 @@ public class CCIbis implements Ibis {
         }
         
         ccManager.end();
-        baseIbis.end();        
+        baseIbis.end();
     }
 
     @Override

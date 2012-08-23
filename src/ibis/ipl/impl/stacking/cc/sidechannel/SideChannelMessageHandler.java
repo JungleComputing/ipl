@@ -31,10 +31,12 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         map.put(READ_MY_MESSAGE, "READ_MY_MESSAGE");
         map.put(GIVE_ME_YOUR_MESSAGE, "GIVE_ME_YOUR_MESSAGE");
     }
+    
+    public int noOfSideMsgsToSend;
 
     public SideChannelMessageHandler(CCManager manager) {
         this.ccManager = manager;
-        
+        noOfSideMsgsToSend = 0;        
     }
 
     @Override
@@ -52,10 +54,11 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         CCSendPort sp = CCSendPort.map.get(spi);
 
         logger.debug("\tGot side-message: \t["
-                + "({}-{}, {}-{}), OPCODE = {}]",
+                + "({}-{}, {}-{}), OPCODE = {}"
+                + (opcode == READ_MY_MESSAGE ? ", seqNo = {}]" : "]"),
                 new Object[]{spi.name(), spi.ibisIdentifier().name(),
                     rpi.name(), rpi.ibisIdentifier().name(), 
-                    map.get(opcode)});
+                    map.get(opcode), seqNo});
 
         switch (opcode) {
             /*
@@ -260,6 +263,10 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                                     + "and I will handle this"
                                     + " message later.");
                         }
+                        if (!rp.isNextSeqNo(seqNo)) {
+                            logger.debug("I have to get another message"
+                                    + " before I can get this one. ");
+                        }
 
                         rp.toHaveMyFutureAttention.add(
                                 new CCReceivePort.SequencedSpi(seqNo, spi));
@@ -293,8 +300,8 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
             ReceivePortIdentifier rpi, IbisIdentifier destination, byte opcode,
             long seqNo) {        
         /*
-         * Synchronize on the sideChannelSendPort so as not to send multiple
-         * messages at the same time.
+         * Synchronize on the sideChannelSendPort so as not to connect to
+         * multiple receive ports at the same time.
          */
         synchronized (ccManager.sideChannelSendPort) {
             logger.debug("\tSending side-message: \t["
@@ -325,6 +332,10 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
 
     public void newThreadSendProtocol(final ReceivePortIdentifier rpi,
             final SendPortIdentifier spi, final byte opcode) {
+        
+        synchronized(this) {
+            noOfSideMsgsToSend++;
+        }
 
         new Thread() {
 
@@ -333,11 +344,20 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 sendProtocol(spi, rpi, spi.ibisIdentifier(), opcode, -1);
             }
         }.start();
+        
+        synchronized(this) {
+            noOfSideMsgsToSend--;
+            this.notify();
+        }
     }
 
     public void newThreadSendProtocol(final SendPortIdentifier spi,
             final ReceivePortIdentifier rpi, final byte opcode) {
-
+        
+        synchronized(this) {
+            noOfSideMsgsToSend++;
+        }
+        
         new Thread() {
 
             @Override
@@ -345,11 +365,20 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 sendProtocol(spi, rpi, rpi.ibisIdentifier(), opcode, -1);
             }
         }.start();
+        
+        synchronized(this) {
+            noOfSideMsgsToSend--;
+            this.notify();
+        }
     }
     
     public void newThreadRMMProtocol(final SendPortIdentifier spi,
             final ReceivePortIdentifier rpi, final byte opcode, final long seq) {
         assert opcode == READ_MY_MESSAGE;
+        
+        synchronized(this) {
+            noOfSideMsgsToSend++;
+        }
         
         new Thread() {
 
@@ -358,6 +387,11 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 sendProtocol(spi, rpi, rpi.ibisIdentifier(), opcode, seq);
             }
         }.start();
+        
+        synchronized(this) {
+            noOfSideMsgsToSend--;
+            this.notify();
+        }
     }
     
     public void sendProtocol(SendPortIdentifier spi, ReceivePortIdentifier rpi, byte opcode) {

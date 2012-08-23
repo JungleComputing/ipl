@@ -432,14 +432,12 @@ public final class CCSendPort implements SendPort {
         logger.debug("newWriteMessage requested; writing to {}",
                 Arrays.asList(connectedTo()));
         synchronized (messageLock) {
-            logger.debug("before curMsg={}", currentMsg);
             while (currentMsg != null) {
                 try {                    
                     messageLock.wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
-            logger.debug("after curMsg={}", currentMsg);
             /*
              * The field currentMsg is set to null in this object's finish()
              * methods.

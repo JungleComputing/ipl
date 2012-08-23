@@ -281,8 +281,6 @@ public class BufferedDataOutputStream extends DataOutputStream {
         synchronized (yourReadMessageIsAliveFromMeSet) {
             result = new HashSet<ReceivePortIdentifier>(yourReadMessageIsAliveFromMeSet);
             result.retainAll(rpis);
-            logger.debug("RPs reading my msgs: {}", yourReadMessageIsAliveFromMeSet);
-            logger.debug("Temporary result is: {}", result);
 
             while (result.size() < rpis.size()) {
                 try {
@@ -294,8 +292,6 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 result.clear();
                 result.addAll(yourReadMessageIsAliveFromMeSet);
                 result.retainAll(rpis);
-                logger.debug("RPs reading my msgs:: {}", yourReadMessageIsAliveFromMeSet);
-                logger.debug("Temporary result is:: {}", result);
             }
         }
     }

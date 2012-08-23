@@ -158,7 +158,13 @@ public final class MessageUpcaller implements MessageUpcall {
                  * We are done.
                  */
             } finally {
-                newLogicalMsgLock.unlock();
+                /*
+                 * The lock is released in currentLogicalReadMsg.finish().
+                 * But in case of some exception, just make sure we unlock it.
+                 */
+                try {
+                    newLogicalMsgLock.unlock();
+                } catch(Exception ex) {}
             }
         } else {
             /*

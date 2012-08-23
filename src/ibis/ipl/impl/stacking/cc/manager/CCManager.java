@@ -92,27 +92,36 @@ public abstract class CCManager {
     }
 
     public void end() {
-        lock.lock();
-        try {
-            while(hasAnyConnections()) {
-                try {
-                    this.gotSpaceCondition.await();
-                } catch (InterruptedException ignoreMe) {}
-            }
-        } finally {
-            lock.unlock();
-        }
+//        lock.lock();
+//        logger.debug("Lock locked.");
+//        try {
+//            while(hasAnyConnections()) {
+//                try {
+//                    this.gotSpaceCondition.await();
+//                } catch (InterruptedException ignoreMe) {}
+//            }
+//        } finally {
+//            lock.unlock();
+//            logger.debug("Lock released.");
+//        }
         
         try {
-            
             if(CCStatistics.worthPrinting) {
                 CCStatistics.printStatistics(logger);
             }
             
-            sideChannelSendPort.close();
-            sideChannelReceivePort.close();
+//            synchronized(sideChannelHandler) {
+//                while(sideChannelHandler.noOfSideMsgsToSend > 0) {
+//                    sideChannelHandler.wait();
+//                }
+//                
+//            Don't close these ports.... horrible things will happen if you do.
+//                sideChannelSendPort.close();
+//                sideChannelReceivePort.close();
+//            }
+            
             logger.info("Closed the CCManager.");
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             logger.error("Failed to close the CCManager.", ex);
         }
     }

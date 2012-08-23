@@ -32,7 +32,7 @@ public class CCReadMessage implements ReadMessage {
         
         port.dataIn.currentBaseMsg = m;
         
-        logger.debug("{}: Read message created.", port);
+        logger.debug("Read message created on ", port.name());
         logger.debug("isLastPart={}, bufSize={}",
                 new Object[] {port.dataIn.isLastPart, port.dataIn.remainingBytes});
     }
@@ -52,8 +52,9 @@ public class CCReadMessage implements ReadMessage {
         }
         logger.debug("Finishing read message from {}.",
                 this.origin());
+        
         recvPort.dataIn.finish();
-        isFinished = true;        
+        isFinished = true;
         synchronized (recvPort) {
             recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
@@ -89,6 +90,13 @@ public class CCReadMessage implements ReadMessage {
 
             recvPort.notifyAll();
         }
+        
+        try {
+            this.recvPort.msgUpcall.newLogicalMsgLock.unlock();
+        } catch(Exception ex) {
+            // ignore me.
+        }
+        
         return retVal;
     }
 

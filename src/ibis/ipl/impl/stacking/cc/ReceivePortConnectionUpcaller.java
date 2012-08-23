@@ -37,14 +37,14 @@ public class ReceivePortConnectionUpcaller
         logger.debug("Lock locked.");
         try {
             if (recvPort.ccManager.isConnCached(this.recvPort.identifier(), spi)) {
-                logger.debug("\t\trestoring from {}\n", spi);
+                logger.debug("Restoring connection from {}\n", spi);
                 // connection was cached
                 recvPort.ccManager.restoreReservedConnection(recvPort.identifier(), spi);
             } else {
                 if (upcaller != null) {
                     accepted = upcaller.gotConnection(recvPort, spi);
                 }
-                logger.debug("\t\tnew from {}\n", spi);
+                logger.debug("New connection from {}\n", spi);
                 // new connection
                 recvPort.ccManager.activateReservedConnection(recvPort.identifier(), spi);
             }
@@ -80,7 +80,7 @@ public class ReceivePortConnectionUpcaller
         logger.debug("\n\t{} got lost connection to {}",
                 new Object[]{recvPort.identifier(), spi});
         if (reason != null) {
-            logger.warn("\tbecause of cause:\t", reason);
+            logger.debug("\tbecause of cause:\t", reason);
         }
         
         boolean isCached = false;
