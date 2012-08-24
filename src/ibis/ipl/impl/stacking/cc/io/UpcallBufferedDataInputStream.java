@@ -86,7 +86,6 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                                 logger.debug("Message drained."
                                         + " Current buffered bytes = {}, len requested = {}",
                                         new Object[]{in.buffered_bytes, in.len});
-                                in.notifyAll();
                                 return;
                             }
                             /*
@@ -106,29 +105,18 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                     }
 
                     logger.debug("Message drained."
-                            + " Current buffered bytes = {}, len requested = {}",
-                            new Object[]{in.buffered_bytes, in.len});
-                    
-                    in.notifyAll();
+                            + " Current buffered bytes = {}",
+                            new Object[]{in.buffered_bytes});
                 } // end sync
             } catch (Exception ex) {
                 logger.debug("Message closed "
                         + "most likely because the user upcall "
-                        + "has finished and exited the wrapper upcall:\t{}", ex.toString());
+                        + "has finished and exited the wrapper upcall.", ex);
             } finally {
                 /*
-                 * Notify the end of this message, so we may pick up another
-                 * upcall.
-                 * This is always executed: even if the message was depleted,
-                 * or a close was forced on the read message.
+                 * Notify that data is available.
                  */
                 synchronized (in) {
-                    in.port.msgUpcall.messageDepleted = true;
-                    try {
-                        msg.finish();
-                    } catch (IOException ex) {
-                        logger.debug("Base message finish threw:\t", ex);
-                    }
                     in.notifyAll();
                 }
                 logger.debug("Data offering thread finishing...");
@@ -140,7 +128,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
      * data when upcalls are enabled. There will be at most one thread alive at
      * any time in this executor.
      */
-    protected ExecutorService ex;
+    protected ExecutorService execServ;
     /*
      * Length required to be in the buffer at a given time.
      */
@@ -148,28 +136,20 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
 
     public UpcallBufferedDataInputStream(CCReceivePort port) {
         super(port);
-        this.ex = Executors.newSingleThreadExecutor();
+        this.execServ = Executors.newSingleThreadExecutor();
     }
 
     @Override
     public void offerToBuffer(boolean isLastPart, int remaining, ReadMessage msg) {
-        currentBaseMsg = msg;
+        synchronized(this) {
+            this.remainingBytes = remaining;
+            this.currentBaseMsg = msg;
+        }
         try {
-            ex.submit(new DataOfferingThread(this, isLastPart, remaining, msg));
-        } catch (Exception e) {
-            logger.warn("Couldn''t submit another data"
-                    + " offering thread. The executor was shutdown because"
-                    + " the user shutdown the read message."
-                    + " and any other following streaming msgs are discarded:\t{}",
-                    e.toString());
-            synchronized (this) {
-                port.msgUpcall.messageDepleted = true;
-                try {
-                    msg.finish();
-                } catch (IOException ignoreMe) {
-                }
-                notifyAll();
-            }
+            execServ.submit(new DataOfferingThread(this, isLastPart, remaining, msg));
+        } catch (Exception ex) {
+            logger.error("Couldn''t submit another data"
+                    + " offering thread.", ex);
         }
     }
 
@@ -178,6 +158,17 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
         synchronized (this) {
             len = n;
             while (buffered_bytes < len) {
+                if(buffered_bytes == 0 && remainingBytes == 0) {
+                    try {
+                        currentBaseMsg.finish();
+                    } catch(Exception ex) {
+                        logger.debug("This should not happen. This is the only"
+                                + " place where the currentBaseMsg should"
+                                + " be closed when more data is requested."
+                                + " Check where it was closed before and why.",
+                                ex);
+                    }
+                }
                 try {
                     logger.debug("Waiting for buffer "
                             + "to fill: currBufBytes={}, "
@@ -198,9 +189,8 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
          * Wait for the last part.
          */
         synchronized (this) {
-            logger.debug("Closing current read message: "
-                    + "{}. gotLastPart={}", new Object[] {port.currentLogicalReadMsg,
-                    port.msgUpcall.gotLastPart});
+            logger.debug("Port {} is closing the current read message. gotLastPart={}",
+                    new Object[] {recvPort.name(), recvPort.msgUpcall.gotLastPart});
             /*
              * Start sending any future data to a sink.
              */
@@ -223,15 +213,18 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
              * Now wait until we have got all the messages, so we can
              * properly finish.
              */
-            while (!port.msgUpcall.gotLastPart) {
+            while (!recvPort.msgUpcall.gotLastPart) {
                 try {
-                    logger.debug("Waiting for the last part from "
-                            + "{}", port.currentLogicalReadMsg.origin());
+                    logger.debug("Port {} is waiting for the last part "
+                            + "of the message from {}", 
+                            new Object[] {recvPort.name(), 
+                                recvPort.currentLogicalReadMsg.origin()});
                     wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
-            logger.debug("Closed the current read message.");
+            logger.debug("Port {} has closed the current read message.",
+                    recvPort.name());
             
             /*
              * reset the variable.
@@ -243,6 +236,6 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     @Override
     public void close() throws IOException {
         closed = true;
-        this.ex.shutdownNow();
+        this.execServ.shutdownNow();
     }
 }

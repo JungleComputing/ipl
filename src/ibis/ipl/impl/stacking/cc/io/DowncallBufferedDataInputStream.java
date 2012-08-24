@@ -62,7 +62,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                     /*
                      * Get the next partial message to read from it.
                      */
-                    currentBaseMsg = port.recvPort.receive();
+                    currentBaseMsg = recvPort.recvPort.receive();
                     /*
                      * Read my protocol.
                      */
@@ -102,7 +102,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
             /*
              * Drain the next partial message.
              */
-            currentBaseMsg = port.recvPort.receive();
+            currentBaseMsg = recvPort.recvPort.receive();
             isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
             remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
             logger.debug("Skipping message: isLastPart={},"

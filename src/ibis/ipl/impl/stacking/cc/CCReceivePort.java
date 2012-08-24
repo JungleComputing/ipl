@@ -394,8 +394,8 @@ public final class CCReceivePort implements ReceivePort {
                 } catch (InterruptedException ignoreMe) {
                 }
             }
-        }
-
+        }        
+        
         if (deadline > 0) {
             timeoutMillis = deadline - System.currentTimeMillis();
             if (timeoutMillis <= 0) {
@@ -403,10 +403,15 @@ public final class CCReceivePort implements ReceivePort {
             }
         }
         ReadMessage msg = recvPort.receive(timeoutMillis);
+
         synchronized (this) {
             readMsgRequested = false;
             dataIn.isLastPart = msg.readByte() == 1 ? true : false;
             dataIn.remainingBytes = CCReadMessage.readIntFromBytes(msg);
+            
+            logger.debug("\n\tNew logical message from {} throught "
+                    + "explicit receive.", msg.origin());
+            
             currentLogicalReadMsg = new CCReadMessage(msg, this);
         }
 

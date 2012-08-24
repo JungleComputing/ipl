@@ -32,9 +32,8 @@ public class CCReadMessage implements ReadMessage {
         
         port.dataIn.currentBaseMsg = m;
         
-        logger.debug("Read message created on ", port.name());
-        logger.debug("isLastPart={}, bufSize={}",
-                new Object[] {port.dataIn.isLastPart, port.dataIn.remainingBytes});
+        logger.debug("Read message created on port {} from {}.", 
+                new Object[] {port.name(), m.origin().name()});
     }
 
     /*
@@ -50,8 +49,8 @@ public class CCReadMessage implements ReadMessage {
         if(this.isFinished) {
             return retVal;
         }
-        logger.debug("Finishing read message from {}.",
-                this.origin());
+        logger.debug("Port {} finishing read message from {}.",
+                new Object[] {recvPort.name(), this.origin()});
         
         recvPort.dataIn.finish();
         isFinished = true;
@@ -59,8 +58,8 @@ public class CCReadMessage implements ReadMessage {
             recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
             
-            logger.debug("\n\tRead message from {} finished.",
-                    this.origin());
+            logger.debug("Port {} has finished the read message from {}.",
+                    new Object[] {recvPort.name(), this.origin()});
 
             /*
              * Need to send signal to the next in line send port who wishes to

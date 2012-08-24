@@ -14,7 +14,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     /*
      * The port which gives me new Messages.
      */
-    public CCReceivePort port;
+    public CCReceivePort recvPort;
     /*
      * The current partial message.
      */
@@ -43,7 +43,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     /*
      * Number of available bytes from the index onward.
      */
-    protected int buffered_bytes;
+    public int buffered_bytes;
     /*
      * Number of bytes read so far from the underlying layer.
      */
@@ -55,7 +55,7 @@ public abstract class BufferedDataInputStream extends DataInputStream{
     public boolean closed;
     
     protected BufferedDataInputStream(CCReceivePort port) {
-        this.port = port;
+        this.recvPort = port;
         this.capacity = port.ccIbis.buffer_capacity;
         this.buffer = new byte[this.capacity];
         this.conversion = Conversion.loadConversion(false);

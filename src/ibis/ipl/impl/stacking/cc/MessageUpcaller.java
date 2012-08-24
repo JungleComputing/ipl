@@ -32,10 +32,6 @@ public final class MessageUpcaller implements MessageUpcall {
      * Boolean to check if I got or not the last part.
      */
     public volatile boolean gotLastPart = false;
-    /*
-     * If the current true message has been or not emptied.
-     */
-    public volatile boolean messageDepleted;
     
     /*
      * Lock to make sure at most 1 logical msg is alive.
@@ -49,13 +45,12 @@ public final class MessageUpcaller implements MessageUpcall {
 
     @Override
     public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
-        messageDepleted = false;
         boolean isLastPart = m.readByte() == 1 ? true : false;
         int bufSize = CCReadMessage.readIntFromBytes(m);
 
         logger.debug("\n\tGot message upcall from {}. "
-                + "isLastPart={}, bufSize={}",
-                new Object[]{m.origin(), isLastPart, bufSize});
+                + "isLastPart={}, bufSize={}. I am {}",
+                new Object[]{m.origin(), isLastPart, bufSize, recvPort.name()});
 
         /*
          * This is a logically new message.
@@ -91,7 +86,6 @@ public final class MessageUpcaller implements MessageUpcall {
                      */
                     if (isLastPart) {
                         gotLastPart = true;
-                        messageDepleted = true;
                         try {
                             m.finish();
                         } catch (IOException ex) {
@@ -136,11 +130,24 @@ public final class MessageUpcaller implements MessageUpcall {
                  */
                 try {
                     synchronized (recvPort.upcallDataIn) {
-                        while (!gotLastPart || !messageDepleted) {
+                        if (recvPort.upcallDataIn.buffered_bytes == 0 
+                                && recvPort.upcallDataIn.remainingBytes == 0) {
+                            try {
+                                recvPort.upcallDataIn.currentBaseMsg.finish();
+                            } catch (Exception ex) {
+                                logger.debug("Finished user upcall and now"
+                                        + " trying to close the last base message."
+                                        + " If the user closed it manually,"
+                                        + " this should appear.", ex);
+                            }
+                        }
+                        while (!gotLastPart
+                                || recvPort.upcallDataIn.buffered_bytes > 0) {
                             logger.debug("I want to finish"
                                     + " the read message, but gotLastPart={},"
-                                    + " messageDepleted={}",
-                                    new Object[]{gotLastPart, messageDepleted});
+                                    + " remaining_buffered_bytes={}",
+                                    new Object[]{gotLastPart, 
+                                        recvPort.upcallDataIn.buffered_bytes});
                             try {
                                 recvPort.upcallDataIn.wait();
                             } catch (Exception ignoreMe) {
@@ -184,7 +191,6 @@ public final class MessageUpcaller implements MessageUpcall {
                      */
                     if (isLastPart) {
                         gotLastPart = true;
-                        messageDepleted = true;
                         try {
                             m.finish();
                         } catch (IOException ex) {
@@ -216,11 +222,10 @@ public final class MessageUpcaller implements MessageUpcall {
              * out, ignoring any other data received.
              */
             synchronized (recvPort.upcallDataIn) {
-                while (!messageDepleted) {
+                while (recvPort.upcallDataIn.buffered_bytes > 0) {
                     try {
                         logger.debug("Waiting on current "
-                                + "streamed message to be depleted and "
-                                + "current logical message to be finished...");
+                                + "buffer to be depleted...");
                         recvPort.upcallDataIn.wait();
                     } catch (InterruptedException ignoreMe) {
                     }

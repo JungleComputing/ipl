@@ -77,10 +77,10 @@ public class ReceivePortConnectionUpcaller
     @Override
     public void lostConnection(ReceivePort me,
             SendPortIdentifier spi, Throwable reason) {
-        logger.debug("\n\t{} got lost connection to {}",
+        logger.debug("\n\t{} Got LOST connection to {}",
                 new Object[]{recvPort.identifier(), spi});
         if (reason != null) {
-            logger.debug("\tbecause of cause:\t", reason);
+            logger.debug("\tLOST connection cause:\t", reason);
         }
         
         boolean isCached = false;
