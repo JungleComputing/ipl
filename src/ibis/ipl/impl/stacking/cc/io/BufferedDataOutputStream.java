@@ -172,7 +172,7 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 } catch (IOException ex) {
                     logger.error("Failed to write {} bytes message "
                             + "to:\t{}.\n", new Object[]{index, connected}, ex);
-                    msg.finish(ex);                    
+                    msg.finish(ex);
                 }
                 logger.debug("\tWrite msg finished. "
                         + "Sent: ({}, {}).\n",

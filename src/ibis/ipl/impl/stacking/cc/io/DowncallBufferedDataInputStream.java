@@ -54,7 +54,14 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                 /*
                  * The current message is depleted.
                  */
-                currentBaseMsg.finish();
+                try {
+                    if (!currentBaseMsgFinished) {
+                        currentBaseMsgFinished = true;
+                        currentBaseMsg.finish();
+                    }
+                } catch (Exception ex) {
+                    logger.debug("Tried to close the base read message.", ex);
+                }
                 if (isLastPart) {
                     throw new EOFException("Requiring more"
                             + " data after depleting the last streamed buffer.");
@@ -63,6 +70,7 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                      * Get the next partial message to read from it.
                      */
                     currentBaseMsg = recvPort.recvPort.receive();
+                    currentBaseMsgFinished = false;
                     /*
                      * Read my protocol.
                      */
@@ -98,18 +106,29 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
          */
         int skipped = 0;
         while (!isLastPart) {
-            currentBaseMsg.finish();
+            try {
+                if (!currentBaseMsgFinished) {
+                    currentBaseMsgFinished = true;
+                    currentBaseMsg.finish();                    
+                }
+            } catch (Exception ex) {
+                logger.debug("Tried to close the base read message.", ex);
+            }
             /*
              * Drain the next partial message.
              */
             currentBaseMsg = recvPort.recvPort.receive();
+            currentBaseMsgFinished = false;
             isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
             remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
             logger.debug("Skipping message: isLastPart={},"
                     + " bufSize={}.", new Object[] {isLastPart, remainingBytes});
             skipped++;
         }
-        currentBaseMsg.finish();
+        if(!currentBaseMsgFinished) {
+            currentBaseMsgFinished = true;
+            currentBaseMsg.finish();
+        }
         logger.debug("Closed dataIn and pulled out {}"
                 + " skipped messages.", skipped);
     }

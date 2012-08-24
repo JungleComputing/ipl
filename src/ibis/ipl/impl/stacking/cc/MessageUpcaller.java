@@ -45,18 +45,22 @@ public final class MessageUpcaller implements MessageUpcall {
 
     @Override
     public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
+        logger.debug("\n\tGot message upcall from {}.",
+                new Object[]{m.origin()});
+        
         boolean isLastPart = m.readByte() == 1 ? true : false;
         int bufSize = CCReadMessage.readIntFromBytes(m);
 
-        logger.debug("\n\tGot message upcall from {}. "
+        logger.debug("\n\tMessage upcall: "
                 + "isLastPart={}, bufSize={}. I am {}",
-                new Object[]{m.origin(), isLastPart, bufSize, recvPort.name()});
+                new Object[]{isLastPart, bufSize, recvPort.name()});
 
         /*
          * This is a logically new message.
          */
         if (wasLastPart) {
             logger.debug("\n\tNew logical message from {}", m.origin());
+            CCReadMessage localCurrentLogicalReadMsg;
             /*
              * Block until the old logical message has finished.
              */
@@ -70,6 +74,7 @@ public final class MessageUpcaller implements MessageUpcall {
                  * Initializations.
                  */
                 recvPort.currentLogicalReadMsg = new CCReadMessage(m, recvPort);
+                localCurrentLogicalReadMsg = recvPort.currentLogicalReadMsg;
                 recvPort.readMsgRequested = false;
                 gotLastPart = isLastPart;
             } finally {
@@ -88,6 +93,7 @@ public final class MessageUpcaller implements MessageUpcall {
                         gotLastPart = true;
                         try {
                             m.finish();
+                            logger.debug("Closed base read message.");
                         } catch (IOException ex) {
                             logger.warn("Base message"
                                     + " finish threw:\t", ex);
@@ -120,7 +126,7 @@ public final class MessageUpcaller implements MessageUpcall {
                 logger.debug("Calling user upcall...");
                 upcaller.upcall(recvPort.currentLogicalReadMsg);
                 logger.debug("User upcall finished.");
-
+                
                 /*
                  * User upcall finished. Either the message was finished inside
                  * the upcall or we have to do it here.
@@ -129,25 +135,38 @@ public final class MessageUpcaller implements MessageUpcall {
                  * remaining streaming intermediate upcall messages.
                  */
                 try {
-                    synchronized (recvPort.upcallDataIn) {
-                        if (recvPort.upcallDataIn.buffered_bytes == 0 
-                                && recvPort.upcallDataIn.remainingBytes == 0) {
-                            try {
-                                recvPort.upcallDataIn.currentBaseMsg.finish();
-                            } catch (Exception ex) {
-                                logger.debug("Finished user upcall and now"
-                                        + " trying to close the last base message."
-                                        + " If the user closed it manually,"
-                                        + " this should appear.", ex);
-                            }
-                        }
-                        while (!gotLastPart
-                                || recvPort.upcallDataIn.buffered_bytes > 0) {
+                    synchronized (recvPort.upcallDataIn) {                        
+                        while (!localCurrentLogicalReadMsg.isCompletelyFinished
+                                && (!gotLastPart
+                                    || recvPort.upcallDataIn.buffered_bytes > 0)) {
                             logger.debug("I want to finish"
                                     + " the read message, but gotLastPart={},"
-                                    + " remaining_buffered_bytes={}",
-                                    new Object[]{gotLastPart, 
-                                        recvPort.upcallDataIn.buffered_bytes});
+                                    + " bufferedBytes={}, remainingBytes={}",
+                                    new Object[]{gotLastPart,
+                                        recvPort.upcallDataIn.buffered_bytes,
+                                    recvPort.upcallDataIn.remainingBytes});
+
+                            if (recvPort.upcallDataIn.buffered_bytes == 0
+                                    && recvPort.upcallDataIn.remainingBytes == 0) {
+                                try {
+                                    if(!recvPort.upcallDataIn.currentBaseMsgFinished) {
+                                        recvPort.upcallDataIn.currentBaseMsgFinished = true;
+                                        recvPort.upcallDataIn.currentBaseMsg.finish();                                        
+                                        logger.debug("BufBytes==0 and remainBytes==0."
+                                            + " Closed the current base read msg."
+                                            + " Can receive the next message.");
+                                    } else {
+                                        logger.debug("BufBytes==0 and remainBytes==0."
+                                            + " Base read msg already closed.");
+                                    }
+                                } catch (Exception ex) {
+                                    logger.debug("Finished user upcall and now"
+                                            + " trying to close the last base message."
+                                            + " If the user closed it manually,"
+                                            + " this should appear.", ex);
+                                }
+                            }
+
                             try {
                                 recvPort.upcallDataIn.wait();
                             } catch (Exception ignoreMe) {
@@ -155,7 +174,7 @@ public final class MessageUpcaller implements MessageUpcall {
                         }
                     }
                     logger.debug("Finishing 1 logical message upcall.\n");
-                    recvPort.currentLogicalReadMsg.finish();
+                    localCurrentLogicalReadMsg.finish();
                 } catch (Throwable t) {
                     logger.debug("Exception when"
                             + " trying to finish CCReadMsg; maybe "
@@ -190,13 +209,14 @@ public final class MessageUpcaller implements MessageUpcall {
                      * the logical message.
                      */
                     if (isLastPart) {
-                        gotLastPart = true;
+                        gotLastPart = true;                        
                         try {
                             m.finish();
                         } catch (IOException ex) {
                             logger.warn("Base message"
                                     + " finish threw:\t", ex);
                         }
+                        logger.debug("Closed base read message.");
                         recvPort.upcallDataIn.notifyAll();
                     }
                     return;
@@ -215,14 +235,23 @@ public final class MessageUpcaller implements MessageUpcall {
                 // nothing should be thrown here, but
                 // just to be sure we don't leave the lock locked.
             }
-
+            
             /*
              * Block until all data from m has been removed or a close on the
              * read message was called and we fake the message depletion and get
              * out, ignoring any other data received.
              */
             synchronized (recvPort.upcallDataIn) {
-                while (recvPort.upcallDataIn.buffered_bytes > 0) {
+                logger.debug("\n\tGot lock on object:\t{}."
+                        + "\n\tSecondary upcall offered its message to the thread."
+                        + " Now it waits for the message to be depleted:"
+                        + " buffBytes={}, remainingBytes={}",
+                        new Object[]{
+                            recvPort.upcallDataIn,
+                            recvPort.upcallDataIn.buffered_bytes,
+                            recvPort.upcallDataIn.remainingBytes});
+                while (recvPort.upcallDataIn.buffered_bytes > 0
+                        || recvPort.upcallDataIn.remainingBytes > 0) {
                     try {
                         logger.debug("Waiting on current "
                                 + "buffer to be depleted...");
@@ -230,7 +259,32 @@ public final class MessageUpcaller implements MessageUpcall {
                     } catch (InterruptedException ignoreMe) {
                     }
                 }
-
+                
+                logger.debug("Going to exit this upcall. These values should both"
+                        + " be 0: buffBytes={}, remainingBytes={}",
+                        new Object[]{
+                            recvPort.upcallDataIn.buffered_bytes,
+                            recvPort.upcallDataIn.remainingBytes});
+                
+                assert recvPort.upcallDataIn.buffered_bytes == 0;
+                assert recvPort.upcallDataIn.remainingBytes == 0;
+                
+                try {
+                    /*
+                     * This has to be here, otherwise we can close
+                     * the next read message in another thread
+                     * thinking it's this message.
+                     */
+                    if (!recvPort.upcallDataIn.currentBaseMsgFinished) {
+                        recvPort.upcallDataIn.currentBaseMsgFinished = true;
+                        recvPort.upcallDataIn.currentBaseMsg.finish();                        
+                    }
+                } catch (Exception ex) {
+                    logger.debug("Depleted everything. Tried to close the read message."
+                            + " If the user closed it manually,"
+                            + " this should appear.", ex);
+                }
+                
                 /*
                  * Also, if this was the last part of the logical message,
                  * notify the main thread of the message of this.

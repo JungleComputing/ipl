@@ -16,17 +16,11 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     private static class DataOfferingThread implements Runnable {
 
         final UpcallBufferedDataInputStream in;
-        final ReadMessage msg;
-        private int remaining;
 
-        public DataOfferingThread(UpcallBufferedDataInputStream in,
-                boolean isLastPart, int remaining,
-                ReadMessage msg) {
+        public DataOfferingThread(UpcallBufferedDataInputStream in) {
             logger.debug("Thread created for filling up "
                     + "the buffer with data.");
             this.in = in;
-            this.msg = msg;
-            this.remaining = remaining;
         }
 
         @Override
@@ -38,12 +32,12 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                  */
                 synchronized (in) {
                     logger.debug("Thread started."
-                            + " Got bufferSize={}", remaining);
+                            + " Got bufferSize={}", in.remainingBytes);
 
                     assert in.index + in.buffered_bytes <= in.capacity;
                     assert in.len <= in.capacity;
 
-                    while (remaining > 0) {
+                    while (in.remainingBytes > 0) {
                         /*
                          * I have enough info for the guy. It's ok. I can let
                          * him take over.
@@ -79,7 +73,7 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                          * currentMsg, but at most what currentMsg has left.
                          */
                         while (in.buffered_bytes < in.len) {
-                            if (remaining <= 0) {
+                            if (in.remainingBytes <= 0) {
                                 /*
                                  * I'm done with this message.
                                  */
@@ -93,14 +87,18 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                              * to read from.
                              */
                             int n = Math.min(in.capacity - (in.index + in.buffered_bytes),
-                                    remaining);
+                                    in.remainingBytes);
+                            logger.debug("Going to read {} bytes from {}.", 
+                                    new Object[] {n, in.currentBaseMsg});
                             byte[] temp = new byte[n];
-                            msg.readArray(temp, 0, temp.length);
+                            in.currentBaseMsg.readArray(temp, 0, temp.length);
                             System.arraycopy(temp, 0, in.buffer,
                                     in.index + in.buffered_bytes, n);
                             in.buffered_bytes += n;
                             in.bytes += n;
-                            remaining -= n;
+                            in.remainingBytes -= n;
+                            logger.debug("got some data: bufferedBytes={}, remainingBytes={}",
+                                    new Object[] {in.buffered_bytes, in.remainingBytes});
                         }
                     }
 
@@ -142,11 +140,14 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
     @Override
     public void offerToBuffer(boolean isLastPart, int remaining, ReadMessage msg) {
         synchronized(this) {
-            this.remainingBytes = remaining;
-            this.currentBaseMsg = msg;
+            remainingBytes = remaining;
+            currentBaseMsg = msg;
+            currentBaseMsgFinished = false;
+            logger.debug("Receive port {} has current base message:\t{}",
+                    new Object[] {this.recvPort.name(), currentBaseMsg});
         }
         try {
-            execServ.submit(new DataOfferingThread(this, isLastPart, remaining, msg));
+            execServ.submit(new DataOfferingThread(this));
         } catch (Exception ex) {
             logger.error("Couldn''t submit another data"
                     + " offering thread.", ex);
@@ -160,7 +161,14 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
             while (buffered_bytes < len) {
                 if(buffered_bytes == 0 && remainingBytes == 0) {
                     try {
-                        currentBaseMsg.finish();
+                        logger.debug("Got lock on object:\t{}\n."
+                                + "bufBytes==0 and remainingBytes==0."
+                                + " Finishing the current read message:\t{}",
+                                new Object[] {this, currentBaseMsg});
+                        if(!currentBaseMsgFinished) {
+                            currentBaseMsgFinished = true;
+                            currentBaseMsg.finish();                            
+                        }
                     } catch(Exception ex) {
                         logger.debug("This should not happen. This is the only"
                                 + " place where the currentBaseMsg should"
@@ -171,8 +179,9 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                 }
                 try {
                     logger.debug("Waiting for buffer "
-                            + "to fill: currBufBytes={}, "
-                            + "requestedLen={}", new Object[]{buffered_bytes, len});
+                            + "to fill: currBufBytes={}, remainingBytes={} "
+                            + "requestedLen={}", new Object[]{buffered_bytes,
+                                remainingBytes, len});
                     notifyAll();
                     wait();
                 } catch (InterruptedException ignoreMe) {
@@ -201,13 +210,16 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
              * the buffer/pipe will be discarded.
              */
             notifyAll();
-            
+
             try {
-                currentBaseMsg.finish();
-            } catch(Throwable t) {
-                logger.debug("Caught exception when"
-                            + " trying to finish CCReadMsg; maybe "
-                            + "the user upcall finished it. Details:", t);
+                if (!currentBaseMsgFinished) {
+                    currentBaseMsgFinished = true;
+                    currentBaseMsg.finish();                    
+                }
+            } catch (Throwable t) {
+                logger.warn("Caught exception when"
+                        + " trying to finish CCReadMsg; maybe "
+                        + "the user upcall finished it. Details:", t);
             }
             /*
              * Now wait until we have got all the messages, so we can
@@ -230,6 +242,20 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
              * reset the variable.
              */
             closed = false;
+            
+            /*
+             * I need this for an extremely stupid and rare case:
+             * - message is finished in upcall;
+             * - exiting user upcall - pause now.
+             * - new upcall comes, rewrites gotLastPart.
+             * - old thread is blocked thinking it didn't get the last part 
+             *          --- although the message is quite finished.
+             * - new thread waits for the lock on the new message.
+             * 
+             * Deadlock. trust me, i've got this!
+             */
+            recvPort.currentLogicalReadMsg.isCompletelyFinished = true;
+            notifyAll();
         }
     }
     

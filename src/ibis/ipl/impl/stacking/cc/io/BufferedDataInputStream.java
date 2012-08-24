@@ -19,6 +19,10 @@ public abstract class BufferedDataInputStream extends DataInputStream{
      * The current partial message.
      */
     public ReadMessage currentBaseMsg;
+    /**
+     * Boolean to check if the current base read message is finished.
+     */
+    public boolean currentBaseMsgFinished;
     /*
      * The number of bytes which can still be read from the currentMsg's sent buffer.
      */

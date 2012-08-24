@@ -20,6 +20,7 @@ public class CCReadMessage implements ReadMessage {
      * The port which will give me base ReadMessages.
      */
     final CCReceivePort recvPort;
+    public boolean isCompletelyFinished;
     
     boolean isFinished = false;
     private final SendPortIdentifier origin;
@@ -31,6 +32,10 @@ public class CCReadMessage implements ReadMessage {
         this.origin = m.origin();
         
         port.dataIn.currentBaseMsg = m;
+        port.dataIn.currentBaseMsgFinished = false;
+        
+        isCompletelyFinished = false;
+        isFinished = false;
         
         logger.debug("Read message created on port {} from {}.", 
                 new Object[] {port.name(), m.origin().name()});
@@ -46,14 +51,17 @@ public class CCReadMessage implements ReadMessage {
     @Override
     public long finish() throws IOException {
         long retVal = bytesRead();
-        if(this.isFinished) {
-            return retVal;
+        synchronized (this) {
+            if (isFinished) {
+                logger.debug("Port {} is finishing a read message for a 2nd time.");
+                return retVal;
+            }
+            isFinished = true;
         }
         logger.debug("Port {} finishing read message from {}.",
-                new Object[] {recvPort.name(), this.origin()});
-        
+                new Object[]{recvPort.name(), this.origin()});
+
         recvPort.dataIn.finish();
-        isFinished = true;
         synchronized (recvPort) {
             recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
