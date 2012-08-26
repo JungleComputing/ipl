@@ -45,21 +45,27 @@ public final class MessageUpcaller implements MessageUpcall {
 
     @Override
     public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
+        if(logger.isDebugEnabled()) {
         logger.debug("\n\tGot message upcall from {}.",
-                new Object[]{m.origin()});
+                new Object[]{m.origin()});        
+        }
         
         boolean isLastPart = m.readByte() == 1 ? true : false;
         int bufSize = CCReadMessage.readIntFromBytes(m);
 
+        if(logger.isDebugEnabled()) {
         logger.debug("\n\tMessage upcall: "
                 + "isLastPart={}, bufSize={}. I am {}",
-                new Object[]{isLastPart, bufSize, recvPort.name()});
+                new Object[]{isLastPart, bufSize, recvPort.name()});        
+        }
 
         /*
          * This is a logically new message.
          */
         if (wasLastPart) {
+            if(logger.isDebugEnabled()) {
             logger.debug("\n\tNew logical message from {}", m.origin());
+            }
             CCReadMessage localCurrentLogicalReadMsg;
             /*
              * Block until the old logical message has finished.
@@ -93,10 +99,14 @@ public final class MessageUpcaller implements MessageUpcall {
                         gotLastPart = true;
                         try {
                             m.finish();
+                            if(logger.isDebugEnabled()) {
                             logger.debug("Closed base read message.");
+                            }
                         } catch (IOException ex) {
+                            if(logger.isWarnEnabled()) {
                             logger.warn("Base message"
                                     + " finish threw:\t", ex);
+                            }
                         }
                         recvPort.upcallDataIn.notifyAll();
                     }
@@ -123,9 +133,13 @@ public final class MessageUpcaller implements MessageUpcall {
                 /*
                  * User upcall.
                  */
+                if(logger.isDebugEnabled()) {
                 logger.debug("Calling user upcall...");
+                }
                 upcaller.upcall(recvPort.currentLogicalReadMsg);
+                if(logger.isDebugEnabled()) {
                 logger.debug("User upcall finished.");
+                }
                 
                 /*
                  * User upcall finished. Either the message was finished inside
@@ -139,31 +153,39 @@ public final class MessageUpcaller implements MessageUpcall {
                         while (!localCurrentLogicalReadMsg.isCompletelyFinished
                                 && (!gotLastPart
                                     || recvPort.upcallDataIn.buffered_bytes > 0)) {
+                            if(logger.isDebugEnabled()) {
                             logger.debug("I want to finish"
                                     + " the read message, but gotLastPart={},"
                                     + " bufferedBytes={}, remainingBytes={}",
                                     new Object[]{gotLastPart,
                                         recvPort.upcallDataIn.buffered_bytes,
                                     recvPort.upcallDataIn.remainingBytes});
+                            }
 
                             if (recvPort.upcallDataIn.buffered_bytes == 0
                                     && recvPort.upcallDataIn.remainingBytes == 0) {
                                 try {
                                     if(!recvPort.upcallDataIn.currentBaseMsgFinished) {
                                         recvPort.upcallDataIn.currentBaseMsgFinished = true;
-                                        recvPort.upcallDataIn.currentBaseMsg.finish();                                        
+                                        recvPort.upcallDataIn.currentBaseMsg.finish();
+                                        if(logger.isDebugEnabled()) {
                                         logger.debug("BufBytes==0 and remainBytes==0."
                                             + " Closed the current base read msg."
                                             + " Can receive the next message.");
+                                        }
                                     } else {
+                                        if(logger.isDebugEnabled()) {
                                         logger.debug("BufBytes==0 and remainBytes==0."
                                             + " Base read msg already closed.");
+                                        }
                                     }
                                 } catch (Exception ex) {
+                                    if(logger.isDebugEnabled()) {
                                     logger.debug("Finished user upcall and now"
                                             + " trying to close the last base message."
                                             + " If the user closed it manually,"
                                             + " this should appear.", ex);
+                                    }
                                 }
                             }
 
@@ -173,12 +195,16 @@ public final class MessageUpcaller implements MessageUpcall {
                             }
                         }
                     }
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Finishing 1 logical message upcall.\n");
+                    }
                     localCurrentLogicalReadMsg.finish();
                 } catch (Throwable t) {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Exception when"
                             + " trying to finish CCReadMsg; maybe "
                             + "the user upcall finished it. Details: ", t);
+                    }
                 }
                 /*
                  * We are done.
@@ -213,10 +239,14 @@ public final class MessageUpcaller implements MessageUpcall {
                         try {
                             m.finish();
                         } catch (IOException ex) {
+                            if(logger.isWarnEnabled()) {
                             logger.warn("Base message"
                                     + " finish threw:\t", ex);
+                            }
                         }
+                        if(logger.isDebugEnabled()) {
                         logger.debug("Closed base read message.");
+                        }
                         recvPort.upcallDataIn.notifyAll();
                     }
                     return;
@@ -242,6 +272,7 @@ public final class MessageUpcaller implements MessageUpcall {
              * out, ignoring any other data received.
              */
             synchronized (recvPort.upcallDataIn) {
+                if(logger.isDebugEnabled()) {
                 logger.debug("\n\tGot lock on object:\t{}."
                         + "\n\tSecondary upcall offered its message to the thread."
                         + " Now it waits for the message to be depleted:"
@@ -250,21 +281,26 @@ public final class MessageUpcaller implements MessageUpcall {
                             recvPort.upcallDataIn,
                             recvPort.upcallDataIn.buffered_bytes,
                             recvPort.upcallDataIn.remainingBytes});
+                }
                 while (recvPort.upcallDataIn.buffered_bytes > 0
                         || recvPort.upcallDataIn.remainingBytes > 0) {
                     try {
+                        if(logger.isDebugEnabled()) {
                         logger.debug("Waiting on current "
                                 + "buffer to be depleted...");
+                        }
                         recvPort.upcallDataIn.wait();
                     } catch (InterruptedException ignoreMe) {
                     }
                 }
                 
+                if(logger.isDebugEnabled()) {
                 logger.debug("Going to exit this upcall. These values should both"
                         + " be 0: buffBytes={}, remainingBytes={}",
                         new Object[]{
                             recvPort.upcallDataIn.buffered_bytes,
                             recvPort.upcallDataIn.remainingBytes});
+                }
                 
                 assert recvPort.upcallDataIn.buffered_bytes == 0;
                 assert recvPort.upcallDataIn.remainingBytes == 0;
@@ -280,9 +316,11 @@ public final class MessageUpcaller implements MessageUpcall {
                         recvPort.upcallDataIn.currentBaseMsg.finish();                        
                     }
                 } catch (Exception ex) {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Depleted everything. Tried to close the read message."
                             + " If the user closed it manually,"
                             + " this should appear.", ex);
+                    }
                 }
                 
                 /*

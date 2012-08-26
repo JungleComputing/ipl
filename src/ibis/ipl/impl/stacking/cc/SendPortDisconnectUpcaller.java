@@ -24,15 +24,21 @@ public class SendPortDisconnectUpcaller implements SendPortDisconnectUpcall {
     public void lostConnection(SendPort sendPort, ReceivePortIdentifier rpi,
             Throwable cause) {
 
+        if(logger.isDebugEnabled()) {
         logger.debug("\n\tGot lost connection at send port...");
         logger.debug("\tcause was:\t", cause);
+        }
 
         port.ccManager.lock.lock();
+        if(logger.isDebugEnabled()) {
         logger.debug("Lock locked.");
+        }
         try {
             port.ccManager.lostConnection(sendPort.identifier(), rpi);
         } finally {
+            if(logger.isDebugEnabled()) {
             logger.debug("Unlocking lock.");
+            }
             port.ccManager.lock.unlock();            
         }
 

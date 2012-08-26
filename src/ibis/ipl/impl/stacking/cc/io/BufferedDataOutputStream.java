@@ -75,8 +75,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
      * Send to all the connected receive ports the message built so far.
      */
     private void stream(boolean isLastPart) throws IOException {
+        if(logger.isDebugEnabled()) {
         logger.debug("Now streaming buffer size: {}",
                 index);
+        }
         Timers.streamTimer.start();
 
         /*
@@ -95,33 +97,43 @@ public class BufferedDataOutputStream extends DataOutputStream {
          */
         iWantYouToReadFromMe(destRpis);
 
-        logger.debug("Waiting for replies from {} recv ports...",
+        if(logger.isDebugEnabled()) {
+            logger.debug("Waiting for replies from {} recv ports...",
                 destRpis.size());
+        }
 
         /*
          * Then, we need to wait for their approval, i.e. they will accept an
          * incoming message from us.
          */
         waitForAllRepliesFrom(destRpis);
-        logger.debug("Got all replies.");
+        if(logger.isDebugEnabled()) {
+            logger.debug("Got all replies.");
+        }
 
         port.ccManager.lock.lock();
-        logger.debug("Lock locked for streaming.");
+        if(logger.isDebugEnabled()) {
+            logger.debug("Lock locked for streaming.");
+        }
         try {
             while (!destRpis.isEmpty()) {
                 /*
                  * I need to wait for any reserved alive connection to be
                  * handled.
                  */
-                logger.debug("Lock will be released:"
+                if(logger.isDebugEnabled()) {
+                    logger.debug("Lock will be released:"
                         + " waiting on live reserved connections...");
+                }
                 while (port.ccManager.containsReservedAlive(port.identifier())) {
                     try {
                         port.ccManager.reservationsCondition.await();
                     } catch (InterruptedException ignoreMe) {
                     }
                 }
-                logger.debug("Lock reaquired.");
+                if(logger.isDebugEnabled()) {
+                    logger.debug("Lock reaquired.");
+                }
                 /*
                  * I can send the message only to the rpis from gotAttention.
                  * Any other rpi to which I'm currently connected cannot and
@@ -170,13 +182,17 @@ public class BufferedDataOutputStream extends DataOutputStream {
                     }
                     msg.finish();
                 } catch (IOException ex) {
-                    logger.error("Failed to write {} bytes message "
+                    if(logger.isErrorEnabled()) {
+                        logger.error("Failed to write {} bytes message "
                             + "to:\t{}.\n", new Object[]{index, connected}, ex);
+                    }
                     msg.finish(ex);
                 }
-                logger.debug("\tWrite msg finished. "
+                if(logger.isDebugEnabled()) {
+                    logger.debug("\tWrite msg finished. "
                         + "Sent: ({}, {}).\n",
                         new Object[]{isLastPart, index});
+                }
 
                 /*
                  * If this was the last part of the streamed message, I don't
@@ -187,10 +203,14 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 }
             }
         } finally {
-            logger.debug("Releasing lock in stream.");
+            if(logger.isDebugEnabled()) {
+                logger.debug("Releasing lock in stream.");
+            }
             port.ccManager.lock.unlock();
         }
-        logger.debug("Streaming finished to all destined rpis.");
+        if(logger.isDebugEnabled()) {
+            logger.debug("Streaming finished to all destined rpis.");
+        }
         Timers.streamTimer.stop();
         /*
          * Buffer is sent to everyone. Clear it.
@@ -235,8 +255,10 @@ public class BufferedDataOutputStream extends DataOutputStream {
                 seqNo = port.ccIbis.registry().getMultipleSequenceNumbers(rpiNames);
 
                 for (int i = 0; i < rpiNames.length; i++) {
-                    logger.debug("{} has seqNo:\t{}",
-                            new Object[]{rpiNames[i], seqNo[i]});
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("{} has seqNo:\t{}",
+                                new Object[]{rpiNames[i], seqNo[i]});
+                    }
                 }
             } else {
                 seqNo = new long[1];
@@ -299,16 +321,20 @@ public class BufferedDataOutputStream extends DataOutputStream {
     @Override
     public void flush() throws IOException {
         stream(false);
-        logger.debug("\tFlushed {} intermediate messages to"
+        if(logger.isDebugEnabled()) {
+            logger.debug("\tFlushed {} intermediate messages to"
                 + " {} ports.\n", new Object[]{noMsg, port.connectedTo().length});
+        }
         noMsg = 0;
     }
 
     @Override
     public void close() throws IOException {
         stream(true);
+        if(logger.isDebugEnabled()) {
         logger.debug("\tStreamed {} intermediate messages to"
                 + " {} ports.\n", new Object[]{noMsg, port.connectedTo().length});
+        }
         noMsg = 0;
     }
 

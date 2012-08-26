@@ -184,8 +184,10 @@ public final class CCReceivePort implements ReceivePort {
      */
     public void cache(SendPortIdentifier spi) throws IOException {
         ccManager.reserveLiveConnection(this.identifier(), spi);
+        if(logger.isDebugEnabled()) {
         logger.debug("Releasing lock before"
                 + " caching initiation from RP.");
+        }
         ccManager.lock.unlock();
 
         try {
@@ -208,8 +210,10 @@ public final class CCReceivePort implements ReceivePort {
             }
         } finally {
             ccManager.lock.lock();
+            if(logger.isDebugEnabled()) {
             logger.debug("Lock reaquired and connection is "
                     + "cached.");
+            }
             ccManager.unReserveLiveConnection(this.identifier(), spi);
         }
     }
@@ -230,13 +234,17 @@ public final class CCReceivePort implements ReceivePort {
             deadline = System.currentTimeMillis() + timeoutMillis;
         }
         
+        if(logger.isDebugEnabled()) {
         logger.debug("Closing receive port\t{}", this.identifier());
+        }
         
         /*
          * Wait until all logically alive connections are closed.
          */
         ccManager.lock.lock();
+        if(logger.isDebugEnabled()) {
         logger.debug("Lock locked.");
+        }
         try {
             if (closed) {
                 return;
@@ -246,21 +254,29 @@ public final class CCReceivePort implements ReceivePort {
             while (ccManager.hasConnections(this.identifier()) && 
                     (System.currentTimeMillis() < deadline)) {
                 try {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Lock will be released:"
                             + " waiting on connections to be closed.");
+                    }
                     ccManager.allClosedCondition.await(
                             deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Lock reaquired.");
+                    }
                 } catch (InterruptedException ignoreMe) {
                 }
             }
         } finally {
+            if(logger.isDebugEnabled()) {
             logger.debug("Unlocking lock.");
+            }
             ccManager.lock.unlock();
         }
         
-        logger.debug("{} is closing base receive port...",
+        if(logger.isDebugEnabled()) {
+            logger.debug("{} is closing base receive port...",
                 this.identifier());
+        }
         timeoutMillis = deadline - System.currentTimeMillis();
         if(timeoutMillis == 0) {
             timeoutMillis = -1;
@@ -271,11 +287,15 @@ public final class CCReceivePort implements ReceivePort {
     @Override
     public SendPortIdentifier[] connectedTo() {
         ccManager.lock.lock();
-        logger.debug("Lock locked.");
+        if(logger.isDebugEnabled()) {
+            logger.debug("Lock locked.");
+        }
         try {
             return ccManager.allSpisFrom(this.identifier());
         } finally {
-            logger.debug("Unlocking lock.");
+            if(logger.isDebugEnabled()) {
+                logger.debug("Unlocking lock.");
+            }
             ccManager.lock.unlock();
         }
     }
@@ -409,8 +429,10 @@ public final class CCReceivePort implements ReceivePort {
             dataIn.isLastPart = msg.readByte() == 1 ? true : false;
             dataIn.remainingBytes = CCReadMessage.readIntFromBytes(msg);
             
-            logger.debug("\n\tNew logical message from {} throught "
+            if(logger.isDebugEnabled()) {
+                logger.debug("\n\tNew logical message from {} throught "
                     + "explicit receive.", msg.origin());
+            }
             
             currentLogicalReadMsg = new CCReadMessage(msg, this);
         }

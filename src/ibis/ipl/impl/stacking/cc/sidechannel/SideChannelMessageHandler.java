@@ -53,12 +53,14 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
         CCReceivePort rp = CCReceivePort.map.get(rpi);
         CCSendPort sp = CCSendPort.map.get(spi);
 
+        if(logger.isDebugEnabled()) {
         logger.debug("\tGot side-message: \t["
                 + "({}-{}, {}-{}), OPCODE = {}"
                 + (opcode == READ_MY_MESSAGE ? ", seqNo = {}]" : "]"),
                 new Object[]{spi.name(), spi.ibisIdentifier().name(),
                     rpi.name(), rpi.ibisIdentifier().name(), 
                     map.get(opcode), seqNo});
+        }
 
         switch (opcode) {
             /*
@@ -68,7 +70,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
             case RESERVE:
                 byte answer = RESERVE_NACK;
                 ccManager.lock.lock();
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock locked in RESERVE");
+                }
                 try {
                     /*
                      * If I'm not full, or if I am but I can cache something,
@@ -80,19 +84,25 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                         answer = RESERVE_ACK;
                     }
                     if (answer == RESERVE_ACK) {
+                        if(logger.isDebugEnabled()) {
                         logger.debug("Reserving connection ({}, {}).",
                                 new Object[]{spi, rpi});
+                        }
                     } else {
+                        if(logger.isDebugEnabled()) {
                         logger.debug("Denying reservation for"
                                 + " connection ({}, {}).",
-                                new Object[]{spi, rpi});
+                                new Object[]{spi, rpi});                        
+                        }
                     }
                     /*
                      * Now send ack/nack back.
                      */
                     newThreadSendProtocol(rpi, spi, answer);
                 } finally {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Unlocking lock in RESERVE");
+                    }
                     ccManager.lock.unlock();                    
                 }
                 break;
@@ -102,12 +112,16 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case RESERVE_ACK:
                 ccManager.lock.lock();
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock locked in RESERVE_ACK");
+                }
                 try {
                     sp.reserveAcks.put(rpi, RESERVE_ACK);
                     ccManager.reserveAcksCond.signalAll();
                 } finally {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Unlocking lock in RESERVE_ACK");
+                    }
                     ccManager.lock.unlock();                    
                 }
                 break;
@@ -117,14 +131,18 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */    
             case RESERVE_NACK:
                 ccManager.lock.lock();
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock locked in RESERVE_NACK");
+                }
                 try {
                     ccManager.cancelReservation(spi, rpi);
                     
                     sp.reserveAcks.put(rpi, RESERVE_NACK);
                     ccManager.reserveAcksCond.signalAll();
                 } finally {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Unlocking lock in RESERVE_NACK");
+                    }
                     ccManager.lock.unlock();                    
                 }
                 break;
@@ -135,11 +153,15 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case CANCEL_RESERVATION:
                 ccManager.lock.lock();
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock locked in CANCEL_RESERVATION");
+                }
                 try {
                     ccManager.cancelReservation(rpi, spi);
                 } finally {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Unlocking lock in CANCEL_RESERVATION");
+                    }
                     ccManager.lock.unlock();                    
                 }
                 break;
@@ -150,7 +172,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case CACHE_FROM_RP_AT_SP:
                 ccManager.lock.lock();
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock locked in CACHE_FROM_RP_AT_SP");
+                }
                 try {
                     boolean heKnows = true;
                     /*
@@ -176,7 +200,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                                 rpi, SideChannelProtocol.DISCONNECT);
                     }
                 } finally {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Unlocking lock in CACHE_FROM_RP_AT_SP");
+                    }
                     ccManager.lock.unlock();                    
                 }
                 break;
@@ -190,7 +216,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
              */
             case CACHE_FROM_SP:
                 ccManager.lock.lock();
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock locked in CACHE_FROM_SP");
+                }
                 try {
                     if (ccManager.isConnAlive(rpi, spi)) {
 
@@ -209,7 +237,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                      */
                     newThreadSendProtocol(rpi, spi, SideChannelProtocol.CACHE_FROM_SP_ACK);
                 } finally {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Releasing lock in CACHE_FROM_SP");
+                    }
                     ccManager.lock.unlock();                    
                 }
                 /*
@@ -253,19 +283,25 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                             || !rp.isNextSeqNo(seqNo)) {
 
                         if (rp.currentLogicalReadMsg != null) {
+                            if(logger.isDebugEnabled()) {
                             logger.debug("I have a current alive"
                                     + " read message, and I will handle this"
                                     + " message later.");
+                            }
                         }
                         if (rp.readMsgRequested) {
+                            if(logger.isDebugEnabled()) {
                             logger.debug("I have "
                                     + "requested a read message from someone, "
                                     + "and I will handle this"
                                     + " message later.");
+                            }
                         }
                         if (!rp.isNextSeqNo(seqNo)) {
+                            if(logger.isDebugEnabled()) {
                             logger.debug("I have to get another message"
                                     + " before I can get this one. ");
+                            }
                         }
 
                         rp.toHaveMyFutureAttention.add(
@@ -304,12 +340,14 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
          * multiple receive ports at the same time.
          */
         synchronized (ccManager.sideChannelSendPort) {
+            if(logger.isDebugEnabled()) {
             logger.debug("\tSending side-message: \t["
                     + "({}-{}, {}-{}), OPCODE = {}"
                     + (opcode == READ_MY_MESSAGE ? ", seqNo = {}]" : "]"),
                     new Object[]{spi.name(), spi.ibisIdentifier().name(),
                         rpi.name(), rpi.ibisIdentifier().name(),
                         map.get(opcode), seqNo});
+            }
             try {
                 ReceivePortIdentifier sideRpi = ccManager.sideChannelSendPort.connect(
                         destination, CCManager.sideChnRPName);
@@ -325,7 +363,9 @@ public class SideChannelMessageHandler implements MessageUpcall, SideChannelProt
                 msg.finish();
                 ccManager.sideChannelSendPort.disconnect(sideRpi);
             } catch (Throwable t) {
+                if(logger.isErrorEnabled()) {
                 logger.error("Error at side channel: ", t);
+                }
             }
         }
     }

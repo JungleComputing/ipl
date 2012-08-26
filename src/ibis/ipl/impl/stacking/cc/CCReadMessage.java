@@ -37,8 +37,10 @@ public class CCReadMessage implements ReadMessage {
         isCompletelyFinished = false;
         isFinished = false;
         
-        logger.debug("Read message created on port {} from {}.", 
+        if(logger.isDebugEnabled()) {
+            logger.debug("Read message created on port {} from {}.", 
                 new Object[] {port.name(), m.origin().name()});
+        }
     }
 
     /*
@@ -53,21 +55,27 @@ public class CCReadMessage implements ReadMessage {
         long retVal = bytesRead();
         synchronized (this) {
             if (isFinished) {
-                logger.debug("Port {} is finishing a read message for a 2nd time.");
+                if(logger.isDebugEnabled()) {
+                    logger.debug("Port {} is finishing a read message for a 2nd time.");
+                }
                 return retVal;
             }
             isFinished = true;
         }
-        logger.debug("Port {} finishing read message from {}.",
-                new Object[]{recvPort.name(), this.origin()});
+        if(logger.isDebugEnabled()) {
+            logger.debug("Port {} finishing read message from {}.",
+                new Object[]{recvPort.name(), this.origin()});        
+        }
 
         recvPort.dataIn.finish();
         synchronized (recvPort) {
             recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
             
-            logger.debug("Port {} has finished the read message from {}.",
-                    new Object[] {recvPort.name(), this.origin()});
+            if(logger.isDebugEnabled()) {
+                logger.debug("Port {} has finished the read message from {}.",
+                    new Object[] {recvPort.name(), this.origin()});            
+            }
 
             /*
              * Need to send signal to the next in line send port who wishes to
@@ -121,7 +129,9 @@ public class CCReadMessage implements ReadMessage {
         synchronized (recvPort) {
             recvPort.currentLogicalReadMsg = null;
             recvPort.readMsgRequested = false;
+            if(logger.isDebugEnabled()) {
             logger.debug("Read message finished:\t{}",e.toString());
+            }
 
             /*
              * Need to send signal to the next in line send port who wishes to

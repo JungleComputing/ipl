@@ -28,28 +28,38 @@ public class ReceivePortConnectionUpcaller
     @Override
     public boolean gotConnection(ReceivePort me,
             SendPortIdentifier spi) {
+        if(logger.isDebugEnabled()) {
         logger.debug("\t{} got connection from {}", 
-                new Object[] {recvPort.identifier(), spi});
+                new Object[] {recvPort.identifier(), spi});        
+        }
 
         boolean accepted = true;
 
         recvPort.ccManager.lock.lock();
+        if(logger.isDebugEnabled()) {
         logger.debug("Lock locked.");
+        }
         try {
             if (recvPort.ccManager.isConnCached(this.recvPort.identifier(), spi)) {
+                if(logger.isDebugEnabled()) {
                 logger.debug("Restoring connection from {}\n", spi);
+                }
                 // connection was cached
                 recvPort.ccManager.restoreReservedConnection(recvPort.identifier(), spi);
             } else {
                 if (upcaller != null) {
                     accepted = upcaller.gotConnection(recvPort, spi);
                 }
+                if(logger.isDebugEnabled()) {
                 logger.debug("New connection from {}\n", spi);
+                }
                 // new connection
                 recvPort.ccManager.activateReservedConnection(recvPort.identifier(), spi);
             }
         } finally {
+            if(logger.isDebugEnabled()) {
             logger.debug("Unlocking lock.");
+            }
             recvPort.ccManager.lock.unlock();            
         }
         
@@ -77,16 +87,22 @@ public class ReceivePortConnectionUpcaller
     @Override
     public void lostConnection(ReceivePort me,
             SendPortIdentifier spi, Throwable reason) {
+        if(logger.isDebugEnabled()) {
         logger.debug("\n\t{} Got LOST connection to {}",
-                new Object[]{recvPort.identifier(), spi});
+                new Object[]{recvPort.identifier(), spi});        
+        }
         if (reason != null) {
+            if(logger.isDebugEnabled()) {
             logger.debug("\tLOST connection cause:\t", reason);
+            }
         }
         
         boolean isCached = false;
 
         recvPort.ccManager.lock.lock();
+        if(logger.isDebugEnabled()) {
         logger.debug("\n\tLock locked. me={}", recvPort.identifier());
+        }
         try {
             /*
              * Sync-ed because the place from where the caching was initiated
@@ -95,10 +111,12 @@ public class ReceivePortConnectionUpcaller
              */
             synchronized (recvPort.cachingInitiatedByMeSet) {
                 if (recvPort.cachingInitiatedByMeSet.contains(spi)) {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Got lost connection"
                             + " initiated by me. Connection now trully cached"
                             + " from {} to {}.",
                             new Object[]{spi, recvPort.identifier()});
+                    }
                     /*
                      * The connection is cached because I wanted it cached.
                      * scenario 4)
@@ -123,9 +141,11 @@ public class ReceivePortConnectionUpcaller
                 recvPort.ccManager.unReserveLiveToCacheConnection(recvPort.identifier(), spi);
                 recvPort.toBeCachedSet.remove(spi);
                 
+                if(logger.isDebugEnabled()) {
                 logger.debug("Got lost connection. This"
                         + " connection will be cached because the send port {} "
                         + " asked it.", spi);
+                }
 
                 isCached = true;
             }
@@ -144,14 +164,20 @@ public class ReceivePortConnectionUpcaller
              */
             recvPort.ccManager.removeConnection(recvPort.identifier(), spi);
             if (upcaller != null) {
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lost connection user upcall starting...");
+                }
                 upcaller.lostConnection(recvPort, spi, reason);
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lost connection user upcall finished.");
+                }
             }
             
             CCStatistics.remove(recvPort.identifier(), spi);
         } finally {
+            if(logger.isDebugEnabled()) {
             logger.debug("Unlocking lock...");
+            }            
             recvPort.ccManager.lock.unlock();
         }
     }

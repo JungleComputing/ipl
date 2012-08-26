@@ -27,6 +27,7 @@ public class RandomCCManagerImpl extends CCManagerImpl {
                 && (!canceledReservations.contains(conn))
                 && super.fullConns()) {
             try {
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock will be released:"
                         + " waiting for: "
                         + "a live connection to be available for caching"
@@ -34,8 +35,11 @@ public class RandomCCManagerImpl extends CCManagerImpl {
                         + "an empty slot"
                         + " OR "
                         + "for a cancelation.");
+                }
                 super.gotSpaceCondition.await();
+                if(logger.isDebugEnabled()) {
                 logger.debug("Lock reaquired.");
+                }
             } catch (InterruptedException ignoreMe) {
             }
         }

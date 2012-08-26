@@ -78,6 +78,7 @@ public abstract class CCManager {
             gotSpaceCondition = lock.newCondition();
             sleepCondition = lock.newCondition();
 
+            if(logger.isDebugEnabled()) {
             logger.debug("CCManager instantiated on {}."
                     + "\n\tCCManager class: {}"
                     + "\n\tmaxConns = {}", new Object[] {
@@ -85,8 +86,11 @@ public abstract class CCManager {
                         this.getClass(),
                         MAX_CONNS
                     });
+            }
         } catch (IOException ex) {
-            logger.error("Failed to properly instantiate the CCManager.", ex);
+            if(logger.isErrorEnabled()) {
+                logger.error("Failed to properly instantiate the CCManager.", ex);
+            }
             throw new RuntimeException(ex);
         }        
     }
@@ -120,9 +124,13 @@ public abstract class CCManager {
 //                sideChannelReceivePort.close();
 //            }
             
-            logger.info("Closed the CCManager.");
+            if(logger.isInfoEnabled()) {
+                logger.info("Closed the CCManager.");
+            }
         } catch (Exception ex) {
-            logger.error("Failed to close the CCManager.", ex);
+            if(logger.isErrorEnabled()) {
+                logger.error("Failed to close the CCManager.", ex);
+            }
         }
     }
 

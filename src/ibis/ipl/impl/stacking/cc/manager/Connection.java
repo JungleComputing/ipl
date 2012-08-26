@@ -40,7 +40,9 @@ public class Connection {
 
     public void cache(boolean heKnows) {
         try {
+            if(logger.isDebugEnabled()) {
             logger.debug("Caching connection\t{}.", this.toString());
+            }
             if (atSendPortSide) {
                 CCSendPort port = CCSendPort.map.get(spi);
                 port.cache(rpi, heKnows);
@@ -55,7 +57,9 @@ public class Connection {
                 }
             }
         } catch (IOException ex) {
+            if(logger.isErrorEnabled()) {
             logger.error("Caching failed:\t{}", ex);
+            }
         }
     }
     
@@ -82,30 +86,40 @@ public class Connection {
         }
         /*
          * Release the lock.
-         */        
+         */   
+        if(logger.isDebugEnabled()) {
         logger.debug("Releasing lock so that"
                 + " sendport {} can close.", sendPort.identifier());
+        }
         sendPort.ccManager.lock.unlock();
         
         try {
             /*
              * Close now.
              */
+            if(logger.isDebugEnabled()) {
             logger.debug("Base send port now closing...");
+            }
             for(ReceivePortIdentifier rpi : sendPort.baseSendPort.connectedTo()) {
                 CCStatistics.remove(sendPort.identifier(), rpi);
             }
             sendPort.baseSendPort.close();
+            if(logger.isDebugEnabled()) {
             logger.debug("Base send port now closed.");
+            }
         } catch (Exception ex) {
+            if(logger.isErrorEnabled()) {
             logger.error("Failed to close send port "
                     + sendPort.identifier(), ex);
+            }
         } finally {
             /*
              * Reaquire the lock.
              */
             sendPort.ccManager.lock.lock();
+            if(logger.isDebugEnabled()) {
             logger.debug("{} reaquired the lock.", sendPort.identifier());
+            }
             /*
              * Move back connections.
              */
@@ -121,23 +135,33 @@ public class Connection {
             
             sendPort.ccManager.reserveLiveConnection(spi, rpi);
 
+            if(logger.isDebugEnabled()) {
             logger.debug("Releasing lock so {} can disconnect.", spi);
+            }
             sendPort.ccManager.lock.unlock();            
 
             try {
+                if(logger.isDebugEnabled()) {
                 logger.debug("Base send port now disconnecting...");
+                }
                 CCStatistics.remove(sendPort.identifier(), rpi);
                 sendPort.baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
+                if(logger.isDebugEnabled()) {
                 logger.debug("Base send port now connected"
                         + " to {} recv ports.", sendPort.baseSendPort.connectedTo().length);
+                }
             } catch (Exception ex) {
+                if(logger.isErrorEnabled()) {
                 logger.error("Base send port "
                         + spi + " failed to "
                         + "properly disconnect from "
                         + rpi + ".", ex);
+                }
             } finally {
                 sendPort.ccManager.lock.lock();
+                if(logger.isDebugEnabled()) {
                 logger.debug("{} reaquired lock.", spi);
+                }
                 sendPort.ccManager.unReserveLiveConnection(spi, rpi);
             }
         } else {

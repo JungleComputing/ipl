@@ -60,7 +60,9 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                         currentBaseMsg.finish();
                     }
                 } catch (Exception ex) {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Tried to close the base read message.", ex);
+                    }
                 }
                 if (isLastPart) {
                     throw new EOFException("Requiring more"
@@ -76,8 +78,10 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                      */
                     isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
                     remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Got a message: isLastPart={}, size={}",
                             new Object[]{remainingBytes, isLastPart});
+                    }
                 }
             }
             /*
@@ -112,7 +116,9 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
                     currentBaseMsg.finish();                    
                 }
             } catch (Exception ex) {
+                if(logger.isDebugEnabled()) {
                 logger.debug("Tried to close the base read message.", ex);
+                }
             }
             /*
              * Drain the next partial message.
@@ -121,16 +127,20 @@ public class DowncallBufferedDataInputStream extends BufferedDataInputStream {
             currentBaseMsgFinished = false;
             isLastPart = currentBaseMsg.readByte() == 1 ? true : false;
             remainingBytes = CCReadMessage.readIntFromBytes(currentBaseMsg);
+            if(logger.isDebugEnabled()) {
             logger.debug("Skipping message: isLastPart={},"
                     + " bufSize={}.", new Object[] {isLastPart, remainingBytes});
+            }
             skipped++;
         }
         if(!currentBaseMsgFinished) {
             currentBaseMsgFinished = true;
             currentBaseMsg.finish();
         }
+        if(logger.isDebugEnabled()) {
         logger.debug("Closed dataIn and pulled out {}"
                 + " skipped messages.", skipped);
+        }
     }
 
     @Override

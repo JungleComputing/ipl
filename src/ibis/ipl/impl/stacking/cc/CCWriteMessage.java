@@ -23,8 +23,10 @@ public final class CCWriteMessage implements WriteMessage {
 
     public CCWriteMessage(CCSendPort sendPort) throws IOException {        
         this.port = sendPort;
+        if(logger.isDebugEnabled()) {
         logger.debug("Created CCWriteMessage; writing to {}",
                 Arrays.asList(sendPort.connectedTo()));
+        }
         this.port.serOut.reset(true);
     }
 
@@ -82,14 +84,18 @@ public final class CCWriteMessage implements WriteMessage {
     public long finish() throws IOException {
         checkNotFinished();
         
+        if(logger.isDebugEnabled()) {
         logger.debug("Finishing a write message from"
                 + " {}", this.port.identifier());
+        }
         
         port.serOut.flush();
         port.dataOut.close();
         
+        if(logger.isDebugEnabled()) {
         logger.debug("Finished writing a message from {}.",
                 port.identifier());
+        }
 
         synchronized(port.messageLock) {
             port.currentMsg = null;
@@ -117,8 +123,10 @@ public final class CCWriteMessage implements WriteMessage {
         } catch (IOException ignoreMe) {
         }
         
+        if(logger.isDebugEnabled()) {
         logger.debug("{} has finished a write message.",
                 port.identifier());
+        }
 
         synchronized (port.messageLock) {
             port.currentMsg = null;

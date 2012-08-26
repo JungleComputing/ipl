@@ -149,9 +149,11 @@ public final class CCSendPort implements SendPort {
      */
     public void cache(ReceivePortIdentifier rpi, boolean heKnows)
             throws IOException {
+        if(logger.isDebugEnabled()) {
         logger.debug("\nGoing to cache from"
                 + " {} to {}; heKnows={}", new Object[] {
                     this.identifier(), rpi, heKnows});
+        }
         
         /*
          * ISSUES:
@@ -170,7 +172,9 @@ public final class CCSendPort implements SendPort {
          * reaquire the lock and move the connection back.
          */
         ccManager.reserveLiveConnection(this.identifier(), rpi);
+        if(logger.isDebugEnabled()) {
         logger.debug("Unlocking lock for {} to disconnect.", this.identifier());
+        }
         ccManager.lock.unlock();
 
         try {
@@ -198,13 +202,17 @@ public final class CCSendPort implements SendPort {
             baseSendPort.disconnect(rpi.ibisIdentifier(), rpi.name());
             CCStatistics.cache(this.identifier(), rpi);
         } catch (Exception ex) {
+            if(logger.isErrorEnabled()) {
             logger.error("\nBase send port "
                     + this.identifier() + " failed to "
                     + "properly disconnect from "
                     + rpi + ".", ex);
+            }
         } finally {
             ccManager.lock.lock();
+            if(logger.isDebugEnabled()) {
             logger.debug("\n\t{} reaquired lock.", this.identifier());
+            }
             ccManager.unReserveLiveConnection(this.identifier(), rpi);
         }
     }
@@ -231,12 +239,16 @@ public final class CCSendPort implements SendPort {
         }
         
         ccManager.lock.lock();
+        if(logger.isDebugEnabled()) {
         logger.debug("Lock locked.");
         logger.debug("Closing CC send port\t{}", this.identifier());
+        }
         try {
             ccManager.closeSendPort(this.identifier());
         } finally {
+            if(logger.isDebugEnabled()) {
             logger.debug("Unlocking lock.");
+            }
             ccManager.lock.unlock();
         }
     }
@@ -345,7 +357,9 @@ public final class CCSendPort implements SendPort {
              * 1 successfull connection.
              */
             ccManager.lock.lock();
+            if(logger.isDebugEnabled()) {
             logger.debug("Lock locked.");
+            }
             try {
                 if (deadline > 0) {
                     connected = ccManager.getSomeConnections(
@@ -368,7 +382,9 @@ public final class CCSendPort implements SendPort {
             } catch (ibis.ipl.IbisIOException connFailed) {
                 throw (ConnectionsFailedException) connFailed;
             } finally {
+                if(logger.isDebugEnabled()) {
                 logger.debug("Unlocking lock.");
+                }
                 ccManager.lock.unlock();                
             }
         }
@@ -395,14 +411,18 @@ public final class CCSendPort implements SendPort {
             }
         }
         ccManager.lock.lock();
+        if(logger.isDebugEnabled()) {
         logger.debug("Lock locked.");
+        }
         try {
             /*
              * Remove the connection.
              */
             ccManager.removeConnection(this.identifier(), rpi);
         } finally {
+            if(logger.isDebugEnabled()) {
             logger.debug("Unlocking lock.");
+            }
             ccManager.lock.unlock();            
         }
     }
@@ -429,8 +449,10 @@ public final class CCSendPort implements SendPort {
 
     @Override
     public WriteMessage newMessage() throws IOException {
+        if(logger.isDebugEnabled()) {
         logger.debug("newWriteMessage requested; writing to {}",
                 Arrays.asList(connectedTo()));
+        }
         synchronized (messageLock) {
             while (currentMsg != null) {
                 try {                    

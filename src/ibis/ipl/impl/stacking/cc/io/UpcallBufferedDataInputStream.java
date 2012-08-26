@@ -18,8 +18,10 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
         final UpcallBufferedDataInputStream in;
 
         public DataOfferingThread(UpcallBufferedDataInputStream in) {
+            if(logger.isDebugEnabled()) {
             logger.debug("Thread created for filling up "
                     + "the buffer with data.");
+            }
             this.in = in;
         }
 
@@ -31,8 +33,10 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                  * removing it simultaneously.
                  */
                 synchronized (in) {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Thread started."
                             + " Got bufferSize={}", in.remainingBytes);
+                    }
 
                     assert in.index + in.buffered_bytes <= in.capacity;
                     assert in.len <= in.capacity;
@@ -44,10 +48,12 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                          */
                         while (in.buffered_bytes >= in.len) {
                             if (in.closed) {
+                                if(logger.isDebugEnabled()) {
                                 logger.debug("Closing the current"
                                         + " supplying thread. bufBytes={}, "
                                         + "lenReq={}", new Object[] {in.buffered_bytes,
                                         in.len});
+                                }
                                 /*
                                  * Execute finally and get out.
                                  */
@@ -77,9 +83,11 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                                 /*
                                  * I'm done with this message.
                                  */
+                                if(logger.isDebugEnabled()) {
                                 logger.debug("Message drained."
                                         + " Current buffered bytes = {}, len requested = {}",
-                                        new Object[]{in.buffered_bytes, in.len});
+                                        new Object[]{in.buffered_bytes, in.len});                                
+                                }
                                 return;
                             }
                             /*
@@ -88,8 +96,10 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                              */
                             int n = Math.min(in.capacity - (in.index + in.buffered_bytes),
                                     in.remainingBytes);
+                            if(logger.isDebugEnabled()) {
                             logger.debug("Going to read {} bytes from {}.", 
-                                    new Object[] {n, in.currentBaseMsg});
+                                    new Object[] {n, in.currentBaseMsg});                            
+                            }
                             byte[] temp = new byte[n];
                             in.currentBaseMsg.readArray(temp, 0, temp.length);
                             System.arraycopy(temp, 0, in.buffer,
@@ -97,19 +107,25 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                             in.buffered_bytes += n;
                             in.bytes += n;
                             in.remainingBytes -= n;
+                            if(logger.isDebugEnabled()) {
                             logger.debug("got some data: bufferedBytes={}, remainingBytes={}",
-                                    new Object[] {in.buffered_bytes, in.remainingBytes});
+                                    new Object[] {in.buffered_bytes, in.remainingBytes});                            
+                            }
                         }
                     }
 
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Message drained."
                             + " Current buffered bytes = {}",
                             new Object[]{in.buffered_bytes});
+                    }
                 } // end sync
             } catch (Exception ex) {
+                if(logger.isDebugEnabled()) {
                 logger.debug("Message closed "
                         + "most likely because the user upcall "
                         + "has finished and exited the wrapper upcall.", ex);
+                }
             } finally {
                 /*
                  * Notify that data is available.
@@ -117,7 +133,9 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                 synchronized (in) {
                     in.notifyAll();
                 }
+                if(logger.isDebugEnabled()) {
                 logger.debug("Data offering thread finishing...");
+                }
             }
         }
     }
@@ -143,14 +161,18 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
             remainingBytes = remaining;
             currentBaseMsg = msg;
             currentBaseMsgFinished = false;
+            if(logger.isDebugEnabled()) {
             logger.debug("Receive port {} has current base message:\t{}",
-                    new Object[] {this.recvPort.name(), currentBaseMsg});
+                    new Object[] {this.recvPort.name(), currentBaseMsg});            
+            }
         }
         try {
             execServ.submit(new DataOfferingThread(this));
         } catch (Exception ex) {
+            if(logger.isErrorEnabled()) {
             logger.error("Couldn''t submit another data"
                     + " offering thread.", ex);
+            }
         }
     }
 
@@ -161,34 +183,42 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
             while (buffered_bytes < len) {
                 if(buffered_bytes == 0 && remainingBytes == 0) {
                     try {
+                        if(logger.isDebugEnabled()) {
                         logger.debug("Got lock on object:\t{}\n."
                                 + "bufBytes==0 and remainingBytes==0."
                                 + " Finishing the current read message:\t{}",
                                 new Object[] {this, currentBaseMsg});
+                        }
                         if(!currentBaseMsgFinished) {
                             currentBaseMsgFinished = true;
                             currentBaseMsg.finish();                            
                         }
                     } catch(Exception ex) {
+                        if(logger.isDebugEnabled()) {
                         logger.debug("This should not happen. This is the only"
                                 + " place where the currentBaseMsg should"
                                 + " be closed when more data is requested."
                                 + " Check where it was closed before and why.",
                                 ex);
+                        }
                     }
                 }
                 try {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Waiting for buffer "
                             + "to fill: currBufBytes={}, remainingBytes={} "
                             + "requestedLen={}", new Object[]{buffered_bytes,
                                 remainingBytes, len});
+                    }
                     notifyAll();
                     wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
+            if(logger.isDebugEnabled()) {
             logger.debug("Got my data. bufferedBytes = {},"
                     + " lenRequested = {}", new Object[]{buffered_bytes, len});
+            }
         }
     }
 
@@ -198,8 +228,10 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
          * Wait for the last part.
          */
         synchronized (this) {
+            if(logger.isDebugEnabled()) {
             logger.debug("Port {} is closing the current read message. gotLastPart={}",
-                    new Object[] {recvPort.name(), recvPort.msgUpcall.gotLastPart});
+                    new Object[] {recvPort.name(), recvPort.msgUpcall.gotLastPart});            
+            }
             /*
              * Start sending any future data to a sink.
              */
@@ -217,9 +249,11 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
                     currentBaseMsg.finish();                    
                 }
             } catch (Throwable t) {
+                if(logger.isWarnEnabled()) {
                 logger.warn("Caught exception when"
                         + " trying to finish CCReadMsg; maybe "
                         + "the user upcall finished it. Details:", t);
+                }
             }
             /*
              * Now wait until we have got all the messages, so we can
@@ -227,16 +261,20 @@ public class UpcallBufferedDataInputStream extends BufferedDataInputStream {
              */
             while (!recvPort.msgUpcall.gotLastPart) {
                 try {
+                    if(logger.isDebugEnabled()) {
                     logger.debug("Port {} is waiting for the last part "
                             + "of the message from {}", 
                             new Object[] {recvPort.name(), 
                                 recvPort.currentLogicalReadMsg.origin()});
+                    }
                     wait();
                 } catch (InterruptedException ignoreMe) {
                 }
             }
+            if(logger.isDebugEnabled()) {
             logger.debug("Port {} has closed the current read message.",
                     recvPort.name());
+            }
             
             /*
              * reset the variable.
