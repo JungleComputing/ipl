@@ -64,7 +64,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
     }
 
     public void resetBytesWritten() {
-        bytes = index;
+        bytes = -index;
     }
 
     /**
