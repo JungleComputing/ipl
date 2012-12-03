@@ -44,6 +44,8 @@ import org.slf4j.LoggerFactory;
 public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         Runnable, SmartSocketsProtocol {
 
+    private static final String PORT_PROPERTY = "ibis.local.port";
+
     static final Logger logger = LoggerFactory
             .getLogger("ibis.ipl.impl.smartsockets.SmartSocketsIbis");
 
@@ -107,7 +109,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         Client client = Client.getOrCreateClient(clientID, properties, 0);
         factory = client.getFactory();
 
-        systemServer = factory.createServerSocket(0, 50, true, null);
+        int port = this.properties.getIntProperty(PORT_PROPERTY, 0);
+
+        systemServer = factory.createServerSocket(port, 50, true, null);
         myAddress = systemServer.getLocalSocketAddress();
 
         if (logger.isInfoEnabled()) {
