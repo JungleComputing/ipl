@@ -6,6 +6,7 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 
@@ -61,13 +62,16 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
                     "upcalls not supported by NullRegistry");
         }
 
-        UUID id = UUID.randomUUID();
+        String id = properties.getProperty(Ibis.ID_PROPERTY);
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+        }
 
         Location location = Location.defaultLocation(properties, null);
 
         String pool = properties.getProperty(IbisProperties.POOL_NAME);
 
-        identifier = new IbisIdentifier(id.toString(), data, null, location,
+        identifier = new IbisIdentifier(id, data, null, location,
                 pool, tag);
     }
 
