@@ -120,7 +120,7 @@ public class Client {
             }
         }
 
-        Properties smartProperties = new Properties();
+        Properties smartProperties = new Properties(typedProperties);
 
         if (port > 0) {
             smartProperties.put(SmartSocketsProperties.PORT_RANGE, Integer
