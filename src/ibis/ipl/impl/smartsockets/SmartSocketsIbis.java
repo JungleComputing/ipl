@@ -106,12 +106,14 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
     protected byte[] getData() throws IOException {
         String clientID = this.properties.getProperty(ID_PROPERTY);
-        Client client = Client.getOrCreateClient(clientID, properties, 0);
-        factory = client.getFactory();
 
         int port = this.properties.getIntProperty(PORT_PROPERTY, 0);
+        
+        Client client = Client.getOrCreateClient(clientID, properties, port);
+        factory = client.getFactory();
 
-        systemServer = factory.createServerSocket(port, 50, true, null);
+        // systemServer = factory.createServerSocket(port, 50, true, null);
+        systemServer = factory.createServerSocket(0, 50, true, null);
         myAddress = systemServer.getLocalSocketAddress();
 
         if (logger.isInfoEnabled()) {
