@@ -327,6 +327,13 @@ public abstract class ReceivePort extends Manageable
         closePort(timeout);
         ibis.deRegister(this);
     }
+    
+    public synchronized void cancelConnection(SendPortIdentifier id) {
+        outstanding--;
+        if (connectionDowncalls) {
+            newConnections.remove(id);
+        }
+    }
 
     public synchronized byte connectionAllowed(SendPortIdentifier id,
             PortType sp) {

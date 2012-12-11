@@ -330,13 +330,22 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                     + ReceivePort.getString(result));
         }
 
-        out.write(result);
-        if (result == ReceivePort.TYPE_MISMATCH) {
-            DataOutputStream dout = new DataOutputStream(out);
-            rp.getPortType().writeTo(dout);
-            dout.flush();
+        try {
+            out.write(result);
+            if (result == ReceivePort.TYPE_MISMATCH) {
+                DataOutputStream dout = new DataOutputStream(out);
+                rp.getPortType().writeTo(dout);
+                dout.flush();
+            }
+            out.flush();
+        } catch(IOException e) {
+            // If we cannot write the result back, we must notify the system that
+            // the connection is to be removed.
+            if (result == ReceivePort.ACCEPTED) {
+                rp.cancelConnection(send);
+            }
+            throw e;
         }
-        out.flush();
         if (result == ReceivePort.ACCEPTED) {
             // add the connection to the receiveport.
             rp.connect(send, s, bais);
