@@ -45,6 +45,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         Runnable, SmartSocketsProtocol {
 
     private static final String PORT_PROPERTY = "ibis.local.port";
+    
+    private static final String KEEP_ALIVE_PROPERTY = "ibis.ipl.impl.smartsockets.keepalive";
 
     static final Logger logger = LoggerFactory
             .getLogger("ibis.ipl.impl.smartsockets.SmartSocketsIbis");
@@ -56,6 +58,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     private VirtualSocketAddress myAddress;
 
     private boolean quiting = false;
+    
+    private boolean keepAlive = false;
 
     private HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress>();
 
@@ -80,8 +84,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         directConnection.put("connect.module.allow", "ConnectModule(Direct)");
 
         this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
-                new String[] { "ibis.ipl.impl.smartsockets" }, null, true);
+                new String[] { KEEP_ALIVE_PROPERTY }, null, true);
 
+        keepAlive = this.properties.getBooleanProperty(KEEP_ALIVE_PROPERTY, false);
         try {
             ServiceLink sl = factory.getServiceLink();
             if (sl != null) {
@@ -196,6 +201,13 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 s = factory.createClientSocket(idAddr, timeout, fillTimeout, h);
 
                 s.setTcpNoDelay(true);
+                if (keepAlive) {
+                    try {
+                	s.setKeepAlive(true);
+                    } catch(Throwable e) {
+                	logger.info("Could not set KeepAlive", e);
+                    }
+                }
 
                 out = new DataOutputStream(
                         new BufferedArrayOutputStream(s.getOutputStream()));
@@ -295,6 +307,14 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
         if (logger.isDebugEnabled()) {
             logger.debug("--> SmartSocketsIbis got connection request from " + s);
+        }
+        
+        if (keepAlive) {
+            try {
+        	s.setKeepAlive(true);
+            } catch(Throwable e) {
+        	logger.info("Could not set KeepAlive", e);
+            }
         }
 
         BufferedArrayInputStream bais = 
