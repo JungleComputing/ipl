@@ -221,8 +221,14 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
                 switch (result) {
                 case ReceivePort.ACCEPTED:
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection accepted");
+                    }
                     return s;
                 case ReceivePort.ALREADY_CONNECTED:
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection refused: already connected");
+                    }
                     throw new AlreadyConnectedException("Already connected",
                             rip);
                 case ReceivePort.TYPE_MISMATCH:
@@ -243,13 +249,22 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                                 + "\nUnmatched sendport capabilities: "
                                 + s2.toString() + ".";
                     }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection refused: " + message);
+                    }
                     throw new PortMismatchException(
                             "Cannot connect ports of different port types."
                                     + message, rip);
                 case ReceivePort.DENIED:
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection denied");
+                    }
                     throw new ConnectionRefusedException(
                             "Receiver denied connection", rip);
                 case ReceivePort.NO_MANY_TO_X:
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection refused: already connected and no ManyToXXX");
+                    }
                     throw new ConnectionRefusedException(
                             "Receiver already has a connection and neither ManyToOne not ManyToMany "
                                     + "is set", rip);
@@ -258,16 +273,31 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                     // and try again if we did not reach the timeout...
                     if (timeout > 0
                             && System.currentTimeMillis() > startTime + timeout) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Connection timed out");
+                        }
                         throw new ConnectionTimedOutException(
                                 "Could not connect", rip);
                     }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection retrying ...");
+                    }
                     break;
                 case -1:
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection got EOF");
+                    }
                     throw new IOException("Encountered EOF in SmartSocketsIbis.connect");
                 default:
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connection got illegal opcode");
+                    }
                     throw new IOException("Illegal opcode in SmartSocketsIbis.connect");
                 }
             } catch (SocketTimeoutException e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("SocketTimeoutException", e);
+                }
                 throw new ConnectionTimedOutException("Could not connect", rip);
             } finally {
                 if (result != ReceivePort.ACCEPTED) {
@@ -333,6 +363,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         int result;
         if (rp == null) {
             result = ReceivePort.NOT_PRESENT;
+            if (logger.isDebugEnabled()) {
+                logger.debug("ReceivePort " + name + " not present");
+            }
             out.write(result);
             out.close();
             in.close();
@@ -361,6 +394,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         } catch(IOException e) {
             // If we cannot write the result back, we must notify the system that
             // the connection is to be removed.
+            if (logger.isDebugEnabled()) {
+                logger.debug("Got exception while writing connection request result", e);
+            }
             if (result == ReceivePort.ACCEPTED) {
                 rp.cancelConnection(send);
             }
