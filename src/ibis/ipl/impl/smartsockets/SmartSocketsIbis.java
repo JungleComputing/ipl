@@ -203,6 +203,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 s.setTcpNoDelay(true);
                 if (keepAlive) {
                     try {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Setting KeepAlive");
+                        }
                 	s.setKeepAlive(true);
                     } catch(Throwable e) {
                 	logger.info("Could not set KeepAlive", e);
@@ -341,6 +344,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         
         if (keepAlive) {
             try {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Setting KeepAlive");
+                }
         	s.setKeepAlive(true);
             } catch(Throwable e) {
         	logger.info("Could not set KeepAlive", e);
