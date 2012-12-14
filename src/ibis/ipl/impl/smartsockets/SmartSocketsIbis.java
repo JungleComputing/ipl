@@ -29,6 +29,7 @@ import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
+import ibis.util.TypedProperties;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -206,6 +207,12 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 s = factory.createClientSocket(idAddr, timeout, fillTimeout, h);
 
                 s.setTcpNoDelay(true);
+                boolean keepAlive = this.keepAlive;
+                Properties props = sp.getProperties();
+                if (props != null) {
+                    TypedProperties p = new TypedProperties(props);
+                    keepAlive = p.getBooleanProperty(KEEP_ALIVE_PROPERTY, keepAlive);
+                }
                 if (keepAlive) {
                     try {
                         if (logger.isDebugEnabled()) {
@@ -343,32 +350,13 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
     private void handleConnectionRequest(VirtualSocket s) throws IOException {
 
+        boolean keepAlive = this.keepAlive;
+        int soTimeout = this.soTimeout;
+        
         if (logger.isDebugEnabled()) {
             logger.debug("--> SmartSocketsIbis got connection request from " + s);
         }
-        
-        if (keepAlive) {
-            try {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Setting KeepAlive");
-                }
-        	s.setKeepAlive(true);
-            } catch(Throwable e) {
-        	logger.info("Could not set KeepAlive", e);
-            }
-        }
-        
-        if (soTimeout > 0) {
-            try {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Setting soTimeout");
-                }
-                s.setSoTimeout(soTimeout);
-            } catch(Throwable e) {
-                logger.info("Could not set SoTimeout", e);
-            }
-        }
-
+ 
         BufferedArrayInputStream bais = 
             new BufferedArrayInputStream(s.getInputStream());
 
@@ -426,6 +414,34 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         }
         if (result == ReceivePort.ACCEPTED) {
             // add the connection to the receiveport.
+            Properties props = rp.getProperties();
+            if (props != null) {
+                TypedProperties p = new TypedProperties(props);
+                soTimeout = p.getIntProperty(SOCKET_TIMEOUT_PROPERTY, soTimeout);
+                keepAlive = p.getBooleanProperty(KEEP_ALIVE_PROPERTY, keepAlive);
+            }
+
+            if (soTimeout > 0) {
+                try {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Setting soTimeout");
+                    }
+                    s.setSoTimeout(soTimeout);
+                } catch(Throwable e) {
+                    logger.info("Could not set SoTimeout", e);
+                }
+            }
+            if (keepAlive) {
+                try {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Setting KeepAlive");
+                    }
+                    s.setKeepAlive(true);
+                } catch(Throwable e) {
+                    logger.info("Could not set KeepAlive", e);
+                }
+            }
+            
             rp.connect(send, s, bais);
             if (logger.isDebugEnabled()) {
                 logger.debug("--> S connect done ");

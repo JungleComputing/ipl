@@ -187,4 +187,8 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
 
         out = null;
     }
+
+    Properties getProperties() {
+        return properties;
+    }
 }

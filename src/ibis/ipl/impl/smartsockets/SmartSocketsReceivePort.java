@@ -257,6 +257,10 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                 && !type.hasCapability(PortType.RECEIVE_TIMEOUT);       
     }
     
+    Properties getProperties() {
+        return properties;
+    }
+    
     private ReadMessage getPortMessage() {
         return message;
     }
