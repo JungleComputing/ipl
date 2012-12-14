@@ -309,6 +309,24 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             }
             ended = true;
         }
+        
+        // Close sendports.
+        for (SendPort s : sendPorts.values().toArray(new SendPort[sendPorts.size()])) {
+            try {
+        	s.close();
+            } catch(Throwable e) {
+        	// ignore
+            }
+        }
+
+        // Close receiveports.
+        for (ReceivePort r : receivePorts.values().toArray(new ReceivePort[receivePorts.size()])) {
+            try {
+        	r.close(-1);
+            } catch(Throwable e) {
+        	// ignore
+            }
+        }
 
         if (managementClient != null) {
             managementClient.end();
