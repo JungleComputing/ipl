@@ -47,6 +47,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     private static final String PORT_PROPERTY = "ibis.local.port";
     
     private static final String KEEP_ALIVE_PROPERTY = "ibis.ipl.impl.smartsockets.keepalive";
+    
+    private static final String SOCKET_TIMEOUT_PROPERTY = "ibis.ipl.impl.smartsockets.sotimeout";
 
     static final Logger logger = LoggerFactory
             .getLogger("ibis.ipl.impl.smartsockets.SmartSocketsIbis");
@@ -60,6 +62,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     private boolean quiting = false;
     
     private boolean keepAlive = false;
+    
+    private int soTimeout = -1;
 
     private HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress>();
 
@@ -84,9 +88,10 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         directConnection.put("connect.module.allow", "ConnectModule(Direct)");
 
         this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
-                new String[] { KEEP_ALIVE_PROPERTY }, null, true);
+                new String[] { KEEP_ALIVE_PROPERTY, SOCKET_TIMEOUT_PROPERTY }, null, true);
 
         keepAlive = this.properties.getBooleanProperty(KEEP_ALIVE_PROPERTY, false);
+        soTimeout = this.properties.getIntProperty(SOCKET_TIMEOUT_PROPERTY, -1);
         try {
             ServiceLink sl = factory.getServiceLink();
             if (sl != null) {
@@ -350,6 +355,17 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         	s.setKeepAlive(true);
             } catch(Throwable e) {
         	logger.info("Could not set KeepAlive", e);
+            }
+        }
+        
+        if (soTimeout > 0) {
+            try {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Setting soTimeout");
+                }
+                s.setSoTimeout(soTimeout);
+            } catch(Throwable e) {
+                logger.info("Could not set SoTimeout", e);
             }
         }
 
