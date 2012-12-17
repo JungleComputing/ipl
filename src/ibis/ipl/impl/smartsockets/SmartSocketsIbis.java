@@ -208,10 +208,12 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
                 s.setTcpNoDelay(true);
                 boolean keepAlive = this.keepAlive;
+                int soTimeout = this.soTimeout;
                 Properties props = sp.getProperties();
                 if (props != null) {
                     TypedProperties p = new TypedProperties(props);
                     keepAlive = p.getBooleanProperty(KEEP_ALIVE_PROPERTY, keepAlive);
+                    soTimeout = p.getIntProperty(SOCKET_TIMEOUT_PROPERTY, soTimeout);
                 }
                 if (keepAlive) {
                     try {
@@ -221,6 +223,16 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 	s.setKeepAlive(true);
                     } catch(Throwable e) {
                 	logger.info("Could not set KeepAlive", e);
+                    }
+                }
+                if (soTimeout > 0) {
+                    try {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Setting soTimeout");
+                        }
+                        s.setSoTimeout(soTimeout);
+                    } catch(Throwable e) {
+                        logger.info("Could not set SoTimeout", e);
                     }
                 }
 
