@@ -109,6 +109,10 @@ public interface WriteMessage {
      * If needed, send, and then block until the entire message has been sent
      * and clear the message. The number of bytes written in this message
      * is returned.
+     * After the finish, no more bytes can be written to the message,
+     * and other information obtained from the message, such as
+     * {@link #bytesWritten()} is no longer available. Implementations
+     * are explicitly allowed to reuse the message object.
      * <strong> 
      * Even for multicast messages, the size only counts once.
      * </strong>

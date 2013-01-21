@@ -44,8 +44,12 @@ public interface ReadMessage {
     /**
      * The <code>finish</code> operation is used to indicate that the
      * reader is done with the message.
-     * After the finish, no more bytes can be read from the message.
-     * The thread reading the message (can be an upcall) is NOT
+     * After the finish, no more bytes can be read from the message,
+     * and other information obtained from the message, such as
+     * {@link #bytesRead()} is no longer available. Implementations
+     * are explicitly allowed to reuse the message object.
+     * <p>
+     * The thread reading the message (can be an upcall) is <strong>not</strong>
      * allowed to block when a message is alive but not finished.
      * Only after the finish is called can the thread that holds the
      * message block.
@@ -78,7 +82,8 @@ public interface ReadMessage {
      * Returns the number of bytes read from this message. 
      * Note that for streaming implementations (i.e., messages with an unlimited
      * capacity) this number may not be exact because of intermediate buffering.  
-     * 
+     * When {@link #finish()} has been called on the
+     * message, this information can no longer be trusted.
      * @return
      *          the number of bytes read sofar from this message.
      * @exception IOException
@@ -88,6 +93,8 @@ public interface ReadMessage {
 
     /**
      * Returns the size of this message in bytes. 
+     * When {@link #finish()} has been called on the
+     * message, this information can no longer be trusted.
      * 
      * @return
      *          the size of this message in byte or -1 if the size is unknown or 
@@ -110,7 +117,8 @@ public interface ReadMessage {
     
     /**
      * Returns the {@link ibis.ipl.ReceivePort receiveport} of this
-     * <code>ReadMessage</code>.
+     * <code>ReadMessage</code>. When {@link #finish()} has been called on the
+     * message, this information can no longer be trusted.
      *
      * @return
      *          the {@link ibis.ipl.ReceivePort receiveport} of this
@@ -120,6 +128,8 @@ public interface ReadMessage {
 
     /**
      * Returns the sequence number of this message.
+     * When {@link #finish()} has been called on the
+     * message, this information can no longer be trusted.
      * @return
      *          the sequence number for this message.
      * @exception IbisConfigurationException
@@ -131,7 +141,8 @@ public interface ReadMessage {
     /**
      * Returns the {@link ibis.ipl.SendPortIdentifier sendport identifier}
      * of the sender of this message.
-     *
+     * When {@link #finish()} has been called on the
+     * message, this information can no longer be trusted.
      * @return
      *          the id of the sender of this message.
      */
