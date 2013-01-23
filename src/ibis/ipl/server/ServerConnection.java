@@ -8,6 +8,7 @@ import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
+import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,7 +74,7 @@ public class ServerConnection implements ServerInterface {
 
     private static VirtualSocketFactory createSocketFactory(String hubs)
             throws IOException {
-        VirtualSocketFactory result;
+        final VirtualSocketFactory result;
 
         Properties properties = new Properties();
 
@@ -87,18 +88,23 @@ public class ServerConnection implements ServerInterface {
             throw new IOException(e.getMessage());
         }
 
-        // make this node disappear from the smartsockets viz
-        try {
-            ServiceLink sl = result.getServiceLink();
-            if (sl != null) {
-                sl.registerProperty("smartsockets.viz", "invisible");
+        // Make this node disappear from the smartsockets viz, but avoid a roundtrip for this in the
+        // Ibis creation thread.
+        Runnable r = new Runnable() {
+            public void run() {
+                try {
+                    ServiceLink sl = result.getServiceLink();
+                    if (sl != null) {
+                        sl.registerProperty("smartsockets.viz", "invisible");
+                    }
+                } catch (Throwable e) {
+                    // ignored
+                }
             }
-        } catch (Throwable e) {
-            // ignored
-        }
+        };
+        ThreadPool.createNew(r, "Service link eraser");
 
         return result;
-
     }
 
     /**
