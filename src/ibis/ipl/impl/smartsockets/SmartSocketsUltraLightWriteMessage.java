@@ -195,7 +195,7 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
     }
 
     public void writeLong(long value) throws IOException {
-        out.writeDouble(value);		
+        out.writeLong(value);		
     }
 
     public void writeObject(Object value) throws IOException {
