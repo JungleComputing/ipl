@@ -104,8 +104,14 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
             finishCalledFromUpcall = true;
             port.newUpcallThread();
         }
-
-        return bin.bytesRead();
+        
+        long retval = bin.bytesRead();
+        try {
+            in.close();
+        } catch(Throwable e) {
+            // ignore
+        }
+        return retval;
     }
 
     public void finish(IOException e) {
@@ -113,7 +119,13 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         if (isFinished) {
             return;
         }
-
+        
+        try {
+            in.close();
+        } catch(Throwable ex) {
+            // ignore
+        }
+        
         isFinished = true;
 
         if (inUpcall) {

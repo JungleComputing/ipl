@@ -43,7 +43,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 	
 	private boolean closed = false;
 
-	private final SmartSocketsUltraLightWriteMessage message; 
+	private SmartSocketsUltraLightWriteMessage message; 
 	private final byte [] buffer;
 
 	private boolean messageInUse = false;
@@ -63,7 +63,6 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		sid = new ibis.ipl.impl.SendPortIdentifier(name, ibis.ident);
 		
 		buffer = new byte[DEFAULT_BUFFER_SIZE];		
-		message = new SmartSocketsUltraLightWriteMessage(this, buffer);
 	
 		messageToHub = new byte[2][];		
 		messageToHub[0] = ibis.ident.toBytes();
@@ -189,7 +188,8 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 			throw new IOException("Sendport is closed");
 		}
 		
-		messageInUse = false;		
+		messageInUse = true;	
+		message = new SmartSocketsUltraLightWriteMessage(this, buffer);
 		return message;
 	}
 
