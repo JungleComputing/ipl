@@ -93,23 +93,29 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
         keepAlive = this.properties.getBooleanProperty(KEEP_ALIVE_PROPERTY, false);
         soTimeout = this.properties.getIntProperty(SOCKET_TIMEOUT_PROPERTY, -1);
-        try {
-            ServiceLink sl = factory.getServiceLink();
-            if (sl != null) {
-                String colorString = "";
-                if (properties.getProperty(IbisProperties.LOCATION_COLOR) != null) {
-                    colorString = "^"
-                            + properties
+        Runnable r = new Runnable() {
+            public void run() {
+                try {
+                    ServiceLink sl = factory.getServiceLink();
+                    if (sl != null) {
+                        String colorString = "";
+                        if (properties.getProperty(IbisProperties.LOCATION_COLOR) != null) {
+                            colorString = "^"
+                                    + properties
                                     .getProperty(IbisProperties.LOCATION_COLOR);
+                        }
+
+                        sl.registerProperty("smartsockets.viz", "I^" + ident.name() + "^" + ident.name()
+                                + "," + ident.location().toString() + colorString);
+
+                    }
+                } catch (Throwable e) {
+                    // ignored
                 }
-
-                sl.registerProperty("smartsockets.viz", "I^" + ident.name() + "^" + ident.name()
-                        + "," + ident.location().toString() + colorString);
-
             }
-        } catch (Throwable e) {
-            // ignored
-        }
+        };
+        
+        ThreadPool.createNew(r, "Color setter");
 
         // Create a new accept thread
         ThreadPool.createNew(this, "SmartSocketsIbis Accept Thread");
