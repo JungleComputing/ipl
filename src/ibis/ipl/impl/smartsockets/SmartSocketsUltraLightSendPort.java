@@ -262,7 +262,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 			logger.debug("Failed to send message to " + connections, e);
 		}
 		
-		message.reset();	
+		// message.reset();	No longer needed. --Ceriel
 		messageInUse = false;
 		notifyAll();
 	}
