@@ -1,5 +1,7 @@
 package ibis.ipl.impl.smartsockets;
 
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.DataInputStream;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.io.SingleBufferArrayInputStream;
@@ -8,6 +10,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
@@ -16,7 +19,7 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 
     private final SerializationInput in;
 
-    private final SingleBufferArrayInputStream bin;
+    private final DataInputStream bin;
 
     private boolean isFinished = false;
 
@@ -28,11 +31,14 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 
     private final SmartSocketsUltraLightReceivePort port;
 
+    private final int len;
+    
     SmartSocketsUltraLightReadMessage(SmartSocketsUltraLightReceivePort port, 
             SendPortIdentifier origin, byte [] data) throws IOException {
 
         this.origin = origin;
         this.port = port;
+        this.len = data.length;
 
         PortType type = port.getPortType();
 
@@ -50,7 +56,9 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
             serialization = "byte";
         }
 
-        bin = new SingleBufferArrayInputStream(data);
+        // bin = new SingleBufferArrayInputStream(data);
+        bin = new BufferedArrayInputStream(
+                new ByteArrayInputStream(data));
         in = SerializationFactory.createSerializationInput(serialization, bin);		
     }
 
@@ -63,7 +71,7 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
     }
 
     public int size() throws IOException {
-        return bin.size();
+        return len;
     }
 
     /**

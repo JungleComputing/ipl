@@ -28,9 +28,6 @@ import org.slf4j.LoggerFactory;
 
 public class SmartSocketsUltraLightSendPort implements SendPort {
 
-	// FIXME: This value is arbitrarily chosen... 
-	private static final int DEFAULT_BUFFER_SIZE = 64*1024;
-	
 	protected static final Logger logger = 
 		LoggerFactory.getLogger("ibis.ipl.impl.smartsockets.SendPort");
 
@@ -44,7 +41,6 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 	private boolean closed = false;
 
 	private SmartSocketsUltraLightWriteMessage message; 
-	private final byte [] buffer;
 
 	private boolean messageInUse = false;
 
@@ -61,9 +57,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 // 		this.properties = props;
 		
 		sid = new ibis.ipl.impl.SendPortIdentifier(name, ibis.ident);
-		
-		buffer = new byte[DEFAULT_BUFFER_SIZE];		
-	
+
 		messageToHub = new byte[2][];		
 		messageToHub[0] = ibis.ident.toBytes();
 	}	
@@ -189,7 +183,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		}
 		
 		messageInUse = true;	
-		message = new SmartSocketsUltraLightWriteMessage(this, buffer);
+		message = new SmartSocketsUltraLightWriteMessage(this);
 		return message;
 	}
 
@@ -218,7 +212,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		
 	}
 	
-	private void send(byte [] data, int len) throws UnknownHostException, MalformedAddressException { 
+	private void send(byte [] data) throws UnknownHostException, MalformedAddressException { 
 		
 		ServiceLink link = ibis.getServiceLink();
 		
@@ -233,9 +227,8 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		// messageToHub[1] = Arrays.copyOfRange(buffer, 0, len);
                 // This is Java 6 speak. Modified to equivalent code that
                 // is acceptable to Java 1.5. --Ceriel
-                messageToHub[1] = new byte[len];
-                System.arraycopy(buffer, 0, messageToHub[1], 0,
-                        Math.min(len, buffer.length));
+                messageToHub[1] = new byte[data.length];
+                System.arraycopy(data, 0, messageToHub[1], 0, data.length);
 
 		for (ReceivePortIdentifier id : connections) { 		
 
@@ -250,14 +243,12 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		}
 	}
 
-	public synchronized void finishedMessage() throws IOException {
+	public synchronized void finishedMessage(byte[] m) throws IOException {
 
 		int len = (int) message.bytesWritten();
-	
-		byte [] m = buffer;
-	
+
 		try { 
-			send(m, len);
+			send(m);
 		} catch (Exception e) {
 			logger.debug("Failed to send message to " + connections, e);
 		}

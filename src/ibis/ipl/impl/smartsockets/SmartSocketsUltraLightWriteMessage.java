@@ -1,12 +1,15 @@
 package ibis.ipl.impl.smartsockets;
 
+import ibis.io.BufferedArrayOutputStream;
+import ibis.io.DataOutputStream;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
-import ibis.io.SingleBufferArrayOutputStream;
+// import ibis.io.SingleBufferArrayOutputStream;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -14,9 +17,10 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 
     private final SmartSocketsUltraLightSendPort port;
     private final SerializationOutput out;
-    private final SingleBufferArrayOutputStream bout;
+    private final DataOutputStream bout;
+    private final ByteArrayOutputStream b;
 
-    SmartSocketsUltraLightWriteMessage(SmartSocketsUltraLightSendPort port, byte [] buffer) throws IOException { 
+    SmartSocketsUltraLightWriteMessage(SmartSocketsUltraLightSendPort port) throws IOException { 
         this.port = port;
 
         PortType type = port.getPortType();
@@ -35,7 +39,9 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
             serialization = "byte";
         }
 
-        bout = new SingleBufferArrayOutputStream(buffer);
+        b = new ByteArrayOutputStream();
+        bout = new BufferedArrayOutputStream(b);
+        // bout = new SingleBufferArrayOutputStream(buffer);
         out = SerializationFactory.createSerializationOutput(serialization, bout);		
     }
 
@@ -45,11 +51,13 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 
 
     public int capacity() throws IOException {
-        return bout.bufferSize();
+        // return bout.bufferSize();
+        return -1;
     }
 
     public int remaining() throws IOException {
-        return (int) (bout.bufferSize() - bout.bytesWritten());
+        // return (int) (bout.bufferSize() - bout.bytesWritten());
+        return -1;
     }
 
 
@@ -61,7 +69,7 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 
         // System.err.println("Written == " + bytes);
 
-        port.finishedMessage();
+        port.finishedMessage(b.toByteArray());
         return bytes;
     }
 
@@ -73,11 +81,6 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
         }
     }
 
-    protected void resetBuffers() throws IOException { 
-        bout.reset();
-        out.reset(true);
-    }
-
     public void flush() throws IOException {
         // empty
     }
@@ -87,7 +90,8 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
     }
 
     public void reset() throws IOException {
-        resetBuffers();
+        // bout.reset();
+        out.reset(true);
     }
 
     public int send() throws IOException {
