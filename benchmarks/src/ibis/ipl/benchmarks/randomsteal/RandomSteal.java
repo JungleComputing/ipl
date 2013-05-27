@@ -72,8 +72,7 @@ public class RandomSteal implements RegistryEventHandler {
     private static final IbisCapabilities ibisCapabilities =
         new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, 
         		IbisCapabilities.MALLEABLE, 
-        		IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED, 
-        		"nickname.smartsockets");
+        		IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     private final PortType portType; 
     private final int nodes;
