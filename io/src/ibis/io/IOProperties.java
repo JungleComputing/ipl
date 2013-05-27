@@ -207,10 +207,6 @@ public final class IOProperties {
         try {
             in = new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            // ignored
-        }
-
-        if (in == null) {
             ClassLoader loader = ClassLoader.getSystemClassLoader();
             in = loader.getResourceAsStream(file);
             if (in == null) {
@@ -223,9 +219,11 @@ public final class IOProperties {
             p.load(in);
             return p;
         } catch (IOException e) {
+            // ignore
+        } finally {
             try {
                 in.close();
-            } catch (Exception x) {
+            } catch (Throwable x) {
                 // ignore
             }
         }
