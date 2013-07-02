@@ -1387,7 +1387,7 @@ public class IbisSerializationOutputStream
             }
 
             public void put(String name, Object value) {
-                refs[t.getOffset(name, value.getClass())] = value;
+                refs[t.getOffset(name, Object.class)] = value;
             }
 
             public void write(ObjectOutput o) throws IOException {
