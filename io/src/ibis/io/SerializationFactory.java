@@ -5,6 +5,7 @@ package ibis.io;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
 
 /**
  * A factory for creating serialization streams.
@@ -18,8 +19,18 @@ public class SerializationFactory {
      * @param name the nickname of the serialization type.
      * @return the implementation name.
      */
-    private static String implName(String name) {
-        if (name == null || name.equals("ibis") || name.equals("object")) {
+    private static String implName(String name, Properties props) {
+	String dflt = "ibis";
+	if (props != null) {
+	    String v = props.getProperty(IOProperties.s_serialization_default);
+	    if ("sun".equals(v)) {
+		dflt = "sun";
+	    }
+	}
+	if (name == null || name.equals("object")) {
+	    name = dflt;
+	}
+        if (name.equals("ibis")) {
             return "ibis.io.IbisSerialization";
         }
         if (name.equals("sun")) {
@@ -41,8 +52,8 @@ public class SerializationFactory {
      * @return the serialization input stream.
      */
     public static SerializationInput createSerializationInput(String name,
-            DataInputStream in) throws IOException {
-        String impl = implName(name) + "InputStream";
+            DataInputStream in, Properties props) throws IOException {
+        String impl = implName(name, props) + "InputStream";
         try {
             Class<?> cl = Class.forName(impl);
             Constructor<?> cons =
@@ -76,8 +87,8 @@ public class SerializationFactory {
      * @return the serialization output stream.
      */
     public static SerializationOutput createSerializationOutput(String name,
-            DataOutputStream out) throws IOException {
-        String impl = implName(name) + "OutputStream";
+            DataOutputStream out, Properties props) throws IOException {
+        String impl = implName(name, props) + "OutputStream";
         try {
             Class<?> cl = Class.forName(impl);
             Constructor<?> cons =

@@ -36,6 +36,7 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 	
 	private boolean allowUpcalls = false;
 	private boolean closed = false;
+	Properties properties;
 
 
 	private final LinkedList<SmartSocketsUltraLightReadMessage> messages = 
@@ -48,6 +49,7 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 		this.type = type;
 		this.name = name; 
 		this.upcall = upcall;
+		this.properties = properties;
 		// this.properties = properties;		
 		this.id = new ibis.ipl.impl.ReceivePortIdentifier(name, ibis.ident);
 

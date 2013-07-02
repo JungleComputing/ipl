@@ -4,7 +4,6 @@ import ibis.io.BufferedArrayInputStream;
 import ibis.io.DataInputStream;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
-import ibis.io.SingleBufferArrayInputStream;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -59,7 +58,7 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         // bin = new SingleBufferArrayInputStream(data);
         bin = new BufferedArrayInputStream(
                 new ByteArrayInputStream(data));
-        in = SerializationFactory.createSerializationInput(serialization, bin);		
+        in = SerializationFactory.createSerializationInput(serialization, bin, port.properties);		
     }
 
     public long bytesRead() throws IOException {

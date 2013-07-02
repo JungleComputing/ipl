@@ -82,8 +82,8 @@ public class Multicaster implements MessageReceiver {
             serialization = "byte";
         }
         sout = SerializationFactory.createSerializationOutput(serialization,
-                bout);
-        sin = SerializationFactory.createSerializationInput(serialization, bin);
+                bout, ibis.properties());
+        sin = SerializationFactory.createSerializationInput(serialization, bin, ibis.properties());
         portType = type;
         this.name = name;
     }

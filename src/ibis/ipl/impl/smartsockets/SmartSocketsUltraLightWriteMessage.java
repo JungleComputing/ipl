@@ -42,7 +42,7 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
         b = new ByteArrayOutputStream();
         bout = new BufferedArrayOutputStream(b);
         // bout = new SingleBufferArrayOutputStream(buffer);
-        out = SerializationFactory.createSerializationOutput(serialization, bout);		
+        out = SerializationFactory.createSerializationOutput(serialization, bout, port.properties);		
     }
 
     public long bytesWritten() throws IOException {

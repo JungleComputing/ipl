@@ -89,7 +89,7 @@ public class ReceivePortConnectionInfo {
             in.close();
         }
         in = SerializationFactory.createSerializationInput(port.serialization,
-                dataIn);
+                dataIn, port.properties);
         message = port.createReadMessage(in, this);
     }
 

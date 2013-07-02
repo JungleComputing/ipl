@@ -29,7 +29,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     protected void clear() throws IOException {
         if (out == null) {
-            out = SerializationFactory.createSerializationOutput(ser, storeOut);
+            out = SerializationFactory.createSerializationOutput(ser, storeOut, null);
             if (replacer != null) {
                 out.setReplacer(replacer);
             }

@@ -34,7 +34,7 @@ public class CombiningReadMessage implements ReadMessage {
 
     protected void clear() throws IOException {
         if (in == null) {
-            in = SerializationFactory.createSerializationInput(ser, storeIn);
+            in = SerializationFactory.createSerializationInput(ser, storeIn, null);
         }
         in.clear();
     }

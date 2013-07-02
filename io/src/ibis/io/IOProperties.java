@@ -32,6 +32,8 @@ public final class IOProperties {
     static final String s_stats_nonrewritten = PREFIX + "stats.nonrewritten";
 
     static final String s_stats_written = PREFIX + "stats.written";
+    
+    static final String s_serialization_default = PREFIX + "serialization.object.default";
 
     static final String s_classloader = PREFIX + "serialization.classloader";
 
@@ -128,6 +130,8 @@ public final class IOProperties {
                     "Integer: determines the fill-percentage before the ibis hash "
                             + " is resized; choose between 50 and 200; larger values "
                             + " mean more chaining but a smaller hash size" },
+            { s_serialization_default, "ibis",
+                    "String: either \"ibis\" or \"sun\", determines the default object serialization"},
             { s_deepcopy_ser, "ibis",
                     "String: determines the serialization used for DeepCopy" } };
 

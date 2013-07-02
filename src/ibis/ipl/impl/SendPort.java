@@ -330,7 +330,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             serialization = "byte";
         }
         out = SerializationFactory.createSerializationOutput(serialization,
-                dataOut);
+                dataOut, properties);
         if (replacer != null) {
             out.setReplacer(replacer);
         }
