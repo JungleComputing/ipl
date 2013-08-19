@@ -245,7 +245,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 
 	public synchronized void finishedMessage(byte[] m) throws IOException {
 
-		int len = (int) message.bytesWritten();
+		// int len = (int) message.bytesWritten();
 
 		try { 
 			send(m);

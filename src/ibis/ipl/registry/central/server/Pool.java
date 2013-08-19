@@ -917,6 +917,7 @@ final class Pool implements Runnable {
                     eventStats[Event.JOIN], eventStats[Event.LEAVE], eventStats[Event.DIED], eventStats[Event.ELECT],
                     eventStats[Event.SIGNAL], "N.A.", isClosed(), hasTerminated(), ended);
         }
+        formatter.close();
 
         return message.toString();
     }
