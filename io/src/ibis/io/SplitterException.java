@@ -4,6 +4,8 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class SplitterException extends IOException {
@@ -61,13 +63,17 @@ public class SplitterException extends IOException {
         return res;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Throwable#printStackTrace()
-     */
-    public void printStackTrace() {
+    public void printStackTrace(PrintStream s) {
         for (int i = 0; i < exceptions.size(); i++) {
-            System.err.println("Exception: " + exceptions.get(i));
-            (exceptions.get(i)).printStackTrace();
+            s.println("Exception: " + exceptions.get(i));
+            (exceptions.get(i)).printStackTrace(s);
+        }
+    }
+
+    public void printStackTrace(PrintWriter s) {
+        for (int i = 0; i < exceptions.size(); i++) {
+            s.println("Exception: " + exceptions.get(i));
+            (exceptions.get(i)).printStackTrace(s);
         }
     }
 
