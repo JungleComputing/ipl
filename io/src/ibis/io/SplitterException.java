@@ -53,8 +53,8 @@ public class SplitterException extends IOException {
     }
 
     public String toString() {
-        String res = "got " + streams.size() + " exceptions: ";
-        for (int i = 0; i < streams.size(); i++) {
+        String res = "got " + exceptions.size() + " exceptions: ";
+        for (int i = 0; i < exceptions.size(); i++) {
             res += "   " + exceptions.get(i) + "\n";
         }
 
@@ -65,9 +65,13 @@ public class SplitterException extends IOException {
      * @see java.lang.Throwable#printStackTrace()
      */
     public void printStackTrace() {
-        for (int i = 0; i < streams.size(); i++) {
+        for (int i = 0; i < exceptions.size(); i++) {
             System.err.println("Exception: " + exceptions.get(i));
             (exceptions.get(i)).printStackTrace();
         }
+    }
+
+    public String getMessage() {
+        return toString();
     }
 }
