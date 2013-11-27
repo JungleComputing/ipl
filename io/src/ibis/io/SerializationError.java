@@ -2,6 +2,9 @@
 
 package ibis.io;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
+
 public class SerializationError extends Error {
     /** 
      * Generated
@@ -44,11 +47,19 @@ public class SerializationError extends Error {
         return res;
     }
 
-    public void printStackTrace() {
+    public void printStackTrace(PrintWriter s) {
         if (cause != null) {
-            cause.printStackTrace();
+            cause.printStackTrace(s);
         }
 
-        super.printStackTrace();
+        super.printStackTrace(s);
+    }
+
+    public void printStackTrace(PrintStream s) {
+        if (cause != null) {
+            cause.printStackTrace(s);
+        }
+
+        super.printStackTrace(s);
     }
 }
