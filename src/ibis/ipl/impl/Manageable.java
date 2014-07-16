@@ -28,7 +28,7 @@ public abstract class Manageable implements ibis.ipl.Manageable {
                 throw new NoSuchPropertyException("Invalid key: " + key);
             }
         }
-        properties.putAll(properties);
+        this.properties.putAll(properties);
         doProperties(properties);
     }
     

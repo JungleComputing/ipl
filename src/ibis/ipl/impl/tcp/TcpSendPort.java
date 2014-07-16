@@ -56,6 +56,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     TcpSendPort(Ibis ibis, PortType type, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
         super(ibis, type, name, cU, props);
+        addValidKey("nParallelStreams");
 
         splitter =
                 new OutputStreamSplitter(

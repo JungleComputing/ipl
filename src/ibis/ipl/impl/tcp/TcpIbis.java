@@ -53,12 +53,13 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
 
     public TcpIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            byte[] applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) throws IbisCreationFailedException {
-        super(registryEventHandler, capabilities, credentials, applicationTag, types,
-                userProperties, starter);
+            byte[] applicationTag, PortType[] types, Properties userProperties,
+            IbisStarter starter) throws IbisCreationFailedException {
+        super(registryEventHandler, capabilities, credentials, applicationTag,
+                types, userProperties, starter);
 
-        this.properties.checkProperties("ibis.ipl.impl.tcp.",
-                new String[] { }, null, true);
+        this.properties.checkProperties("ibis.ipl.impl.tcp.", new String[] {},
+                null, true);
 
         factory.setIdent(ident);
 
@@ -66,6 +67,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         ThreadPool.createNew(this, "TcpIbis Accept Thread");
     }
 
+    @Override
     protected byte[] getData() throws IOException {
 
         factory = new IbisSocketFactory(properties);
@@ -121,12 +123,14 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
             IbisSocket s = null;
             int result = -1;
 
+            sp.printManagementProperties(System.out);
+
             try {
-                s = factory.createClientSocket(idAddr, timeout, fillTimeout, sp
-                        .managementProperties());
+                s = factory.createClientSocket(idAddr, timeout, fillTimeout,
+                        sp.managementProperties());
                 s.setTcpNoDelay(true);
-                out = new DataOutputStream(
-                        new BufferedArrayOutputStream(s.getOutputStream()));
+                out = new DataOutputStream(new BufferedArrayOutputStream(
+                        s.getOutputStream()));
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
@@ -209,6 +213,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         } while (true);
     }
 
+    @Override
     protected void quit() {
         try {
             quiting = true;
@@ -225,8 +230,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
             logger.debug("--> TcpIbis got connection request from " + s);
         }
 
-        BufferedArrayInputStream bais = 
-            new BufferedArrayInputStream(s.getInputStream());
+        BufferedArrayInputStream bais = new BufferedArrayInputStream(
+                s.getInputStream());
 
         DataInputStream in = new DataInputStream(bais);
         OutputStream out = s.getOutputStream();
@@ -242,7 +247,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         if (rp == null) {
             result = ReceivePort.NOT_PRESENT;
         } else {
-            synchronized(rp) {
+            synchronized (rp) {
                 result = rp.connectionAllowed(send, sp);
             }
         }
@@ -352,11 +357,13 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         }
     }
 
+    @Override
     protected SendPort doCreateSendPort(PortType tp, String nm,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
         return new TcpSendPort(this, tp, nm, cU, props);
     }
 
+    @Override
     protected ReceivePort doCreateReceivePort(PortType tp, String nm,
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
