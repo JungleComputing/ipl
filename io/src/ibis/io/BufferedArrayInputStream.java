@@ -30,7 +30,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
     private InputStream in;
 
     /** The buffer. */
-    private byte[] buffer;
+    private final byte[] buffer;
     
     private int index, buffered_bytes;
 

@@ -14,22 +14,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the <code>SerializationOutputStream</code> version that is used
- * for Ibis serialization.
+ * This is the <code>SerializationOutputStream</code> version that is used for
+ * Ibis serialization.
  */
-public class IbisSerializationOutputStream
-        extends DataSerializationOutputStream {
-    private static final Logger logger = LoggerFactory.getLogger(IbisSerializationOutputStream.class);
-    
+public class IbisSerializationOutputStream extends
+        DataSerializationOutputStream {
+    private static final Logger logger = LoggerFactory
+            .getLogger(IbisSerializationOutputStream.class);
+
     private static final boolean DEBUG = IOProperties.DEBUG;
-    
+
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_IBIS_SERIALIZATION
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_timer_ibis);
-    
+    private static final boolean TIME_IBIS_SERIALIZATION = IOProperties.properties
+            .getBooleanProperty(IOProperties.s_timer_ibis);
+
     /** Record how many objects of any class are sent. */
-    private static final boolean STATS_OBJECTS
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_stats_written);
+    private static final boolean STATS_OBJECTS = IOProperties.properties
+            .getBooleanProperty(IOProperties.s_stats_written);
 
     // if STATS_OBJECTS
     static Hashtable<Class<?>, Integer> statSendObjects;
@@ -46,24 +47,23 @@ public class IbisSerializationOutputStream
         if (STATS_OBJECTS) {
             Runtime.getRuntime().addShutdownHook(
                     new Thread("IbisSerializationOutputStream ShutdownHook") {
+                        @Override
                         public void run() {
                             System.out.print("Serializable objects sent: ");
                             System.out.println(statSendObjects);
                             System.out.println("Non-array handles sent "
                                     + statObjectHandle);
-                            for (int i = Constants.BEGIN_TYPES; i < Constants.PRIMITIVE_TYPES;
-                                    i++) {
-                                if (statArrayCount[i]
-                                        + statArrayHandle[i] > 0) {
-                                    System.out.println("       "
-                                            + primitiveName(i)
-                                            + " arrays "
-                                            + statArrayCount[i]
-                                            + " total bytes "
-                                            + (statArrayLength[i]
-                                                    * primitiveBytes(i))
-                                            + " handles "
-                                            + statArrayHandle[i]);
+                            for (int i = Constants.BEGIN_TYPES; i < Constants.PRIMITIVE_TYPES; i++) {
+                                if (statArrayCount[i] + statArrayHandle[i] > 0) {
+                                    System.out
+                                            .println("       "
+                                                    + primitiveName(i)
+                                                    + " arrays "
+                                                    + statArrayCount[i]
+                                                    + " total bytes "
+                                                    + (statArrayLength[i] * primitiveBytes(i))
+                                                    + " handles "
+                                                    + statArrayHandle[i]);
                                 }
                             }
                         }
@@ -91,7 +91,7 @@ public class IbisSerializationOutputStream
     /** Hash table for keeping references to objects already written. */
     private HandleHash references = new HandleHash(2048);
 
-    // private IbisHash references  = new IbisHash(2048);
+    // private IbisHash references = new IbisHash(2048);
 
     /** Remember when a reset must be sent out. */
     private boolean resetPending = false;
@@ -113,10 +113,11 @@ public class IbisSerializationOutputStream
     Object current_object;
 
     /**
-     * There also is a notion of a "current" level.
-     * The "level" of a serializable class is computed as follows:<ul>
-     * <li> if its superclass is serializable: the level of the superclass + 1.
-     * <li> if its superclass is not serializable: 1.
+     * There also is a notion of a "current" level. The "level" of a
+     * serializable class is computed as follows:
+     * <ul>
+     * <li>if its superclass is serializable: the level of the superclass + 1.
+     * <li>if its superclass is not serializable: 1.
      * </ul>
      * This level implies a level at which an object can be seen. The "current"
      * level is the level at which <code>current_object</code> is being
@@ -131,9 +132,9 @@ public class IbisSerializationOutputStream
     Object current_putfield;
 
     /**
-     * The <code>current_object</code>, <code>current_level</code>,
-     * and <code>current_putfield</code> are maintained in stacks, so that
-     * they can be managed by IOGenerator-generated code.
+     * The <code>current_object</code>, <code>current_level</code>, and
+     * <code>current_putfield</code> are maintained in stacks, so that they can
+     * be managed by IOGenerator-generated code.
      */
     private Object[] object_stack;
 
@@ -146,12 +147,15 @@ public class IbisSerializationOutputStream
     private int stack_size = 0;
 
     private Class<?> lastClass;
-    private int   lastTypeno;
+    private int lastTypeno;
 
     /**
      * Constructor with an <code>DataOutputStream</code>.
-     * @param out		the underlying <code>DataOutputStream</code>
-     * @exception IOException	gets thrown when an IO error occurs.
+     * 
+     * @param out
+     *            the underlying <code>DataOutputStream</code>
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public IbisSerializationOutputStream(DataOutputStream out)
             throws IOException {
@@ -243,26 +247,30 @@ public class IbisSerializationOutputStream
         return -1;
     }
 
+    @Override
     public boolean reInitOnNewConnection() {
         return true;
     }
 
     /**
-     * Set a replacer. The replacement mechanism can be used to replace
-     * an object with another object during serialization. This is used
-     * in RMI, for instance, to replace a remote object with a stub. 
+     * Set a replacer. The replacement mechanism can be used to replace an
+     * object with another object during serialization. This is used in RMI, for
+     * instance, to replace a remote object with a stub.
      * 
-     * @param replacer the replacer object to be associated with this
-     *  output stream
+     * @param replacer
+     *            the replacer object to be associated with this output stream
      */
+    @Override
     public void setReplacer(Replacer replacer) throws IOException {
         this.replacer = replacer;
     }
 
+    @Override
     public String serializationImplName() {
         return "ibis";
     }
 
+    @Override
     public void statistics() {
         if (false) {
             System.err.print("IbisOutput: references -> ");
@@ -278,31 +286,42 @@ public class IbisSerializationOutputStream
     private void types_clear() {
         lastClass = null;
         types.clear();
-        types.put(Constants.classBooleanArray, Constants.TYPE_BOOLEAN | Constants.TYPE_BIT);
-        types.put(Constants.classByteArray, Constants.TYPE_BYTE | Constants.TYPE_BIT);
-        types.put(Constants.classCharArray, Constants.TYPE_CHAR | Constants.TYPE_BIT);
-        types.put(Constants.classShortArray, Constants.TYPE_SHORT | Constants.TYPE_BIT);
-        types.put(Constants.classIntArray, Constants.TYPE_INT | Constants.TYPE_BIT);
-        types.put(Constants.classLongArray, Constants.TYPE_LONG | Constants.TYPE_BIT);
-        types.put(Constants.classFloatArray, Constants.TYPE_FLOAT | Constants.TYPE_BIT);
-        types.put(Constants.classDoubleArray, Constants.TYPE_DOUBLE | Constants.TYPE_BIT);
+        types.put(Constants.classBooleanArray, Constants.TYPE_BOOLEAN
+                | Constants.TYPE_BIT);
+        types.put(Constants.classByteArray, Constants.TYPE_BYTE
+                | Constants.TYPE_BIT);
+        types.put(Constants.classCharArray, Constants.TYPE_CHAR
+                | Constants.TYPE_BIT);
+        types.put(Constants.classShortArray, Constants.TYPE_SHORT
+                | Constants.TYPE_BIT);
+        types.put(Constants.classIntArray, Constants.TYPE_INT
+                | Constants.TYPE_BIT);
+        types.put(Constants.classLongArray, Constants.TYPE_LONG
+                | Constants.TYPE_BIT);
+        types.put(Constants.classFloatArray, Constants.TYPE_FLOAT
+                | Constants.TYPE_BIT);
+        types.put(Constants.classDoubleArray, Constants.TYPE_DOUBLE
+                | Constants.TYPE_BIT);
         next_type = Constants.PRIMITIVE_TYPES;
     }
 
+    @Override
     public void reset() {
         reset(false);
     }
 
+    @Override
     public void reset(boolean cleartypes) {
         if (cleartypes || next_handle > Constants.CONTROL_HANDLES) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("reset: next handle = " + next_handle + ".");
             }
             references.clear();
-            /* We cannot send out the reset immediately, because the
-             * reader side only accepts a reset when it is expecting a
-             * handle. So, instead, we remember that we need to send
-             * out a reset, and send before sending the next handle.
+            /*
+             * We cannot send out the reset immediately, because the reader side
+             * only accepts a reset when it is expecting a handle. So, instead,
+             * we remember that we need to send out a reset, and send before
+             * sending the next handle.
              */
             if (cleartypes) {
                 clearPending = true;
@@ -321,8 +340,11 @@ public class IbisSerializationOutputStream
     /**
      * Called by IOGenerator-generated code to write a Class object to this
      * stream. For a Class object, only its name is written.
-     * @param ref		the <code>Class</code> to be written
-     * @exception IOException	gets thrown when an IO error occurs.
+     * 
+     * @param ref
+     *            the <code>Class</code> to be written
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public void writeClass(Class<?> ref) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -350,10 +372,13 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * Sends out handles as normal int's. Also checks if we
-     * need to send out a reset first.
-     * @param v		the handle to be written
-     * @exception IOException	gets thrown when an IO error occurs.
+     * Sends out handles as normal int's. Also checks if we need to send out a
+     * reset first.
+     * 
+     * @param v
+     *            the handle to be written
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     void writeHandle(int v) throws IOException {
         if (clearPending) {
@@ -378,7 +403,7 @@ public class IbisSerializationOutputStream
         }
     }
 
-
+    @Override
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -391,6 +416,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(byte[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -402,7 +428,8 @@ public class IbisSerializationOutputStream
             timer.stop();
         }
     }
-    
+
+    @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -416,6 +443,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(short[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -428,6 +456,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(char[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -440,6 +469,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(int[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -452,6 +482,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(long[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -464,6 +495,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(float[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -476,6 +508,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(double[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -488,6 +521,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(Object[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -504,15 +538,18 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * Writes a type or a handle.
-     * If <code>ref</code> has been written before, this method writes its
-     * handle and returns <code>true</code>. If not, its type is written,
-     * a new handle is associated with it, and <code>false</code> is returned.
-     *
-     * @param ref	the object that is going to be put on the stream
-     * @param clazz	the <code>Class</code> representing the type
-     * 			of <code>ref</code>
-     * @exception IOException	gets thrown when an IO error occurs.
+     * Writes a type or a handle. If <code>ref</code> has been written before,
+     * this method writes its handle and returns <code>true</code>. If not, its
+     * type is written, a new handle is associated with it, and
+     * <code>false</code> is returned.
+     * 
+     * @param ref
+     *            the object that is going to be put on the stream
+     * @param clazz
+     *            the <code>Class</code> representing the type of
+     *            <code>ref</code>
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     private boolean writeTypeHandle(Object ref, Class<?> clazz)
             throws IOException {
@@ -535,17 +572,23 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * Writes a handle or an array header, depending on wether a cycle
-     * should be and was detected. If a cycle was detected, it returns
-     * <code>false</code>, otherwise <code>true</code>.
-     * The array header consists of a type and a length.
-     * @param ref	    the array to be written
-     * @param clazz	    the <code>Class</code> representing the array type
-     * @param len	    the number of elements to be written
-     * @param doCycleCheck  set when cycles should be detected
-     * @exception IOException	gets thrown when an IO error occurs.
-     * @return <code>true</code> if no cycle was or should be detected
-     *  (so that the array should be written).
+     * Writes a handle or an array header, depending on wether a cycle should be
+     * and was detected. If a cycle was detected, it returns <code>false</code>,
+     * otherwise <code>true</code>. The array header consists of a type and a
+     * length.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param clazz
+     *            the <code>Class</code> representing the array type
+     * @param len
+     *            the number of elements to be written
+     * @param doCycleCheck
+     *            set when cycles should be detected
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
+     * @return <code>true</code> if no cycle was or should be detected (so that
+     *         the array should be written).
      */
     private boolean writeArrayHeader(Object ref, Class<?> clazz, int len,
             boolean doCycleCheck) throws IOException {
@@ -568,17 +611,23 @@ public class IbisSerializationOutputStream
         addStatSendArrayHandle(ref, len);
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArrayHeader " + clazz.getName() + " length = " + len);
+            logger.debug("writeArrayHeader " + clazz.getName() + " length = "
+                    + len);
         }
         return true;
     }
 
     /**
      * Writes an array, but possibly only a handle.
-     * @param ref	  the array to be written
-     * @param arrayClass  the <code>Class</code> representing the array type
-     * @param unshared	  set when no cycle detection check shoud be done
-     * @exception IOException	gets thrown when an IO error occurs.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param arrayClass
+     *            the <code>Class</code> representing the array type
+     * @param unshared
+     *            set when no cycle detection check should be done
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     void writeArray(Object ref, Class<?> arrayClass, boolean unshared)
             throws IOException {
@@ -661,10 +710,12 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * Adds the type represented by <code>clazz</code> to the type
-     * table and returns its number.
-     * @param clazz	represents the type to be added
-     * @return		the type number.
+     * Adds the type represented by <code>clazz</code> to the type table and
+     * returns its number.
+     * 
+     * @param clazz
+     *            represents the type to be added
+     * @return the type number.
      */
     private int newType(Class<?> clazz) {
         int type_number = next_type++;
@@ -677,8 +728,11 @@ public class IbisSerializationOutputStream
 
     /**
      * Writes a type number, and, when new, a type name to the output stream.
-     * @param clazz		the clazz to be written.
-     * @exception IOException	gets thrown when an IO error occurs.
+     * 
+     * @param clazz
+     *            the clazz to be written.
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     void writeType(Class<?> clazz) throws IOException {
         int type_number;
@@ -716,9 +770,12 @@ public class IbisSerializationOutputStream
     /**
      * Writes a (new or old) handle for object <code>ref</code> to the output
      * stream. Returns 1 if the object is new, -1 if not.
-     * @param ref		the object whose handle is to be written
-     * @exception IOException	gets thrown when an IO error occurs.
-     * @return			1 if it is a new object, -1 if it is not.
+     * 
+     * @param ref
+     *            the object whose handle is to be written
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
+     * @return 1 if it is a new object, -1 if it is not.
      */
     public int writeKnownObjectHeader(Object ref) throws IOException {
 
@@ -741,7 +798,8 @@ public class IbisSerializationOutputStream
         }
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE "
+                    + handle);
         }
         writeHandle(handle);
 
@@ -749,12 +807,16 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * Writes a (new or old) handle for array of primitives <code>ref</code>
-     * to the output stream. Returns 1 if the object is new, -1 if not.
-     * @param ref		the object whose handle is to be written
-     * @param typehandle	the type number
-     * @exception IOException	gets thrown when an IO error occurs.
-     * @return			1 if it is a new object, -1 if it is not.
+     * Writes a (new or old) handle for array of primitives <code>ref</code> to
+     * the output stream. Returns 1 if the object is new, -1 if not.
+     * 
+     * @param ref
+     *            the object whose handle is to be written
+     * @param typehandle
+     *            the type number
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
+     * @return 1 if it is a new object, -1 if it is not.
      */
     public int writeKnownArrayHeader(Object ref, int typehandle)
             throws IOException {
@@ -772,7 +834,8 @@ public class IbisSerializationOutputStream
         }
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE "
+                    + handle);
         }
         writeHandle(handle);
 
@@ -782,15 +845,19 @@ public class IbisSerializationOutputStream
     /**
      * Writes the serializable fields of an object <code>ref</code> using the
      * type information <code>t</code>.
-     *
-     * @param t		the type info for object <code>ref</code>
-     * @param ref	the object of which the fields are to be written
-     *
-     * @exception IOException		 when an IO error occurs
-     * @exception IllegalAccessException when access to a field is denied.
+     * 
+     * @param t
+     *            the type info for object <code>ref</code>
+     * @param ref
+     *            the object of which the fields are to be written
+     * 
+     * @exception IOException
+     *                when an IO error occurs
+     * @exception IllegalAccessException
+     *                when access to a field is denied.
      */
-    void alternativeDefaultWriteObject(AlternativeTypeInfo t,
-            Object ref) throws IOException, IllegalAccessException {
+    void alternativeDefaultWriteObject(AlternativeTypeInfo t, Object ref)
+            throws IOException, IllegalAccessException {
         int temp = 0;
         int i;
 
@@ -830,14 +897,17 @@ public class IbisSerializationOutputStream
     /**
      * Serializes an object <code>ref</code> using the type information
      * <code>t</code>.
-     *
-     * @param t		the type info for object <code>ref</code>
-     * @param ref	the object of which the fields are to be written
-     *
-     * @exception IOException		 when an IO error occurs
-     * @exception IllegalAccessException when access to a field or
-     * 					 <code>writeObject</code> method is
-     * 					 denied.
+     * 
+     * @param t
+     *            the type info for object <code>ref</code>
+     * @param ref
+     *            the object of which the fields are to be written
+     * 
+     * @exception IOException
+     *                when an IO error occurs
+     * @exception IllegalAccessException
+     *                when access to a field or <code>writeObject</code> method
+     *                is denied.
      */
     void alternativeWriteObject(AlternativeTypeInfo t, Object ref)
             throws IOException, IllegalAccessException {
@@ -884,11 +954,13 @@ public class IbisSerializationOutputStream
 
     /**
      * Push the notions of <code>current_object</code>,
-     * <code>current_level</code>, and <code>current_putfield</code> on
-     * their stacks, and set new ones.
-     *
-     * @param ref	the new <code>current_object</code> notion
-     * @param level	the new <code>current_level</code> notion
+     * <code>current_level</code>, and <code>current_putfield</code> on their
+     * stacks, and set new ones.
+     * 
+     * @param ref
+     *            the new <code>current_object</code> notion
+     * @param level
+     *            the new <code>current_level</code> notion
      */
     public void push_current_object(Object ref, int level) {
         if (stack_size >= max_stack_size) {
@@ -916,8 +988,8 @@ public class IbisSerializationOutputStream
 
     /**
      * Pop the notions of <code>current_object</code>,
-     * <code>current_level</code>, and <code>current_putfield</code> from
-     * their stacks.
+     * <code>current_level</code>, and <code>current_putfield</code> from their
+     * stacks.
      */
     public void pop_current_object() {
         stack_size--;
@@ -930,14 +1002,17 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * This method takes care of writing the serializable fields of the
-     * parent object, and also those of its parent objects.
-     * It gets called by IOGenerator-generated code when an object
-     * has a superclass that is serializable but not Ibis serializable.
-     *
-     * @param ref	the object with a non-Ibis-serializable parent object
-     * @param classname	the name of the superclass
-     * @exception IOException	gets thrown on IO error
+     * This method takes care of writing the serializable fields of the parent
+     * object, and also those of its parent objects. It gets called by
+     * IOGenerator-generated code when an object has a superclass that is
+     * serializable but not Ibis serializable.
+     * 
+     * @param ref
+     *            the object with a non-Ibis-serializable parent object
+     * @param classname
+     *            the name of the superclass
+     * @exception IOException
+     *                gets thrown on IO error
      */
     public void writeSerializableObject(Object ref, String classname)
             throws IOException {
@@ -953,7 +1028,9 @@ public class IbisSerializationOutputStream
             pop_current_object();
         } catch (IllegalAccessException e) {
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("Caught exception, rethrow as NotSerializableException", e);
+                logger.debug(
+                        "Caught exception, rethrow as NotSerializableException",
+                        e);
             }
             throw new IbisNotSerializableException("Serializable failed for : "
                     + classname, e);
@@ -961,12 +1038,15 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * Writes a <code>String</code> object.
-     * This is a special case, because strings are written as an UTF.
-     *
-     * @param ref		the string to be written
-     * @exception IOException	gets thrown on IO error
+     * Writes a <code>String</code> object. This is a special case, because
+     * strings are written as an UTF.
+     * 
+     * @param ref
+     *            the string to be written
+     * @exception IOException
+     *                gets thrown on IO error
      */
+    @Override
     public void writeString(String ref) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -1021,6 +1101,7 @@ public class IbisSerializationOutputStream
         }
     }
 
+    @Override
     void addStatSendArray(Object ref, int type, int len) {
         if (STATS_OBJECTS) {
             addStatSendObject(ref);
@@ -1042,17 +1123,20 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * Write objects and arrays.
-     * Duplicates are deteced when this call is used.
+     * Write objects and arrays. Duplicates are deteced when this call is used.
      * The replacement mechanism is implemented here as well.
-     *
-     * @param ref the object to be written
-     * @exception java.io.IOException is thrown when an IO error occurs.
+     * 
+     * @param ref
+     *            the object to be written
+     * @exception java.io.IOException
+     *                is thrown when an IO error occurs.
      */
+    @Override
     public void writeObject(Object ref) throws IOException {
         doWriteObject(ref);
     }
 
+    @Override
     public void close() throws IOException {
         super.close();
         replacer = null;
@@ -1076,9 +1160,7 @@ public class IbisSerializationOutputStream
 
     void doWriteObject(Object ref) throws IOException {
         /*
-         * ref < 0:	type
-         * ref = 0:	null ptr
-         * ref > 0:	handle
+         * ref < 0: type ref = 0: null ptr ref > 0: handle
          */
 
         if (TIME_IBIS_SERIALIZATION) {
@@ -1091,12 +1173,12 @@ public class IbisSerializationOutputStream
             }
             return;
         }
-        /* TODO: deal with writeReplace! This should be done before
-         looking up the handle. If we don't want to do runtime
-         inspection, this should probably be handled somehow in
-         IOGenerator.
-         Note that the needed info is available in AlternativeTypeInfo,
-         but we don't want to use that when we have ibis.io.Serializable.
+        /*
+         * TODO: deal with writeReplace! This should be done before looking up
+         * the handle. If we don't want to do runtime inspection, this should
+         * probably be handled somehow in IOGenerator. Note that the needed info
+         * is available in AlternativeTypeInfo, but we don't want to use that
+         * when we have ibis.io.Serializable.
          */
 
         if (replacer != null) {
@@ -1108,8 +1190,8 @@ public class IbisSerializationOutputStream
 
         if (handle == 0) {
             Class<?> clazz = ref.getClass();
-            AlternativeTypeInfo t
-                        = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+            AlternativeTypeInfo t = AlternativeTypeInfo
+                    .getAlternativeTypeInfo(clazz);
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("start writeObject of class " + clazz.getName()
                         + " handle = " + next_handle);
@@ -1120,8 +1202,8 @@ public class IbisSerializationOutputStream
             }
         } else {
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeObject: duplicate handle " + handle + " class = "
-                        + ref.getClass());
+                logger.debug("writeObject: duplicate handle " + handle
+                        + " class = " + ref.getClass());
             }
             writeHandle(handle);
 
@@ -1133,25 +1215,28 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * This method writes the serializable fields of object <code>ref</code>
-     * at the level indicated by <code>depth</code>.
-     * (see the explanation at the declaration of the
-     * <code>current_level</code> field).
-     * It gets called from IOGenerator-generated code, when a parent object
-     * is serializable but not Ibis serializable.
-     *
-     * @param ref	the object of which serializable fields must be written
-     * @param depth	an indication of the current "view" of the object
-     * @exception IOException	gets thrown when an IO error occurs.
+     * This method writes the serializable fields of object <code>ref</code> at
+     * the level indicated by <code>depth</code>. (see the explanation at the
+     * declaration of the <code>current_level</code> field). It gets called from
+     * IOGenerator-generated code, when a parent object is serializable but not
+     * Ibis serializable.
+     * 
+     * @param ref
+     *            the object of which serializable fields must be written
+     * @param depth
+     *            an indication of the current "view" of the object
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public void defaultWriteSerializableObject(Object ref, int depth)
             throws IOException {
         Class<?> clazz = ref.getClass();
-        AlternativeTypeInfo t
-                = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+        AlternativeTypeInfo t = AlternativeTypeInfo
+                .getAlternativeTypeInfo(clazz);
 
-        /*  Find the type info corresponding to the current invocation.
-         See the invokeWriteObject invocation in alternativeWriteObject.
+        /*
+         * Find the type info corresponding to the current invocation. See the
+         * invokeWriteObject invocation in alternativeWriteObject.
          */
         while (t.level > depth) {
             t = t.alternativeSuperInfo;
@@ -1160,7 +1245,9 @@ public class IbisSerializationOutputStream
             alternativeDefaultWriteObject(t, ref);
         } catch (IllegalAccessException e) {
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("Caught exception, rethrow as NotSerializableException", e);
+                logger.debug(
+                        "Caught exception, rethrow as NotSerializableException",
+                        e);
             }
             throw new IbisNotSerializableException("illegal access", e);
         }
@@ -1168,8 +1255,7 @@ public class IbisSerializationOutputStream
 
     private JavaObjectOutputStream objectStream = null;
 
-    public ObjectOutputStream getJavaObjectOutputStream()
-            throws IOException {
+    public ObjectOutputStream getJavaObjectOutputStream() throws IOException {
         if (objectStream == null) {
             objectStream = new JavaObjectOutputStream(this);
         }
@@ -1186,10 +1272,12 @@ public class IbisSerializationOutputStream
             ibisStream = s;
         }
 
+        @Override
         public void writeObjectOverride(Object ref) throws IOException {
             ibisStream.doWriteObject(ref);
         }
 
+        @Override
         public void defaultWriteObject() throws IOException, NotActiveException {
             if (current_object == null) {
                 throw new NotActiveException("defaultWriteObject: no object");
@@ -1197,15 +1285,16 @@ public class IbisSerializationOutputStream
 
             Object ref = current_object;
             Class<?> clazz = ref.getClass();
-            AlternativeTypeInfo t
-                    = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+            AlternativeTypeInfo t = AlternativeTypeInfo
+                    .getAlternativeTypeInfo(clazz);
 
             if (t.isIbisSerializable) {
-                /* Note that this will take the generated_DefaultWriteObject of the
-                 dynamic type of ref. The current_level variable actually
-                 indicates which instance of generated_DefaultWriteObject 
-                 should do some work.
-                */
+                /*
+                 * Note that this will take the generated_DefaultWriteObject of
+                 * the dynamic type of ref. The current_level variable actually
+                 * indicates which instance of generated_DefaultWriteObject
+                 * should do some work.
+                 */
                 if (DEBUG && logger.isDebugEnabled()) {
                     logger.debug("generated_DefaultWriteObject, class = "
                             + clazz.getName() + ", level = " + current_level);
@@ -1213,7 +1302,7 @@ public class IbisSerializationOutputStream
                 ((Serializable) ref).generated_DefaultWriteObject(ibisStream,
                         current_level);
             } else if (ref instanceof java.io.Serializable) {
-                /* 
+                /*
                  * Find the type info corresponding to the current invocation.
                  * See the invokeWriteObject invocation in
                  * alternativeWriteObject.
@@ -1225,7 +1314,9 @@ public class IbisSerializationOutputStream
                     alternativeDefaultWriteObject(t, ref);
                 } catch (IllegalAccessException e) {
                     if (DEBUG && logger.isDebugEnabled()) {
-                        logger.debug("Caught exception, rethrow as NotSerializableException", e);
+                        logger.debug(
+                                "Caught exception, rethrow as NotSerializableException",
+                                e);
                     }
                     throw new IbisNotSerializableException("illegal access", e);
                 }
@@ -1235,21 +1326,22 @@ public class IbisSerializationOutputStream
             }
         }
 
+        @Override
         public void writeUnshared(Object ref) throws IOException {
             if (ref == null) {
                 ibisStream.writeHandle(Constants.NUL_HANDLE);
                 return;
             }
-            /* TODO: deal with writeReplace! This should be done before
-             looking up the handle. If we don't want to do runtime
-             inspection, this should probably be handled somehow in
-             IOGenerator.
-             Note that the needed info is available in AlternativeTypeInfo,
-             but we don't want to use that when we have ibis.io.Serializable.
+            /*
+             * TODO: deal with writeReplace! This should be done before looking
+             * up the handle. If we don't want to do runtime inspection, this
+             * should probably be handled somehow in IOGenerator. Note that the
+             * needed info is available in AlternativeTypeInfo, but we don't
+             * want to use that when we have ibis.io.Serializable.
              */
             Class<?> clazz = ref.getClass();
-            AlternativeTypeInfo t
-                    = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+            AlternativeTypeInfo t = AlternativeTypeInfo
+                    .getAlternativeTypeInfo(clazz);
 
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("start writeUnshared of class " + clazz.getName()
@@ -1259,19 +1351,22 @@ public class IbisSerializationOutputStream
             t.writer.writeObject(ibisStream, ref, t, 0, true);
 
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("finished writeUnshared of class " + clazz.getName()
-                        + " handle = " + next_handle);
+                logger.debug("finished writeUnshared of class "
+                        + clazz.getName() + " handle = " + next_handle);
             }
         }
 
+        @Override
         public void useProtocolVersion(int version) {
             /* ignored. */
         }
 
+        @Override
         protected void writeStreamHeader() {
             /* ignored. */
         }
 
+        @Override
         protected void writeClassDescriptor(ObjectStreamClass desc)
                 throws IOException {
             Class<?> cl = desc.forClass();
@@ -1282,25 +1377,28 @@ public class IbisSerializationOutputStream
             ibisStream.writeClass(cl);
         }
 
-        /* annotateClass does not have to be redefined: it is empty in the
-         ObjectOutputStream implementation.
+        /*
+         * annotateClass does not have to be redefined: it is empty in the
+         * ObjectOutputStream implementation.
          */
 
+        @Override
         public void writeFields() throws IOException {
             if (current_putfield == null) {
                 throw new NotActiveException("no PutField object");
             }
-            ((ImplPutField)current_putfield).writeFields();
+            ((ImplPutField) current_putfield).writeFields();
         }
 
+        @Override
         public PutField putFields() throws IOException {
             if (current_putfield == null) {
                 if (current_object == null) {
                     throw new NotActiveException("not in writeObject");
                 }
                 Class<?> clazz = current_object.getClass();
-                AlternativeTypeInfo t
-                        = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+                AlternativeTypeInfo t = AlternativeTypeInfo
+                        .getAlternativeTypeInfo(clazz);
                 while (t.level > current_level) {
                     t = t.alternativeSuperInfo;
                 }
@@ -1346,50 +1444,60 @@ public class IbisSerializationOutputStream
                 this.t = t;
             }
 
+            @Override
             public void put(String name, boolean value)
                     throws IllegalArgumentException {
                 booleans[t.getOffset(name, Boolean.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, char value)
                     throws IllegalArgumentException {
                 chars[t.getOffset(name, Character.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, byte value)
                     throws IllegalArgumentException {
                 bytes[t.getOffset(name, Byte.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, short value)
                     throws IllegalArgumentException {
                 shorts[t.getOffset(name, Short.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, int value)
                     throws IllegalArgumentException {
                 ints[t.getOffset(name, Integer.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, long value)
                     throws IllegalArgumentException {
                 longs[t.getOffset(name, Long.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, float value)
                     throws IllegalArgumentException {
                 floats[t.getOffset(name, Float.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, double value)
                     throws IllegalArgumentException {
                 doubles[t.getOffset(name, Double.TYPE)] = value;
             }
 
+            @Override
             public void put(String name, Object value) {
                 refs[t.getOffset(name, Object.class)] = value;
             }
 
+            @Override
             public void write(ObjectOutput o) throws IOException {
                 for (int i = 0; i < t.double_count; i++) {
                     o.writeDouble(doubles[i]);
@@ -1451,7 +1559,7 @@ public class IbisSerializationOutputStream
             }
         }
 
-
+        @Override
         public void writeBytes(String s) throws IOException {
 
             if (TIME_IBIS_SERIALIZATION) {
@@ -1470,6 +1578,7 @@ public class IbisSerializationOutputStream
             }
         }
 
+        @Override
         public void writeChars(String s) throws IOException {
 
             if (TIME_IBIS_SERIALIZATION) {
@@ -1487,66 +1596,82 @@ public class IbisSerializationOutputStream
             }
         }
 
+        @Override
         public void close() throws IOException {
             ibisStream.close();
         }
 
+        @Override
         public void reset() throws IOException {
             ibisStream.reset();
         }
 
+        @Override
         public void flush() throws IOException {
             ibisStream.flush();
         }
 
+        @Override
         protected void drain() throws IOException {
-        	// empty implementation
+            // empty implementation
         }
 
+        @Override
         public void write(byte[] buf, int off, int len) throws IOException {
             ibisStream.writeArray(buf, off, len);
         }
 
+        @Override
         public void write(byte[] buf) throws IOException {
             ibisStream.writeArray(buf);
         }
 
+        @Override
         public void write(int val) throws IOException {
             ibisStream.writeByte((byte) val);
         }
 
+        @Override
         public void writeBoolean(boolean val) throws IOException {
             ibisStream.writeBoolean(val);
         }
 
+        @Override
         public void writeByte(int val) throws IOException {
             ibisStream.writeByte((byte) val);
         }
 
+        @Override
         public void writeShort(int val) throws IOException {
             ibisStream.writeShort((short) val);
         }
 
+        @Override
         public void writeChar(int val) throws IOException {
             ibisStream.writeChar((char) val);
         }
 
+        @Override
         public void writeInt(int val) throws IOException {
             ibisStream.writeInt(val);
         }
 
+        @Override
         public void writeLong(long val) throws IOException {
             ibisStream.writeLong(val);
         }
 
+        @Override
         public void writeFloat(float val) throws IOException {
             ibisStream.writeFloat(val);
         }
 
+        @Override
         public void writeDouble(double val) throws IOException {
             ibisStream.writeDouble(val);
         }
 
+        @Override
         public void writeUTF(String val) throws IOException {
             ibisStream.writeUTF(val);
         }

@@ -96,8 +96,8 @@ public abstract class Conversion {
 
         String conversion = properties.getProperty(IOProperties.s_conversion);
 
-        if (conversion != null && conversion.equalsIgnoreCase("wrap")) {
-            System.err.println("nio/wrap conversion selected");
+        if ("wrap".equalsIgnoreCase(conversion)) {
+            // System.err.println("nio/wrap conversion selected");
             try {
                 if (bigEndian) {
                     return new ibis.io.nio.NioWrapBigConversion();
@@ -106,13 +106,23 @@ public abstract class Conversion {
             } catch (Exception e) {
                 // nio conversion loading failed
             }
-        } else if (conversion != null && conversion.equalsIgnoreCase("chunk")) {
-            System.err.println("nio/chunk conversion selected");
+        } else if ("chunk".equalsIgnoreCase(conversion)) {
+            // System.err.println("nio/chunk conversion selected");
             try {
                 if (bigEndian) {
                     return new ibis.io.nio.NioChunkBigConversion();
                 }
                 return new ibis.io.nio.NioChunkLittleConversion();
+            } catch (Exception e) {
+                // nio conversion loading failed
+            }
+        } else if ("buf".equalsIgnoreCase(conversion)) {
+            // System.err.println("nio/chunk conversion selected");
+            try {
+                if (bigEndian) {
+                    return new ibis.io.nio.NioBufBigConversion();
+                }
+                return new ibis.io.nio.NioBufLittleConversion();
             } catch (Exception e) {
                 // nio conversion loading failed
             }
@@ -143,7 +153,7 @@ public abstract class Conversion {
     }
 
     /**
-     * Returns if this conversion iconverts to big-endian or not
+     * Returns if this conversion converts to big-endian or not.
      */
     public abstract boolean bigEndian();
 
