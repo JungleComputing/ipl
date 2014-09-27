@@ -38,6 +38,10 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
     private final DoubleBuffer doubleBuffer;
 
+    private byte[] buf;
+
+    private ByteBuffer bufBuffer;
+
     public HybridWrapBigConversion() {
         // big/little endian difference one liner
         order = ByteOrder.BIG_ENDIAN;
@@ -53,20 +57,28 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         doubleBuffer = byteBuffer.asDoubleBuffer();
     }
 
+    private void checkBuf(byte[] buf, int position) {
+        if (this.buf != buf) {
+            bufBuffer = ByteBuffer.wrap(buf).order(order);
+            this.buf = buf;
+        }
+        bufBuffer.position(position);
+    }
+
     public void char2byte(char[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < THRESHOLD / CHAR_SIZE) {
             super.char2byte(src, off, len, dst, off2);
-        } else if (len > (BUFFER_SIZE / 2)) {
-            CharBuffer buffer = ByteBuffer.wrap(dst, off2, len * 2)
-                    .order(order).asCharBuffer();
+        } else if (len > (BUFFER_SIZE / CHAR_SIZE)) {
+            checkBuf(dst, off2);
+            CharBuffer buffer = bufBuffer.asCharBuffer();
             buffer.put(src, off, len);
         } else {
             charBuffer.clear();
             charBuffer.put(src, off, len);
 
-            byteBuffer.position(0).limit(len * 2);
-            byteBuffer.get(dst, off2, len * 2);
+            byteBuffer.position(0).limit(len * CHAR_SIZE);
+            byteBuffer.get(dst, off2, len * CHAR_SIZE);
         }
     }
 
@@ -75,13 +87,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < THRESHOLD / CHAR_SIZE) {
             super.byte2char(src, index_src, dst, index_dst, len);
-        } else if (len > (BUFFER_SIZE / 2)) {
-            CharBuffer buffer = ByteBuffer.wrap(src, index_src, len * 2).order(
-                    order).asCharBuffer();
+        } else if (len > (BUFFER_SIZE / CHAR_SIZE)) {
+            checkBuf(src, index_src);
+            CharBuffer buffer = bufBuffer.asCharBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
-            byteBuffer.put(src, index_src, len * 2);
+            byteBuffer.put(src, index_src, len * CHAR_SIZE);
 
             charBuffer.position(0).limit(len);
             charBuffer.get(dst, index_dst, len);
@@ -93,16 +105,16 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < THRESHOLD / SHORT_SIZE) {
             super.short2byte(src, off, len, dst, off2);
-        } else if (len > (BUFFER_SIZE / 2)) {
-            ShortBuffer buffer = ByteBuffer.wrap(dst, off2, len * 2).order(
+        } else if (len > (BUFFER_SIZE / SHORT_SIZE)) {
+            ShortBuffer buffer = ByteBuffer.wrap(dst, off2, len * SHORT_SIZE).order(
                     order).asShortBuffer();
             buffer.put(src, off, len);
         } else {
             shortBuffer.clear();
             shortBuffer.put(src, off, len);
 
-            byteBuffer.position(0).limit(len * 2);
-            byteBuffer.get(dst, off2, len * 2);
+            byteBuffer.position(0).limit(len * SHORT_SIZE);
+            byteBuffer.get(dst, off2, len * SHORT_SIZE);
         }
     }
 
@@ -111,13 +123,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < THRESHOLD / SHORT_SIZE) {
             super.byte2short(src, index_src, dst, index_dst, len);
-        } else if (len > (BUFFER_SIZE / 2)) {
-            ShortBuffer buffer = ByteBuffer.wrap(src, index_src, len * 2)
+        } else if (len > (BUFFER_SIZE / SHORT_SIZE)) {
+            ShortBuffer buffer = ByteBuffer.wrap(src, index_src, len * SHORT_SIZE)
                     .order(order).asShortBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
-            byteBuffer.put(src, index_src, len * 2);
+            byteBuffer.put(src, index_src, len * SHORT_SIZE);
 
             shortBuffer.position(0).limit(len);
             shortBuffer.get(dst, index_dst, len);
@@ -129,16 +141,16 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < THRESHOLD / INT_SIZE) {
             super.int2byte(src, off, len, dst, off2);
-        } else if (len > (BUFFER_SIZE / 4)) {
-            IntBuffer buffer = ByteBuffer.wrap(dst, off2, len * 4).order(order)
+        } else if (len > (BUFFER_SIZE / INT_SIZE)) {
+            IntBuffer buffer = ByteBuffer.wrap(dst, off2, len * INT_SIZE).order(order)
                     .asIntBuffer();
             buffer.put(src, off, len);
         } else {
             intBuffer.clear();
             intBuffer.put(src, off, len);
 
-            byteBuffer.position(0).limit(len * 4);
-            byteBuffer.get(dst, off2, len * 4);
+            byteBuffer.position(0).limit(len * INT_SIZE);
+            byteBuffer.get(dst, off2, len * INT_SIZE);
         }
     }
 
@@ -147,13 +159,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < THRESHOLD / INT_SIZE) {
             super.byte2int(src, index_src, dst, index_dst, len);
-        } else if (len > (BUFFER_SIZE / 4)) {
-            IntBuffer buffer = ByteBuffer.wrap(src, index_src, len * 4).order(
+        } else if (len > (BUFFER_SIZE / INT_SIZE)) {
+            IntBuffer buffer = ByteBuffer.wrap(src, index_src, len * INT_SIZE).order(
                     order).asIntBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
-            byteBuffer.put(src, index_src, len * 4);
+            byteBuffer.put(src, index_src, len * INT_SIZE);
 
             intBuffer.position(0).limit(len);
             intBuffer.get(dst, index_dst, len);
@@ -164,16 +176,16 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < THRESHOLD / LONG_SIZE) {
             super.long2byte(src, off, len, dst, off2);
-        } else if (len > (BUFFER_SIZE / 8)) {
-            LongBuffer buffer = ByteBuffer.wrap(dst, off2, len * 8)
+        } else if (len > (BUFFER_SIZE / LONG_SIZE)) {
+            LongBuffer buffer = ByteBuffer.wrap(dst, off2, len * LONG_SIZE)
                     .order(order).asLongBuffer();
             buffer.put(src, off, len);
         } else {
             longBuffer.clear();
             longBuffer.put(src, off, len);
 
-            byteBuffer.position(0).limit(len * 8);
-            byteBuffer.get(dst, off2, len * 8);
+            byteBuffer.position(0).limit(len * LONG_SIZE);
+            byteBuffer.get(dst, off2, len * LONG_SIZE);
         }
     }
 
@@ -182,13 +194,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < THRESHOLD / LONG_SIZE) {
             super.byte2long(src, index_src, dst, index_dst, len);
-        } else if (len > (BUFFER_SIZE / 8)) {
-            LongBuffer buffer = ByteBuffer.wrap(src, index_src, len * 8).order(
+        } else if (len > (BUFFER_SIZE / LONG_SIZE)) {
+            LongBuffer buffer = ByteBuffer.wrap(src, index_src, len * LONG_SIZE).order(
                     order).asLongBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
-            byteBuffer.put(src, index_src, len * 8);
+            byteBuffer.put(src, index_src, len * LONG_SIZE);
 
             longBuffer.position(0).limit(len);
             longBuffer.get(dst, index_dst, len);
@@ -200,16 +212,16 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < FP_THRESHOLD / FLOAT_SIZE) {
             super.float2byte(src, off, len, dst, off2);
-        } else if (len > (BUFFER_SIZE / 4)) {
-            FloatBuffer buffer = ByteBuffer.wrap(dst, off2, len * 4).order(
-                    order).asFloatBuffer();
+        } else if (len > (BUFFER_SIZE / FLOAT_SIZE)) {
+            checkBuf(dst, off2);
+            FloatBuffer buffer = bufBuffer.asFloatBuffer();
             buffer.put(src, off, len);
         } else {
             floatBuffer.clear();
             floatBuffer.put(src, off, len);
 
-            byteBuffer.position(0).limit(len * 4);
-            byteBuffer.get(dst, off2, len * 4);
+            byteBuffer.position(0).limit(len * FLOAT_SIZE);
+            byteBuffer.get(dst, off2, len * FLOAT_SIZE);
         }
     }
 
@@ -218,13 +230,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < FP_THRESHOLD / FLOAT_SIZE) {
             super.byte2float(src, index_src, dst, index_dst, len);
-        } else if (len > (BUFFER_SIZE / 4)) {
-            FloatBuffer buffer = ByteBuffer.wrap(src, index_src, len * 4)
-                    .order(order).asFloatBuffer();
+        } else if (len > (BUFFER_SIZE / FLOAT_SIZE)) {
+            checkBuf(src, index_src);
+            FloatBuffer buffer = bufBuffer.asFloatBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
-            byteBuffer.put(src, index_src, len * 4);
+            byteBuffer.put(src, index_src, len * FLOAT_SIZE);
 
             floatBuffer.position(0).limit(len);
             floatBuffer.get(dst, index_dst, len);
@@ -236,16 +248,16 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < FP_THRESHOLD / DOUBLE_SIZE) {
             super.double2byte(src, off, len, dst, off2);
-        } else if (len > (BUFFER_SIZE / 8)) {
-            DoubleBuffer buffer = ByteBuffer.wrap(dst, off2, len * 8).order(
+        } else if (len > (BUFFER_SIZE / DOUBLE_SIZE)) {
+            DoubleBuffer buffer = ByteBuffer.wrap(dst, off2, len * DOUBLE_SIZE).order(
                     order).asDoubleBuffer();
             buffer.put(src, off, len);
         } else {
             doubleBuffer.clear();
             doubleBuffer.put(src, off, len);
 
-            byteBuffer.position(0).limit(len * 8);
-            byteBuffer.get(dst, off2, len * 8);
+            byteBuffer.position(0).limit(len * DOUBLE_SIZE);
+            byteBuffer.get(dst, off2, len * DOUBLE_SIZE);
         }
     }
 
@@ -254,13 +266,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
         if (len < FP_THRESHOLD / DOUBLE_SIZE) {
             super.byte2double(src, index_src, dst, index_dst, len);
-        } else if (len > (BUFFER_SIZE / 8)) {
-            DoubleBuffer buffer = ByteBuffer.wrap(src, index_src, len * 8)
+        } else if (len > (BUFFER_SIZE / DOUBLE_SIZE)) {
+            DoubleBuffer buffer = ByteBuffer.wrap(src, index_src, len * DOUBLE_SIZE)
                     .order(order).asDoubleBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
-            byteBuffer.put(src, index_src, len * 8);
+            byteBuffer.put(src, index_src, len * DOUBLE_SIZE);
 
             doubleBuffer.position(0).limit(len);
             doubleBuffer.get(dst, index_dst, len);

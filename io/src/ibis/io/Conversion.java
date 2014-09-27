@@ -116,21 +116,21 @@ public abstract class Conversion {
             } catch (Exception e) {
                 // nio conversion loading failed
             }
-        } else if ("buf".equalsIgnoreCase(conversion)) {
-            // System.err.println("nio/chunk conversion selected");
+        } else if ("hybridwrap".equalsIgnoreCase(conversion)) {
+            // System.err.println("nio/buf conversion selected");
             try {
                 if (bigEndian) {
-                    return new ibis.io.nio.NioBufBigConversion();
+                    return new ibis.io.nio.HybridWrapBigConversion();
                 }
-                return new ibis.io.nio.NioBufLittleConversion();
+                return new ibis.io.nio.HybridWrapLittleConversion();
             } catch (Exception e) {
                 // nio conversion loading failed
             }
         } else if (conversion == null || conversion.equalsIgnoreCase("hybrid")) {
             // default conversion
-            if (conversion != null) {
-                System.err.println("hybrid conversion selected");
-            }
+            // if (conversion != null) {
+            //     System.err.println("hybrid conversion selected");
+            // }
 
             try {
                 if (bigEndian) {
@@ -144,7 +144,7 @@ public abstract class Conversion {
 
         // loading of nio type conversions failed, return simple conversion
 
-        System.err.println("falling back to simple conversion");
+        // System.err.println("falling back to simple conversion");
 
         if (bigEndian) {
             return simpleBig;
