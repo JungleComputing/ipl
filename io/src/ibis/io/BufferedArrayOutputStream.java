@@ -346,6 +346,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
     public void writeByteBuffer(ByteBuffer value) throws IOException {
 
 	int len = value.limit() - value.position();
+
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("BufferedArrayOutputStream: writing ByteBuffer of size " + len);
+        }
 	
         if (len > (BUF_SIZE - index)) {
 

@@ -589,6 +589,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
 	    ReadOnlyBufferException {
 
 	int len = value.limit() - value.position();
+
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("BufferedArrayInputStream: reading ByteBuffer of size " + len);
+        }
+	
 	
         if (buffered_bytes >= len) {
             // data is already in the buffer.
