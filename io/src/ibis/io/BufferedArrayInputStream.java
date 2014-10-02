@@ -594,7 +594,6 @@ public final class BufferedArrayInputStream extends DataInputStream {
             logger.debug("BufferedArrayInputStream: reading ByteBuffer of size " + len);
         }
 	
-	
         if (buffered_bytes >= len) {
             // data is already in the buffer.
             value.put(buffer, index, len);
@@ -609,9 +608,13 @@ public final class BufferedArrayInputStream extends DataInputStream {
             }
             index = 0;
             if (value.hasArray()) {
-        	in.read(value.array(), value.arrayOffset(), len);
+                do {
+        	    int cnt = in.read(value.array(), value.position() + value.arrayOffset(), len);
+                    len -= cnt;
+                    value.position(value.position()+cnt);
+                    bytes += cnt;
+                } while (len > 0);
         	value.position(value.limit());
-        	bytes += len;
             } else {
         	do {
         	    int toread = Math.min(len, BUF_SIZE);

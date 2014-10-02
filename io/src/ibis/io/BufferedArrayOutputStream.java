@@ -362,7 +362,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
             if (len >= BUF_SIZE) {
                 if (value.hasArray()) {
                     bytes += len;
-                    out.write(value.array(), value.arrayOffset(), len);
+                    out.write(value.array(), value.position() + value.arrayOffset(), len);
                 } else {
                     while (len >= BUF_SIZE) {
                 	bytes += BUF_SIZE;
