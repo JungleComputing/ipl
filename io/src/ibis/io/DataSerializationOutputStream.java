@@ -9,30 +9,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the <code>SerializationOutputStream</code> version that is used
- * for data serialization. With data serialization, you can only write
- * basic types and arrays of basic types. It also serves as a base type
- * for Ibis serialization.
+ * This is the <code>SerializationOutputStream</code> version that is used for
+ * data serialization. With data serialization, you can only write basic types
+ * and arrays of basic types. It also serves as a base type for Ibis
+ * serialization.
  */
-public class DataSerializationOutputStream extends ByteSerializationOutputStream {
-    
+public class DataSerializationOutputStream extends
+        ByteSerializationOutputStream {
+
     private static final boolean DEBUG = IOProperties.DEBUG;
-    
+
     private static final int SMALL_ARRAY_BOUND = IOProperties.SMALL_ARRAY_BOUND;
-    
+
     private static final int ARRAY_BUFFER_SIZE = IOProperties.ARRAY_BUFFER_SIZE;
-    
+
     /** When true, no buffering in this layer. */
-    private static final boolean NO_ARRAY_BUFFERS
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_no_array_buffers);
-    
-    private static Logger logger = LoggerFactory.getLogger(DataSerializationOutputStream.class);
+    private static final boolean NO_ARRAY_BUFFERS = IOProperties.properties
+            .getBooleanProperty(IOProperties.s_no_array_buffers);
+
+    private static Logger logger = LoggerFactory
+            .getLogger(DataSerializationOutputStream.class);
 
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_DATA_SERIALIZATION
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_timer_data)
-                || IOProperties.properties.getBooleanProperty(IOProperties.s_timer_ibis);
-    
+    private static final boolean TIME_DATA_SERIALIZATION = IOProperties.properties
+            .getBooleanProperty(IOProperties.s_timer_data)
+            || IOProperties.properties
+                    .getBooleanProperty(IOProperties.s_timer_ibis);
+
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = Constants.TYPE_BOOLEAN;
 
@@ -80,33 +83,26 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Register how often we need to acquire a new set of primitive array
-     * buffers.
-     private int unfinished;
-
-     {
-     Runtime.getRuntime().addShutdownHook(new Thread() {
-     public void run() {
-     logger.info(DataSerializationOutputStream.this +
-     ": unfinished calls " + unfinished);
-     statistics();
-     }
-     });
-     }
+     * buffers. private int unfinished;
+     * 
+     * { Runtime.getRuntime().addShutdownHook(new Thread() { public void run() {
+     * logger.info(DataSerializationOutputStream.this + ": unfinished calls " +
+     * unfinished); statistics(); } }); }
      */
     private final int BYTE_BUFFER_SIZE;
-    
+
     private final int CHAR_BUFFER_SIZE;
-    
+
     private final int SHORT_BUFFER_SIZE;
-    
+
     private final int INT_BUFFER_SIZE;
-    
+
     private final int LONG_BUFFER_SIZE;
-    
+
     private final int FLOAT_BUFFER_SIZE;
-    
+
     private final int DOUBLE_BUFFER_SIZE;
-    
+
     /** Structure summarizing an array write. */
     private static final class ArrayDescriptor {
         int type;
@@ -129,14 +125,17 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /** For each. */
     private boolean[] touched = new boolean[Constants.PRIMITIVE_TYPES];
-    
+
     /** Timer. */
     final SerializationTimer timer;
 
     /**
      * Constructor with a <code>DataOutputStream</code>.
-     * @param out		the underlying <code>DataOutputStream</code>
-     * @exception IOException	gets thrown when an IO error occurs.
+     * 
+     * @param out
+     *            the underlying <code>DataOutputStream</code>
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public DataSerializationOutputStream(DataOutputStream out)
             throws IOException {
@@ -145,18 +144,25 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (bufferSize <= 0) {
             bufferSize = IOProperties.TYPED_BUFFER_SIZE;
         }
-        BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_BYTE);
-        CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_CHAR);
-        SHORT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_SHORT);
-        INT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_INT);
-        LONG_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_LONG);
-        FLOAT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_FLOAT);
-        DOUBLE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_DOUBLE);
+        BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
+                bufferSize, Constants.SIZEOF_BYTE);
+        CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
+                bufferSize, Constants.SIZEOF_CHAR);
+        SHORT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
+                bufferSize, Constants.SIZEOF_SHORT);
+        INT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
+                bufferSize, Constants.SIZEOF_INT);
+        LONG_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
+                bufferSize, Constants.SIZEOF_LONG);
+        FLOAT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
+                bufferSize, Constants.SIZEOF_FLOAT);
+        DOUBLE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
+                bufferSize, Constants.SIZEOF_DOUBLE);
 
-        if (! NO_ARRAY_BUFFERS) {
+        if (!NO_ARRAY_BUFFERS) {
             initArrays();
         }
-        
+
         if (TIME_DATA_SERIALIZATION) {
             timer = new SerializationTimer(toString());
         } else {
@@ -176,7 +182,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         LONG_BUFFER_SIZE = 0;
         FLOAT_BUFFER_SIZE = 0;
         DOUBLE_BUFFER_SIZE = 0;
-        
+
         if (TIME_DATA_SERIALIZATION) {
             timer = new SerializationTimer(toString());
         } else {
@@ -184,29 +190,37 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public String serializationImplName() {
         return "data";
     }
 
+    @Override
     public void statistics() {
         // No statistics
     }
 
     /**
      * Method to put a boolean array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * it is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayBoolean(boolean[] ref, int offset, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BOOLEAN) {
+        } else if (len < IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_BOOLEAN) {
             /* Maybe lift the check from the writeBoolean? */
             for (int i = offset; i < offset + len; i++) {
                 writeBoolean(ref[i]);
@@ -231,14 +245,19 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     }
 
     /**
-     * Method to put a byte array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * Method to put a byte array in the "array cache". If the cache is full it
+     * is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayByte(byte[] ref, int offset, int len)
             throws IOException {
@@ -266,41 +285,25 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             addStatSendArray(ref, Constants.TYPE_BYTE, len);
         }
     }
-    
+
     public void internalWriteByteBuffer(ByteBuffer value) throws IOException {
-        if (NO_ARRAY_BUFFERS) {
-            out.writeByteBuffer(value);
-        } else {
-            int len = value.limit() - value.position();
-            if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
-
-        	for (int i = 0; i < len; i++) {
-        	    writeByte(value.get());
-        	}
-            } else {
-        	if (array_index == ARRAY_BUFFER_SIZE) {
-        	    internalFlush();
-        	}
-        	array[array_index].type = Constants.TYPE_BYTE;
-        	array[array_index].offset = 0;
-        	array[array_index].len = len;
-        	array[array_index].array = value;
-        	array_index++;
-
-        	addStatSendArray(value, Constants.TYPE_BYTE, len);
-            }
-        }
+        out.writeByteBuffer(value);
     }
 
     /**
-     * Method to put a char array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * Method to put a char array in the "array cache". If the cache is full it
+     * is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayChar(char[] ref, int offset, int len)
             throws IOException {
@@ -317,7 +320,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayChar: " + new String(ref) + " offset: "
-                        + offset + " len: " + len + " type: " + Constants.TYPE_CHAR);
+                        + offset + " len: " + len + " type: "
+                        + Constants.TYPE_CHAR);
             }
             array[array_index].type = Constants.TYPE_CHAR;
             array[array_index].offset = offset;
@@ -330,14 +334,19 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     }
 
     /**
-     * Method to put a short array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * Method to put a short array in the "array cache". If the cache is full it
+     * is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayShort(short[] ref, int offset, int len)
             throws IOException {
@@ -362,19 +371,24 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref,Constants. TYPE_SHORT, len);
+            addStatSendArray(ref, Constants.TYPE_SHORT, len);
         }
     }
 
     /**
-     * Method to put a int array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * Method to put a int array in the "array cache". If the cache is full it
+     * is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayInt(int[] ref, int offset, int len)
             throws IOException {
@@ -404,14 +418,19 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     }
 
     /**
-     * Method to put a long array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * Method to put a long array in the "array cache". If the cache is full it
+     * is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayLong(long[] ref, int offset, int len)
             throws IOException {
@@ -441,14 +460,19 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     }
 
     /**
-     * Method to put a float array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * Method to put a float array in the "array cache". If the cache is full it
+     * is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayFloat(float[] ref, int offset, int len)
             throws IOException {
@@ -479,13 +503,18 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Method to put a double array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     *
-     * @exception IOException on IO error.
+     * it is written to the arrayOutputStream. This method is public because it
+     * gets called from rewritten code.
+     * 
+     * @param ref
+     *            the array to be written
+     * @param offset
+     *            the offset at which to start
+     * @param len
+     *            number of elements to write
+     * 
+     * @exception IOException
+     *                on IO error.
      */
     public void writeArrayDouble(double[] ref, int offset, int len)
             throws IOException {
@@ -520,8 +549,11 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Flushes everything collected sofar.
-     * @exception IOException on an IO error.
+     * 
+     * @exception IOException
+     *                on an IO error.
      */
+    @Override
     public void flush() throws IOException {
         internalFlush();
         out.finish();
@@ -537,11 +569,12 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             timer.suspend();
         }
 
-        if (! NO_ARRAY_BUFFERS) {
+        if (!NO_ARRAY_BUFFERS) {
             flushBuffers();
 
-            /* Retain the order in which the arrays were pushed. This 
-             * costs a cast at receive time.
+            /*
+             * Retain the order in which the arrays were pushed. This costs a
+             * cast at receive time.
              */
             for (int i = 0; i < array_index; i++) {
                 ArrayDescriptor a = array[i];
@@ -551,9 +584,9 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
                     break;
                 case Constants.TYPE_BYTE:
                     if (a.array instanceof ByteBuffer) {
-                	out.writeByteBuffer((ByteBuffer) a.array);
+                        out.writeByteBuffer((ByteBuffer) a.array);
                     } else {
-                	out.writeArray((byte[]) a.array, a.offset, a.len);
+                        out.writeArray((byte[]) a.array, a.offset, a.len);
                     }
                     break;
                 case Constants.TYPE_CHAR:
@@ -587,7 +620,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             timer.resume();
         }
 
-        if (! NO_ARRAY_BUFFERS && !out.finished()) {
+        if (!NO_ARRAY_BUFFERS && !out.finished()) {
             indices_short = new short[Constants.PRIMITIVE_TYPES];
             if (touched[Constants.TYPE_BYTE]) {
                 byte_buffer = new byte[BYTE_BUFFER_SIZE];
@@ -620,9 +653,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a boolean value to the accumulator.
-     * @param     value             The boolean value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The boolean value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -645,9 +682,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a byte value to the accumulator.
-     * @param     value             The byte value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The byte value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeByte(byte value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -670,9 +711,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a char value to the accumulator.
-     * @param     value             The char value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The char value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeChar(char value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -695,9 +740,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a short value to the accumulator.
-     * @param     value             The short value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The short value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeShort(short value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -720,9 +769,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a int value to the accumulator.
-     * @param     value             The int value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The int value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeInt(int value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -746,9 +799,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a long value to the accumulator.
-     * @param     value             The long value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The long value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeLong(long value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -771,9 +828,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a float value to the accumulator.
-     * @param     value             The float value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The float value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeFloat(float value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -796,9 +857,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Writes a double value to the accumulator.
-     * @param     value             The double value to write.
-     * @exception IOException on IO error.
+     * 
+     * @param value
+     *            The double value to write.
+     * @exception IOException
+     *                on IO error.
      */
+    @Override
     public void writeDouble(double value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -840,6 +905,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /* This is the data output / object output part */
 
+    @Override
     public void writeString(String str) throws IOException {
         writeUTF(str);
     }
@@ -867,7 +933,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         int bn = 0;
 
         for (int i = 0; i < len; i++) {
-            int c = str.charAt(i);      // widening char to int zero-extends
+            int c = str.charAt(i); // widening char to int zero-extends
             if (c > 0x0000 && c <= 0x007f) {
                 bn++;
             } else if (c <= 0x07ff) {
@@ -881,7 +947,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         bn = 0;
 
         for (int i = 0; i < len; i++) {
-            int c = str.charAt(i);      // widening char to int zero-extends
+            int c = str.charAt(i); // widening char to int zero-extends
             if (c > 0x0000 && c <= 0x007f) {
                 b[bn++] = (byte) c;
             } else if (c <= 0x07ff) {
@@ -922,9 +988,9 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /**
      * Flush the primitive arrays.
-     *
-     * @exception IOException is thrown when any <code>writeArray</code>
-     * throws it.
+     * 
+     * @exception IOException
+     *                is thrown when any <code>writeArray</code> throws it.
      */
     private void flushBuffers() throws IOException {
         indices_short[TYPE_ARRAY] = (short) array_index;
@@ -982,6 +1048,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         reset_indices();
     }
 
+    @Override
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -992,6 +1059,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(byte[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1001,7 +1069,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             timer.stop();
         }
     }
-    
+
+    @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1012,7 +1081,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
-
+    @Override
     public void writeArray(short[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1023,6 +1092,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(char[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1033,6 +1103,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(int[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1043,6 +1114,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(long[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1053,6 +1125,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(float[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1063,6 +1136,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public void writeArray(double[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -1073,6 +1147,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
     }
 
+    @Override
     public void close() throws IOException {
 
         super.close();

@@ -10,33 +10,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the <code>SerializationInputStream</code> version that is used
- * for Data serialization. With data serialization, you can only write
- * basic types and arrays of basic types.
+ * This is the <code>SerializationInputStream</code> version that is used for
+ * Data serialization. With data serialization, you can only write basic types
+ * and arrays of basic types.
  */
 public class DataSerializationInputStream extends ByteSerializationInputStream {
-    
-    private static Logger logger = LoggerFactory.getLogger(DataSerializationInputStream.class);
-    
+
+    private static Logger logger = LoggerFactory
+            .getLogger(DataSerializationInputStream.class);
+
     /** When true, no buffering in this layer. */
-    private static final boolean NO_ARRAY_BUFFERS
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_no_array_buffers);
+    private static final boolean NO_ARRAY_BUFFERS = IOProperties.properties
+            .getBooleanProperty(IOProperties.s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_DATA_SERIALIZATION
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_timer_data)
-                || IOProperties.properties.getBooleanProperty(IOProperties.s_timer_ibis);
+    private static final boolean TIME_DATA_SERIALIZATION = IOProperties.properties
+            .getBooleanProperty(IOProperties.s_timer_data)
+            || IOProperties.properties
+                    .getBooleanProperty(IOProperties.s_timer_ibis);
 
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = Constants.TYPE_BOOLEAN;
-    
+
     private static final boolean DEBUG = IOProperties.DEBUG;
 
     /**
-     * Each "bunch" of data is preceded by a header array, telling for
-     * each type, how many of those must be read. This header array is
-     * read into <code>indices_short</code>. The first entry of this
-     * array is used as an array count.
+     * Each "bunch" of data is preceded by a header array, telling for each
+     * type, how many of those must be read. This header array is read into
+     * <code>indices_short</code>. The first entry of this array is used as an
+     * array count.
      */
     private short[] indices_short;
 
@@ -108,32 +110,37 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     /** Number of arrays in current bunch. */
     private int max_array_index;
-    
+
     private final int BYTE_BUFFER_SIZE;
-    
+
     private final int CHAR_BUFFER_SIZE;
-    
+
     private final int SHORT_BUFFER_SIZE;
-    
+
     private final int INT_BUFFER_SIZE;
-    
+
     private final int LONG_BUFFER_SIZE;
-    
+
     private final int FLOAT_BUFFER_SIZE;
-    
+
     private final int DOUBLE_BUFFER_SIZE;
-    
+
     /** Timer. */
     final SerializationTimer timer;
-    
+
     static int typedBufferSize(int bufferSize, int elSize) {
-        return (bufferSize -(Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES) * Constants.SIZEOF_SHORT) / elSize;    
+        return (bufferSize - (Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES)
+                * Constants.SIZEOF_SHORT)
+                / elSize;
     }
-    
+
     /**
      * Constructor with an <code>DataInputStream</code>.
-     * @param in		the underlying <code>DataInputStream</code>
-     * @exception IOException	gets thrown when an IO error occurs.
+     * 
+     * @param in
+     *            the underlying <code>DataInputStream</code>
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public DataSerializationInputStream(DataInputStream in) throws IOException {
         super(in);
@@ -147,12 +154,13 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         INT_BUFFER_SIZE = typedBufferSize(bufferSize, Constants.SIZEOF_INT);
         LONG_BUFFER_SIZE = typedBufferSize(bufferSize, Constants.SIZEOF_LONG);
         FLOAT_BUFFER_SIZE = typedBufferSize(bufferSize, Constants.SIZEOF_FLOAT);
-        DOUBLE_BUFFER_SIZE = typedBufferSize(bufferSize, Constants.SIZEOF_DOUBLE);
+        DOUBLE_BUFFER_SIZE = typedBufferSize(bufferSize,
+                Constants.SIZEOF_DOUBLE);
 
-        if (! NO_ARRAY_BUFFERS) {
+        if (!NO_ARRAY_BUFFERS) {
             initArrays();
         }
-        
+
         if (TIME_DATA_SERIALIZATION) {
             timer = new SerializationTimer(toString());
         } else {
@@ -172,7 +180,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         LONG_BUFFER_SIZE = 0;
         FLOAT_BUFFER_SIZE = 0;
         DOUBLE_BUFFER_SIZE = 0;
-       
+
         if (TIME_DATA_SERIALIZATION) {
             timer = new SerializationTimer(toString());
         } else {
@@ -180,10 +188,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public String serializationImplName() {
         return "data";
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         boolean a;
 
@@ -207,6 +217,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
+    @Override
     public byte readByte() throws IOException {
         byte a;
 
@@ -230,6 +241,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
+    @Override
     public char readChar() throws IOException {
         char a;
 
@@ -253,6 +265,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
+    @Override
     public short readShort() throws IOException {
         short a;
 
@@ -276,6 +289,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
+    @Override
     public int readInt() throws IOException {
         int a;
 
@@ -300,6 +314,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
+    @Override
     public long readLong() throws IOException {
         long a;
 
@@ -323,6 +338,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
+    @Override
     public float readFloat() throws IOException {
         float a;
 
@@ -346,6 +362,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
+    @Override
     public double readDouble() throws IOException {
         double a;
 
@@ -370,21 +387,22 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     /**
-     * Reads (part of) an array of booleans.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of booleans. This method is here to make
+     * extending this class easier.
      */
     protected void readBooleanArray(boolean ref[], int off, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BOOLEAN) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_BOOLEAN) {
             while (array_index == max_array_index) {
                 receive();
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayBoolean: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_BOOLEAN);
+                logger.debug("readArrayBoolean: offset: " + off + " len: "
+                        + len + " type: " + Constants.TYPE_BOOLEAN);
             }
             in.readArray(ref, off, len);
         } else {
@@ -395,21 +413,22 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     /**
-     * Reads (part of) an array of bytes.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of bytes. This method is here to make extending
+     * this class easier.
      */
     protected void readByteArray(byte ref[], int off, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_BYTE) {
             while (array_index == max_array_index) {
                 receive();
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayByte: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_BYTE);
+                logger.debug("readArrayByte: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_BYTE);
             }
             in.readArray(ref, off, len);
         } else {
@@ -418,42 +437,28 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
         }
     }
-    
-    protected void internalReadByteBuffer(ByteBuffer value)  throws IOException {
-	if (NO_ARRAY_BUFFERS) {
-	    in.readByteBuffer(value);
-	} else {
-	    int len = value.limit() - value.position();
-	    if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
-		while (array_index == max_array_index) {
-		    receive();
-		}
-		array_index++;
-		in.readByteBuffer(value);
-	    } else {
-		for (int i = 0; i < len; i++) {
-		    value.put(readByte());
-		}
-	    }
-	}
+
+    protected void internalReadByteBuffer(ByteBuffer value) throws IOException {
+        in.readByteBuffer(value);
     }
 
     /**
-     * Reads (part of) an array of chars.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of chars. This method is here to make extending
+     * this class easier.
      */
     protected void readCharArray(char ref[], int off, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_CHAR) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_CHAR) {
             while (array_index == max_array_index) {
                 receive();
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayChar: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_CHAR);
+                logger.debug("readArrayChar: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_CHAR);
             }
             in.readArray(ref, off, len);
         } else {
@@ -464,21 +469,22 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     /**
-     * Reads (part of) an array of shorts.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of shorts. This method is here to make extending
+     * this class easier.
      */
     protected void readShortArray(short ref[], int off, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_SHORT) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_SHORT) {
             while (array_index == max_array_index) {
                 receive();
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayShort: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_SHORT);
+                logger.debug("readArrayShort: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_SHORT);
             }
             in.readArray(ref, off, len);
         } else {
@@ -489,11 +495,10 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     /**
-     * Reads (part of) an array of ints.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of ints. This method is here to make extending
+     * this class easier.
      */
-    protected void readIntArray(int ref[], int off, int len)
-            throws IOException {
+    protected void readIntArray(int ref[], int off, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
         } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_INT) {
@@ -502,8 +507,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayInt: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_INT);
+                logger.debug("readArrayInt: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_INT);
             }
             in.readArray(ref, off, len);
         } else {
@@ -514,21 +519,22 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     /**
-     * Reads (part of) an array of longs.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of longs. This method is here to make extending
+     * this class easier.
      */
     protected void readLongArray(long ref[], int off, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_LONG) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_LONG) {
             while (array_index == max_array_index) {
                 receive();
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayLong: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_LONG);
+                logger.debug("readArrayLong: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_LONG);
             }
             in.readArray(ref, off, len);
         } else {
@@ -539,21 +545,22 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     /**
-     * Reads (part of) an array of floats.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of floats. This method is here to make extending
+     * this class easier.
      */
     protected void readFloatArray(float ref[], int off, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_FLOAT) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_FLOAT) {
             while (array_index == max_array_index) {
                 receive();
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayFloat: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_FLOAT);
+                logger.debug("readArrayFloat: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_FLOAT);
             }
             in.readArray(ref, off, len);
         } else {
@@ -564,21 +571,22 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     /**
-     * Reads (part of) an array of doubles.
-     * This method is here to make extending this class easier.
+     * Reads (part of) an array of doubles. This method is here to make
+     * extending this class easier.
      */
     protected void readDoubleArray(double ref[], int off, int len)
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_DOUBLE) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_DOUBLE) {
             while (array_index == max_array_index) {
                 receive();
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayDouble: offset: " + off
-                        + " len: " + len + " type: " + Constants.TYPE_DOUBLE);
+                logger.debug("readArrayDouble: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_DOUBLE);
             }
             in.readArray(ref, off, len);
         } else {
@@ -588,6 +596,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public void readArray(boolean[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -597,7 +606,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             timer.stop();
         }
     }
-    
+
+    @Override
     public void readByteBuffer(ByteBuffer value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -608,6 +618,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public void readArray(byte[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -616,9 +627,10 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         if (TIME_DATA_SERIALIZATION) {
             timer.stop();
         }
-        
+
     }
 
+    @Override
     public void readArray(char[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -629,6 +641,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public void readArray(short[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -639,6 +652,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public void readArray(int[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -649,6 +663,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public void readArray(long[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -659,6 +674,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public void readArray(float[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -669,6 +685,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public void readArray(double[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             timer.start();
@@ -695,8 +712,9 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     /**
      * Receive a new bunch of data.
-     *
-     * @exception IOException gets thrown when any of the reads throws it.
+     * 
+     * @exception IOException
+     *                gets thrown when any of the reads throws it.
      */
     private void receive() throws IOException {
         if (DEBUG && logger.isDebugEnabled()) {
@@ -719,7 +737,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 logger.debug("int_index " + (max_int_index - int_index));
                 logger.debug("long_index " + (max_long_index - long_index));
                 logger.debug("float_index " + (max_float_index - float_index));
-                logger.debug("double_index " + (max_double_index - double_index));
+                logger.debug("double_index "
+                        + (max_double_index - double_index));
                 logger.debug("array_index " + (max_array_index - array_index));
 
                 throw new SerializationError("Internal error!");
@@ -730,7 +749,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             timer.suspend();
         }
 
-        in.readArray(indices_short, Constants.BEGIN_TYPES, Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES);
+        in.readArray(indices_short, Constants.BEGIN_TYPES,
+                Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES);
 
         array_index = 0;
         byte_index = 0;
@@ -809,14 +829,16 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
+    @Override
     public int available() throws IOException {
-        return super.available() + (max_byte_index - byte_index) * Constants.SIZEOF_BYTE
-                + (max_char_index - char_index) * Constants.SIZEOF_CHAR
-                + (max_short_index - short_index) * Constants.SIZEOF_SHORT
-                + (max_int_index - int_index) * Constants.SIZEOF_INT
-                + (max_long_index - long_index) * Constants.SIZEOF_LONG
-                + (max_float_index - float_index) * Constants.SIZEOF_FLOAT
-                + (max_double_index - double_index) * Constants.SIZEOF_DOUBLE;
+        return super.available() + (max_byte_index - byte_index)
+                * Constants.SIZEOF_BYTE + (max_char_index - char_index)
+                * Constants.SIZEOF_CHAR + (max_short_index - short_index)
+                * Constants.SIZEOF_SHORT + (max_int_index - int_index)
+                * Constants.SIZEOF_INT + (max_long_index - long_index)
+                * Constants.SIZEOF_LONG + (max_float_index - float_index)
+                * Constants.SIZEOF_FLOAT + (max_double_index - double_index)
+                * Constants.SIZEOF_DOUBLE;
     }
 
     public String readUTF() throws IOException {
@@ -855,49 +877,50 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 c[len++] = (char) (bi & 0x7f);
             } else if ((bi & 0xe0) == 0xc0) {
                 if (i + 1 >= bn || (b[i + 1] & 0xc0) != 0x80) {
-		    if (logger.isErrorEnabled()) {
-			logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
-			StringBuffer sb = new StringBuffer();
-			sb.append("bytes: ");
-			for (int j = 0; j < bn; j++) {
-			    sb.append(" " + b[j]);
-			}
-			logger.error(sb.toString());
-		    }
+                    if (logger.isErrorEnabled()) {
+                        logger.error("i = " + i + ", len = " + bn + ", bi = "
+                                + bi);
+                        StringBuffer sb = new StringBuffer();
+                        sb.append("bytes: ");
+                        for (int j = 0; j < bn; j++) {
+                            sb.append(" " + b[j]);
+                        }
+                        logger.error(sb.toString());
+                    }
                     throw new UTFDataFormatException(
                             "UTF Data Format Exception");
                 }
-                c[len++] = (char) (((bi & 0x1f) << 6) | (b[i+1] & 0x3f));
+                c[len++] = (char) (((bi & 0x1f) << 6) | (b[i + 1] & 0x3f));
                 i++;
             } else if ((bi & 0xf0) == 0xe0) {
                 if (i + 2 >= bn || (b[i + 1] & 0xc0) != 0x80
                         || (b[i + 2] & 0xc0) != 0x80) {
-		    if (logger.isErrorEnabled()) {
-			logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
-			StringBuffer sb = new StringBuffer();
-			sb.append("bytes: ");
-			for (int j = 0; j < bn; j++) {
-			    sb.append(" " + b[j]);
-			}
-			logger.error(sb.toString());
-		    }
+                    if (logger.isErrorEnabled()) {
+                        logger.error("i = " + i + ", len = " + bn + ", bi = "
+                                + bi);
+                        StringBuffer sb = new StringBuffer();
+                        sb.append("bytes: ");
+                        for (int j = 0; j < bn; j++) {
+                            sb.append(" " + b[j]);
+                        }
+                        logger.error(sb.toString());
+                    }
                     throw new UTFDataFormatException(
                             "UTF Data Format Exception");
                 }
                 c[len++] = (char) (((bi & 0x0f) << 12)
-                        | ((b[i + 1] & 0x3f) << 6)
-                        | (b[i + 2] & 0x3f));
+                        | ((b[i + 1] & 0x3f) << 6) | (b[i + 2] & 0x3f));
                 i += 2;
             } else {
-		if (logger.isErrorEnabled()) {
-		    logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
-		    StringBuffer sb = new StringBuffer();
-		    sb.append("bytes: ");
-		    for (int j = 0; j < bn; j++) {
-			sb.append(" " + b[j]);
-		    }
-		    logger.error(sb.toString());
-		}
+                if (logger.isErrorEnabled()) {
+                    logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("bytes: ");
+                    for (int j = 0; j < bn; j++) {
+                        sb.append(" " + b[j]);
+                    }
+                    logger.error(sb.toString());
+                }
                 throw new UTFDataFormatException("UTF Data Format Exception");
             }
         }
@@ -914,10 +937,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return s;
     }
 
+    @Override
     public String readString() throws IOException {
         return readUTF();
     }
-    
+
+    @Override
     public void close() throws IOException {
         indices_short = null;
         byte_buffer = null;
