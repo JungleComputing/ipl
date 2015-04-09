@@ -22,8 +22,13 @@ class DalvikJavaStuffV3 extends JavaDependantStuff {
                     "newInstance", new Class[] {Class.class});
             newInstance.setAccessible(true);
 
-            getReflectionField = ObjectStreamClass.class.getDeclaredMethod("getReflectionField",
-                    new Class[] { ObjectStreamField.class});
+            try {
+                getReflectionField = ObjectStreamClass.class.getDeclaredMethod("getReflectionField",
+                        new Class[] { ObjectStreamField.class});
+            } catch(Throwable e) {
+                getReflectionField = ObjectStreamClass.class.getDeclaredMethod("checkAndGetReflectionField",
+                        new Class[] { ObjectStreamField.class});
+            }
             getReflectionField.setAccessible(true);
             available = true;
         } catch (Throwable e) {
