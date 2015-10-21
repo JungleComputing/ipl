@@ -1323,7 +1323,7 @@ final class CommunicationHandler implements Runnable {
             connection.out().flush();
 
             connection.getAndCheckReply();
-            String reply = connection.in().readUTF();
+            int reply = connection.in().readInt();
             connection.close();
 
             heartbeat.resetDeadlines();
@@ -1332,7 +1332,7 @@ final class CommunicationHandler implements Runnable {
                 statistics.add(Protocol.OPCODE_GET_TOKEN, end - start,
                         connection.read(), connection.written(), false);
             }
-            return reply;
+            return reply == 0 ? null : name;
         } catch (IOException e) {
             connection.close();
             throw e;

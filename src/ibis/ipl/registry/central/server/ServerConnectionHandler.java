@@ -262,7 +262,6 @@ final class ServerConnectionHandler implements Runnable {
     private Pool handleGetToken(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         String name = connection.in().readUTF();
-        long timeout = connection.in().readLong();
 
         Pool pool = server.getPool(identifier.poolName());
 
@@ -274,7 +273,7 @@ final class ServerConnectionHandler implements Runnable {
         String result = pool.getToken(name);
 
         connection.sendOKReply();
-        connection.out().writeUTF(result);
+        connection.out().writeInt(result == null ? 0 : 1);
 
         pool.gotHeartbeat(identifier);
         return pool;
