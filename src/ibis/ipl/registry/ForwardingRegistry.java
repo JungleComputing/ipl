@@ -1,14 +1,14 @@
 package ibis.ipl.registry;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.NoSuchPropertyException;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
 
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.NoSuchPropertyException;
+
 public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
-    
+
     private final ibis.ipl.registry.Registry target;
 
     public ForwardingRegistry(ibis.ipl.registry.Registry target) {
@@ -29,19 +29,22 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         target.assumeDead(ibis);
     }
 
-    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis) throws IOException {
+    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis)
+            throws IOException {
         return target.elect(election, timeoutMillis);
     }
 
     public ibis.ipl.IbisIdentifier elect(String election) throws IOException {
         return target.elect(election);
     }
-    
-    public ibis.ipl.IbisIdentifier getElectionResult(String election) throws IOException {
+
+    public ibis.ipl.IbisIdentifier getElectionResult(String election)
+            throws IOException {
         return target.getElectionResult(election);
     }
 
-    public ibis.ipl.IbisIdentifier getElectionResult(String election, long timeoutMillis) throws IOException {
+    public ibis.ipl.IbisIdentifier getElectionResult(String election,
+            long timeoutMillis) throws IOException {
         return target.getElectionResult(election, timeoutMillis);
     }
 
@@ -49,7 +52,8 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         target.maybeDead(ibis);
     }
 
-    public void signal(String string, ibis.ipl.IbisIdentifier... ibisses) throws IOException {
+    public void signal(String string, ibis.ipl.IbisIdentifier... ibisses)
+            throws IOException {
         target.signal(string, ibisses);
     }
 
@@ -85,7 +89,7 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
     public int getPoolSize() {
         return target.getPoolSize();
     }
-    
+
     public String getPoolName() {
         return target.getPoolName();
     }
@@ -93,7 +97,7 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
     public boolean isClosed() {
         return target.isClosed();
     }
-    
+
     public void waitUntilPoolClosed() {
         target.waitUntilPoolClosed();
     }
@@ -102,15 +106,18 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         return target.managementProperties();
     }
 
-    public String getManagementProperty(String key) throws NoSuchPropertyException {
+    public String getManagementProperty(String key)
+            throws NoSuchPropertyException {
         return target.getManagementProperty(key);
     }
 
-    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
+    public void setManagementProperties(Map<String, String> properties)
+            throws NoSuchPropertyException {
         target.setManagementProperties(properties);
     }
 
-    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
+    public void setManagementProperty(String key, String value)
+            throws NoSuchPropertyException {
         target.setManagementProperty(key, value);
     }
 
@@ -135,9 +142,18 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         return target.getRandomPoolMember();
     }
 
+    @Override
     public String[] wonElections() {
         return target.wonElections();
     }
-  
 
+    @Override
+    public void addTokens(String name, int count) throws IOException {
+        target.addTokens(name, count);
+    }
+
+    @Override
+    public String getToken(String name) throws IOException {
+        return target.getToken(name);
+    }
 }

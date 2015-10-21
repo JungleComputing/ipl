@@ -3,9 +3,9 @@ package ibis.ipl.registry.central;
 public final class Protocol {
 
     public static final byte MAGIC_BYTE = 54;
-    
+
     public static final int VIRTUAL_PORT = 302;
-    
+
     // opcodes
 
     public static final byte OPCODE_JOIN = 0;
@@ -38,10 +38,14 @@ public final class Protocol {
 
     public static final byte OPCODE_TERMINATE = 14;
 
-    public static final int NR_OF_OPCODES = 15;
+    public static final byte OPCODE_ADD_TOKENS = 15;
+
+    public static final byte OPCODE_GET_TOKEN = 16;
+
+    public static final int NR_OF_OPCODES = 17;
 
     public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP",
             "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING",
             "PUSH", "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT",
-            "TERMINATE"};
+            "TERMINATE", "ADD_TOKENS", "GET_TOKEN" };
 }

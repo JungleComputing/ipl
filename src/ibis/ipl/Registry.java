@@ -19,7 +19,7 @@ public interface Registry extends Manageable {
      * When it is detected the winner of the election has left or has died a new
      * winner will automatically be elected and returned on the next call of
      * this function.
-     * 
+     *
      * @param electionName
      *            the name of this election.
      * @return the Ibis identifier of the elected Ibis instance.
@@ -38,9 +38,9 @@ public interface Registry extends Manageable {
      * winner will automatically be elected and returned on the next call of
      * this function.
      * <p>
-     * Blocks for at most the specified timeout. If no winner can be determinted
+     * Blocks for at most the specified timeout. If no winner can be determined
      * by then, <code>null</code> is returned.
-     * 
+     *
      * @param electionName
      *            the name of this election.
      * @param timeoutMillis
@@ -55,7 +55,7 @@ public interface Registry extends Manageable {
     /**
      * Gets the result of an election, without being a candidate. Blocks until
      * there is a winner for the election.
-     * 
+     *
      * @param electionName
      *            the name of this election.
      * @return the Ibis identifier of the elected Ibis instance.
@@ -69,7 +69,7 @@ public interface Registry extends Manageable {
      * Gets the result of an election, without being a candidate. Blocks for at
      * most the specified timeout. If there is no winner by then,
      * <code>null</code> is returned.
-     * 
+     *
      * @param electionName
      *            the name of this election.
      * @param timeoutMillis
@@ -85,7 +85,7 @@ public interface Registry extends Manageable {
     /**
      * Should be called when an application suspects that a particular Ibis
      * instance is dead. The registry may react by checking this.
-     * 
+     *
      * @param ibisIdentifier
      *            the Ibis identifier of the Ibis instance suspected to be dead.
      * @exception IOException
@@ -96,7 +96,7 @@ public interface Registry extends Manageable {
     /**
      * Instructs the registry to assume that the specified Ibis instance is
      * dead.
-     * 
+     *
      * @param ibisIdentifier
      *            the Ibis identifier of the Ibis instance that must be assumed
      *            to be dead.
@@ -110,7 +110,7 @@ public interface Registry extends Manageable {
      * {@link RegistryEventHandler#gotSignal(String,IbisIdentifier)} upcall on
      * all Ibis instances in the given list. It is up to the application to
      * react accordingly.
-     * 
+     *
      * @param signal
      *            the value of the signal. Useful if more than one type of
      *            signal is needed.
@@ -128,7 +128,7 @@ public interface Registry extends Manageable {
      * instances that joined. This call only works if this Ibis is configured to
      * support registry downcalls. If no Ibis instances joined, an array with 0
      * entries is returned.
-     * 
+     *
      * @exception IbisConfigurationException
      *                is thrown when the port was not configured to support
      *                membership administration.
@@ -142,7 +142,7 @@ public interface Registry extends Manageable {
      * instances that left. This call only works if this Ibis is configured to
      * support registry downcalls. If no Ibis instances left, an array with 0
      * entries is returned.
-     * 
+     *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support
      *                membership administration.
@@ -156,7 +156,7 @@ public interface Registry extends Manageable {
      * died. This call only works if this Ibis is configured to support registry
      * downcalls. If no Ibis instances died, an array with 0 entries is
      * returned.
-     * 
+     *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support
      *                membership administration.
@@ -170,7 +170,7 @@ public interface Registry extends Manageable {
      * so far. This call only works if this Ibis is configured to support
      * registry downcalls. If no signals were received, an array with 0 entries
      * is returned.
-     * 
+     *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support signals.
      * @return the received signals.
@@ -180,12 +180,12 @@ public interface Registry extends Manageable {
     /**
      * When running closed-world, returns the total number of Ibis instances in
      * the pool.
-     * 
+     *
      * @return the number of Ibis instances
      * @exception NumberFormatException
      *                is thrown when the property
-     *                <code>ibis.pool.total_hosts</code> is not defined or
-     *                does not represent a number.
+     *                <code>ibis.pool.total_hosts</code> is not defined or does
+     *                not represent a number.
      * @exception IbisConfigurationException
      *                is thrown when this is not a closed-world run.
      */
@@ -193,16 +193,15 @@ public interface Registry extends Manageable {
 
     /**
      * Returns the name of the pool this ibis is a member of.
-     * 
+     *
      * @return the name of the pool
      */
     public String getPoolName();
 
-    
     /**
      * When running closed-world, wait for the pool to close. A pool closes
      * after all Ibisses have joined.
-     * 
+     *
      * @exception IbisConfigurationException
      *                is thrown when this is not a closed-world run, or when
      *                registry events are not enabled yet.
@@ -211,33 +210,31 @@ public interface Registry extends Manageable {
 
     /**
      * Returns if this pool has been closed.
-     * 
+     *
      * @return true if this pool is closed, false if not.
      */
     public boolean isClosed();
 
     /**
-     * Allows reception of
-     * {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} upcalls.
-     * Registry events are saved until the event handler is enabled, and are
-     * then delivered, one by one. Ibis instances are always started with the
-     * registry event handler disabled. This method must be called to allow for
-     * the reception of registry handler upcalls.
+     * Allows reception of {@link ibis.ipl.RegistryEventHandler
+     * RegistryEventHandler} upcalls. Registry events are saved until the event
+     * handler is enabled, and are then delivered, one by one. Ibis instances
+     * are always started with the registry event handler disabled. This method
+     * must be called to allow for the reception of registry handler upcalls.
      */
     public void enableEvents();
 
     /**
-     * Disables reception of
-     * {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} upcalls.
-     * Registry events will be saved until the handler is enabled again, and
-     * then be delivered, one by one.
+     * Disables reception of {@link ibis.ipl.RegistryEventHandler
+     * RegistryEventHandler} upcalls. Registry events will be saved until the
+     * handler is enabled again, and then be delivered, one by one.
      */
     public void disableEvents();
 
     /**
      * Obtains a sequence number from the registry. Each sequencer has a name,
      * which must be provided to this call.
-     * 
+     *
      * @param name
      *            the name of this sequencer.
      * @exception IOException
@@ -246,27 +243,51 @@ public interface Registry extends Manageable {
     public long getSequenceNumber(String name) throws IOException;
 
     /**
+     * Add a number of tokens to the registry.
+     *
+     * @param name
+     *            the name of the token
+     * @param count
+     *            the number of tokens
+     * @throws IOException
+     *             may be thrown when communication with the registry fails.
+     */
+    public void addTokens(String name, int count) throws IOException;
+
+    /**
+     * Gets and subtracts a token from the registry. If it is not available,
+     * NULL is returned.
+     * 
+     * @param name
+     *            the name of the token
+     * @return the name of the token, or NULL if it is not available
+     * @throws IOException
+     *             may be thrown when communication with the registry fails.
+     */
+    public String getToken(String name) throws IOException;
+
+    /**
      * Send a termination event to all members of the pool, including this Ibis.
      * Also closes the pool, if it has not been closed yet, stopping any new
      * ibisses from joining the pool. Depending on the registry implementation,
      * there may be a delay between this function being called, and the event
      * arriving at all ibisses (including this one)
-     * 
+     *
      * @exception IOException
      *                may be thrown when communication with the registry fails.
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support
      *                termination.
-     * 
-     * 
+     *
+     *
      */
     public void terminate() throws IOException;
 
     /**
      * Returns if this pool has been terminated.
-     * 
+     *
      * @return true if this pool has terminated, false if not.
-     * 
+     *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support
      *                termination.
@@ -274,16 +295,16 @@ public interface Registry extends Manageable {
     public boolean hasTerminated();
 
     /**
-     * 
+     *
      * Waits until this pool has been terminated.
-     * 
+     *
      * @return The ibis which terminated the pool.
-     * 
+     *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support
      *                termination.
-     * 
-     * 
+     *
+     *
      */
     public IbisIdentifier waitUntilTerminated();
 

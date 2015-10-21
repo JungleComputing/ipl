@@ -1,5 +1,17 @@
 package ibis.ipl.registry.central.server;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.registry.central.Election;
@@ -15,18 +27,6 @@ import ibis.ipl.registry.statistics.Statistics;
 import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
-
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class Pool implements Runnable {
 
@@ -75,7 +75,7 @@ final class Pool implements Runnable {
     private final boolean printErrors;
 
     private final boolean purgeHistory;
-    
+
     private final int connectTimeout;
 
     // statistics are only kept on the request of the user
@@ -87,6 +87,8 @@ final class Pool implements Runnable {
     private final int[] eventStats;
 
     private final Map<String, Integer> sequencers;
+
+    private final Map<String, Integer> tokens;
 
     private int nextID;
 
@@ -100,10 +102,13 @@ final class Pool implements Runnable {
 
     private Event terminateEvent = null;
 
-    Pool(String name, VirtualSocketFactory socketFactory, boolean peerBootstrap, long heartbeatInterval,
-            long eventPushInterval, boolean gossip, long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize, boolean keepStatistics, long statisticsInterval,
-            int connectTimeout, String implementationVersion, boolean printEvents, boolean printErrors, boolean purgeHistory) {
+    Pool(String name, VirtualSocketFactory socketFactory, boolean peerBootstrap,
+            long heartbeatInterval, long eventPushInterval, boolean gossip,
+            long gossipInterval, boolean adaptGossipInterval, boolean tree,
+            boolean closedWorld, int poolSize, boolean keepStatistics,
+            long statisticsInterval, int connectTimeout,
+            String implementationVersion, boolean printEvents,
+            boolean printErrors, boolean purgeHistory) {
         print("creating new pool: \"" + name + "\"");
 
         this.name = name;
@@ -132,6 +137,7 @@ final class Pool implements Runnable {
         minEventTime = 0;
         nextID = 0;
         sequencers = new HashMap<String, Integer>();
+        tokens = new HashMap<String, Integer>();
 
         events = new EventList();
         eventStats = new int[Event.NR_OF_TYPES];
@@ -164,7 +170,8 @@ final class Pool implements Runnable {
         if (logger.isInfoEnabled()) {
             logger.info(message);
         } else {
-            System.err.printf("%tT Central Registry: %s\n", System.currentTimeMillis(), message);
+            System.err.printf("%tT Central Registry: %s\n",
+                    System.currentTimeMillis(), message);
         }
     }
 
@@ -177,10 +184,12 @@ final class Pool implements Runnable {
             }
         } else {
             if (printErrors) {
-                System.err.printf("%tT Central Registry: %s caused by:\n", System.currentTimeMillis(), message);
+                System.err.printf("%tT Central Registry: %s caused by:\n",
+                        System.currentTimeMillis(), message);
                 exception.printStackTrace(System.err);
             } else {
-                System.err.printf("%tT Central Registry: %s\n", System.currentTimeMillis(), message);
+                System.err.printf("%tT Central Registry: %s\n",
+                        System.currentTimeMillis(), message);
             }
         }
     }
@@ -193,8 +202,10 @@ final class Pool implements Runnable {
         return minEventTime;
     }
 
-    synchronized Event addEvent(int type, String description, IbisIdentifier ibis, IbisIdentifier... ibisses) {
-        Event event = new Event(currentEventTime, type, description, ibis, ibisses);
+    synchronized Event addEvent(int type, String description,
+            IbisIdentifier ibis, IbisIdentifier... ibisses) {
+        Event event = new Event(currentEventTime, type, description, ibis,
+                ibisses);
         if (logger.isDebugEnabled()) {
             logger.debug("adding new event: " + event);
         }
@@ -257,7 +268,7 @@ final class Pool implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.impl.registry.central.SuperPool#ended()
      */
     synchronized boolean hasEnded() {
@@ -293,12 +304,13 @@ final class Pool implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.impl.registry.central.SuperPool#join(byte[], byte[],
      * ibis.ipl.impl.Location)
      */
-    synchronized Member join(byte[] implementationData, byte[] clientAddress, Location location,
-            String implementationVersion, byte[] applicationTag) throws IOException {
+    synchronized Member join(byte[] implementationData, byte[] clientAddress,
+            Location location, String implementationVersion,
+            byte[] applicationTag) throws IOException {
         if (hasEnded()) {
             throw new IOException("Pool already ended");
         }
@@ -307,17 +319,19 @@ final class Pool implements Runnable {
             throw new IOException("Pool already closed");
         }
 
-        if (implementationVersion == null || !this.implementationVersion.equals(implementationVersion)) {
+        if (implementationVersion == null
+                || !this.implementationVersion.equals(implementationVersion)) {
 
             throw new IOException("Ibis implementation " + implementationVersion
-                    + " does not match pool's Ibis implementation: " + this.implementationVersion);
+                    + " does not match pool's Ibis implementation: "
+                    + this.implementationVersion);
         }
 
         String id = Integer.toString(nextID);
         nextID++;
 
-        IbisIdentifier identifier = new IbisIdentifier(id, implementationData, clientAddress, location, name,
-                applicationTag);
+        IbisIdentifier identifier = new IbisIdentifier(id, implementationData,
+                clientAddress, location, name, applicationTag);
 
         Event event = addEvent(Event.JOIN, null, identifier);
 
@@ -336,7 +350,8 @@ final class Pool implements Runnable {
         }
 
         if (printEvents) {
-            print(identifier + " joined pool \"" + name + "\" now " + members.size() + " members");
+            print(identifier + " joined pool \"" + name + "\" now "
+                    + members.size() + " members");
         }
 
         if (closedWorld && nextID >= fixedSize) {
@@ -351,7 +366,8 @@ final class Pool implements Runnable {
             return;
         }
         closed = true;
-        closeEvent = addEvent(Event.POOL_CLOSED, null, null, new IbisIdentifier[0]);
+        closeEvent = addEvent(Event.POOL_CLOSED, null, null,
+                new IbisIdentifier[0]);
         if (printEvents) {
             print("pool \"" + name + "\" now closed");
         }
@@ -373,7 +389,8 @@ final class Pool implements Runnable {
 
     }
 
-    public void writeState(DataOutputStream out, int joinTime) throws IOException {
+    public void writeState(DataOutputStream out, int joinTime)
+            throws IOException {
 
         ByteArrayOutputStream arrayOut = new ByteArrayOutputStream();
         DataOutputStream dataOut = new DataOutputStream(arrayOut);
@@ -385,7 +402,8 @@ final class Pool implements Runnable {
             members.writeTo(dataOut);
             elections.writeTo(dataOut);
 
-            Event[] signals = events.getSignalEvents(joinTime, currentEventTime);
+            Event[] signals = events.getSignalEvents(joinTime,
+                    currentEventTime);
             dataOut.writeInt(signals.length);
             for (Event event : signals) {
                 event.writeTo(dataOut);
@@ -414,10 +432,9 @@ final class Pool implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * ibis.ipl.impl.registry.central.SuperPool#leave(ibis.ipl.impl.IbisIdentifier
-     * )
+     *
+     * @see ibis.ipl.impl.registry.central.SuperPool#leave(ibis.ipl.impl.
+     * IbisIdentifier )
      */
     synchronized void leave(IbisIdentifier identifier) throws Exception {
         if (members.remove(identifier) == null) {
@@ -426,12 +443,13 @@ final class Pool implements Runnable {
             // logger.error("unknown ibis " + identifier + " tried to leave");
             // throw new Exception("ibis unknown: " + identifier);
             if (logger.isDebugEnabled()) {
-        	logger.debug("unknown ibis " + identifier + " tried to leave");
+                logger.debug("unknown ibis " + identifier + " tried to leave");
             }
             return;
         }
         if (printEvents) {
-            print(identifier + " left pool \"" + name + "\" now " + members.size() + " members");
+            print(identifier + " left pool \"" + name + "\" now "
+                    + members.size() + " members");
         }
 
         addEvent(Event.LEAVE, null, identifier);
@@ -461,10 +479,9 @@ final class Pool implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * ibis.ipl.impl.registry.central.SuperPool#dead(ibis.ipl.impl.IbisIdentifier
-     * )
+     *
+     * @see ibis.ipl.impl.registry.central.SuperPool#dead(ibis.ipl.impl.
+     * IbisIdentifier )
      */
     synchronized void dead(IbisIdentifier identifier, Exception exception) {
         Member member = members.remove(identifier);
@@ -474,7 +491,8 @@ final class Pool implements Runnable {
         }
 
         if (printEvents) {
-            printError(identifier + " died in pool \"" + name + "\" now " + members.size() + " members", exception);
+            printError(identifier + " died in pool \"" + name + "\" now "
+                    + members.size() + " members", exception);
         }
 
         addEvent(Event.DIED, null, identifier);
@@ -509,17 +527,18 @@ final class Pool implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.impl.registry.central.SuperPool#elect(java.lang.String,
      * ibis.ipl.impl.IbisIdentifier)
      */
-    synchronized IbisIdentifier elect(String electionName, IbisIdentifier candidate) throws IOException {
+    synchronized IbisIdentifier elect(String electionName,
+            IbisIdentifier candidate) throws IOException {
         Election election = elections.get(electionName);
 
         if (election == null) {
             if (!members.contains(candidate)) {
-                throw new IOException(candidate + " tries to win election " + electionName
-                        + ", but is not a member of the pool");
+                throw new IOException(candidate + " tries to win election "
+                        + electionName + ", but is not a member of the pool");
             }
 
             // Do the election now. The caller WINS! :)
@@ -534,7 +553,8 @@ final class Pool implements Runnable {
             elections.put(election);
 
             if (printEvents) {
-                print(candidate + " won election \"" + electionName + "\" in pool \"" + name + "\"");
+                print(candidate + " won election \"" + electionName
+                        + "\" in pool \"" + name + "\"");
             }
 
         }
@@ -558,7 +578,7 @@ final class Pool implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @seeibis.ipl.impl.registry.central.SuperPool#maybeDead(ibis.ipl.impl.
      * IbisIdentifier)
      */
@@ -567,15 +587,18 @@ final class Pool implements Runnable {
         Member member = members.get(identifier);
 
         if (member != null) {
-            if (member.getTime() > (System.currentTimeMillis() - RECENTLY_SEEN_THRESHOLD)) {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("got maybeDead for member of pool " + identifier
-        		    + ", but recently contacted it, ignoring report");
-        	}
+            if (member.getTime() > (System.currentTimeMillis()
+                    - RECENTLY_SEEN_THRESHOLD)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("got maybeDead for member of pool "
+                            + identifier
+                            + ", but recently contacted it, ignoring report");
+                }
             } else {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("got maybeDead for member of pool: " + identifier);
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug(
+                            "got maybeDead for member of pool: " + identifier);
+                }
 
                 member.clearTime();
                 // wake up checker thread, this suspect now (among) the oldest
@@ -583,7 +606,8 @@ final class Pool implements Runnable {
             }
         } else {
             if (logger.isDebugEnabled()) {
-        	logger.debug("got maybeDead for " + identifier + " which is not in pool");
+                logger.debug("got maybeDead for " + identifier
+                        + " which is not in pool");
             }
         }
 
@@ -591,11 +615,12 @@ final class Pool implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.impl.registry.central.SuperPool#signal(java.lang.String,
      * ibis.ipl.impl.IbisIdentifier[])
      */
-    synchronized void signal(String signal, IbisIdentifier source, IbisIdentifier[] targets) {
+    synchronized void signal(String signal, IbisIdentifier source,
+            IbisIdentifier[] targets) {
         ArrayList<IbisIdentifier> result = new ArrayList<IbisIdentifier>();
 
         for (IbisIdentifier target : targets) {
@@ -603,7 +628,8 @@ final class Pool implements Runnable {
                 result.add(target);
             }
         }
-        addEvent(Event.SIGNAL, signal, source, result.toArray(new IbisIdentifier[result.size()]));
+        addEvent(Event.SIGNAL, signal, source,
+                result.toArray(new IbisIdentifier[result.size()]));
         notifyAll();
 
     }
@@ -639,11 +665,13 @@ final class Pool implements Runnable {
         Connection connection = null;
         try {
             if (logger.isDebugEnabled()) {
-        	logger.debug("creating connection to " + member);
+                logger.debug("creating connection to " + member);
             }
-            connection = new Connection(member.getIbis(), connectTimeout, true, socketFactory, Protocol.VIRTUAL_PORT);
+            connection = new Connection(member.getIbis(), connectTimeout, true,
+                    socketFactory, Protocol.VIRTUAL_PORT);
             if (logger.isDebugEnabled()) {
-        	logger.debug("connection created to " + member + ", send opcode, checking for reply");
+                logger.debug("connection created to " + member
+                        + ", send opcode, checking for reply");
             }
 
             connection.out().writeByte(Protocol.MAGIC_BYTE);
@@ -660,16 +688,17 @@ final class Pool implements Runnable {
                 throw new Exception("ping ended up at wrong ibis");
             }
             if (logger.isDebugEnabled()) {
-        	logger.debug("ping to " + member + " successful");
+                logger.debug("ping to " + member + " successful");
             }
             member.updateTime();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_PING, System.currentTimeMillis() - start, connection.read(),
+                statistics.add(Protocol.OPCODE_PING,
+                        System.currentTimeMillis() - start, connection.read(),
                         connection.written(), false);
             }
         } catch (Exception e) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("error on pinging ibis " + member, e);
+                logger.debug("error on pinging ibis " + member, e);
             }
 
             if (connection != null) {
@@ -682,7 +711,7 @@ final class Pool implements Runnable {
     /**
      * Push events to the given member. Checks if the pool has not ended, and
      * the peer is still a current member of this pool.
-     * 
+     *
      * @param member
      *            The member to push events to
      * @param force
@@ -711,9 +740,9 @@ final class Pool implements Runnable {
         }
         if (logger.isDebugEnabled()) {
             if (force) {
-        	logger.debug("forced pushing entries to " + member);
+                logger.debug("forced pushing entries to " + member);
             } else {
-        	logger.debug("pushing entries to " + member);
+                logger.debug("pushing entries to " + member);
             }
         }
 
@@ -722,15 +751,16 @@ final class Pool implements Runnable {
             long connecting = System.currentTimeMillis();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("creating connection to push events to " + member);
+                logger.debug("creating connection to push events to " + member);
             }
 
-            connection = new Connection(member.getIbis(), connectTimeout, true, socketFactory, Protocol.VIRTUAL_PORT);
+            connection = new Connection(member.getIbis(), connectTimeout, true,
+                    socketFactory, Protocol.VIRTUAL_PORT);
 
             long connected = System.currentTimeMillis();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("connection to " + member + " created");
+                logger.debug("connection to " + member + " created");
             }
 
             connection.out().writeByte(Protocol.MAGIC_BYTE);
@@ -741,7 +771,7 @@ final class Pool implements Runnable {
             long writtenOpcode = System.currentTimeMillis();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("waiting for info of peer " + member);
+                logger.debug("waiting for info of peer " + member);
             }
 
             boolean requestBootstrap = connection.in().readBoolean();
@@ -766,7 +796,8 @@ final class Pool implements Runnable {
             long gotEvents = System.currentTimeMillis();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("sending " + events.length + " entries to " + member);
+                logger.debug(
+                        "sending " + events.length + " entries to " + member);
             }
 
             connection.out().writeInt(events.length);
@@ -788,7 +819,7 @@ final class Pool implements Runnable {
             long closedConnection = System.currentTimeMillis();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("connection to " + member + " closed");
+                logger.debug("connection to " + member + " closed");
             }
             member.updateTime();
 
@@ -797,18 +828,24 @@ final class Pool implements Runnable {
             if (statistics != null) {
                 long end = System.currentTimeMillis();
 
-                statistics.add(opcode, end - start, connection.read(), connection.written(), false);
+                statistics.add(opcode, end - start, connection.read(),
+                        connection.written(), false);
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("connecting = " + (connecting - start) + ", connected = " + (connected - connecting)
-                        + ", writtenOpcode = " + (writtenOpcode - connected) + ", readInfo = "
-                        + (readInfo - writtenOpcode) + ", sendOk = " + (sendOk - readInfo) + ", writtenState ("
-                        + requestBootstrap + ") = " + (writtenState - sendOk) + "\n\t\t\t" +
+                logger.debug("connecting = " + (connecting - start)
+                        + ", connected = " + (connected - connecting)
+                        + ", writtenOpcode = " + (writtenOpcode - connected)
+                        + ", readInfo = " + (readInfo - writtenOpcode)
+                        + ", sendOk = " + (sendOk - readInfo)
+                        + ", writtenState (" + requestBootstrap + ") = "
+                        + (writtenState - sendOk) + "\n\t\t\t" +
 
-                        "gotEvents = " + (gotEvents - writtenState) + ", writtenEvents = "
-                        + (writtenEvents - gotEvents) + ", writtenAll = " + (writtenAll - writtenEvents)
-                        + ", closedConnection = " + (closedConnection - writtenAll) + ", done = "
+                "gotEvents = " + (gotEvents - writtenState)
+                        + ", writtenEvents = " + (writtenEvents - gotEvents)
+                        + ", writtenAll = " + (writtenAll - writtenEvents)
+                        + ", closedConnection = "
+                        + (closedConnection - writtenAll) + ", done = "
                         + (done - closedConnection));
 
             }
@@ -831,7 +868,7 @@ final class Pool implements Runnable {
             Member oldest = members.getLeastRecentlySeen();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("oldest = " + oldest);
+                logger.debug("oldest = " + oldest);
             }
 
             long currentTime = System.currentTimeMillis();
@@ -845,17 +882,18 @@ final class Pool implements Runnable {
             }
 
             if (timeout <= 0) {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug(oldest + " now a suspect");
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug(oldest + " now a suspect");
+                }
                 return oldest;
             }
 
             // wait a while, get oldest again (might have changed)
             try {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug(timeout + " milliseconds until " + oldest + " needs checking");
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug(timeout + " milliseconds until " + oldest
+                            + " needs checking");
+                }
                 wait(timeout);
             } catch (InterruptedException e) {
                 // IGNORE
@@ -899,8 +937,10 @@ final class Pool implements Runnable {
         return members.getRootChildren();
     }
 
+    @Override
     public String toString() {
-        return "Pool " + name + ": value = " + getSize() + ", event time = " + getEventTime();
+        return "Pool " + name + ": value = " + getSize() + ", event time = "
+                + getEventTime();
     }
 
     public synchronized String getStatsString() {
@@ -909,13 +949,19 @@ final class Pool implements Runnable {
         Formatter formatter = new Formatter(message);
 
         if (isClosedWorld()) {
-            formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10d %6b %10b %5b", getName(), getSize(),
-                    eventStats[Event.JOIN], eventStats[Event.LEAVE], eventStats[Event.DIED], eventStats[Event.ELECT],
-                    eventStats[Event.SIGNAL], getFixedSize(), isClosed(), hasTerminated(), ended);
+            formatter.format(
+                    "%s\n     %12d %5d %6d %5d %9d %7d %10d %6b %10b %5b",
+                    getName(), getSize(), eventStats[Event.JOIN],
+                    eventStats[Event.LEAVE], eventStats[Event.DIED],
+                    eventStats[Event.ELECT], eventStats[Event.SIGNAL],
+                    getFixedSize(), isClosed(), hasTerminated(), ended);
         } else {
-            formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10s %6b %10b %5b", getName(), getSize(),
-                    eventStats[Event.JOIN], eventStats[Event.LEAVE], eventStats[Event.DIED], eventStats[Event.ELECT],
-                    eventStats[Event.SIGNAL], "N.A.", isClosed(), hasTerminated(), ended);
+            formatter.format(
+                    "%s\n     %12d %5d %6d %5d %9d %7d %10s %6b %10b %5b",
+                    getName(), getSize(), eventStats[Event.JOIN],
+                    eventStats[Event.LEAVE], eventStats[Event.DIED],
+                    eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
+                    isClosed(), hasTerminated(), ended);
         }
         formatter.close();
 
@@ -941,7 +987,7 @@ final class Pool implements Runnable {
 
     /**
      * Remove events from the event history to make space.
-     * 
+     *
      */
     synchronized void purgeHistory() {
         if (!purgeHistory) {
@@ -970,9 +1016,9 @@ final class Pool implements Runnable {
      * contacts any suspect nodes when asked
      */
     public void run() {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("new pinger thread started");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("new pinger thread started");
+        }
         Member suspect = getSuspectMember();
         // fake we saw this member so noone else tries to ping it too
         if (suspect != null) {
@@ -994,6 +1040,31 @@ final class Pool implements Runnable {
 
     Statistics getStatistics() {
         return statistics;
+    }
+
+    public String getToken(String name2) {
+        Integer currentValue = tokens.get(name2);
+
+        if (currentValue == null) {
+            return null;
+        }
+
+        int result = currentValue - 1;
+        if (result == 0) {
+            tokens.remove(name2);
+        } else {
+            tokens.put(name2, result);
+        }
+        return name2;
+    }
+
+    public void addTokens(String name2, int count) {
+        Integer currentValue = tokens.get(name2);
+
+        if (currentValue != null) {
+            count += currentValue;
+        }
+        tokens.put(name2, count);
     }
 
 }

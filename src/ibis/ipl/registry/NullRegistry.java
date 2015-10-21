@@ -1,5 +1,12 @@
 package ibis.ipl.registry;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
@@ -10,17 +17,10 @@ import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
-
 /**
- * 
+ *
  * Registry implementation that does nothing. Throws an Exception most calls.
- * 
+ *
  */
 public final class NullRegistry extends ibis.ipl.registry.Registry {
 
@@ -34,28 +34,28 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
 
     /**
      * Creates a Null Registry.
-     * 
+     *
      * @param handler
-     *                registry handler to pass events to.
+     *            registry handler to pass events to.
      * @param properties
-     *                properties of this registry.
+     *            properties of this registry.
      * @param data
-     *                Ibis implementation data to attach to the IbisIdentifier.
+     *            Ibis implementation data to attach to the IbisIdentifier.
      * @param tag
-     *                A tag provided by the application for this ibis instance.
+     *            A tag provided by the application for this ibis instance.
      * @param implementationVersion
-     *                the identification of this ibis implementation, including
-     *                version, class and such. Must be identical for all ibises
-     *                in a single pool.
+     *            the identification of this ibis implementation, including
+     *            version, class and such. Must be identical for all ibises in a
+     *            single pool.
      * @throws IOException
-     *                 in case of trouble.
+     *             in case of trouble.
      * @throws IbisConfigurationException
-     *                 In case invalid properties were given.
+     *             In case invalid properties were given.
      */
     public NullRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
             String implementationVersion, Credentials credentials, byte[] tag)
-            throws IOException {
+                    throws IOException {
 
         if (handler != null) {
             throw new IbisConfigurationException(
@@ -71,8 +71,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
 
         String pool = properties.getProperty(IbisProperties.POOL_NAME);
 
-        identifier = new IbisIdentifier(id, data, null, location,
-                pool, tag);
+        identifier = new IbisIdentifier(id, data, null, location, pool, tag);
     }
 
     @Override
@@ -89,11 +88,12 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
                 "elections not supported by NullRegistry");
     }
 
-    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis) throws IOException {
+    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis)
+            throws IOException {
         throw new IbisConfigurationException(
                 "elections not supported by NullRegistry");
     }
-    
+
     public ibis.ipl.IbisIdentifier getElectionResult(String election)
             throws IOException {
         throw new IbisConfigurationException(
@@ -105,7 +105,8 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         throw new IbisConfigurationException(
                 "elections not supported by NullRegistry");
     }
-    
+
+    @Override
     public String[] wonElections() {
         throw new IbisConfigurationException(
                 "elections not supported by NullRegistry");
@@ -158,7 +159,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         throw new IbisConfigurationException(
                 "pool size not supported by NullRegistry");
     }
-    
+
     public String getPoolName() {
         return identifier.poolName();
     }
@@ -167,49 +168,67 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         throw new IbisConfigurationException(
                 "waitUntilPoolClosed not supported by NullRegistry");
     }
-    
+
     public boolean isClosed() {
         throw new IbisConfigurationException(
-        "closed world not supported by NullRegistry");
+                "closed world not supported by NullRegistry");
     }
 
     public Map<String, String> managementProperties() {
         return new HashMap<String, String>();
     }
 
-    public String getManagementProperty(String key) throws NoSuchPropertyException {
-        throw new NoSuchPropertyException("no properties supported by null registry");
+    public String getManagementProperty(String key)
+            throws NoSuchPropertyException {
+        throw new NoSuchPropertyException(
+                "no properties supported by null registry");
     }
 
-    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
-        throw new NoSuchPropertyException("no properties supported by null registry");
+    public void setManagementProperties(Map<String, String> properties)
+            throws NoSuchPropertyException {
+        throw new NoSuchPropertyException(
+                "no properties supported by null registry");
     }
 
-    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
-        throw new NoSuchPropertyException("no properties supported by null registry");
+    public void setManagementProperty(String key, String value)
+            throws NoSuchPropertyException {
+        throw new NoSuchPropertyException(
+                "no properties supported by null registry");
     }
 
     public void printManagementProperties(PrintStream stream) {
-        //NOTHING
+        // NOTHING
     }
 
     public boolean hasTerminated() {
         throw new IbisConfigurationException(
-        "termination not supported by NullRegistry");
+                "termination not supported by NullRegistry");
     }
 
     public void terminate() throws IOException {
         throw new IbisConfigurationException(
-        "termination not supported by NullRegistry");
+                "termination not supported by NullRegistry");
     }
 
     public IbisIdentifier waitUntilTerminated() {
         throw new IbisConfigurationException(
-        "termination not supported by NullRegistry");
+                "termination not supported by NullRegistry");
     }
 
     @Override
     public IbisIdentifier getRandomPoolMember() {
         return null;
+    }
+
+    @Override
+    public void addTokens(String name, int count) throws IOException {
+        throw new IbisConfigurationException(
+                "tokens not supported by NullRegistry");
+    }
+
+    @Override
+    public String getToken(String name) throws IOException {
+        throw new IbisConfigurationException(
+                "tokens not supported by NullRegistry");
     }
 }

@@ -1,5 +1,15 @@
 package ibis.ipl.registry.central.client;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
@@ -12,16 +22,6 @@ import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.ipl.support.RemoteException;
 import ibis.util.TypedProperties;
-
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Central registry.
@@ -59,7 +59,7 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
     /**
      * Creates a Central Registry.
-     * 
+     *
      * @param capabilities
      *            Required capabilities of this registry
      * @param eventHandler
@@ -98,8 +98,9 @@ public final class Registry extends ibis.ipl.registry.Registry {
                     "Capabilities for registry not specified");
         }
 
-        if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE) || capabilities
-                .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED))
+        if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE)
+                || capabilities.hasCapability(
+                        IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED))
                 && eventHandler == null) {
             joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
@@ -126,12 +127,12 @@ public final class Registry extends ibis.ipl.registry.Registry {
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
             if (logger.isDebugEnabled()) {
-        	logger.debug("statistics: on");
+                logger.debug("statistics: on");
             }
         } else {
             statistics = null;
             if (logger.isDebugEnabled()) {
-        	logger.debug("statistics: off");
+                logger.debug("statistics: off");
             }
         }
 
@@ -155,12 +156,10 @@ public final class Registry extends ibis.ipl.registry.Registry {
         if (statistics != null) {
             statistics.setID(identifier.getID() + "@" + identifier.location(),
                     pool.getName());
-            statistics
-                    .startWriting(properties
-                            .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
+            statistics.startWriting(properties.getIntProperty(
+                    RegistryProperties.STATISTICS_INTERVAL) * 1000);
         }
 
-   
         if (logger.isDebugEnabled()) {
             logger.debug("registry for " + identifier + " initiated");
         }
@@ -174,7 +173,8 @@ public final class Registry extends ibis.ipl.registry.Registry {
     public IbisIdentifier elect(String electionName) throws IOException {
         return elect(electionName, 0);
     }
-    
+
+    @Override
     public String[] wonElections() {
         return pool.wonElections(identifier);
     }
@@ -202,7 +202,8 @@ public final class Registry extends ibis.ipl.registry.Registry {
         return result;
     }
 
-    public IbisIdentifier getElectionResult(String election) throws IOException {
+    public IbisIdentifier getElectionResult(String election)
+            throws IOException {
         return getElectionResult(election, 0);
     }
 
@@ -261,7 +262,7 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
         if (logger.isDebugEnabled()) {
             logger.debug("telling " + ibisIdentifiers.length
-        	    + " ibisses a string: " + signal);
+                    + " ibisses a string: " + signal);
         }
 
         communicationHandler.signal(signal, ibisIdentifiers);
@@ -341,8 +342,8 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
     public void enableEvents() {
         if (upcaller == null) {
-            throw new IbisConfigurationException("Registry not configured to "
-                    + "produce events");
+            throw new IbisConfigurationException(
+                    "Registry not configured to " + "produce events");
         }
 
         upcaller.enableEvents();
@@ -350,8 +351,8 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
     public void disableEvents() {
         if (upcaller == null) {
-            throw new IbisConfigurationException("Registry not configured to "
-                    + "produce events");
+            throw new IbisConfigurationException(
+                    "Registry not configured to " + "produce events");
         }
 
         upcaller.disableEvents();
@@ -374,21 +375,21 @@ public final class Registry extends ibis.ipl.registry.Registry {
         }
 
         communicationHandler.leave();
-        
+
         if (statistics != null) {
             statistics.write();
             statistics.end();
         }
-        
+
     }
 
     /**
      * Handles incoming user events.
      */
     synchronized void handleEvent(Event event) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("new event passed to user: " + event);
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("new event passed to user: " + event);
+        }
 
         if (event.getType() == Event.SIGNAL) {
             boolean match = false;
@@ -473,8 +474,8 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
     public boolean hasTerminated() {
         if (!capabilities.hasCapability(IbisCapabilities.TERMINATION)) {
-            throw new IbisConfigurationException("Registry not configured to "
-                    + "support termination");
+            throw new IbisConfigurationException(
+                    "Registry not configured to " + "support termination");
         }
 
         return pool.hasTerminated();
@@ -482,11 +483,11 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
     public void terminate() throws IOException {
         if (!capabilities.hasCapability(IbisCapabilities.TERMINATION)) {
-            throw new IbisConfigurationException("Registry not configured to "
-                    + "support termination");
+            throw new IbisConfigurationException(
+                    "Registry not configured to " + "support termination");
         }
 
-        //check if already terminated, no need to do twice.
+        // check if already terminated, no need to do twice.
         if (!pool.hasTerminated()) {
             communicationHandler.terminate();
         }
@@ -494,8 +495,8 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
     public ibis.ipl.IbisIdentifier waitUntilTerminated() {
         if (!capabilities.hasCapability(IbisCapabilities.TERMINATION)) {
-            throw new IbisConfigurationException("Registry not configured to "
-                    + "support termination");
+            throw new IbisConfigurationException(
+                    "Registry not configured to " + "support termination");
         }
 
         return pool.waitUntilTerminated();
@@ -518,6 +519,26 @@ public final class Registry extends ibis.ipl.registry.Registry {
     @Override
     public IbisIdentifier getRandomPoolMember() {
         return pool.getRandomMember().getIbis();
+    }
+
+    @Override
+    public void addTokens(String name, int count) throws IOException {
+        if (pool.isStopped()) {
+            throw new IOException(
+                    "cannot add tokens, registry already stopped");
+        }
+
+        communicationHandler.addTokens(name, count);
+    }
+
+    @Override
+    public String getToken(String name) throws IOException {
+        if (pool.isStopped()) {
+            throw new IOException(
+                    "cannot get tokens, registry already stopped");
+        }
+
+        return communicationHandler.getToken(name);
     }
 
 }

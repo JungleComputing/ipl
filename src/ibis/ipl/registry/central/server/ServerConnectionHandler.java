@@ -1,5 +1,11 @@
 package ibis.ipl.registry.central.server;
 
+import java.io.IOException;
+import java.security.AccessControlException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.io.Conversion;
 import ibis.ipl.Credentials;
 import ibis.ipl.impl.IbisIdentifier;
@@ -12,11 +18,6 @@ import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
-
-import java.io.IOException;
-import java.security.AccessControlException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class ServerConnectionHandler implements Runnable {
 
@@ -41,12 +42,12 @@ final class ServerConnectionHandler implements Runnable {
 
     ServerConnectionHandler(CentralRegistryService server,
             VirtualSocketFactory connectionFactory, ControlPolicy policy)
-            throws IOException {
+                    throws IOException {
         this.server = server;
         this.socketFactory = connectionFactory;
 
-        serverSocket = socketFactory.createServerSocket(
-                Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
+        serverSocket = socketFactory.createServerSocket(Protocol.VIRTUAL_PORT,
+                CONNECTION_BACKLOG, null);
         this.policy = policy;
 
         createThread();
@@ -111,7 +112,7 @@ final class ServerConnectionHandler implements Runnable {
 
         Credentials credentials = (Credentials) Conversion
                 .byte2object(credentialBytes);
-        
+
         length = connection.in().readInt();
         byte[] applicationTag = null;
         if (length >= 0) {
@@ -163,7 +164,8 @@ final class ServerConnectionHandler implements Runnable {
 
         pool.gotHeartbeat(member.getIbis());
 
-        // logger.debug("dataRead = " + (start - dataRead) + ", poolRetrieved = "
+        // logger.debug("dataRead = " + (start - dataRead) + ", poolRetrieved =
+        // "
         // + (poolRetrieved - dataRead) + ", joinDone = " + (joinDone -
         // poolRetrieved) + ", datawritten = " + (dataWritten - joinDone));
 
@@ -237,6 +239,47 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
+    private Pool handleAddTokens(Connection connection) throws Exception {
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        String name = connection.in().readUTF();
+        int count = connection.in().readInt();
+
+        Pool pool = server.getPool(identifier.poolName());
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            throw new Exception("pool " + identifier.poolName() + " not found");
+        }
+
+        pool.addTokens(name, count);
+
+        connection.sendOKReply();
+
+        pool.gotHeartbeat(identifier);
+        return pool;
+    }
+
+    private Pool handleGetToken(Connection connection) throws Exception {
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        String name = connection.in().readUTF();
+        long timeout = connection.in().readLong();
+
+        Pool pool = server.getPool(identifier.poolName());
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            throw new Exception("pool " + identifier.poolName() + " not found");
+        }
+
+        String result = pool.getToken(name);
+
+        connection.sendOKReply();
+        connection.out().writeUTF(result);
+
+        pool.gotHeartbeat(identifier);
+        return pool;
+    }
+
     private Pool handleDead(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         IbisIdentifier corpse = new IbisIdentifier(connection.in());
@@ -249,8 +292,8 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         try {
-            pool.dead(corpse, new Exception("ibis declared dead by "
-                    + identifier));
+            pool.dead(corpse,
+                    new Exception("ibis declared dead by " + identifier));
         } catch (Exception e) {
             connection.closeWithError(e.getMessage());
             throw e;
@@ -391,11 +434,11 @@ final class ServerConnectionHandler implements Runnable {
         Connection connection = null;
         try {
             if (logger.isDebugEnabled()) {
-        	logger.debug("accepting connection");
+                logger.debug("accepting connection");
             }
             connection = new Connection(serverSocket);
             if (logger.isDebugEnabled()) {
-        	logger.debug("connection accepted");
+                logger.debug("connection accepted");
             }
         } catch (IOException e) {
             if (server.isStopped()) {
@@ -468,6 +511,12 @@ final class ServerConnectionHandler implements Runnable {
             case Protocol.OPCODE_TERMINATE:
                 pool = handleTerminate(connection);
                 break;
+            case Protocol.OPCODE_ADD_TOKENS:
+                pool = handleAddTokens(connection);
+                break;
+            case Protocol.OPCODE_GET_TOKEN:
+                pool = handleGetToken(connection);
+                break;
             default:
                 logger.error("unknown opcode: " + opcode);
             }
@@ -504,8 +553,8 @@ final class ServerConnectionHandler implements Runnable {
         }
         if (logger.isInfoEnabled()) {
             synchronized (this) {
-                logger.debug("max simultanious connections was: "
-                        + maxNrOfThreads);
+                logger.debug(
+                        "max simultanious connections was: " + maxNrOfThreads);
             }
         }
     }

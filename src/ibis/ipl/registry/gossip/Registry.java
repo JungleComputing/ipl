@@ -1,5 +1,16 @@
 package ibis.ipl.registry.gossip;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
@@ -11,17 +22,6 @@ import ibis.ipl.impl.Location;
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
-
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
@@ -59,7 +59,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     /**
      * Creates a Gossip Registry.
-     * 
+     *
      * @param capabilities
      *            capabilities required of this registry
      * @param eventHandler
@@ -85,8 +85,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
             RegistryEventHandler eventHandler, Properties userProperties,
             byte[] ibisData, String implementationVersion,
             Credentials credentials, byte[] applicationTag)
-            throws IbisConfigurationException, IOException,
-            IbisConfigurationException {
+                    throws IbisConfigurationException, IOException,
+                    IbisConfigurationException {
         this.capabilities = capabilities;
 
         if (capabilities
@@ -154,8 +154,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
             statistics.setID(id.toString() + "@" + location.toString(),
                     poolName);
 
-            long interval = properties
-                    .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
+            long interval = properties.getIntProperty(
+                    RegistryProperties.STATISTICS_INTERVAL) * 1000;
 
             statistics.startWriting(interval);
         } else {
@@ -168,8 +168,9 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
         commHandler = new CommunicationHandler(properties, this, members,
                 elections, statistics);
 
-        identifier = new IbisIdentifier(id.toString(), ibisData, commHandler
-                .getAddress().toBytes(), location, poolName, applicationTag);
+        identifier = new IbisIdentifier(id.toString(), ibisData,
+                commHandler.getAddress().toBytes(), location, poolName,
+                applicationTag);
 
         commHandler.start();
         members.start();
@@ -198,7 +199,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
     }
 
     public IbisIdentifier elect(String electionName) throws IOException {
-        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+        if (!capabilities
+                .hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -210,7 +212,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     public IbisIdentifier elect(String electionName, long timeoutMillis)
             throws IOException {
-        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+        if (!capabilities
+                .hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -222,8 +225,10 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     }
 
-    public IbisIdentifier getElectionResult(String election) throws IOException {
-        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+    public IbisIdentifier getElectionResult(String election)
+            throws IOException {
+        if (!capabilities
+                .hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -233,10 +238,11 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
         return members.getFirstLiving(candidates);
 
     }
-     
+
+    @Override
     public String[] wonElections() {
         ArrayList<String> result = new ArrayList<String>();
-        synchronized(elections) {
+        synchronized (elections) {
             for (Election e : elections) {
                 if (e.getWinner().equals(identifier)) {
                     result.add(e.getName());
@@ -248,7 +254,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     public IbisIdentifier getElectionResult(String electionName,
             long timeoutMillis) throws IOException {
-        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+        if (!capabilities
+                .hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -268,7 +275,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
         }
     }
 
-    public void assumeDead(ibis.ipl.IbisIdentifier deceased) throws IOException {
+    public void assumeDead(ibis.ipl.IbisIdentifier deceased)
+            throws IOException {
         try {
             members.assumeDead((IbisIdentifier) deceased);
         } catch (ClassCastException e) {
@@ -352,8 +360,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     public void enableEvents() {
         if (upcaller == null) {
-            throw new IbisConfigurationException("Registry not configured to "
-                    + "produce events");
+            throw new IbisConfigurationException(
+                    "Registry not configured to " + "produce events");
         }
 
         upcaller.enableEvents();
@@ -361,8 +369,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     public void disableEvents() {
         if (upcaller == null) {
-            throw new IbisConfigurationException("Registry not configured to "
-                    + "produce events");
+            throw new IbisConfigurationException(
+                    "Registry not configured to " + "produce events");
         }
 
         upcaller.disableEvents();
@@ -371,7 +379,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
     @Override
     public long getSequenceNumber(String name) throws IOException {
         throw new IbisConfigurationException(
-                "Sequence numbers not supported by" + "gossip registry");
+                "Sequence numbers not supported by" + " gossip registry");
     }
 
     public Map<String, String> managementProperties() {
@@ -463,9 +471,9 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     @Override
     public void leave() throws IOException {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("leaving: setting stopped state");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("leaving: setting stopped state");
+        }
         synchronized (this) {
             stopped = true;
             notifyAll();
@@ -532,13 +540,25 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
     @Override
     public IbisIdentifier getRandomPoolMember() {
-       Member[] random = members.getRandomMembers(1);
-       
-       if (random.length == 1) {
-           return random[0].getIdentifier();
-       } else {
-           return null;
-       }
+        Member[] random = members.getRandomMembers(1);
+
+        if (random.length == 1) {
+            return random[0].getIdentifier();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void addTokens(String name, int count) throws IOException {
+        throw new IbisConfigurationException(
+                "tokens not supported by gossip registry");
+    }
+
+    @Override
+    public String getToken(String name) throws IOException {
+        throw new IbisConfigurationException(
+                "tokens not supported by gossip registry");
     }
 
 }
