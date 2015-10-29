@@ -439,7 +439,22 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     }
 
     protected void internalReadByteBuffer(ByteBuffer value) throws IOException {
-        in.readByteBuffer(value);
+        if (NO_ARRAY_BUFFERS) {
+            in.readByteBuffer(value);
+        } else {
+            int len = value.limit() - value.position();
+            if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
+                while (array_index == max_array_index) {
+                    receive();
+                }
+                array_index++;
+                in.readByteBuffer(value);
+            } else {
+                for (int i = 0; i < len; i++) {
+                    value.put(readByte());
+                }
+            }
+        }
     }
 
     /**

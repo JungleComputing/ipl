@@ -434,33 +434,8 @@ public class IbisSerializationOutputStream extends
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
         }
-        if (ref == null) {
-            if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeByteBuffer: --> null");
-            }
-            writeHandle(Constants.NUL_HANDLE);
-            if (TIME_IBIS_SERIALIZATION) {
-                timer.stop();
-            }
-            return;
-        }
-
-        int handle = references.lazyPut(ref, next_handle);
-        if (handle == next_handle) {
-            next_handle++;
-            writeType(java.nio.ByteBuffer.class);
-            if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeString: " + ref);
-            }
-            writeInt(ref.capacity());
-            writeBoolean(ref.isDirect());
+        if (writeArrayHeader(ref, Constants.classByteArray, ref.limit() - ref.position(), false)) {
             internalWriteByteBuffer(ref);
-        } else {
-            if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeByteBuffer: duplicate handle " + handle);
-            }
-            writeHandle(handle);
-
         }
         if (TIME_IBIS_SERIALIZATION) {
             timer.stop();

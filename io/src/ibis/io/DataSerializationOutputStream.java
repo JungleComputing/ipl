@@ -287,7 +287,28 @@ public class DataSerializationOutputStream extends
     }
 
     public void internalWriteByteBuffer(ByteBuffer value) throws IOException {
-        out.writeByteBuffer(value);
+        if (NO_ARRAY_BUFFERS) {
+            out.writeByteBuffer(value);
+        } else {
+            int len = value.limit() - value.position();
+            if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
+
+               for (int i = 0; i < len; i++) {
+                   writeByte(value.get());
+               }
+            } else {
+               if (array_index == ARRAY_BUFFER_SIZE) {
+                   internalFlush();
+               }
+               array[array_index].type = Constants.TYPE_BYTE;
+               array[array_index].offset = 0;
+               array[array_index].len = len;
+               array[array_index].array = value;
+               array_index++;
+
+               addStatSendArray(value, Constants.TYPE_BYTE, len);
+            }
+        }
     }
 
     /**

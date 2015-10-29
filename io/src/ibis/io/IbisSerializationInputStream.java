@@ -236,62 +236,24 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
     }
 
-    ByteBuffer readByteBuffer() throws IOException {
+    public void readByteBuffer(ByteBuffer b) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
         }
-        int handle = readHandle();
-
-        if (handle == Constants.NUL_HANDLE) {
-            if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readString: --> null");
-            }
-            if (TIME_IBIS_SERIALIZATION) {
-                timer.stop();
-            }
-            return null;
-        }
-
-        if ((handle & Constants.TYPE_BIT) == 0) {
-            /* Ah, it's a handle. Look it up, return the stored ptr */
-            ByteBuffer o = (ByteBuffer) objects.get(handle);
-
-            if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readByteBuffer: duplicate handle = " + handle
-                        + " string = " + o);
-            }
-            if (TIME_IBIS_SERIALIZATION) {
-                timer.stop();
-            }
-            return o;
-        }
-
         try {
-            readType(handle & Constants.TYPE_MASK);
+            readArrayHeader(Constants.classByteArray, b.limit() - b.position());
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
                         e);
             }
-            throw new SerializationError("Cannot find java.nio.ByteBuffer?", e);
+            throw new SerializationError("require byte[]", e);
         }
 
-        int sz = readInt();
-        boolean isDirect = readBoolean();
-
-        ByteBuffer b;
-        if (isDirect) {
-            b = ByteBuffer.allocateDirect(sz);
-        } else {
-            b = ByteBuffer.allocate(sz);
-        }
-        addObjectToCycleCheck(b);
         internalReadByteBuffer(b);
         if (TIME_IBIS_SERIALIZATION) {
             timer.stop();
         }
-        return b;
-
     }
 
     @Override
