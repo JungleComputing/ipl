@@ -21,65 +21,9 @@ import ibis.ipl.WriteMessage;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Hashtable;
-
-class RszHandler implements RegistryEventHandler {
-
-    java.util.Vector<IbisIdentifier> idents
-            = new java.util.Vector<IbisIdentifier>();
-
-    public void joined(IbisIdentifier id) {
-        synchronized (this) {
-            idents.add(id);
-            notifyAll();
-        }
-        System.err.println(this + " See join of " + id + "; n := "
-                + idents.size());
-    }
-
-    public void left(IbisIdentifier id) {
-        synchronized (this) {
-            idents.remove(id);
-            notifyAll();
-        }
-        // System.err.println(this + " See leave of " + id + "; n := " + idents.size());
-    }
-
-    public void died(IbisIdentifier corpse) {
-        left(corpse);
-    }
-
-    public void electionResult(String electionName, IbisIdentifier winner) {
-        // IGNORE
-    }
-    
-	public void gotSignal(String signal, IbisIdentifier source) {
-        // IGNORE
-	}
-
-	public void poolClosed() {
-        // IGNORE
-	}
-
-	public void poolTerminated(IbisIdentifier source) {
-        // IGNORE
-	}
-    
-    void sync(int n) {
-        synchronized (this) {
-            while (idents.size() < n) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                }
-            }
-        }
-    }
-
-
-
-}
 
 class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         SendPortDisconnectUpcall {
@@ -93,8 +37,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     private Ibis myIbis;
 
     private Registry registry;
-
-    private RszHandler rszHandler;
 
     private PortType requestPortType;
 
@@ -115,6 +57,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     private float[] float_buffer;
 
     private double[] double_buffer;
+
+    private ByteBuffer byteBuffer;
 
     private VBFField[] VBFField_buffer;
 
@@ -188,7 +132,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private final int DATA_DOUBLES = DATA_FLOATS + 1;
 
-    private final int DATA_OBJ_1 = DATA_DOUBLES + 1;
+    private final int DATA_BYTEBUFFER = DATA_DOUBLES + 1;
+
+    private final int DATA_OBJ_1 = DATA_BYTEBUFFER + 1;
 
     private final int DATA_OBJ_2 = DATA_OBJ_1 + 1;
 
@@ -200,7 +146,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     // private final int DATATYPES = DATA_VBFField + 1;
 
-    private final long data_size[] = { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4,
+    private final long data_size[] = { 1, 2, 4, 8, 4, 8, 1, 4 * 4, 4 * 4, 3 * 4,
             0, 4 + 3 * 8, 8 };
 
     private int data_type = DATA_BYTES;
@@ -222,6 +168,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 writeMessage.writeObject(single_object);
             } else if (size > 0) {
                 switch (data_type) {
+                case DATA_BYTEBUFFER:
+                    writeMessage.writeByteBuffer(byteBuffer);
+                    break;
                 case DATA_BYTES:
                     // System.err.println(rank + ": writeArray[" + byte_buffer.length + "] writeMessage " + writeMessage);
                     writeMessage.writeArray(byte_buffer);
@@ -274,6 +223,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 // System.err.println("Receive single_object " + single_object);
             } else if (size > 0) {
                 switch (data_type) {
+                case DATA_BYTEBUFFER:
+                    m.readByteBuffer(byteBuffer);
+                    break;
                 case DATA_BYTES:
                     m.readArray(byte_buffer);
                     break;
@@ -641,18 +593,16 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         } else {
             sport = myIbis.createSendPort(requestPortType, "latency-client");
         }
+        HashMap<String, String> dp = new HashMap<String, String>();
         if (BUFSIZ != 0) {
-            HashMap<String, String> dp = new HashMap<String, String>();
             dp.put("InputBufferSize", "" + BUFSIZ);
             dp.put("OutputBufferSize", "" + BUFSIZ);
-            try {
-                sport.setManagementProperties(dp);
-            } catch(Throwable e) {
-                // ignored
-            }
         }
-
-        registry.enableEvents();
+        try {
+            sport.setManagementProperties(dp);
+        } catch(Throwable e) {
+            // ignored
+        }
 
         registry.elect("client"+rank);
         if (connectUpcalls) {
@@ -664,9 +614,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + "  created \"client port " + rank + "\"");
 
         if (BUFSIZ != 0) {
-            HashMap<String, String> dp = new HashMap<String, String>();
-            dp.put("InputBufferSize", "" + BUFSIZ);
-            dp.put("OutputBufferSize", "" + BUFSIZ);
             try {
                 rport.setManagementProperties(dp);
             } catch(Throwable e) {
@@ -727,18 +674,16 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             sport = myIbis.createSendPort(replyPortType, "latency-server");
         }
 
+        HashMap<String, String> dp = new HashMap<String, String>();
         if (BUFSIZ != 0) {
-            HashMap<String, String> dp = new HashMap<String, String>();
             dp.put("InputBufferSize", "" + BUFSIZ);
             dp.put("OutputBufferSize", "" + BUFSIZ);
-            try {
-                sport.setManagementProperties(dp);
-            } catch(Throwable e) {
-                // ignored
-            }
         }
-
-        registry.enableEvents();
+        try {
+            sport.setManagementProperties(dp);
+        } catch(Throwable e) {
+            // ignored
+        }
 
         registry.elect("server" + (rank - clients));
         if (upcall) {
@@ -759,9 +704,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
         // System.err.println(rank + ": created \"server port " + (rank - clients) + "\"");
         if (BUFSIZ != 0) {
-            HashMap<String, String> dp = new HashMap<String, String>();
-            dp.put("InputBufferSize", "" + BUFSIZ);
-            dp.put("OutputBufferSize", "" + BUFSIZ);
             try {
                 rport.setManagementProperties(dp);
             } catch(Throwable e) {
@@ -883,6 +825,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 data_type = DATA_LONGS;
             } else if (args[i].equals("-float")) {
                 data_type = DATA_FLOATS;
+            } else if (args[i].equals("-bytebuffer")) {
+                data_type = DATA_BYTEBUFFER;
             } else if (args[i].equals("-double")) {
                 data_type = DATA_DOUBLES;
             } else if (args[i].equals("-obj1")) {
@@ -944,6 +888,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             }
 
             switch (data_type) {
+            case DATA_BYTEBUFFER:
+                byteBuffer = ByteBuffer.allocateDirect(size);
+                break;
             case DATA_BYTES:
                 byte_buffer = new byte[size];
                 break;
@@ -961,7 +908,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 break;
             case DATA_DOUBLES:
                 double_buffer = new double[size];
-                System.err.println("Allocated double buffer size " + size);
                 break;
             case DATA_VBFField:
                 VBFField_buffer = new VBFField[size];
@@ -1036,8 +982,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private void createIbis() throws Exception {
 
-        rszHandler = new RszHandler();
-
         IbisCapabilities s = new IbisCapabilities(
                 IbisCapabilities.CLOSED_WORLD,
                 IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED,
@@ -1053,7 +997,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 sequenced ? PortType.COMMUNICATION_NUMBERED : PortType.COMMUNICATION_FIFO,
                 PortType.CONNECTION_MANY_TO_ONE);
 
-        myIbis = IbisFactory.createIbis(s, rszHandler,
+        myIbis = IbisFactory.createIbis(s, null,
                 requestPortType, replyPortType);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -1074,6 +1018,13 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private void registerIbis() throws IOException {
         registry = myIbis.registry();
+        registry.waitUntilPoolClosed();
+        IbisIdentifier master = registry.elect("RPC");
+        if (master.equals(myIbis.identifier())) {
+            rank = 0;
+        } else {
+            rank = 1;
+        }
     }
 
     public void run() {
@@ -1082,25 +1033,11 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
             if (rank != -1) {
 
-            } else if (rszHandler != null) {
-                rszHandler.sync(clients + servers);
-                rank = rszHandler.idents.indexOf(myIbis.identifier());
-
             } else {
                 System.err.println("Going to find out my rank, my ID is "
                         + myIbis.identifier().toString() + " name = "
-                        + myIbis.identifier() + "; I am "
-                        + (i_am_client ? "client" : "server"));
+                        + myIbis.identifier());
 
-                IbisIdentifier master = registry.elect("RPC");
-                // System.err.println("Election master id=" + master + " name=" + master);
-                // System.err.println("Election contender = " + myIbis + " id=" + myIbis.identifier() + " name=" + myIbis.identifier());
-                if (master.equals(myIbis.identifier())) {
-                    // System.err.println("YES--------- I'm the winner, master = " + master + "; me " + myIbis.identifier());
-                    rank = 0;
-                } else {
-                    rank = 1;
-                }
             }
 
             if (rank == 0) {
@@ -1153,14 +1090,11 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             parseIbisName();
             parseDataType();
 
+            registerIbis();
+
             if (client == null) {
-                if (rank == -1 && rszHandler != null) {
-                    rszHandler.sync(clients + servers);
-                    rank = rszHandler.idents.indexOf(myIbis.identifier());
-                }
                 // Timer timer = Timer.createTimer();
                 // timer.start();
-                registerIbis();
                 if (servers == ncpus && rank < clients) {
                     System.err.println("Kick-force server run; my rank " + rank
                             + " ncpus " + ncpus + " clients " + clients
@@ -1182,20 +1116,19 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 System.exit(0);
             } else {
                 i_am_client = false;
-                rank = ncpus;
                 clients = 1;
+                myIbis = client.myIbis;
+                this.requestPortType = client.requestPortType;
+                this.replyPortType = client.replyPortType;
+                rank = ncpus;
                 System.err.println(rank + ": Forced server run; rank " + rank
                         + " ncpus " + ncpus + " clients " + clients
                         + " servers " + servers);
-                myIbis = client.myIbis;
-                this.rszHandler = client.rszHandler;
-                this.requestPortType = client.requestPortType;
-                this.replyPortType = client.replyPortType;
-                registerIbis();
             }
 
         } catch (Exception e) {
             System.err.println("Top-level exception " + e);
+            e.printStackTrace(System.err);
         }
     }
 

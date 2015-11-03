@@ -15,10 +15,13 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class Throughput {
 
     int count = 1000;
+
+    int nIters = 10;
 
     int transferSize = 0;
 
@@ -33,6 +36,9 @@ public class Throughput {
     SendPort sport;
 
     byte[] data = null;
+    ByteBuffer b = null;
+
+    boolean bb = false;
 
     public static void main(String[] args) {
         new Throughput(args).run();
@@ -46,7 +52,9 @@ public class Throughput {
             WriteMessage writeMessage = sport.newMessage();
 	    if (data != null) {
                 writeMessage.writeArray(data);
-	    }
+	    } else if (b != null) {
+                writeMessage.writeByteBuffer(b);
+            }
             writeMessage.finish();
 
             if (--w == 0) {
@@ -54,7 +62,9 @@ public class Throughput {
                 ReadMessage readMessage = rport.receive();
 		if (data != null) {
 		    readMessage.readArray(data);
-		}
+		} else if (b != null) {
+                    readMessage.readByteBuffer(b);
+                }
                 readMessage.finish();
                 w = windowSize;
             }
@@ -69,7 +79,9 @@ public class Throughput {
             ReadMessage readMessage = rport.receive();
 	    if (data != null) {
 	        readMessage.readArray(data);
-	    }
+	    } else if (b != null) {
+                readMessage.readByteBuffer(b);
+            }
             readMessage.finish();
 
             if (--w == 0) {
@@ -77,7 +89,9 @@ public class Throughput {
                 WriteMessage writeMessage = sport.newMessage();
 		if (data != null) {
                     writeMessage.writeArray(data);
-		}
+		} else if (b != null) {
+                    writeMessage.writeByteBuffer(b);
+                }
                 writeMessage.finish();
                 w = windowSize;
             }
@@ -91,10 +105,17 @@ public class Throughput {
         int options = 0;
         for (int i = 0; i < args.length; i++) {
             if (false) {
+            } else if (args[i].equals("-bb")) {
+                bb = true;
             } else if (args[i].equals("-window")) {
                 windowSize = Integer.parseInt(args[++i]);
                 if (windowSize <= 0) {
                     windowSize = Integer.MAX_VALUE;
+                }
+            } else if (args[i].equals("-iters")) {
+                nIters = Integer.parseInt(args[++i]);
+                if (nIters <= 0) {
+                    nIters = 10;
                 }
             } else if (options == 0) {
                 count = Integer.parseInt(args[i]);
@@ -110,8 +131,12 @@ public class Throughput {
             System.exit(11);
         }
 
-	if (transferSize >= 0) {
-	    data = new byte[transferSize];
+	if (transferSize > 0) {
+            if (! bb) {
+                data = new byte[transferSize];
+            } else {
+                b = ByteBuffer.allocateDirect(transferSize);
+            }
 	}
     }
 
@@ -150,25 +175,28 @@ public class Throughput {
             sport.connect(remote, "test port");
 
             if (rank == 0) {
-                // warmup
-                send();
-                long time = System.currentTimeMillis();
-                send();
-                time = System.currentTimeMillis() - time;
-                double speed = (time * 1000.0) / count;
-                System.out.print("Latency: " + count + " calls took "
-                        + (time / 1000.0) + " seconds, time/call = " + speed
-                        + " micros, ");
-		if (data != null) {
-                    double dataSent = ((double) transferSize * (count + count
-                            / windowSize))
-                            / (1024.0 * 1024.0);
-                    System.out.println("Throughput: "
-                            + (dataSent / (time / 1000.0)) + " MByte/s");
-		}
+                for (int i = 0; i < nIters; i++) {
+                    long time = System.currentTimeMillis();
+                    send();
+                    time = System.currentTimeMillis() - time;
+                    double speed = (time * 1000.0) / count;
+                    System.out.print("Latency: " + count + " calls took "
+                            + (time / 1000.0) + " seconds, time/call = " + speed
+                            + " micros, ");
+                    if (data != null || b != null) {
+                        double dataSent = ((double) transferSize * (count + count
+                                / windowSize))
+                                / (1024.0 * 1024.0);
+                        System.out.println("Throughput: "
+                                + (dataSent / (time / 1000.0)) + " MByte/s");
+                    } else {
+                        System.out.println("");
+                    }
+                }
             } else {
-                rcve();
-                rcve();
+                for (int i = 0; i < nIters; i++) {
+                    rcve();
+                }
             }
 
             /* free the send ports first */
