@@ -41,14 +41,15 @@ public final class IbisFactory {
     private static final String NICKNAME_STRING = "Ibis-NickName";
 
     /**
-     * Name of a backup manifest file, which is used for systems on which
-     * a manifest file cannot be loaded (i.e. Android),
+     * Name of a backup manifest file, which is used for systems on which a
+     * manifest file cannot be loaded (i.e. Android),
      */
     public static final String IPL_MANIFEST_FILE = "ibis/ipl/IPL_MANIFEST";
 
     /**
-     * Nickname of the default Ibis implementation. This is the Ibis implementation
-     * used, unless the user explicitly requests another implementation.
+     * Nickname of the default Ibis implementation. This is the Ibis
+     * implementation used, unless the user explicitly requests another
+     * implementation.
      */
     public static final String DEFAULT_IMPLEMENTATION = "smartsockets";
 
@@ -58,9 +59,9 @@ public final class IbisFactory {
     private static IbisFactory defaultFactory;
 
     private static final String VERSION = "2.3";
-    
+
     private static Properties manifestProperties = new Properties();
-    
+
     static {
         ClassLoader classLoader = IbisFactory.class.getClassLoader();
         InputStream inputStream = classLoader
@@ -78,14 +79,14 @@ public final class IbisFactory {
             }
         }
     }
-    
+
     /**
-     * This method is for internal use only.
-     * It obtains a property from the IPL manifest file that is present in the
-     * IPL jar. If the property is not present in the manifest file, <code>null</code>
-     * is returned.
-     * 
-     * @param p the property name.
+     * This method is for internal use only. It obtains a property from the IPL
+     * manifest file that is present in the IPL jar. If the property is not
+     * present in the manifest file, <code>null</code> is returned.
+     *
+     * @param p
+     *            the property name.
      * @return the value of the specified property.
      */
     public static String getManifestProperty(String p) {
@@ -123,7 +124,7 @@ public final class IbisFactory {
 
     /**
      * Constructs an Ibis factory, with the specified search path.
-     * 
+     *
      * @param implementationPath
      *            the path to search for implementations.
      * @param properties
@@ -150,17 +151,15 @@ public final class IbisFactory {
     private static boolean isVerbose(Properties properties) {
         // see if the user specified "verbose"
         String verboseValue = properties.getProperty(IbisProperties.VERBOSE);
-        return verboseValue != null
-                && (verboseValue.equals("1") || verboseValue.equals("on")
-                        || verboseValue.equals("")
-                        || verboseValue.equals("true") || verboseValue
-                        .equals("yes"));
+        return verboseValue != null && (verboseValue.equals("1")
+                || verboseValue.equals("on") || verboseValue.equals("")
+                || verboseValue.equals("true") || verboseValue.equals("yes"));
     }
 
     /**
      * Creates a new Ibis instance, making sure that the Ibis implementation
      * chosen implements the specified capabilities and port types.
-     * 
+     *
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
      * @param registryEventHandler
@@ -169,7 +168,7 @@ public final class IbisFactory {
      * @param portTypes
      *            the list of port types required by the application.
      * @return the new Ibis instance.
-     * 
+     *
      * @exception IbisCreationFailedException
      *                is thrown when the chosen Ibis implementation cannot be
      *                created for some reason.
@@ -182,10 +181,10 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the specified properties,
-     * making sure that the Ibis implementation
-     * chosen implements the specified capabilities and port types.
-     * 
+     * Creates a new Ibis instance, based on the specified properties, making
+     * sure that the Ibis implementation chosen implements the specified
+     * capabilities and port types.
+     *
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
      * @param properties
@@ -193,9 +192,9 @@ public final class IbisFactory {
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *            when set, the default properties are added, loaded from the system
-     *            properties, a "ibis.properties" file, etc, for as far as these
-     *            are not set in the <code>properties</code> parameter.
+     *            when set, the default properties are added, loaded from the
+     *            system properties, a "ibis.properties" file, etc, for as far
+     *            as these are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
@@ -203,7 +202,7 @@ public final class IbisFactory {
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
      * @return the new Ibis instance.
-     * 
+     *
      * @exception IbisCreationFailedException
      *                is thrown when no Ibis was found that matches the
      *                capabilities required, or a matching Ibis could not be
@@ -219,10 +218,10 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the specified properties,
-     * making sure that the Ibis implementation
-     * chosen implements the specified capabilities and port types.
-     * 
+     * Creates a new Ibis instance, based on the specified properties, making
+     * sure that the Ibis implementation chosen implements the specified
+     * capabilities and port types.
+     *
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
      * @param properties
@@ -230,9 +229,9 @@ public final class IbisFactory {
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *            when set, the default properties are added, loaded from the system
-     *            properties, a "ibis.properties" file, etc, for as far as these
-     *            are not set in the <code>properties</code> parameter.
+     *            when set, the default properties are added, loaded from the
+     *            system properties, a "ibis.properties" file, etc, for as far
+     *            as these are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
@@ -243,7 +242,7 @@ public final class IbisFactory {
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
      * @return the new Ibis instance.
-     * 
+     *
      * @exception IbisCreationFailedException
      *                is thrown when the chosen Ibis implementation cannot be
      *                created for some reason.
@@ -258,10 +257,10 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the specified properties,
-     * making sure that the Ibis implementation
-     * chosen implements the specified capabilities and port types.
-     * 
+     * Creates a new Ibis instance, based on the specified properties, making
+     * sure that the Ibis implementation chosen implements the specified
+     * capabilities and port types.
+     *
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
      * @param properties
@@ -269,9 +268,9 @@ public final class IbisFactory {
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *            when set, the default properties are added, loaded from the system
-     *            properties, a "ibis.properties" file, etc, for as far as these
-     *            are not set in the <code>properties</code> parameter.
+     *            when set, the default properties are added, loaded from the
+     *            system properties, a "ibis.properties" file, etc, for as far
+     *            as these are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
@@ -284,7 +283,7 @@ public final class IbisFactory {
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
      * @return the new Ibis instance.
-     * 
+     *
      * @exception IbisCreationFailedException
      *                is thrown when the chosen Ibis implementation cannot be
      *                created for some reason.
@@ -309,10 +308,10 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the specified properties,
-     * making sure that the Ibis implementation
-     * chosen implements the specified capabilities and port types.
-     * 
+     * Creates a new Ibis instance, based on the specified properties, making
+     * sure that the Ibis implementation chosen implements the specified
+     * capabilities and port types.
+     *
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
      * @param properties
@@ -320,9 +319,9 @@ public final class IbisFactory {
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *            when set, the default properties are added, loaded from the system
-     *            properties, a "ibis.properties" file, etc, for as far as these
-     *            are not set in the <code>properties</code> parameter.
+     *            when set, the default properties are added, loaded from the
+     *            system properties, a "ibis.properties" file, etc, for as far
+     *            as these are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
@@ -335,7 +334,7 @@ public final class IbisFactory {
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
      * @return the new Ibis instance.
-
+     * 
      * @exception IbisCreationFailedException
      *                is thrown when the chosen Ibis implementation cannot be
      *                created for some reason.
@@ -352,7 +351,8 @@ public final class IbisFactory {
         if (addDefaultConfigProperties) {
             Properties defaults = IbisProperties.getDefaultProperties();
 
-            for (Enumeration<?> e = defaults.propertyNames(); e.hasMoreElements();) {
+            for (Enumeration<?> e = defaults.propertyNames(); e
+                    .hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String value = defaults.getProperty(key);
                 combinedProperties.setProperty(key, value);
@@ -361,7 +361,8 @@ public final class IbisFactory {
 
         // add user properties
         if (properties != null) {
-            for (Enumeration<?> e = properties.propertyNames(); e.hasMoreElements();) {
+            for (Enumeration<?> e = properties.propertyNames(); e
+                    .hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String value = properties.getProperty(key);
                 combinedProperties.setProperty(key, value);
@@ -429,8 +430,8 @@ public final class IbisFactory {
         if (registryEventHandler != null
                 && !capabilities
                         .hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE)
-                && !capabilities
-                        .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
+                && !capabilities.hasCapability(
+                        IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
             throw new IbisConfigurationException(
                     "RegistryEventHandler specified but no "
                             + " membership capability requested");
@@ -438,9 +439,10 @@ public final class IbisFactory {
     }
 
     /**
-     * For internal use only.
-     * Creates an ibis. Should only be used by Ibises to create "child" Ibises.
-     * Applications should use the static functions to create an Ibis instance.
+     * For internal use only. Creates an ibis. Should only be used by Ibises to
+     * create "child" Ibises. Applications should use the static functions to
+     * create an Ibis instance.
+     * 
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
@@ -461,7 +463,7 @@ public final class IbisFactory {
      * @param specifiedImplementation
      *            comma-separated implementation stack.
      * @return the new Ibis instance.
-
+     * 
      * @exception IbisCreationFailedException
      *                is thrown when the chosen Ibis implementation cannot be
      *                created for some reason.
@@ -482,8 +484,8 @@ public final class IbisFactory {
 
         // print some info
         if (isVerbose(properties)) {
-            System.err
-                    .println("IbisFactory: Looking for an IPL Implementation with capabilities: "
+            System.err.println(
+                    "IbisFactory: Looking for an IPL Implementation with capabilities: "
                             + requiredCapabilities);
             System.err.println("(ibis) Properties:");
             for (Enumeration<?> e = properties.propertyNames(); e
@@ -554,8 +556,8 @@ public final class IbisFactory {
                 CapabilitySet unmatchedCapabilities = starter
                         .unmatchedIbisCapabilities(requiredCapabilities,
                                 portTypes);
-                PortType[] remainingPortTypes = starter.unmatchedPortTypes(
-                        requiredCapabilities, portTypes);
+                PortType[] remainingPortTypes = starter
+                        .unmatchedPortTypes(requiredCapabilities, portTypes);
 
                 String portTypeString = "";
                 for (PortType portType : remainingPortTypes) {
@@ -633,7 +635,8 @@ public final class IbisFactory {
                 return result;
             }
         } catch (IOException e) {
-            System.err.println("IbisFactory: Could not create jar file from file: " + file);
+            // System.err.println("IbisFactory: Could not create jar file from
+            // file: " + file);
         }
         return null;
     }
@@ -652,6 +655,10 @@ public final class IbisFactory {
 
             File file = new File(dir);
 
+            if (file.getName().equals("*") && !file.exists()) {
+                file = file.getParentFile();
+            }
+
             if (file.isFile()) {
                 JarFile jarFile = getJarFile(file);
                 if (jarFile != null) {
@@ -666,7 +673,8 @@ public final class IbisFactory {
                     }
                 }
             } else {
-                System.err.println("IbisFactory: Not a file/directory: " + file);
+                // System.err.println("IbisFactory: Not a file/directory: " +
+                // file);
             }
         }
         return result.toArray(new JarFile[0]);
@@ -695,8 +703,8 @@ public final class IbisFactory {
             return IbisStarter.createInstance(starterClass, classLoader,
                     nickName, iplVersion, implementationVersion);
         } catch (Exception e) {
-            System.err.println("IbisFactory: Could not load ibis from jar: " + jar.getName()
-                    + ": " + e);
+            System.err.println("IbisFactory: Could not load ibis from jar: "
+                    + jar.getName() + ": " + e);
             return null;
         }
     }
@@ -722,8 +730,8 @@ public final class IbisFactory {
             }
         }
 
-        ClassLoader classLoader = new URLClassLoader(urls, this.getClass()
-                .getClassLoader());
+        ClassLoader classLoader = new URLClassLoader(urls,
+                this.getClass().getClassLoader());
 
         for (int i = 0; i < jarFiles.length; i++) {
             IbisStarter starter = loadIbisFromJar(jarFiles[i], classLoader);
@@ -738,11 +746,12 @@ public final class IbisFactory {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
 
-            String nickNames = manifestProperties.getProperty("implementations");
+            String nickNames = manifestProperties
+                    .getProperty("implementations");
 
             if (nickNames == null) {
-                System.err
-                        .println("IbisFactory Warning: no implementations found in manifest property file");
+                System.err.println(
+                        "IbisFactory Warning: no implementations found in manifest property file");
             }
 
             for (String nickName : nickNames.split(",")) {
@@ -751,12 +760,12 @@ public final class IbisFactory {
                     continue;
                 }
 
-                String iplVersion = manifestProperties.getProperty(nickName
-                        + ".ipl.version", null);
-                String implementationVersion = manifestProperties.getProperty(nickName
-                        + ".version", null);
-                String starterClass = manifestProperties.getProperty(nickName
-                        + ".starter.class", null);
+                String iplVersion = manifestProperties
+                        .getProperty(nickName + ".ipl.version", null);
+                String implementationVersion = manifestProperties
+                        .getProperty(nickName + ".version", null);
+                String starterClass = manifestProperties
+                        .getProperty(nickName + ".starter.class", null);
 
                 if (iplVersion == null || !iplVersion.startsWith(VERSION)
                         || implementationVersion == null || nickName == null
@@ -773,8 +782,8 @@ public final class IbisFactory {
                 }
             }
         } catch (Throwable t) {
-            System.err
-                    .println("IbisFactory Warning: could not load implementation from manifest property file: "
+            System.err.println(
+                    "IbisFactory Warning: could not load implementation from manifest property file: "
                             + t);
             t.printStackTrace(System.err);
         }
