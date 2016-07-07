@@ -2,16 +2,16 @@
 
 package ibis.ipl.impl;
 
-import ibis.io.SerializationOutput;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import ibis.io.SerializationOutput;
+
 /**
- * Implementation of the {@link ibis.ipl.WriteMessage} interface.
- * This is a complete implementation, but may be extended by an implementation.
- * In that case, the {@link SendPort#createWriteMessage()} method
- * must also be redefined.
+ * Implementation of the {@link ibis.ipl.WriteMessage} interface. This is a
+ * complete implementation, but may be extended by an implementation. In that
+ * case, the {@link SendPort#createWriteMessage()} method must also be
+ * redefined.
  */
 public class WriteMessage implements ibis.ipl.WriteMessage {
 
@@ -49,11 +49,21 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         return 0;
     }
 
+    private void throwException(Throwable e) throws IOException {
+        IOException ex;
+        if (e instanceof IOException) {
+            ex = (IOException) e;
+        } else {
+            ex = new IOException("Unexpected exception", e);
+        }
+        port.gotSendException(this, ex);
+    }
+
     public void reset() throws IOException {
         try {
             out.reset();
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -61,17 +71,17 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.flush();
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
-    
+
     public void flush() throws IOException {
         checkNotFinished();
         try {
             out.flush();
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -79,8 +89,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeBoolean(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -88,8 +98,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeByte(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -97,8 +107,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeChar(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -106,8 +116,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeShort(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -115,8 +125,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeInt(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -124,8 +134,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeLong(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -133,8 +143,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeFloat(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -142,8 +152,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeDouble(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -151,8 +161,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeString(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -160,8 +170,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeObject(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -169,8 +179,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -178,8 +188,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -187,8 +197,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -196,8 +206,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -205,8 +215,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -214,8 +224,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -223,8 +233,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -232,8 +242,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -241,8 +251,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -251,8 +261,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -261,8 +271,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -271,8 +281,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -281,8 +291,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -291,8 +301,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -301,8 +311,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -311,8 +321,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -321,8 +331,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -331,8 +341,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
 
@@ -347,18 +357,18 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
     public int remaining() throws IOException {
         return -1;
     }
-    
+
     public long finish() throws IOException {
         checkNotFinished();
         try {
             out.reset();
-        } catch(IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
         try {
             out.flush();
-        } catch(IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
         isFinished = true;
         long retval = bytesWritten();
@@ -391,10 +401,9 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         checkNotFinished();
         try {
             out.writeByteBuffer(value);
-        } catch (IOException e) {
-            port.gotSendException(this, e);
+        } catch (Throwable e) {
+            throwException(e);
         }
     }
-
 
 }
