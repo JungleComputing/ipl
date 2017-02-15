@@ -334,7 +334,7 @@ public final class IbisFactory {
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
      * @return the new Ibis instance.
-     * 
+     *
      * @exception IbisCreationFailedException
      *                is thrown when the chosen Ibis implementation cannot be
      *                created for some reason.
@@ -442,7 +442,7 @@ public final class IbisFactory {
      * For internal use only. Creates an ibis. Should only be used by Ibises to
      * create "child" Ibises. Applications should use the static functions to
      * create an Ibis instance.
-     * 
+     *
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
@@ -463,7 +463,7 @@ public final class IbisFactory {
      * @param specifiedImplementation
      *            comma-separated implementation stack.
      * @return the new Ibis instance.
-     * 
+     *
      * @exception IbisCreationFailedException
      *                is thrown when the chosen Ibis implementation cannot be
      *                created for some reason.
@@ -782,10 +782,13 @@ public final class IbisFactory {
                 }
             }
         } catch (Throwable t) {
-            System.err.println(
-                    "IbisFactory Warning: could not load implementation from manifest property file: "
-                            + t);
-            t.printStackTrace(System.err);
+            // Ignore errors loading ibis instances from the manifest property
+            // file
+            /*
+             * System.err.println(
+             * "IbisFactory Warning: could not load implementation from manifest property file: "
+             * + t); t.printStackTrace(System.err);
+             */
         }
     }
 }
