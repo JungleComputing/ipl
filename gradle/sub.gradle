@@ -1,0 +1,14 @@
+dependencies {
+    compile group: 'log4j', name: 'log4j', version: '1.2.13'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21'
+    testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact javadocJar
+            artifact sourcesJar
+        }
+    }
+}

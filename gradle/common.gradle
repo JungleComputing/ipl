@@ -1,0 +1,84 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.hierynomus.license'
+
+defaultTasks 'clean', 'assemble'
+
+version = '2.4-alpha'
+group = "junglecomputing"
+
+// Prevent warning about POM relocation not being fully supported
+configurations.all {
+    resolutionStrategy {
+        force 'xml-apis:xml-apis:1.4.01'
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    maven {
+	// For sbbi-upnplib
+	url 'http://maven.nuiton.org/release'
+    }
+    maven {
+	// Added for stuff that is not in jcenter yet.
+	url 'https://dl.bintray.com/cerieljacobs/JungleComputing'
+    }
+}
+
+license {
+    ext.copyright_year = 2010
+    ext.copyright_owner = 'Vrije Universiteit'
+    header rootProject.file('gradle/HEADER')
+    strictCheck true
+    excludes(["**/log4j.properties"])
+    mapping {
+        // IntelliJ IDEA gives "Dangling Javadoc comment." warning when default JAVADOC_STYLE is used,
+        // so switch to comment style
+        java = 'SLASHSTAR_STYLE'
+    }
+}
+
+licenseFormat.description = "Applies the license found in the header file in files missing the header"
+
+bintray {
+    user = System.getenv('BINTRAY_NAME')
+    key = System.getenv('BINTRAY_APIKEY')
+    publications = ['mavenJava']
+    pkg {
+	repo = 'JungleComputing'
+	userOrg = "$user"
+	vcsUrl = 'https://github.com/junglecomputing/ipl.git'
+	licenses = ['Apache-2.0']
+    }
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    description "Creates jar file of javadoc"
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    description "Creates jar file of Java sources"
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+tasks.withType(Jar) {
+    destinationDir = file("$rootDir/lib")
+}
+
+task copyRuntimeLibs(type: Copy) {
+    into "$rootDir/lib"
+    from configurations.runtime
+}

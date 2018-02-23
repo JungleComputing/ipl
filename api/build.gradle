@@ -1,0 +1,9 @@
+apply from: "${rootProject.rootDir}/gradle/sub.gradle"
+
+archivesBaseName = 'ipl'
+
+javadoc {
+    // TODO: is supposed to generate a string
+    options.tags = [ "ibis.experimental" ]
+    options.overview = "src/overview.html"
+}

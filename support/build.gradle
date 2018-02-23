@@ -1,0 +1,10 @@
+apply from: "${rootProject.rootDir}/gradle/sub.gradle"
+
+dependencies {
+    compile project(path: ':api')
+    compile project(path: ':util')
+    compile project(path: ':io')
+    compile group: 'junglecomputing', name: 'smartsockets', version: '1.70'
+}
+
+archivesBaseName = 'ipl-support'

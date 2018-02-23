@@ -1,0 +1,47 @@
+/*
+ * Copyright 2010 Vrije Universiteit
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ibis.ipl.registry.gossip;
+
+import ibis.util.ThreadPool;
+
+public class MemberPrinter implements Runnable {
+    
+    public static final int INTERVAL = 10000;
+    
+    private final MemberSet pool;
+    
+    MemberPrinter(MemberSet pool) {
+        this.pool = pool;
+        
+        ThreadPool.createNew(this, "member printer");
+    }
+    
+    public synchronized void run() {
+        while (pool.isAlive()) {
+            System.out.println("*************************************");
+            pool.printMembers();
+            System.out.println("*************************************");
+            
+            try {
+                Thread.sleep(INTERVAL);
+            } catch (InterruptedException e) {
+                //IGNORE
+            }
+        }
+    }
+
+
+}

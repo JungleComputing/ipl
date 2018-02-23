@@ -1,4 +1,11 @@
 Here is a list of Ibis releases.
+
+2.4 (???)
+   No major implementation changes, but:
+   - made to work with Java 8;
+   - reorganized to accomodate gradle builds instead of ant;
+   - license change: from BSD to Apache 2.0;
+
 2.3 (24 May 2012)
    Some small changes to the IPL:
    - WriteMessage now has a writeByteBuffer method, ReadMessage now has a

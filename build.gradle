@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.7.3'
+    id 'com.github.hierynomus.license' version '0.14.0'
+}
+
+allprojects {
+    apply from: "${rootProject.rootDir}/gradle/common.gradle"
+}
+
+dependencies {
+    compile project(path: 'api')
+    compile project(path: 'compile')
+    compile project(path: 'support')
+    compile project(path: 'util')
+    compile project(path: 'io')
+    compile project(path: 'benchmarks')
+    compile project(path: 'examples')
+    compile project(path: 'impl-nio')
+    compile project(path: 'impl-multi')
+    compile project(path: 'impl-tcp')
+    compile project(path: 'impl-smartsockets')
+    compile project(path: 'impl-stacking-dummy')
+    compile project(path: 'impl-stacking-lrmc')
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+	    artifact sourcesJar {
+		classifier "sources"
+	    }
+	    artifact javadocJar {
+		classifier "javadoc"
+	    }
+	    groupId 'junglecomputing'
+	    artifactId 'ipl'
+
+	    pom.withXml {
+                def root = asNode()
+                root.appendNode('url', 'https://github.com/junglecomputing/ipl.git')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
