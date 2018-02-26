@@ -1,5 +1,6 @@
 dependencies {
     compile project(':compile')
+    compile project(':io')
     compile group: 'log4j', name: 'log4j', version: '1.2.13'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21'
     testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
@@ -21,6 +22,9 @@ compileJava.doLast {
 	workingDir = "$buildDir/classes/java/main"
 	args = [ "." ]
     }
+//     sourceSets.main.runtimeClasspath.each { File file ->
+// 	println file.name
+//     }
 }
 
 javadoc {

@@ -1,6 +1,6 @@
 Here is a list of Ibis releases.
 
-2.4 (???)
+2.3.1 (???)
    No major implementation changes, but:
    - made to work with Java 8;
    - reorganized to accomodate gradle builds instead of ant;
