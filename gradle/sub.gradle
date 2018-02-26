@@ -12,8 +12,3 @@ publishing {
         }
     }
 }
-
-javadoc {
-    options.tags = [ "ibis.experimental" ]
-    failOnError = false
-}

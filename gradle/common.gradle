@@ -56,7 +56,12 @@ bintray {
     }
 }
 
-javadoc.failOnError = false
+javadoc {
+    options.tags = [ "ibis.experimental" ]
+    failOnError = false
+    // options.addBooleanOption("Xdoclint:none", true)
+}
+
 task javadocJar(type: Jar, dependsOn: javadoc) {
     description "Creates jar file of javadoc"
     classifier = 'javadoc'
