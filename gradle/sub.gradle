@@ -15,5 +15,5 @@ publishing {
 
 javadoc {
     options.tags = [ "ibis.experimental" ]
-    destinationDir = file("${rootProject.rootDir}/docs/javadoc")
+    failOnError = false
 }

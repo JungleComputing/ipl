@@ -1,4 +1,4 @@
-apply from: "${rootProject.rootDir}/gradle/sub.gradle"
+apply from: "${rootProject.rootDir}/gradle/sub-rewrite.gradle"
 
 dependencies {
     compile project(':api')

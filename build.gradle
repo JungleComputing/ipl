@@ -1,3 +1,11 @@
+buildscript {
+    repositories { jcenter() }
+
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-aggregate-javadocs-plugin:2.2.+'
+    }
+}
+
 plugins {
     id 'java'
     id 'maven-publish'
@@ -7,6 +15,11 @@ plugins {
 
 allprojects {
     apply from: "${rootProject.rootDir}/gradle/common.gradle"
+}
+
+javadoc {
+    failOnError = false
+    options.tags = [ "ibis.experimental" ]
 }
 
 dependencies {
@@ -24,6 +37,8 @@ dependencies {
     compile project(path: 'impl-stacking-dummy')
     compile project(path: 'impl-stacking-lrmc')
 }
+
+apply plugin: 'nebula-aggregate-javadocs'
 
 publishing {
     publications {

@@ -5,7 +5,7 @@ dependencies {
     compile group: 'org.apache.bcel', name: 'bcel', version: '6.2'
     // https://mvnrepository.com/artifact/org.ow2.asm/asm-all
     compile group: 'org.ow2.asm', name: 'asm-all', version: '5.2'
-    compile project(path: ':util')
+    compile project(':util')
 }
 
 archivesBaseName = 'ibis-compile'
