@@ -3,4 +3,14 @@ apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 dependencies {
     compile group: 'junglecomputing', name: 'smartsockets', version: '1.70'
 }
+
 archivesBaseName = 'ipl-impl-smartsockets'
+
+jar {
+    manifest {
+        attributes("Ibis-Starter-Class": "ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter",
+		   "Ibis-IPL-Cersion": version,
+                   "Ibis-Implementation-Version": "SmartSockets$version",	// TODO: create checksum
+		   "Ibis-NickName": "smartsockets")
+    }
+}

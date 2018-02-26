@@ -1,2 +1,12 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
+
 archivesBaseName = 'ipl-impl-nio'
+
+jar {
+    manifest {
+        attributes("Ibis-Starter-Class": "ibis.ipl.impl.nio.NioIbisStarter",
+		   "Ibis-IPL-Cersion": version,
+                   "Ibis-Implementation-Version": "nio$version",	// TODO: create checksum
+		   "Ibis-NickName": "nio")
+    }
+}

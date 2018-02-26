@@ -8,3 +8,9 @@ dependencies {
 }
 
 archivesBaseName = 'ibis-io'
+
+jar {
+    manifest {
+        attributes("Ibisc-Component": "ibis.io.rewriter.ASMIOGenerator")
+    }
+}

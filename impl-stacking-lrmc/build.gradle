@@ -1,2 +1,12 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
+
 archivesBaseName = 'ipl-impl-lrmc'
+
+jar {
+    manifest {
+        attributes("Ibis-Starter-Class": "ibis.ipl.impl.lrmc.LrmcIbisStarter",
+		   "Ibis-IPL-Cersion": version,
+                   "Ibis-Implementation-Version": "lrmc$version",	// TODO: create checksum
+		   "Ibis-NickName": "lrmc")
+    }
+}

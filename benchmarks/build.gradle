@@ -1,7 +1,8 @@
 apply from: "${rootProject.rootDir}/gradle/sub.gradle"
 
 dependencies {
-    compile project(path: ':api')
+    compile project(':api')
+    compile project(':util')
 }
 
 archivesBaseName = 'ibis-benchmarks'

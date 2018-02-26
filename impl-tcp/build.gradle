@@ -1,2 +1,12 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
+
 archivesBaseName = 'ipl-impl-tcp'
+
+jar {
+    manifest {
+        attributes("Ibis-Starter-Class": "ibis.ipl.impl.tcp.TcpIbisStarter",
+		   "Ibis-IPL-Cersion": version,
+                   "Ibis-Implementation-Version": "Tcp$version",	// TODO: create checksum
+		   "Ibis-NickName": "tcp")
+    }
+}
