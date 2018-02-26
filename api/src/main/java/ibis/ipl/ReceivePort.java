@@ -53,7 +53,7 @@ import java.io.IOException;
  *<p>
  * The following {@link Manageable} items are recognized:
  * <TABLE border="2" frame="box" rules="groups" summary="manageable items">
- * <CAPTION>Manageable items</CAPTION> <COLGROUP align="left">  <COLGROUP align="left">
+ * <CAPTION>Manageable items</CAPTION>
  * <TBODY>
  * <TR>
  * <TD> "Messages"
