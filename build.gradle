@@ -17,7 +17,7 @@ subprojects {
     apply from: "${rootProject.rootDir}/gradle/common.gradle"
 }
 
-defaultTasks 'clean', 'jar', 'javadoc'
+defaultTasks 'clean', 'assemble'
 
 dependencies {
     compile project(path: 'api')

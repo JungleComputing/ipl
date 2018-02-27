@@ -9,7 +9,7 @@ dependencies {
     testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
 }
 
-tasks.withType(Javadoc).all { enabled = false }
+// tasks.withType(Javadoc).all { enabled = false }
 
 compileJava.doLast {
     javaexec {
