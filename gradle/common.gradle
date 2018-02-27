@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.hierynomus.license'
 
-defaultTasks 'clean', 'assemble'
+defaultTasks 'clean', 'jar', 'javadoc'
 
 version = '2.3.1'
 group = "junglecomputing"
@@ -83,6 +83,13 @@ tasks.withType(Jar) {
     destinationDir = file("$rootDir/lib")
 }
 
+//compileJava.doLast {
+//    def tree = fileTree(dir: "$buildDir/classes/java/main", include: '**/*.class')
+//    def checksum
+//    ant.checksum(tree, totalproperty: checksum)
+//    println "Checksum: $checksum"
+//}
+//
 task copyRuntimeLibs(type: Copy) {
     into "$rootDir/lib"
     from configurations.runtime
