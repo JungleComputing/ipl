@@ -20,7 +20,6 @@ package ibis.io.rewriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.apache.bcel.Constants;
 import org.apache.bcel.Const;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Field;
@@ -171,8 +170,8 @@ class CodeGenerator implements RewriterConstants {
         uid = SerializationInfo.getSerialVersionUID(classname, clazz);
 
         if (uid != 0) {
-            FieldGen f = new FieldGen(Constants.ACC_PRIVATE
-                    | Constants.ACC_FINAL | Constants.ACC_STATIC,
+            FieldGen f = new FieldGen(Const.ACC_PRIVATE
+                    | Const.ACC_FINAL | Const.ACC_STATIC,
                     Type.LONG, FIELD_SERIAL_VERSION_UID, constantpool);
             f.setInitValue(uid);
             gen.addField(f.getField());
@@ -196,19 +195,19 @@ class CodeGenerator implements RewriterConstants {
     private Instruction createInitInvocation(String name,
             InstructionFactory f) {
         return f.createInvoke(name, METHOD_INIT, Type.VOID,
-                ibis_input_stream_arrtp, Constants.INVOKESPECIAL);
+                ibis_input_stream_arrtp, Const.INVOKESPECIAL);
     }
 
     private Instruction createGeneratedDefaultWriteObjectInvocation(
             String name) {
         return factory.createInvoke(name, METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
                 Type.VOID, new Type[] { ibis_output_stream, Type.INT },
-                Constants.INVOKESPECIAL);
+                Const.INVOKESPECIAL);
     }
 
     private Instruction createWriteObjectInvocation() {
         return factory.createInvoke(classname, METHOD_WRITE_OBJECT, Type.VOID,
-                new Type[] { sun_output_stream }, Constants.INVOKESPECIAL);
+                new Type[] { sun_output_stream }, Const.INVOKESPECIAL);
     }
 
     private int getClassDepth(JavaClass cl) {
@@ -241,8 +240,8 @@ class CodeGenerator implements RewriterConstants {
         InstructionList il = new InstructionList();
         il.append(new RETURN());
 
-        int flags = Constants.ACC_PUBLIC
-        | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+        int flags = Const.ACC_PUBLIC
+        | (gen.isFinal() ? Const.ACC_FINAL : 0);
 
         MethodGen write_method = new MethodGen(flags, Type.VOID,
                 ibis_output_stream_arrtp, new String[] { VARIABLE_OUTPUT_STREAM },
@@ -287,7 +286,7 @@ class CodeGenerator implements RewriterConstants {
             il = new InstructionList();
             il.append(new RETURN());
 
-            MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
+            MethodGen read_cons = new MethodGen(Const.ACC_PUBLIC,
                     Type.VOID, ibis_input_stream_arrtp,
                     new String[] { VARIABLE_INPUT_STREAM }, METHOD_INIT, classname, il,
                     constantpool);
@@ -298,7 +297,7 @@ class CodeGenerator implements RewriterConstants {
             il = new InstructionList();
             il.append(new RETURN());
             MethodGen readobjectWrapper = new MethodGen(
-                    Constants.ACC_PUBLIC, Type.VOID,
+                    Const.ACC_PUBLIC, Type.VOID,
                     ibis_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
                     METHOD_$READ_OBJECT_WRAPPER$, classname, il, constantpool);
             readobjectWrapper.addException(TYPE_JAVA_IO_IOEXCEPTION);
@@ -330,10 +329,10 @@ class CodeGenerator implements RewriterConstants {
         temp.append(new ALOAD(1));
         temp.append(new ALOAD(0));
         temp.append(factory.createFieldAccess(classname, field.getName(),
-                t, Constants.GETFIELD));
+                t, Const.GETFIELD));
         temp.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                 info.write_name, Type.VOID, info.param_tp_arr,
-                Constants.INVOKEVIRTUAL));
+                Const.INVOKEVIRTUAL));
 
         return temp;
     }
@@ -356,14 +355,14 @@ class CodeGenerator implements RewriterConstants {
             temp.append(new ALOAD(1));
             temp.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     info.read_name, info.tp, Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
 
             if (!info.primitive) {
                 temp.append(factory.createCheckCast((ReferenceType) t));
             }
 
             temp.append(factory.createFieldAccess(classname,
-                    field.getName(), t, Constants.PUTFIELD));
+                    field.getName(), t, Const.PUTFIELD));
         } else {
             temp.append(new ALOAD(1));
             temp.append(new ALOAD(0));
@@ -383,7 +382,7 @@ class CodeGenerator implements RewriterConstants {
             : new Type[] { Type.OBJECT,
                             Type.STRING, Type.STRING,
                             Type.STRING },
-                            Constants.INVOKEVIRTUAL));
+                            Const.INVOKEVIRTUAL));
         }
 
         return temp;
@@ -457,7 +456,7 @@ class CodeGenerator implements RewriterConstants {
             write_il.append(factory.createFieldAccess(
                     TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, VARIABLE_REPLACER, 
                     new ObjectType(TYPE_IBIS_IO_REPLACER),
-                    Constants.GETFIELD));
+                    Const.GETFIELD));
             IF_ACMPEQ replacertest = new IF_ACMPEQ(null);
             write_il.append(replacertest);
             write_il.append(writeInstructions(field));
@@ -468,21 +467,21 @@ class CodeGenerator implements RewriterConstants {
             replacertest.setTarget(write_il.append(new ALOAD(1)));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createFieldAccess(classname,
-                    field.getName(), field_type, Constants.GETFIELD));
+                    field.getName(), field_type, Const.GETFIELD));
             if (basicname != null) {
                 write_il.append(factory.createFieldAccess(
                         TYPE_IBIS_IO_CONSTANTS,
                         "TYPE_" + basicname.toUpperCase(), Type.INT,
-                        Constants.GETSTATIC));
+                        Const.GETSTATIC));
                 write_il.append(factory.createInvoke(
                         TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_KNOWN_ARRAY_HEADER,
                         Type.INT, new Type[] { Type.OBJECT, Type.INT },
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
             } else {
                 write_il.append(factory.createInvoke(
                         TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_KNOWN_OBJECT_HEADER,
                         Type.INT, new Type[] { Type.OBJECT },
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
             }
             write_il.append(new ISTORE(2));
             write_il.append(new ILOAD(2));
@@ -496,7 +495,7 @@ class CodeGenerator implements RewriterConstants {
                 write_il.append(new ALOAD(1));
                 write_il.append(new ALOAD(0));
                 write_il.append(factory.createFieldAccess(classname,
-                        field.getName(), field_type, Constants.GETFIELD));
+                        field.getName(), field_type, Const.GETFIELD));
                 write_il.append(new ARRAYLENGTH());
                 write_il.append(new DUP());
                 write_il.append(new ISTORE(3));
@@ -505,14 +504,14 @@ class CodeGenerator implements RewriterConstants {
                                 TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                                 METHOD_WRITE_INT,
                                 Type.VOID, new Type[] { Type.INT },
-                                Constants.INVOKEVIRTUAL));
+                                Const.INVOKEVIRTUAL));
                 if (basicname != null) {
                     write_il.append(new ALOAD(1));
                     write_il.append(new ALOAD(0));
                     write_il.append(
                             factory.createFieldAccess(classname,
                                     field.getName(),
-                                    field_type, Constants.GETFIELD));
+                                    field_type, Const.GETFIELD));
                     write_il.append(new ICONST(0));
                     write_il.append(new ILOAD(3));
                     write_il.append(
@@ -521,7 +520,7 @@ class CodeGenerator implements RewriterConstants {
                                     writeCallName(basicname), Type.VOID,
                                     new Type[] { field_type, Type.INT,
                                         Type.INT },
-                                        Constants.INVOKEVIRTUAL));
+                                        Const.INVOKEVIRTUAL));
                 } else {
                     write_il.append(new ICONST(0));
                     write_il.append(new ISTORE(4));
@@ -534,7 +533,7 @@ class CodeGenerator implements RewriterConstants {
                     write_il.append(
                             factory.createFieldAccess(classname,
                                     field.getName(), field_type,
-                                    Constants.GETFIELD));
+                                    Const.GETFIELD));
                     write_il.append(new ILOAD(4));
                     write_il.append(new AALOAD());
 
@@ -543,7 +542,7 @@ class CodeGenerator implements RewriterConstants {
                                     TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                                     METHOD_WRITE_KNOWN_OBJECT_HEADER, Type.INT,
                                     new Type[] { Type.OBJECT },
-                                    Constants.INVOKEVIRTUAL));
+                                    Const.INVOKEVIRTUAL));
                     write_il.append(new ISTORE(2));
                     write_il.append(new ILOAD(2));
                     write_il.append(new ICONST(1));
@@ -554,14 +553,14 @@ class CodeGenerator implements RewriterConstants {
                     write_il.append(
                             factory.createFieldAccess(classname,
                                     field.getName(),
-                                    field_type, Constants.GETFIELD));
+                                    field_type, Const.GETFIELD));
                     write_il.append(new ILOAD(4));
                     write_il.append(new AALOAD());
                     write_il.append(new ALOAD(1));
                     write_il.append(
                             createGeneratedWriteObjectInvocation(
                                     field_class.getClassName(),
-                                    Constants.INVOKEVIRTUAL));
+                                    Const.INVOKEVIRTUAL));
 
                     ifcmp1.setTarget(write_il.append(new IINC(4, 1)));
                     gto.setTarget(write_il.append(new ILOAD(3)));
@@ -574,13 +573,13 @@ class CodeGenerator implements RewriterConstants {
                 write_il.append(
                         factory.createFieldAccess(classname,
                                 field.getName(), field_type,
-                                Constants.GETFIELD));
+                                Const.GETFIELD));
                 write_il.append(new ALOAD(1));
 
                 write_il.append(
                         createGeneratedWriteObjectInvocation(
                                 field_class.getClassName(),
-                                Constants.INVOKEVIRTUAL));
+                                Const.INVOKEVIRTUAL));
             }
 
             InstructionHandle target = write_il.append(new NOP());
@@ -693,7 +692,7 @@ class CodeGenerator implements RewriterConstants {
             read_il.append(new ALOAD(1));
             read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     METHOD_READ_KNOWN_TYPE_HEADER, Type.INT, Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
             read_il.append(new ISTORE(2));
             if (localStart[2] == null) {
         	localStart[2] = read_il.getEnd();
@@ -713,11 +712,11 @@ class CodeGenerator implements RewriterConstants {
 
                     read_il.append(factory.createInvoke(
                             TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, callname, field_type,
-                            Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+                            Type.NO_ARGS, Const.INVOKEVIRTUAL));
                     read_il.append(
                             factory.createFieldAccess(
                                     classname, field.getName(),
-                                    field_type, Constants.PUTFIELD));
+                                    field_type, Const.PUTFIELD));
                 } else {
                     Type el_type
                     = ((ArrayType) field_type).getElementType();
@@ -725,7 +724,7 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(new ALOAD(1));
                     read_il.append(factory.createInvoke(
                             TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_INT, Type.INT,
-                            Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+                            Type.NO_ARGS, Const.INVOKEVIRTUAL));
                     read_il.append(new DUP());
                     read_il.append(new ISTORE(3));
                     if (localStart[3] == null) {
@@ -736,19 +735,19 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(
                             factory.createFieldAccess(classname,
                                     field.getName(),
-                                    field_type, Constants.PUTFIELD));
+                                    field_type, Const.PUTFIELD));
                     read_il.append(new ALOAD(1));
                     read_il.append(new ALOAD(0));
                     read_il.append(
                             factory.createFieldAccess(classname,
                                     field.getName(),
-                                    field_type, Constants.GETFIELD));
+                                    field_type, Const.GETFIELD));
 
                     read_il.append(factory.createInvoke(
                             TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                             METHOD_ADD_OBJECT_TO_CYCLE_CHECK, Type.VOID,
                             new Type[] { Type.OBJECT },
-                            Constants.INVOKEVIRTUAL));
+                            Const.INVOKEVIRTUAL));
                     read_il.append(new ICONST(0));
                     read_il.append(new ISTORE(4));
                     if (localStart[4] == null) {
@@ -762,7 +761,7 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(
                             factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                                     METHOD_READ_KNOWN_TYPE_HEADER, Type.INT,
-                                    Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+                                    Type.NO_ARGS, Const.INVOKEVIRTUAL));
                     if (localStart[2] == null) {
                         localStart[2] = read_il.getEnd();
                     }
@@ -777,7 +776,7 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(
                             factory.createFieldAccess(classname,
                                     field.getName(),
-                                    field_type, Constants.GETFIELD));
+                                    field_type, Const.GETFIELD));
                     read_il.append(new ILOAD(4));
 
                     read_il.append(factory.createNew((ObjectType) el_type));
@@ -798,7 +797,7 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(new ALOAD(0));
                     read_il.append(factory.createFieldAccess(classname,
                             field.getName(),
-                            field_type, Constants.GETFIELD));
+                            field_type, Const.GETFIELD));
                     read_il.append(new ILOAD(4));
 
                     read_il.append(new ALOAD(1));
@@ -807,7 +806,7 @@ class CodeGenerator implements RewriterConstants {
                             TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                             METHOD_GET_OBJECT_FROM_CYCLE_CHECK, Type.OBJECT,
                             new Type[] { Type.INT },
-                            Constants.INVOKEVIRTUAL));
+                            Const.INVOKEVIRTUAL));
                     read_il.append(
                             factory.createCheckCast(
                                     (ReferenceType) el_type));
@@ -832,7 +831,7 @@ class CodeGenerator implements RewriterConstants {
                 read_il.append(
                         factory.createFieldAccess(classname,
                                 field.getName(), field_type,
-                                Constants.PUTFIELD));
+                                Const.PUTFIELD));
             }
 
             GOTO gto = new GOTO(null);
@@ -850,13 +849,13 @@ class CodeGenerator implements RewriterConstants {
             read_il.append(new ILOAD(2));
             read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     METHOD_GET_OBJECT_FROM_CYCLE_CHECK, Type.OBJECT,
-                    new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
+                    new Type[] { Type.INT }, Const.INVOKEVIRTUAL));
 
             read_il.append(
                     factory.createCheckCast((ReferenceType) field_type));
             read_il.append(
                     factory.createFieldAccess(classname, field.getName(),
-                            field_type, Constants.PUTFIELD));
+                            field_type, Const.PUTFIELD));
 
             InstructionHandle target = read_il.append(new NOP());
             ifcmpeq.setTarget(target);
@@ -879,24 +878,24 @@ class CodeGenerator implements RewriterConstants {
             if (tpname.equals("")) {
                 read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                         METHOD_READ_OBJECT, Type.OBJECT, Type.NO_ARGS,
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
             } else {
                 read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                         METHOD_READ + tpname, tp, Type.NO_ARGS,
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
             }
             read_il.append(
                     factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
                             METHOD_SET + tpname, Type.VOID,
                             new Type[] { Type.OBJECT, tp },
-                            Constants.INVOKEVIRTUAL));
+                            Const.INVOKEVIRTUAL));
             read_il.append(gto);
 
             return h;
         }
 
         h = read_il.append(new ILOAD(5));
-        read_il.append(new PUSH(constantpool, Constants.ACC_FINAL));
+        read_il.append(new PUSH(constantpool, Const.ACC_FINAL));
         read_il.append(new IAND());
         IFEQ eq = new IFEQ(null);
         read_il.append(eq);
@@ -907,21 +906,21 @@ class CodeGenerator implements RewriterConstants {
             read_il.append(new ALOAD(4));
             read_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
                     METHOD_GET_TYPE, new ObjectType(TYPE_JAVA_LANG_CLASS),
-                    Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+                    Type.NO_ARGS, Const.INVOKEVIRTUAL));
             read_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS,
                     METHOD_GET_NAME, Type.STRING, Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
 
             read_il.append(factory.createInvoke(
                     TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     METHOD_READ_FIELD_OBJECT, Type.VOID, new Type[] { Type.OBJECT,
                             Type.STRING, Type.STRING },
-                            Constants.INVOKEVIRTUAL));
+                            Const.INVOKEVIRTUAL));
         } else {
             read_il.append(factory.createInvoke(
                     TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_FIELD
                     + tpname, Type.VOID, new Type[] { Type.OBJECT,
-                            Type.STRING }, Constants.INVOKEVIRTUAL));
+                            Type.STRING }, Const.INVOKEVIRTUAL));
         }
         GOTO gto2 = new GOTO(null);
         read_il.append(gto2);
@@ -931,15 +930,15 @@ class CodeGenerator implements RewriterConstants {
         if (tpname.equals("")) {
             read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     METHOD_READ_OBJECT, tp, Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
         } else {
             read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     METHOD_READ + tpname, tp, Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
         }
         read_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
                 METHOD_SET + tpname, Type.VOID, new Type[] { Type.OBJECT, tp },
-                Constants.INVOKEVIRTUAL));
+                Const.INVOKEVIRTUAL));
         gto2.setTarget(read_il.append(gto));
 
         return h;
@@ -1037,8 +1036,8 @@ class CodeGenerator implements RewriterConstants {
         String classfilename = name.substring(name.lastIndexOf('.') + 1)
         + ".class";
         ClassGen iogenGen = new ClassGen(name, TYPE_IBIS_IO_GENERATOR,
-                classfilename, Constants.ACC_FINAL | Constants.ACC_PUBLIC
-                | Constants.ACC_SUPER, null);
+                classfilename, Const.ACC_FINAL | Const.ACC_PUBLIC
+                | Const.ACC_SUPER, null);
         InstructionFactory iogenFactory = new InstructionFactory(iogenGen);
 
         InstructionList il = new InstructionList();
@@ -1063,7 +1062,7 @@ class CodeGenerator implements RewriterConstants {
             il.append(new LDC(ind));
             il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     METHOD_CREATE_UNINITIALIZED_OBJECT, Type.OBJECT,
-                    new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
+                    new Type[] { Type.STRING }, Const.INVOKEVIRTUAL));
             il.append(iogenFactory.createCheckCast(class_type));
             il.append(new ASTORE(2));
 
@@ -1075,7 +1074,7 @@ class CodeGenerator implements RewriterConstants {
             il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                     METHOD_READ_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
                     Type.OBJECT, Type.STRING },
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
 
             /* Now, if the class has a readObject, call it. Otherwise,
              * read its fields, by calling generated_DefaultReadObject.
@@ -1085,7 +1084,7 @@ class CodeGenerator implements RewriterConstants {
                 il.append(new ALOAD(1));
                 il.append(iogenFactory.createInvoke(classname,
                         METHOD_$READ_OBJECT_WRAPPER$, Type.VOID,
-                        ibis_input_stream_arrtp, Constants.INVOKEVIRTUAL));
+                        ibis_input_stream_arrtp, Const.INVOKEVIRTUAL));
             } else {
                 int dpth = getClassDepth(clazz);
 
@@ -1093,7 +1092,7 @@ class CodeGenerator implements RewriterConstants {
                 il.append(new ALOAD(1));
                 il.append(new SIPUSH((short) dpth));
                 il.append(createGeneratedDefaultReadObjectInvocation(
-                        classname, iogenFactory, Constants.INVOKEVIRTUAL));
+                        classname, iogenFactory, Const.INVOKEVIRTUAL));
             }
             il.append(new ALOAD(2));
         } else {
@@ -1113,7 +1112,7 @@ class CodeGenerator implements RewriterConstants {
          */
         
         MethodGen method = new MethodGen(
-                Constants.ACC_FINAL | Constants.ACC_PUBLIC, Type.OBJECT,
+                Const.ACC_FINAL | Const.ACC_PUBLIC, Type.OBJECT,
                 ibis_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
                 METHOD_GENERATED_NEW_INSTANCE, name, il,
                 iogenGen.getConstantPool());
@@ -1127,10 +1126,10 @@ class CodeGenerator implements RewriterConstants {
         il = new InstructionList();
         il.append(new ALOAD(0));
         il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_GENERATOR, METHOD_INIT,
-                Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
+                Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
         il.append(new RETURN());
 
-        method = new MethodGen(Constants.ACC_PUBLIC, Type.VOID,
+        method = new MethodGen(Const.ACC_PUBLIC, Type.VOID,
                 Type.NO_ARGS, null, METHOD_INIT, name, il,
                 iogenGen.getConstantPool());
 
@@ -1190,12 +1189,12 @@ class CodeGenerator implements RewriterConstants {
             if (is_externalizable) {
                 read_il.append(new ALOAD(0));
                 read_il.append(factory.createInvoke(classname, METHOD_INIT,
-                        Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
+                        Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
             } else if (!super_is_serializable) {
                 read_il.append(new ALOAD(0));
                 read_il.append(factory.createInvoke(super_classname,
                         METHOD_INIT, Type.VOID, Type.NO_ARGS,
-                        Constants.INVOKESPECIAL));
+                        Const.INVOKESPECIAL));
             } else {
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
@@ -1210,7 +1209,7 @@ class CodeGenerator implements RewriterConstants {
                         factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                                 METHOD_ADD_OBJECT_TO_CYCLE_CHECK, Type.VOID,
                                 new Type[] { Type.OBJECT },
-                                Constants.INVOKEVIRTUAL));
+                                Const.INVOKEVIRTUAL));
             }
 
             int read_cons_index = SerializationInfo.findMethod(methods,
@@ -1258,7 +1257,7 @@ class CodeGenerator implements RewriterConstants {
                 read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                         METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
                         Type.OBJECT, Type.INT },
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
 
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
@@ -1267,27 +1266,27 @@ class CodeGenerator implements RewriterConstants {
                         METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
                         sun_input_stream,
                         Type.NO_ARGS,
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
                 if (is_externalizable) {
                     /* Invoke readExternal */
                     read_il.append(factory.createInvoke(classname,
                             METHOD_READ_EXTERNAL, Type.VOID,
                             new Type[] { new ObjectType(
                                     TYPE_JAVA_IO_OBJECT_INPUT) },
-                                    Constants.INVOKEVIRTUAL));
+                                    Const.INVOKEVIRTUAL));
                 } else {
                     /* Invoke readObject. */
                     read_il.append(factory.createInvoke(classname,
                             METHOD_READ_OBJECT, Type.VOID,
                             new Type[] { sun_input_stream },
-                            Constants.INVOKESPECIAL));
+                            Const.INVOKESPECIAL));
                 }
 
                 /* And then, restore IbisSerializationOutputStream's idea of the current object. */
                 read_il.append(new ALOAD(1));
                 read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                         METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
             } else {
                 read_il.append(generateDefaultReads(true, mgen));
             }
@@ -1297,13 +1296,13 @@ class CodeGenerator implements RewriterConstants {
             MethodGen newMethod = null;
             if (is_externalizable || !super_is_serializable
                     || generator.forceGeneratedCalls() || super_has_ibis_constructor) {
-                newMethod = new MethodGen(Constants.ACC_PUBLIC,
+                newMethod = new MethodGen(Const.ACC_PUBLIC,
                         Type.VOID, ibis_input_stream_arrtp,
                         new String[] { VARIABLE_INPUT_STREAM }, METHOD_INIT, classname, read_il,
                         constantpool);
             } else if (SerializationInfo.hasReadObject(methods)) {
                 newMethod = new MethodGen(
-                        Constants.ACC_PUBLIC, Type.VOID,
+                        Const.ACC_PUBLIC, Type.VOID,
                         ibis_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
                         METHOD_$READ_OBJECT_WRAPPER$, classname, read_il, constantpool);
             }
@@ -1328,7 +1327,7 @@ class CodeGenerator implements RewriterConstants {
     private void fillInGeneratedWriteObjectMethod(int dpth) {
 
         InstructionList write_il = new InstructionList();
-        int flags = Constants.ACC_PUBLIC | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+        int flags = Const.ACC_PUBLIC | (gen.isFinal() ? Const.ACC_FINAL : 0);
 
         int write_method_index = SerializationInfo.findMethod(methods,
                 METHOD_GENERATED_WRITE_OBJECT, 
@@ -1363,7 +1362,7 @@ class CodeGenerator implements RewriterConstants {
             write_il.append(new ALOAD(0));
             write_il.append(new ALOAD(1));
             write_il.append(createGeneratedWriteObjectInvocation(
-                    super_classname, Constants.INVOKESPECIAL));
+                    super_classname, Const.INVOKESPECIAL));
 
         } else if (super_is_serializable) {
             int ind = constantpool.addString(super_classname);
@@ -1373,7 +1372,7 @@ class CodeGenerator implements RewriterConstants {
             write_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                     METHOD_WRITE_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
                     Type.OBJECT, Type.STRING },
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
         }
 
         /* and now ... generated_WriteObject should either call the classes
@@ -1391,7 +1390,7 @@ class CodeGenerator implements RewriterConstants {
             write_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                     METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
                     Type.OBJECT, Type.INT },
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
 
             write_il.append(new ALOAD(0));
             write_il.append(new ALOAD(1));
@@ -1400,14 +1399,14 @@ class CodeGenerator implements RewriterConstants {
                     METHOD_GET_JAVA_OBJECT_OUTPUT_STREAM,
                     sun_output_stream,
                     Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
             if (is_externalizable) {
                 /* Invoke writeExternal */
                 write_il.append(
                         factory.createInvoke(classname, METHOD_WRITE_EXTERNAL,
                                 Type.VOID, new Type[] { new ObjectType(
                                         TYPE_JAVA_IO_OBJECT_OUTPUT) },
-                                        Constants.INVOKEVIRTUAL));
+                                        Const.INVOKEVIRTUAL));
             } else {
                 /* Invoke writeObject. */
                 write_il.append(createWriteObjectInvocation());
@@ -1417,7 +1416,7 @@ class CodeGenerator implements RewriterConstants {
             write_il.append(new ALOAD(1));
             write_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                     METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
+                    Const.INVOKEVIRTUAL));
         } else {
             write_il.append(generateDefaultWrites(write_gen));
         }
@@ -1505,14 +1504,14 @@ class CodeGenerator implements RewriterConstants {
                         TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                         METHOD_DEFAULT_WRITE_SERIALIZABLE_OBJECT, Type.VOID,
                         new Type[] { Type.OBJECT, Type.INT },
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
             }
         } else {
             ifcmpne.setTarget(end);
         }
         write_il.append(write_gen.getInstructionList());
-        int flags = Constants.ACC_PUBLIC
-                | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+        int flags = Const.ACC_PUBLIC
+                | (gen.isFinal() ? Const.ACC_FINAL : 0);
         MethodGen default_write_method = new MethodGen(flags, Type.VOID,
                 new Type[] { ibis_output_stream, Type.INT }, new String[] {
                 VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
@@ -1572,7 +1571,7 @@ class CodeGenerator implements RewriterConstants {
                 read_il.append(new ALOAD(1));
                 read_il.append(new ILOAD(2));
                 read_il.append(createGeneratedDefaultReadObjectInvocation(
-                        super_classname, factory, Constants.INVOKESPECIAL));
+                        super_classname, factory, Const.INVOKESPECIAL));
             } else {
                 /*  Superclass is not rewritten.
                  */
@@ -1582,7 +1581,7 @@ class CodeGenerator implements RewriterConstants {
                 read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
                         METHOD_DEFAULT_READ_SERIALIZABLE_OBJECT, Type.VOID,
                         new Type[] { Type.OBJECT, Type.INT },
-                        Constants.INVOKEVIRTUAL));
+                        Const.INVOKEVIRTUAL));
             }
         } else {
             ifcmpne.setTarget(end);
@@ -1590,8 +1589,8 @@ class CodeGenerator implements RewriterConstants {
 
         read_il.append(read_gen.getInstructionList());
         
-        int flags = Constants.ACC_PUBLIC
-                | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+        int flags = Const.ACC_PUBLIC
+                | (gen.isFinal() ? Const.ACC_FINAL : 0);
         
         MethodGen default_read_method = new MethodGen(flags, Type.VOID,
                 new Type[] { ibis_input_stream, Type.INT }, new String[] {
@@ -1671,12 +1670,12 @@ class CodeGenerator implements RewriterConstants {
 		if (first && m.getName().equals("<init>")) {
 		    first = false;
 		    StackMapType[] types = new StackMapType[nLocals];
-		    types[0] = new StackMapType(Constants.ITEM_Object, constantpool.addClass(clazz.getClassName()), null);
+		    types[0] = new StackMapType(Const.ITEM_Object, constantpool.addClass(clazz.getClassName()), null);
 		    size += 3;
-		    types[1] = new StackMapType(Constants.ITEM_Object, constantpool.addClass(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM), null);
+		    types[1] = new StackMapType(Const.ITEM_Object, constantpool.addClass(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM), null);
 		    size += 3;
 		    for (int j = oldnLocals; j < nLocals; j++) {
-			types[j] = new StackMapType(Constants.ITEM_Integer, -1, null);
+			types[j] = new StackMapType(Const.ITEM_Integer, -1, null);
 			size++;
 		    }
 		    entries.add(new StackMapEntry(Const.FULL_FRAME,
@@ -1685,7 +1684,7 @@ class CodeGenerator implements RewriterConstants {
 		} else {
 		    StackMapType[] types = new StackMapType[nLocals - oldnLocals];
 		    for (int j = oldnLocals; j < nLocals; j++) {
-			types[j - oldnLocals] = new StackMapType(Constants.ITEM_Integer, -1, null);
+			types[j - oldnLocals] = new StackMapType(Const.ITEM_Integer, -1, null);
 			size++;
 		    }
 		    entries.add(new StackMapEntry(Const.APPEND_FRAME + (nLocals - oldnLocals - 1),

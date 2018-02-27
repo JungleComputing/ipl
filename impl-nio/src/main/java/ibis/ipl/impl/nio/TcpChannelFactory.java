@@ -17,15 +17,6 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.PortType;
-import ibis.ipl.impl.ReceivePort;
-import ibis.ipl.impl.ReceivePortIdentifier;
-import ibis.ipl.impl.SendPortIdentifier;
-import ibis.util.IPUtils;
-import ibis.util.ThreadPool;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -41,12 +32,22 @@ import java.nio.channels.SocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.PortType;
+import ibis.ipl.impl.ReceivePort;
+import ibis.ipl.impl.ReceivePortIdentifier;
+import ibis.ipl.impl.SendPortIdentifier;
+import ibis.util.IPUtils;
+import ibis.util.ThreadPool;
+
 /**
  * implements a channelfactory using the tcp implementation of nio
  */
 class TcpChannelFactory implements ChannelFactory, Protocol {
 
-    private static Logger logger = LoggerFactory.getLogger(TcpChannelFactory.class);
+    private static Logger logger = LoggerFactory
+            .getLogger(TcpChannelFactory.class);
 
     // Server socket Channel we listen for new connection on
     private ServerSocketChannel ssc;
@@ -90,9 +91,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
      * Tries to connect the sendport to the receiveport for the given time.
      * Returns the resulting channel.
      */
-    public Channel connect(NioSendPort spi,
-            ReceivePortIdentifier rpi, long timeoutMillis)
-            throws IOException {
+    public Channel connect(NioSendPort spi, ReceivePortIdentifier rpi,
+            long timeoutMillis) throws IOException {
         int reply;
         SocketChannel channel;
 
@@ -142,8 +142,9 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 }
 
                 if (!channel.finishConnect()) {
-                    throw new IOException("finish connect failed while we made sure"
-                                + " it would work");
+                    throw new IOException(
+                            "finish connect failed while we made sure"
+                                    + " it would work");
                 }
 
                 selector.close();
@@ -203,8 +204,9 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
             if (reply == ReceivePort.DENIED) {
                 logger.error("Receiver denied connection");
-                channel.close();
-                throw new ConnectionRefusedException("Receiver denied connection", rpi);
+                dissipator.close();
+                throw new ConnectionRefusedException(
+                        "Receiver denied connection", rpi);
             } else if (reply == ReceivePort.ACCEPTED) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("made new connection from \"" + spi
@@ -228,7 +230,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 continue;
             } else {
                 logger.error("illegal opcode in ChannelFactory.connect()");
-                throw new IOException("illegal opcode in ChannelFactory.connect()");
+                throw new IOException(
+                        "illegal opcode in ChannelFactory.connect()");
             }
         }
     }

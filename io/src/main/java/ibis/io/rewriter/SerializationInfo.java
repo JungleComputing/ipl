@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import org.apache.bcel.Constants;
+import org.apache.bcel.Const;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
@@ -247,17 +247,17 @@ class SerializationInfo implements RewriterConstants {
 
             // 2. The class modifiers written as a 32-bit integer.
             int classModifiers = clazz.getModifiers()
-            & (Constants.ACC_PUBLIC | Constants.ACC_FINAL
-                    | Constants.ACC_INTERFACE
-                    | Constants.ACC_ABSTRACT);
+            & (Const.ACC_PUBLIC | Const.ACC_FINAL
+                    | Const.ACC_INTERFACE
+                    | Const.ACC_ABSTRACT);
 
             // Only set ABSTRACT for an interface when it has methods.
             Method[] cMethods = clazz.getMethods();
-            if ((classModifiers & Constants.ACC_INTERFACE) != 0) {
+            if ((classModifiers & Const.ACC_INTERFACE) != 0) {
                 if (cMethods.length > 0) {
-                    classModifiers |= Constants.ACC_ABSTRACT;
+                    classModifiers |= Const.ACC_ABSTRACT;
                 } else {
-                    classModifiers &= ~Constants.ACC_ABSTRACT;
+                    classModifiers &= ~Const.ACC_ABSTRACT;
                 }
             }
             dout.writeInt(classModifiers);
@@ -276,9 +276,9 @@ class SerializationInfo implements RewriterConstants {
             Arrays.sort(cFields, fieldComparator);
             for (int i = 0; i < cFields.length; i++) {
                 int mods = cFields[i].getModifiers();
-                if (((mods & Constants.ACC_PRIVATE) == 0)
-                        || ((mods & (Constants.ACC_STATIC
-                                | Constants.ACC_TRANSIENT)) == 0)) {
+                if (((mods & Const.ACC_PRIVATE) == 0)
+                        || ((mods & (Const.ACC_STATIC
+                                | Const.ACC_TRANSIENT)) == 0)) {
                     // 4.1. The name of the field in UTF encoding.
                     dout.writeUTF(cFields[i].getName());
                     // 4.2. The modifiers of the field written as a
@@ -300,7 +300,7 @@ class SerializationInfo implements RewriterConstants {
                     // 5.2. The modifier of the method,
                     //      java.lang.reflect.Modifier.STATIC, written as
                     //      a 32-bit integer.
-                    dout.writeInt(Constants.ACC_STATIC);
+                    dout.writeInt(Const.ACC_STATIC);
                     // 5.3. The descriptor of the method, ()V, in UTF
                     //      encoding.
                     dout.writeUTF("()V");
@@ -326,7 +326,7 @@ class SerializationInfo implements RewriterConstants {
             for (int i = 0; i < cMethods.length; i++) {
                 if (cMethods[i].getName().equals(METHOD_INIT)) {
                     int mods = cMethods[i].getModifiers();
-                    if ((mods & Constants.ACC_PRIVATE) == 0) {
+                    if ((mods & Const.ACC_PRIVATE) == 0) {
                         // 6.1. The name of the method, <init>, in UTF
                         //      encoding.
                         dout.writeUTF(METHOD_INIT);
@@ -347,7 +347,7 @@ class SerializationInfo implements RewriterConstants {
                 if (!cMethods[i].getName().equals(METHOD_INIT)
                         && !cMethods[i].getName().equals(METHOD_CLINIT)) {
                     int mods = cMethods[i].getModifiers();
-                    if ((mods & Constants.ACC_PRIVATE) == 0) {
+                    if ((mods & Const.ACC_PRIVATE) == 0) {
                         // 7.1. The name of the method in UTF encoding.
                         dout.writeUTF(cMethods[i].getName());
                         // 7.2. The modifiers of the method written as a

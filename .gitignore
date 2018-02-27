@@ -1,4 +1,7 @@
 .gradle
+.classpath
+.settings
+.project
 build
 lib
 docs/javadoc

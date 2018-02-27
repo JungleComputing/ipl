@@ -1,5 +1,10 @@
 package ibis.ipl.benchmarks.rpc;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Hashtable;
+
 /* $Id$ */
 
 import ibis.ipl.Ibis;
@@ -13,26 +18,21 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
-import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.util.TypedProperties;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Hashtable;
-
 class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         SendPortDisconnectUpcall {
 
-    static final TypedProperties tp = new TypedProperties(System.getProperties());
+    static final TypedProperties tp = new TypedProperties(
+            System.getProperties());
     private final static int BUFSIZ = tp.getIntProperty("socketbuffersize", 0);
 
-    private final static boolean VARIANCE_TIMER = tp.getBooleanProperty(
-            "variance-timer", false);
+    private final static boolean VARIANCE_TIMER = tp
+            .getBooleanProperty("variance-timer", false);
 
     private Ibis myIbis;
 
@@ -172,7 +172,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                     writeMessage.writeByteBuffer(byteBuffer);
                     break;
                 case DATA_BYTES:
-                    // System.err.println(rank + ": writeArray[" + byte_buffer.length + "] writeMessage " + writeMessage);
+                    // System.err.println(rank + ": writeArray[" +
+                    // byte_buffer.length + "] writeMessage " + writeMessage);
                     writeMessage.writeArray(byte_buffer);
                     break;
                 case DATA_SHORTS:
@@ -206,7 +207,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         // t_s_finish.start();
         writeMessage.finish();
         // t_s_finish.stop();
-        // System.err.println("^" + size + " data_type " + data_type + " data " + (byte_buffer == null ? "<nope>" : Integer.toString(byte_buffer.length)));
+        // System.err.println("^" + size + " data_type " + data_type + " data "
+        // + (byte_buffer == null ? "<nope>" :
+        // Integer.toString(byte_buffer.length)));
         // System.err.print("^");
     }
 
@@ -275,13 +278,13 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
     }
 
-    private void rcve_one(boolean read_data, int partners) throws IOException,
-            ClassNotFoundException {
+    private void rcve_one(boolean read_data, int partners)
+            throws IOException, ClassNotFoundException {
         rcve_one(read_data, partners, size);
     }
 
-    private void send(int partners, int count) throws IOException,
-            ClassNotFoundException {
+    private void send(int partners, int count)
+            throws IOException, ClassNotFoundException {
 
         if (count == 0) {
             return;
@@ -336,8 +339,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
     }
 
-    private void serve(int partners, int count) throws IOException,
-            ClassNotFoundException {
+    private void serve(int partners, int count)
+            throws IOException, ClassNotFoundException {
 
         if (count == 0) {
             return;
@@ -354,7 +357,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             send_one(true /* is_server */, 0);
         } else {
             for (int i = 0; i < count; i++) {
-                // System.err.println("Server wants to receive message " + i + " out of " + count);
+                // System.err.println("Server wants to receive message " + i + "
+                // out of " + count);
                 rcve_one(true /* read_data */, partners);
                 // System.err.print(":");
                 for (int k = 0; k < server_spin; k++) {
@@ -362,7 +366,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                     int r = rand.nextInt();
                 }
                 if (clients == 1 || (i + 1) % clients == 0) {
-                    // System.err.println("Server want to send reply " + i + " out of " + count);
+                    // System.err.println("Server want to send reply " + i + "
+                    // out of " + count);
                     send_one(true /* is_server */);
                 }
                 if (gc_on_rcve) {
@@ -408,9 +413,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             services++;
 
             if (services == first_warmup * clients) {
-                System.err.println("services " + services + " first_warmup "
-                        + first_warmup + " count " + count + " clients "
-                        + clients);
+                System.err.println(
+                        "services " + services + " first_warmup " + first_warmup
+                                + " count " + count + " clients " + clients);
                 synchronized (this) {
                     first_warmup = 0;
                     notify();
@@ -429,9 +434,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             }
 
             /*
-             } catch (IOException e) {
-             System.err.println("upcall catches exception " + e);
-             e.printStackTrace();
+             * } catch (IOException e) {
+             * System.err.println("upcall catches exception " + e);
+             * e.printStackTrace();
              */
 
         } catch (ClassNotFoundException ec) {
@@ -450,9 +455,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         System.err.println("Do measurement: " + count + " calls");
 
-        //if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
-        //    ibis.impl.messagePassing.Ibis.resetStats();
-        //}
+        // if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
+        // ibis.impl.messagePassing.Ibis.resetStats();
+        // }
         System.gc();
         // t_client.start();
         long time = System.currentTimeMillis();
@@ -465,10 +470,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         double speed = (time * 1000.0) / count;
 
-        System.err
-                .println("Latency: " + count + " calls took "
-                        + (time / 1000.0) + " s, time/call = " + speed
-                        + " us");
+        System.err.println("Latency: " + count + " calls took "
+                + (time / 1000.0) + " s, time/call = " + speed + " us");
         if (size > 0) {
             final double MB = 1048576.0;
             double thrp = (size * data_size[data_type] * count) / MB
@@ -485,6 +488,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         boolean started;
 
+        @Override
         public void run() {
             synchronized (this) {
                 started = true;
@@ -515,8 +519,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     }
 
     private void server() throws IOException, ClassNotFoundException {
-        System.err.println(rank + ": Start service, warmup " + warmup
-                + " msgs " + count);
+        System.err.println(
+                rank + ": Start service, warmup " + warmup + " msgs " + count);
 
         startBusyThread();
 
@@ -539,9 +543,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             }
 
             // myIbis.disableRegistryEvents();
-            //if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
-            //    ibis.impl.messagePassing.Ibis.resetStats();
-            //}
+            // if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
+            // ibis.impl.messagePassing.Ibis.resetStats();
+            // }
             System.gc();
             // myIbis.enableRegistryEvents();
 
@@ -563,9 +567,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         } else {
             // warmup
             serve(clients, warmup);
-            //if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
-            //    ibis.impl.messagePassing.Ibis.resetStats();
-            //}
+            // if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
+            // ibis.impl.messagePassing.Ibis.resetStats();
+            // }
 
             // test
             serve(clients, count);
@@ -600,23 +604,25 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
         try {
             sport.setManagementProperties(dp);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             // ignored
         }
 
-        registry.elect("client"+rank);
+        registry.elect("client" + rank);
         if (connectUpcalls) {
             rport = myIbis.createReceivePort(replyPortType, "client port",
                     (ReceivePortConnectUpcall) this);
         } else {
             rport = myIbis.createReceivePort(replyPortType, "client port");
         }
-        // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + "  created \"client port " + rank + "\"");
+        // System.err.println(rank + ": t = " +
+        // ((ibis.impl.net.NetIbis)myIbis).now() + " created \"client port " +
+        // rank + "\"");
 
         if (BUFSIZ != 0) {
             try {
                 rport.setManagementProperties(dp);
-            } catch(Throwable e) {
+            } catch (Throwable e) {
                 // ignored
             }
         }
@@ -625,19 +631,21 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         for (int i = 0; i < servers; i++) {
             IbisIdentifier id = registry.getElectionResult("server" + i);
             sport.connect(id, "server port");
-            // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " connected to \"server port " + i + "\"");
+            // System.err.println(rank + ": t = " +
+            // ((ibis.impl.net.NetIbis)myIbis).now() + " connected to \"server
+            // port " + i + "\"");
         }
 
         System.err.println(rank + ": client: connected");
 
         // Do a poor-man's barrier to allow the connections to proceed.
         for (int i = 0; i < servers; i++) {
-            System.err.println(rank + ": Poor-man's barrier " + i
-                    + " receive start...");
+            System.err.println(
+                    rank + ": Poor-man's barrier " + i + " receive start...");
             ReadMessage r = rport.receive();
             r.finish();
-            System.err.println(rank + ": Poor-man's barrier " + i
-                    + " receive finished");
+            System.err.println(
+                    rank + ": Poor-man's barrier " + i + " receive finished");
         }
 
         System.err.println("Go ahead now!");
@@ -661,15 +669,14 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     }
 
     private void runServer() throws IOException, ClassNotFoundException {
-        System.err
-                .println(rank + ": I am " + rank + " -- server; clients "
-                        + clients + " servers " + servers
-                        + "; server port name \"server port "
-                        + (rank - clients) + "\"");
+        System.err.println(rank + ": I am " + rank + " -- server; clients "
+                + clients + " servers " + servers
+                + "; server port name \"server port " + (rank - clients)
+                + "\"");
 
         if (connectUpcalls) {
-            sport = myIbis.createSendPort(replyPortType, "latency-server",
-                    this, null);
+            sport = myIbis.createSendPort(replyPortType, "latency-server", this,
+                    null);
         } else {
             sport = myIbis.createSendPort(replyPortType, "latency-server");
         }
@@ -681,7 +688,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
         try {
             sport.setManagementProperties(dp);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             // ignored
         }
 
@@ -699,14 +706,16 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 rport = myIbis.createReceivePort(requestPortType, "server port",
                         (ReceivePortConnectUpcall) this);
             } else {
-                rport = myIbis.createReceivePort(requestPortType, "server port");
+                rport = myIbis.createReceivePort(requestPortType,
+                        "server port");
             }
         }
-        // System.err.println(rank + ": created \"server port " + (rank - clients) + "\"");
+        // System.err.println(rank + ": created \"server port " + (rank -
+        // clients) + "\"");
         if (BUFSIZ != 0) {
             try {
                 rport.setManagementProperties(dp);
-            } catch(Throwable e) {
+            } catch (Throwable e) {
                 // ignored
             }
         }
@@ -716,7 +725,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         for (int i = 0; i < clients; i++) {
             IbisIdentifier id = registry.getElectionResult("client" + i);
             sport.connect(id, "client port");
-            // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " connect to \"client port " + i + "\"");
+            // System.err.println(rank + ": t = " +
+            // ((ibis.impl.net.NetIbis)myIbis).now() + " connect to \"client
+            // port " + i + "\"");
         }
 
         // Do a poor-man's barrier to allow the connections to proceed.
@@ -763,12 +774,11 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             } else if (args[i].equals("-one-way")) {
                 one_way = true;
 
-                /* Consume is final:
-                 } else if (args[i].equals("-no-consume")) {
-                 consume = false;
-                 } else if (args[i].equals("-consume")) {
-                 consume = true;
-                 * Consume is final */
+                /*
+                 * Consume is final: } else if (args[i].equals("-no-consume")) {
+                 * consume = false; } else if (args[i].equals("-consume")) {
+                 * consume = true; Consume is final
+                 */
 
             } else if (args[i].equals("-connect-upcall")) {
                 connectUpcalls = true;
@@ -871,8 +881,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     }
 
     private void parseDataType() {
-        if (size == 1
-                && (data_type == DATA_OBJ_1 || data_type == DATA_OBJ_2 || data_type == DATA_INNER)) {
+        if (size == 1 && (data_type == DATA_OBJ_1 || data_type == DATA_OBJ_2
+                || data_type == DATA_INNER)) {
             if (data_type == DATA_OBJ_1) {
                 single_object = new Data1();
             } else if (data_type == DATA_OBJ_2) {
@@ -950,16 +960,16 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         if (bcast) {
             if (clients != -1 || servers != -1) {
-                System.err
-                        .println("Cannot both specify -bcast[-all] and -cliets/-servers");
+                System.err.println(
+                        "Cannot both specify -bcast[-all] and -cliets/-servers");
                 System.exit(33);
             }
             clients = 1;
             servers = ncpus - 1;
         } else if (bcast_all) {
             if (clients != -1 || servers != -1) {
-                System.err
-                        .println("Cannot both specify -bcast[-all] and -cliets/-servers");
+                System.err.println(
+                        "Cannot both specify -bcast[-all] and -cliets/-servers");
                 System.exit(33);
             }
             clients = 1;
@@ -976,31 +986,33 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             servers = 1;
         }
 
-        requireOneToMany = requireOneToMany || bcast || bcast_all
-                || clients > 1 || servers > 1;
+        requireOneToMany = requireOneToMany || bcast || bcast_all || clients > 1
+                || servers > 1;
     }
 
     private void createIbis() throws Exception {
 
-        IbisCapabilities s = new IbisCapabilities(
-                IbisCapabilities.CLOSED_WORLD,
+        IbisCapabilities s = new IbisCapabilities(IbisCapabilities.CLOSED_WORLD,
                 IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED,
                 IbisCapabilities.ELECTIONS_STRICT);
         requestPortType = new PortType(PortType.SERIALIZATION_OBJECT,
                 PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
                 PortType.RECEIVE_EXPLICIT, PortType.CONNECTION_UPCALLS,
-                sequenced ? PortType.COMMUNICATION_NUMBERED : PortType.COMMUNICATION_FIFO,
+                sequenced ? PortType.COMMUNICATION_NUMBERED
+                        : PortType.COMMUNICATION_FIFO,
                 PortType.CONNECTION_ONE_TO_MANY);
         replyPortType = new PortType(PortType.SERIALIZATION_OBJECT,
                 PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
                 PortType.RECEIVE_EXPLICIT, PortType.CONNECTION_UPCALLS,
-                sequenced ? PortType.COMMUNICATION_NUMBERED : PortType.COMMUNICATION_FIFO,
+                sequenced ? PortType.COMMUNICATION_NUMBERED
+                        : PortType.COMMUNICATION_FIFO,
                 PortType.CONNECTION_MANY_TO_ONE);
 
-        myIbis = IbisFactory.createIbis(s, null,
-                requestPortType, replyPortType);
+        myIbis = IbisFactory.createIbis(s, null, requestPortType,
+                replyPortType);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
             public void run() {
 
                 try {
@@ -1013,7 +1025,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         });
 
         ncpus = myIbis.registry().getPoolSize();
-        
+
     }
 
     private void registerIbis() throws IOException {
@@ -1070,13 +1082,20 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     }
 
     private void report() {
-        // System.err.println("Timer: t_send     " + t_send.totalTime() + " / " + t_send.nrTimes() + " = " + t_send.averageTimeVal());
-        // System.err.println("Timer: t_s_finish " + t_s_finish.totalTime() + " / " + t_s_finish.nrTimes() + " = " + t_s_finish.averageTimeVal());
-        // System.err.println("Timer: t_get_msg  " + t_get_msg.totalTime() + " / " + t_get_msg.nrTimes() + " = " + t_get_msg.averageTimeVal());
-        // System.err.println("Timer: t_rcve     " + t_rcve.totalTime() + " / " + t_rcve.nrTimes() + " = " + t_rcve.averageTimeVal());
-        // System.err.println("Timer: t_r_finish " + t_r_finish.totalTime() + " / " + t_r_finish.nrTimes() + " = " + t_r_finish.averageTimeVal());
-        // System.err.println("Timer: t_upcall   " + t_upcall.totalTime() + " / " + t_upcall.nrTimes() + " = " + t_upcall.averageTimeVal());
-        // System.err.println("Timer: t_client   " + t_client.totalTime() + " / " + t_client.nrTimes() + " = " + t_client.averageTimeVal());
+        // System.err.println("Timer: t_send " + t_send.totalTime() + " / " +
+        // t_send.nrTimes() + " = " + t_send.averageTimeVal());
+        // System.err.println("Timer: t_s_finish " + t_s_finish.totalTime() + "
+        // / " + t_s_finish.nrTimes() + " = " + t_s_finish.averageTimeVal());
+        // System.err.println("Timer: t_get_msg " + t_get_msg.totalTime() + " /
+        // " + t_get_msg.nrTimes() + " = " + t_get_msg.averageTimeVal());
+        // System.err.println("Timer: t_rcve " + t_rcve.totalTime() + " / " +
+        // t_rcve.nrTimes() + " = " + t_rcve.averageTimeVal());
+        // System.err.println("Timer: t_r_finish " + t_r_finish.totalTime() + "
+        // / " + t_r_finish.nrTimes() + " = " + t_r_finish.averageTimeVal());
+        // System.err.println("Timer: t_upcall " + t_upcall.totalTime() + " / "
+        // + t_upcall.nrTimes() + " = " + t_upcall.averageTimeVal());
+        // System.err.println("Timer: t_client " + t_client.totalTime() + " / "
+        // + t_client.nrTimes() + " = " + t_client.averageTimeVal());
     }
 
     RPC(String[] args, RPC client) {
@@ -1112,7 +1131,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                         + " servers " + servers);
                 run();
                 // timer.stop();
-                // System.err.println("Nano timering -> " + timer.totalTimeVal());
+                // System.err.println("Nano timering -> " +
+                // timer.totalTimeVal());
                 System.exit(0);
             } else {
                 i_am_client = false;
@@ -1146,8 +1166,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     public void lostConnection(ReceivePort rp, SendPortIdentifier sp,
             Throwable e) {
-        System.err.println("Lost connection with send port " + sp + " threw "
-                + e);
+        System.err.println(
+                "Lost connection with send port " + sp + " threw " + e);
     }
 
     /**
@@ -1155,8 +1175,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
      */
     public void lostConnection(SendPort sp, ReceivePortIdentifier rp,
             Throwable e) {
-        System.err.println("Lost connection with receive port " + rp
-                + " threw " + e);
+        System.err.println(
+                "Lost connection with receive port " + rp + " threw " + e);
     }
 
     public static void main(String[] args) {

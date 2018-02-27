@@ -554,7 +554,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
      *            the name of this sendport.
      * @param cU
      *            object implementing the
-     *            {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort, ReceivePortIdentifier, Throwable)}
+     *            {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort, ibis.ipl.ReceivePortIdentifier, Throwable)}
      *            method.
      * @param properties
      *            the port properties.
