@@ -15,14 +15,6 @@
  */
 package ibis.ipl.support;
 
-import ibis.io.Conversion;
-import ibis.io.IOProperties;
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.smartsockets.virtual.VirtualServerSocket;
-import ibis.smartsockets.virtual.VirtualSocket;
-import ibis.smartsockets.virtual.VirtualSocketAddress;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -33,11 +25,19 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.io.Conversion;
+import ibis.io.IOProperties;
+import ibis.ipl.impl.IbisIdentifier;
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocket;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
+
 /**
  * Connection to the server and between clients using smartsockets.
- * 
+ *
  * @author ndrost
- * 
+ *
  */
 public final class Connection {
 
@@ -57,8 +57,8 @@ public final class Connection {
 
     private static VirtualSocketAddress addressFromIdentifier(
             IbisIdentifier ibis, int virtualPort) throws IOException {
-        VirtualSocketAddress registryAddress = VirtualSocketAddress.fromBytes(
-                ibis.getRegistryData(), 0);
+        VirtualSocketAddress registryAddress = VirtualSocketAddress
+                .fromBytes(ibis.getRegistryData(), 0);
 
         if (registryAddress.port() == virtualPort) {
             return registryAddress;
@@ -78,10 +78,10 @@ public final class Connection {
     public Connection(VirtualSocketAddress address, int timeout,
             boolean fillTimeout, VirtualSocketFactory factory)
             throws IOException {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("connecting to " + address + ", timeout = " + timeout
-		    + " , filltimeout = " + fillTimeout);
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("connecting to " + address + ", timeout = " + timeout
+                    + " , filltimeout = " + fillTimeout);
+        }
 
         final HashMap<String, Object> lightConnection = new HashMap<String, Object>();
         // lightConnection.put("connect.module.allow",
@@ -91,10 +91,10 @@ public final class Connection {
                 lightConnection);
         socket.setTcpNoDelay(true);
 
-        out = new DataOutputStream(new BufferedOutputStream(socket
-                .getOutputStream(), IOProperties.BUFFER_SIZE));
-        counter = new CountInputStream(new BufferedInputStream(socket
-                .getInputStream(), IOProperties.BUFFER_SIZE));
+        out = new DataOutputStream(new BufferedOutputStream(
+                socket.getOutputStream(), IOProperties.BUFFER_SIZE));
+        counter = new CountInputStream(new BufferedInputStream(
+                socket.getInputStream(), IOProperties.BUFFER_SIZE));
         in = new DataInputStream(counter);
 
         if (logger.isDebugEnabled()) {
@@ -105,22 +105,27 @@ public final class Connection {
 
     /**
      * Accept incoming connection on given serverSocket.
+     * 
+     * @param serverSocket
+     *            the server socket
+     * @throws IOException
+     *             when an IO error occurs
      */
     public Connection(VirtualServerSocket serverSocket) throws IOException {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("waiting for incoming connection...");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("waiting for incoming connection...");
+        }
         socket = serverSocket.accept();
         socket.setTcpNoDelay(true);
 
-        counter = new CountInputStream(new BufferedInputStream(socket
-                .getInputStream(), IOProperties.BUFFER_SIZE));
+        counter = new CountInputStream(new BufferedInputStream(
+                socket.getInputStream(), IOProperties.BUFFER_SIZE));
         in = new DataInputStream(counter);
-        out = new DataOutputStream(new BufferedOutputStream(socket
-                .getOutputStream(), IOProperties.BUFFER_SIZE));
+        out = new DataOutputStream(new BufferedOutputStream(
+                socket.getOutputStream(), IOProperties.BUFFER_SIZE));
         if (logger.isDebugEnabled()) {
-            logger.debug("new connection from " + socket.getRemoteSocketAddress()
-        	    + " accepted");
+            logger.debug("new connection from "
+                    + socket.getRemoteSocketAddress() + " accepted");
         }
     }
 
@@ -131,24 +136,24 @@ public final class Connection {
     public DataInputStream in() {
         return in;
     }
-    
+
     public Object readObject() throws IOException, ClassNotFoundException {
         int size = in.readInt();
-        
+
         if (size < 0) {
             throw new IOException("negative object size");
         }
-        
+
         byte[] bytes = new byte[size];
-        
+
         in.readFully(bytes);
-        
+
         return Conversion.byte2object(bytes);
     }
-    
+
     public void writeObject(Object object) throws IOException {
         byte[] bytes = Conversion.object2byte(object);
-        
+
         out.writeInt(bytes.length);
         out.write(bytes);
     }

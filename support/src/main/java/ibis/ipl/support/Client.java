@@ -15,6 +15,14 @@
  */
 package ibis.ipl.support;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.server.ServerProperties;
@@ -24,14 +32,6 @@ import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.TypedProperties;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Convenience class to create a VirtualSocketFactory, and get the address of
@@ -66,14 +66,15 @@ public class Client {
 
         throw new IbisConfigurationException(
                 "could not create server address from given string: "
-                        + serverString, throwable);
+                        + serverString,
+                throwable);
     }
 
     private static Map<String, Client> clients = new HashMap<String, Client>();
 
     /**
      * Returns a named client. Creates one if needed.
-     * 
+     *
      * @param name
      *            name of the client
      * @param properties
@@ -88,8 +89,8 @@ public class Client {
      *             if the client cannot be created due to a SmartSockets error
      */
     public static synchronized Client getOrCreateClient(String name,
-            Properties properties, int port) throws IbisConfigurationException,
-            IOException {
+            Properties properties, int port)
+            throws IbisConfigurationException, IOException {
         Client result = clients.get(name);
 
         if (result == null) {
@@ -138,8 +139,8 @@ public class Client {
         Properties smartProperties = new Properties(typedProperties);
 
         if (port > 0) {
-            smartProperties.put(SmartSocketsProperties.PORT_RANGE, Integer
-                    .toString(port));
+            smartProperties.put(SmartSocketsProperties.PORT_RANGE,
+                    Integer.toString(port));
         }
 
         if (hubs != null) {
@@ -160,6 +161,7 @@ public class Client {
 
     /**
      * Returns the VirtualSocketFactory.
+     * 
      * @return the socket factory.
      */
     public VirtualSocketFactory getFactory() {
@@ -168,9 +170,10 @@ public class Client {
 
     /**
      * Get the address of a service running on a given port.
-     * 
+     *
      * @param port
      *            the port the service is running on
+     * @return the address
      * @throws IbisConfigurationException
      *             if the server address is unknown.
      */

@@ -17,10 +17,6 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.io.Conversion;
-import ibis.io.DataInputStream;
-import ibis.ipl.impl.ReceivePortIdentifier;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.Buffer;
@@ -38,12 +34,16 @@ import java.nio.channels.ReadableByteChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.io.Conversion;
+import ibis.io.DataInputStream;
+import ibis.ipl.impl.ReceivePortIdentifier;
+
 /**
  * Reads data into a single bytebuffer, and creates views of it to drain it.
  * Depends upon a subclass to do the actual reading from somewhere
  */
-public abstract class NioDissipator extends DataInputStream implements Config,
-        Protocol {
+public abstract class NioDissipator extends DataInputStream
+        implements Config, Protocol {
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;
@@ -154,13 +154,17 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         chars.limit(0);
         bytes.limit(0);
     }
-    
+
+    @Override
     public int bufferSize() {
         return -1;
     }
 
     /**
      * (re) Initialize buffers in the right byte order.
+     *
+     * @param order
+     *            the order to use
      */
     protected void initViews(ByteOrder order) {
         int position;
@@ -194,7 +198,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
     /**
      * Sets a view correctly.
-     * 
+     *
      * All received data is garanteed to be alligned since we always send
      * buffers with ((size % MAX_DATA_SIZE) == 0)
      */
@@ -255,12 +259,10 @@ public abstract class NioDissipator extends DataInputStream implements Config,
             logger.debug("receiving buffer");
             if (remaining() > 0) {
                 logger.error("receiving with data still left in the buffer"
-                        + ", content: " + "l[" + longs.remaining()
-                        + "] d[" + doubles.remaining()
-                        + "] i[" + ints.remaining()
-                        + "] f[" + floats.remaining()
-                        + "] s[" + shorts.remaining()
-                        + "] c[" + chars.remaining()
+                        + ", content: " + "l[" + longs.remaining() + "] d["
+                        + doubles.remaining() + "] i[" + ints.remaining()
+                        + "] f[" + floats.remaining() + "] s["
+                        + shorts.remaining() + "] c[" + chars.remaining()
                         + "] b[" + bytes.remaining() + "]");
                 throw new IOException("tried receive() while there was data"
                         + " left in the buffer");
@@ -314,8 +316,8 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                 + headerArray[CHARS] + headerArray[BYTES] + paddingLength;
 
         if (logger.isDebugEnabled()) {
-            logger.debug("total size of buffer we're receiving is: "
-                    + totalSize + " padding: " + paddingLength);
+            logger.debug("total size of buffer we're receiving is: " + totalSize
+                    + " padding: " + paddingLength);
         }
 
         if (unUsedLength() < totalSize) {
@@ -346,19 +348,19 @@ public abstract class NioDissipator extends DataInputStream implements Config,
      * Returns if there is a message waiting. Will not try to receive data
      * unless there is a command, but the operands are not received yet. Also
      * inits serialization stream if needed
-     * 
+     *
      * @throws IOException
      *             if an error occured, or the peer closed the connection.
      */
     boolean messageWaiting() throws IOException {
         byte command;
 
-        // Moved here to prevent deadlocks and timeouts when using sun 
+        // Moved here to prevent deadlocks and timeouts when using sun
         // serialization -- Jason
-        if (info.in == null) { 
+        if (info.in == null) {
             info.newStream();
         }
-        
+
         while (true) {
             if (info.in.available() == 0) {
                 // no data available at all
@@ -382,10 +384,10 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                 byte[] length = new byte[Conversion.INT_SIZE];
                 info.in.readArray(length);
                 byte[] bytes = new byte[Conversion.defaultConversion
-                    .byte2int(length, 0)];
+                        .byte2int(length, 0)];
                 info.in.readArray(bytes);
-                ReceivePortIdentifier identifier
-                    = new ReceivePortIdentifier(bytes);
+                ReceivePortIdentifier identifier = new ReceivePortIdentifier(
+                        bytes);
 
                 if (identifier.equals(info.port.ident)) {
                     info.close(null);
@@ -445,8 +447,9 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
     /**
      * returns the number of bytes garanteed to be readable without blocking.
-     * 
+     *
      */
+    @Override
     public int available() {
         int result = remaining();
 
@@ -471,18 +474,21 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         try {
             return (info.in.available() != 0);
         } catch (IOException e) {
-        	return false;
+            return false;
         }
     }
 
+    @Override
     public long bytesRead() {
         return count;
     }
 
+    @Override
     public void resetBytesRead() {
         count = 0;
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         return (readByte() == ((byte) 1));
     }
@@ -504,6 +510,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         return result;
     }
 
+    @Override
     public int read() throws IOException {
         try {
             return readByte() & 0377;
@@ -606,10 +613,12 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         }
     }
 
+    @Override
     public int read(byte[] ref) throws IOException {
         return read(ref, 0, ref.length);
     }
 
+    @Override
     public int read(byte ref[], int off, int len) throws IOException {
         try {
             bytes.get(ref, off, len);
@@ -795,31 +804,33 @@ public abstract class NioDissipator extends DataInputStream implements Config,
             }
         }
     }
-    
+
     public void readByteBuffer(ByteBuffer b) throws IOException {
-	if (b.hasArray()) {
-	    readArray(b.array(), b.arrayOffset(), b.limit() - b.position());
-	    b.position(b.limit());
-	} else {
-	    byte[] buf = new byte[b.limit() - b.position()];
-	    readArray(buf);
-	    b.put(buf);
-	}
+        if (b.hasArray()) {
+            readArray(b.array(), b.arrayOffset(), b.limit() - b.position());
+            b.position(b.limit());
+        } else {
+            byte[] buf = new byte[b.limit() - b.position()];
+            readArray(buf);
+            b.put(buf);
+        }
     }
-    
-    
 
     /**
      * fills the buffer upto at least "minimum" bytes.
-     * 
+     *
+     * @param minimum
+     *            fill up at least to this
+     *
      * @throws IOException
-     *             if an error occured on reading from the channel
+     *             if an error occurred on reading from the channel
      */
     protected abstract void fillBuffer(int minimum) throws IOException;
 
     /**
      * Closes this dissipator.
      */
+    @Override
     public void close() throws IOException {
         channel.close();
     }

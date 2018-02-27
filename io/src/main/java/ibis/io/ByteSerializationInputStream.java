@@ -22,22 +22,23 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * The <code>ByteSerializationInputStream</code> class can be used when 
- * only byte serialization is needed.
- * It provides an implementation for the <code>SerializationInput</code>
- * interface, built on methods in <code>InputStream</code>.
- * However, the only data that can be read are bytes and byte arrays.
- * All other methods throw an exception.
- * It also provides a base class for "data" serialization and "ibis"
- * serialization.
+ * The <code>ByteSerializationInputStream</code> class can be used when only
+ * byte serialization is needed. It provides an implementation for the
+ * <code>SerializationInput</code> interface, built on methods in
+ * <code>InputStream</code>. However, the only data that can be read are bytes
+ * and byte arrays. All other methods throw an exception. It also provides a
+ * base class for "data" serialization and "ibis" serialization.
  */
 public class ByteSerializationInputStream implements SerializationInput {
-    
+
     /** The underlying stream. */
     DataInputStream in;
 
     /**
      * Constructor, may be used when this class is sub-classed.
+     * 
+     * @throws IOException
+     *             on I/O error
      */
     protected ByteSerializationInputStream() throws IOException {
         in = null;
@@ -46,8 +47,10 @@ public class ByteSerializationInputStream implements SerializationInput {
     /**
      * Constructor.
      *
-     * @param s the underlying <code>InputStream</code>
-     * @exception IOException is thrown on an IO error.
+     * @param s
+     *            the underlying <code>InputStream</code>
+     * @exception IOException
+     *                is thrown on an IO error.
      */
     public ByteSerializationInputStream(DataInputStream s) throws IOException {
         in = s;
@@ -128,8 +131,7 @@ public class ByteSerializationInputStream implements SerializationInput {
 
     public void readArray(byte[] ref, int off, int len) throws IOException {
         /*
-         * Call read() and read() here. It is supported.
-         * RFHH
+         * Call read() and read() here. It is supported. RFHH
          */
         if (off == 0 && ref.length == len) {
             int rd = 0;
@@ -140,9 +142,9 @@ public class ByteSerializationInputStream implements SerializationInput {
         }
         throw new IOException("Illegal data type read");
     }
-    
+
     public void readByteBuffer(ByteBuffer b) throws IOException {
-	in.readByteBuffer(b);
+        in.readByteBuffer(b);
     }
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {

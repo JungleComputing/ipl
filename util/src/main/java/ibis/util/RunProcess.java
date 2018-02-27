@@ -26,19 +26,19 @@ import java.util.Map;
 
 /**
  * Utility to run a process and read its output in a separate thread.
- * Afterwards, the user can obtain the output or error output.
- * To run a command, the sequence is:
- * <br>
+ * Afterwards, the user can obtain the output or error output. To run a command,
+ * the sequence is: <br>
+ *
  * <pre>
  *     RunProcess p = new RunProcess("command", "arg1", ...);
  *     p.run();
  *     byte[] o = p.getStdout();
  *     byte[] e = p.getStderr();
  *     int status = p.getExitStatus();
- * </pre> 
+ * </pre>
  */
 public final class RunProcess {
-    
+
     private final ProcessBuilder builder;
 
     private static class buf {
@@ -74,8 +74,7 @@ public final class RunProcess {
     private buf proc_err;
 
     /**
-     * Separate thread that reads the output and error output of the
-     * command.
+     * Separate thread that reads the output and error output of the command.
      */
     private static class Proc extends Thread {
         buf b;
@@ -84,6 +83,7 @@ public final class RunProcess {
             this.b = b;
         }
 
+        @Override
         public void run() {
             boolean must_read;
             do {
@@ -118,7 +118,9 @@ public final class RunProcess {
 
     /**
      * Creates a RunProcess object for the specified command.
-     * @param command the specified command and arguments.
+     *
+     * @param command
+     *            the specified command and arguments.
      */
     public RunProcess(String... command) {
         builder = new ProcessBuilder(command);
@@ -126,22 +128,24 @@ public final class RunProcess {
 
     /**
      * Creates a RunProcess object for the specified command.
-     * @param command the specified command and arguments.
+     *
+     * @param command
+     *            the specified command and arguments.
      */
     public RunProcess(List<String> command) {
         builder = new ProcessBuilder(command);
     }
-    
+
     /**
-     * Runs the built command.
-     * This method blocks until the command is finished, after
-     * which exit status, output and error output can be obtained.
+     * Runs the built command. This method blocks until the command is finished,
+     * after which exit status, output and error output can be obtained.
      */
     public void run() {
         try {
             p = builder.start();
         } catch (Exception e) {
-            proc_err = new buf(("Could not execute cmd: " + builder.command().toString() + " " + e).getBytes());
+            proc_err = new buf(("Could not execute cmd: "
+                    + builder.command().toString() + " " + e).getBytes());
             return;
         }
 
@@ -189,8 +193,8 @@ public final class RunProcess {
                 }
             }
         }
-        
-        // We must close the streams and destroy the process here, 
+
+        // We must close the streams and destroy the process here,
         // otherwise we'll leak file descriptors!! -- Jason
         if (p != null) {
             close(p.getOutputStream());
@@ -202,16 +206,17 @@ public final class RunProcess {
 
     private static void close(Closeable c) {
         if (c != null) {
-          try {
-            c.close();
-          } catch (IOException e) {
-            // ignored
-          }
+            try {
+                c.close();
+            } catch (IOException e) {
+                // ignored
+            }
         }
-      }
-    
+    }
+
     /**
      * Returns the output buffer of the process.
+     *
      * @return the output buffer.
      */
     public byte[] getStdout() {
@@ -225,6 +230,7 @@ public final class RunProcess {
 
     /**
      * Returns the error output buffer of the process.
+     *
      * @return the error output buffer.
      */
     public byte[] getStderr() {
@@ -238,44 +244,64 @@ public final class RunProcess {
 
     /**
      * Returns the exit status of the process.
+     *
      * @return the exit status.
      */
     public int getExitStatus() {
         return exitStatus;
     }
-    
+
     /**
      * See {@link ProcessBuilder#command()}.
+     *
+     * @return this process program and its arguments
      */
     public List<String> command() {
         return builder.command();
     }
-    
+
     /**
      * See {@link ProcessBuilder#command(List)}.
+     *
+     * @param command
+     *            the list containing the program and its arguments
+     *
+     * @return this process
      */
     public RunProcess command(List<String> command) {
         builder.command(command);
         return this;
     }
-    
+
     /**
      * See {@link ProcessBuilder#command(String...)}.
+     *
+     * @param command
+     *            the strings containing the program and its arguments
+     *
+     * @return this process
      */
     public RunProcess command(String... command) {
         builder.command(command);
         return this;
     }
-    
+
     /**
      * See {@link ProcessBuilder#directory()}.
+     *
+     * @return this process working directory
      */
     public File directory() {
         return builder.directory();
     }
-    
+
     /**
      * See {@link ProcessBuilder#directory(File)}.
+     *
+     * @param directory
+     *            the new working directory
+     *
+     * @return this process's builder.
      */
     public ProcessBuilder directory(File directory) {
         return builder.directory(directory);
@@ -283,13 +309,17 @@ public final class RunProcess {
 
     /**
      * See {@link ProcessBuilder#environment()}.
+     *
+     * @return this process's environment
      */
     public Map<String, String> environment() {
         return builder.environment();
     }
-    
+
     /**
      * See {@link ProcessBuilder#redirectErrorStream()}.
+     *
+     * @return this process's <code>redirectErrorStream</code> property
      */
     public boolean redirectErrorStream() {
         return builder.redirectErrorStream();
@@ -297,14 +327,23 @@ public final class RunProcess {
 
     /**
      * See {@link ProcessBuilder#redirectErrorStream(boolean)}.
+     *
+     * @param redirectErrorStream
+     *            the new property value
+     * @return this process
      */
     public RunProcess redirectErrorStream(boolean redirectErrorStream) {
         builder.redirectErrorStream(redirectErrorStream);
         return this;
     }
-    
+
     /**
      * See {@link ProcessBuilder#start()}.
+     *
+     * @return a Process for managing the subprocess.
+     *
+     * @throws IOException
+     *             if an I/O error occurs
      */
     public Process start() throws IOException {
         return builder.start();

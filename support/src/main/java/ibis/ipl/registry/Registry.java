@@ -17,15 +17,15 @@
 
 package ibis.ipl.registry;
 
+import java.io.IOException;
+import java.util.Properties;
+
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
-
-import java.io.IOException;
-import java.util.Properties;
 
 /**
  * This implementation of the {@link ibis.ipl.Registry} interface defines the
@@ -36,51 +36,52 @@ public abstract class Registry implements ibis.ipl.Registry {
 
     /**
      * Notifies the registry that the calling Ibis instance is leaving.
-     * 
+     *
      * @exception IOException
-     *                    may be thrown when communication with the registry
-     *                    fails.
+     *                may be thrown when communication with the registry fails.
      */
     public abstract void leave() throws IOException;
 
     /**
      * Obtains a sequence number from the registry. Each sequencer has a name,
      * which must be provided to this call.
-     * 
+     *
      * @param name
-     *                the name of this sequencer.
+     *            the name of this sequencer.
      * @exception IOException
-     *                    may be thrown when communication with the registry
-     *                    fails.
+     *                may be thrown when communication with the registry fails.
      */
     public abstract long getSequenceNumber(String name) throws IOException;
 
     /**
      * Creates a registry for the specified Ibis instance.
-     * 
+     *
+     * @param capabilities
+     *            capabilities required of this registry
      * @param handler
-     *                the handler for registry events, or <code>null</code> if
-     *                no registry events are needed.
+     *            the handler for registry events, or <code>null</code> if no
+     *            registry events are needed.
      * @param properties
-     *                to get some properties from, and to pass on to the
-     *                registry.
+     *            to get some properties from, and to pass on to the registry.
      * @param data
-     *                the implementation dependent data in the IbisIdentifier.
+     *            the implementation dependent data in the IbisIdentifier.
      * @param implementationVersion
-     *                the identification of this Ibis implementation. Must be
-     *                identical for all Ibises in a single pool.
+     *            the identification of this Ibis implementation. Must be
+     *            identical for all Ibises in a single pool.
      * @param tag
-     *                the application level tag for the Ibis which is
-     *                constructing this registry.
+     *            the application level tag for the Ibis which is constructing
+     *            this registry.
      * @param credentials
-     *                authentication object to authenticate ibis at registry
+     *            authentication object to authenticate ibis at registry
+     * @return the registry
      * @exception Throwable
-     *                    can be any exception resulting from looking up the
-     *                    registry constructor or the invocation attempt.
+     *                can be any exception resulting from looking up the
+     *                registry constructor or the invocation attempt.
      */
     public static Registry createRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            String implementationVersion, byte[] tag, Credentials credentials) throws Throwable {
+            String implementationVersion, byte[] tag, Credentials credentials)
+            throws Throwable {
 
         String registryName = properties
                 .getProperty(IbisProperties.REGISTRY_IMPLEMENTATION);
@@ -91,8 +92,9 @@ public abstract class Registry implements ibis.ipl.Registry {
                     + "  is not set.");
         } else if (registryName.equalsIgnoreCase("central")) {
             // shorthand for central registry
-            return new ibis.ipl.registry.central.client.Registry(capabilities, handler,
-                    properties, data, implementationVersion, credentials, tag);
+            return new ibis.ipl.registry.central.client.Registry(capabilities,
+                    handler, properties, data, implementationVersion,
+                    credentials, tag);
         } else if (registryName.equalsIgnoreCase("gossip")) {
             // shorthand for gossip registry
             return new ibis.ipl.registry.gossip.Registry(capabilities, handler,
@@ -106,11 +108,14 @@ public abstract class Registry implements ibis.ipl.Registry {
         Class<?> c = Class.forName(registryName);
 
         try {
-            return (Registry) c.getConstructor(
-                    new Class[] { IbisCapabilities.class,
+            return (Registry) c
+                    .getConstructor(new Class[] { IbisCapabilities.class,
                             RegistryEventHandler.class, Properties.class,
-                            byte[].class, String.class, Credentials.class, byte[].class }).newInstance(
-                    new Object[] { capabilities, handler, properties, data, implementationVersion, credentials, tag});
+                            byte[].class, String.class, Credentials.class,
+                            byte[].class })
+                    .newInstance(new Object[] { capabilities, handler,
+                            properties, data, implementationVersion,
+                            credentials, tag });
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }
@@ -118,10 +123,12 @@ public abstract class Registry implements ibis.ipl.Registry {
 
     /**
      * Returns the Ibis identifier.
+     * 
+     * @return the ibis identifier
      */
     public abstract IbisIdentifier getIbisIdentifier();
-    
+
     public abstract IbisIdentifier getRandomPoolMember();
-    
+
     public abstract String[] wonElections();
 }

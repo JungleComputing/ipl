@@ -17,6 +17,20 @@
 
 package ibis.ipl.impl;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.io.IbisIOException;
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
@@ -36,20 +50,6 @@ import ibis.ipl.support.management.ManagementClient;
 import ibis.ipl.support.vivaldi.Coordinates;
 import ibis.ipl.support.vivaldi.VivaldiClient;
 import ibis.util.TypedProperties;
-
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-import java.util.Map.Entry;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This implementation of the {@link ibis.ipl.Ibis} interface is a base class,
@@ -102,9 +102,9 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     /** The sendports running on this Ibis instance. */
     private HashMap<String, SendPort> sendPorts;
-    
+
     private HashMap<ibis.ipl.IbisIdentifier, Long> sentBytesPerIbis = null;
-    
+
     private HashMap<ibis.ipl.IbisIdentifier, Long> receivedBytesPerIbis = null;
 
     /** Counter for allocating names for anonymous sendports. */
@@ -160,17 +160,23 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
-     * 
+     *
      * @param registryHandler
      *            the registryHandler.
      * @param capabilities
      *            the capabilities.
+     * @param credentials
+     *            the credentials
      * @param applicationTag
      *            an application level tag for this Ibis instance
      * @param portTypes
      *            the port types requested for this ibis implementation.
      * @param userProperties
      *            the properties as provided by the Ibis factory.
+     * @param starter
+     *            the starter for this Ibis instance
+     * @exception IbisCreationFailedException
+     *                is thrown when this constructor fails for some reason
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, Credentials credentials,
@@ -206,9 +212,11 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
         if (registryHandler != null) {
             // Only install wrapper if user actually has an event handler.
-            // Otherwise, registry downcalls won't work. There needs to be another
+            // Otherwise, registry downcalls won't work. There needs to be
+            // another
             // way to let an Ibis know of died Ibises. --Ceriel
-            registryHandler = new RegistryEventHandlerWrapper(registryHandler, this);
+            registryHandler = new RegistryEventHandlerWrapper(registryHandler,
+                    this);
         }
         try {
             registry = Registry.createRegistry(this.capabilities,
@@ -233,7 +241,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         } else {
             vivaldiClient = null;
         }
-        
+
         if (properties.getBooleanProperty("ibis.bytescount")) {
             sentBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
             receivedBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
@@ -257,48 +265,49 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
          * } catch (Exception e) { logger.warn("cannot registry MBean", e); }
          */
     }
-    
+
     void died(ibis.ipl.IbisIdentifier corpse) {
-	killConnections(corpse);
+        killConnections(corpse);
     }
-    
+
     void left(ibis.ipl.IbisIdentifier leftIbis) {
-	killConnections(leftIbis);
+        killConnections(leftIbis);
     }
-    
+
     protected void killConnections(ibis.ipl.IbisIdentifier corpse) {
-	SendPort[] sps;
-	ReceivePort[] rps;
-    
-	synchronized(this) {
-	    sps = sendPorts.values().toArray(new SendPort[sendPorts.size()]);
-	    rps = receivePorts.values().toArray(new ReceivePort[receivePorts.size()]);
-	}
-	for (SendPort s : sps) {
-	    try {
-		s.killConnectionsWith(corpse);
-	    } catch (Throwable e) {
-		if (logger.isDebugEnabled()) {
-		    logger.debug("Got exception from killConnectionsWith", e);
-		    
-		}
-	    }
-	}
-	for (ReceivePort p : rps) {
-	    try {
-		p.killConnectionsWith(corpse);
-	    } catch (Throwable e) {
-		if (logger.isDebugEnabled()) {
-		    logger.debug("Got exception from killConnectionsWith", e);
-		    
-		}
-	    }
-	}
+        SendPort[] sps;
+        ReceivePort[] rps;
+
+        synchronized (this) {
+            sps = sendPorts.values().toArray(new SendPort[sendPorts.size()]);
+            rps = receivePorts.values()
+                    .toArray(new ReceivePort[receivePorts.size()]);
+        }
+        for (SendPort s : sps) {
+            try {
+                s.killConnectionsWith(corpse);
+            } catch (Throwable e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Got exception from killConnectionsWith", e);
+
+                }
+            }
+        }
+        for (ReceivePort p : rps) {
+            try {
+                p.killConnectionsWith(corpse);
+            } catch (Throwable e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Got exception from killConnectionsWith", e);
+
+                }
+            }
+        }
     }
 
     /**
      * Returns the current Ibis version.
-     * 
+     *
      * @return the ibis version.
      */
     public String getVersion() {
@@ -324,22 +333,24 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             }
             ended = true;
         }
-        
+
         // Close sendports.
-        for (SendPort s : sendPorts.values().toArray(new SendPort[sendPorts.size()])) {
+        for (SendPort s : sendPorts.values()
+                .toArray(new SendPort[sendPorts.size()])) {
             try {
-        	s.close();
-            } catch(Throwable e) {
-        	// ignore
+                s.close();
+            } catch (Throwable e) {
+                // ignore
             }
         }
 
         // Close receiveports.
-        for (ReceivePort r : receivePorts.values().toArray(new ReceivePort[receivePorts.size()])) {
+        for (ReceivePort r : receivePorts.values()
+                .toArray(new ReceivePort[receivePorts.size()])) {
             try {
-        	r.close(-1);
-            } catch(Throwable e) {
-        	// ignore
+                r.close(-1);
+            } catch (Throwable e) {
+                // ignore
             }
         }
 
@@ -366,8 +377,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     synchronized void register(ReceivePort p) throws IOException {
         if (receivePorts.get(p.name) != null) {
-            throw new IOException("Multiple instances of receiveport named "
-                    + p.name);
+            throw new IOException(
+                    "Multiple instances of receiveport named " + p.name);
         }
         receivePorts.put(p.name, p);
     }
@@ -383,8 +394,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     synchronized void register(SendPort p) throws IOException {
         if (sendPorts.get(p.name) != null) {
-            throw new IOException("Multiple instances of sendport named "
-                    + p.name);
+            throw new IOException(
+                    "Multiple instances of sendport named " + p.name);
         }
         sendPorts.put(p.name, p);
     }
@@ -397,8 +408,9 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             bytesWritten += p.getBytesWritten();
         }
     }
-    
-    synchronized void addSentPerIbis(long cnt, ibis.ipl.ReceivePortIdentifier[] idents) {
+
+    synchronized void addSentPerIbis(long cnt,
+            ibis.ipl.ReceivePortIdentifier[] idents) {
         if (sentBytesPerIbis == null) {
             return;
         }
@@ -411,9 +423,9 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             sentBytesPerIbis.put(i, new Long(cnt));
         }
     }
-    
-    
-    synchronized void addReceivedPerIbis(long cnt, ibis.ipl.SendPortIdentifier[] idents) {
+
+    synchronized void addReceivedPerIbis(long cnt,
+            ibis.ipl.SendPortIdentifier[] idents) {
         if (receivedBytesPerIbis == null) {
             return;
         }
@@ -434,7 +446,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     /**
      * Returns the receiveport with the specified name, or <code>null</code> if
      * not present.
-     * 
+     *
      * @param name
      *            the name of the receiveport.
      * @return the receiveport.
@@ -446,7 +458,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     /**
      * Returns the sendport with the specified name, or <code>null</code> if not
      * present.
-     * 
+     *
      * @param name
      *            the name of the sendport.
      * @return the sendport.
@@ -478,7 +490,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
      * This method should provide the implementation-dependent data of the Ibis
      * identifier for this Ibis instance. This method gets called from the Ibis
      * constructor.
-     * 
+     *
      * @exception IOException
      *                may be thrown in case of trouble.
      * @return the implementation-dependent data, as a byte array.
@@ -547,7 +559,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     /**
      * Creates a {@link ibis.ipl.SendPort} of the specified port type.
-     * 
+     *
      * @param tp
      *            the port type.
      * @param name
@@ -636,7 +648,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
      * is done to avoid upcalls during initialization. When a new connection
      * request arrives, or when a connection is lost, a ConnectUpcall is
      * performed.
-     * 
+     *
      * @param tp
      *            the port type.
      * @param name
@@ -665,8 +677,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         String result = managementProperties().get(key);
 
         if (result == null) {
-            throw new NoSuchPropertyException("property \"" + key
-                    + "\" not found");
+            throw new NoSuchPropertyException(
+                    "property \"" + key + "\" not found");
         }
 
         return result;
@@ -735,7 +747,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         return bytesRead;
     }
 
-    /**
+    /*
      * @ibis.experimental
      */
     public synchronized ibis.ipl.IbisIdentifier[] connectedTo() {
@@ -755,7 +767,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         return result.toArray(new ibis.ipl.IbisIdentifier[0]);
     }
 
-    /**
+    /*
      * @ibis.experimental
      */
     public Coordinates getVivaldiCoordinates() {
@@ -765,8 +777,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
         return vivaldiClient.getCoordinates();
     }
-    
-    /**
+
+    /*
      * @ibis.experimental
      */
     public synchronized Map<ibis.ipl.IbisIdentifier, Long> getSentBytesPerIbis() {
@@ -775,8 +787,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         }
         return new HashMap<ibis.ipl.IbisIdentifier, Long>(sentBytesPerIbis);
     }
-    
-    /**
+
+    /*
      * @ibis.experimental
      */
     public synchronized Map<ibis.ipl.IbisIdentifier, Long> getReceivedBytesPerIbis() {
@@ -785,15 +797,15 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         }
         return new HashMap<ibis.ipl.IbisIdentifier, Long>(receivedBytesPerIbis);
     }
-    
-    /**
+
+    /*
      * @ibis.experimental
      */
     public String[] wonElections() {
         return registry.wonElections();
     }
-        
-    /**
+
+    /*
      * @ibis.experimental
      */
     public synchronized Map<ibis.ipl.IbisIdentifier, Set<String>> getReceiverConnectionTypes() {
@@ -808,11 +820,11 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
                 r.addAll(entry.getValue());
                 result.put(entry.getKey(), r);
             }
-        }       
+        }
         return result;
     }
-    
-    /**
+
+    /*
      * @ibis.experimental
      */
     public synchronized Map<ibis.ipl.IbisIdentifier, Set<String>> getSenderConnectionTypes() {
@@ -827,7 +839,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
                 r.addAll(entry.getValue());
                 result.put(entry.getKey(), r);
             }
-        }        
+        }
         return result;
     }
 

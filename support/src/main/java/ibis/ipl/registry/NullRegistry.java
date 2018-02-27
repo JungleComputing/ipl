@@ -50,6 +50,8 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
     /**
      * Creates a Null Registry.
      *
+     * @param capabilities
+     *            the required capabilities
      * @param handler
      *            registry handler to pass events to.
      * @param properties
@@ -62,6 +64,8 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
      *            the identification of this ibis implementation, including
      *            version, class and such. Must be identical for all ibises in a
      *            single pool.
+     * @param credentials
+     *            the credentials
      * @throws IOException
      *             in case of trouble.
      * @throws IbisConfigurationException
@@ -70,7 +74,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
     public NullRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
             String implementationVersion, Credentials credentials, byte[] tag)
-                    throws IOException {
+            throws IOException {
 
         if (handler != null) {
             throw new IbisConfigurationException(

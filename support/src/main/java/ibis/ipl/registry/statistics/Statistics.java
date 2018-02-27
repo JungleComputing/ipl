@@ -408,7 +408,9 @@ public final class Statistics implements Runnable {
     }
 
     /**
-     * Total data send/received by the registry (in Mib)
+     * Total data sent/received by the registry (in Mib)
+     * 
+     * @return total data amount
      */
     public synchronized double totalTraffic() {
         double totalTraffic = 0;

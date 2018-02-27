@@ -22,9 +22,9 @@ import java.io.InputStream;
 
 /**
  * An <code>InputStream</code> that can be placed on top of any existing
- * <code>java.io.InputStream</code>. It adds statistics and prevents
- * a <code>close</code> from propagating to the streams below. You need
- * to use {@link #realClose()} for that.
+ * <code>java.io.InputStream</code>. It adds statistics and prevents a
+ * <code>close</code> from propagating to the streams below. You need to use
+ * {@link #realClose()} for that.
  */
 
 public class DummyInputStream extends InputStream {
@@ -39,6 +39,7 @@ public class DummyInputStream extends InputStream {
         this.in = in;
     }
 
+    @Override
     public int read() throws IOException {
         // System.err.println("dummy.read");
         if (SUPPORT_STATS) {
@@ -47,10 +48,11 @@ public class DummyInputStream extends InputStream {
         return in.read();
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         int res = in.read(b);
         // System.err.println("dummy.read array of len " + b.length
-        //         + " result was " + res + " bytes");
+        // + " result was " + res + " bytes");
         if (SUPPORT_STATS) {
             if (res >= 0) {
                 count += res;
@@ -59,10 +61,11 @@ public class DummyInputStream extends InputStream {
         return res;
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException {
         int res = in.read(b, off, len);
-        // System.err.println("dummy.read array of len " + len 
-        //         + " result was " + res + " bytes");
+        // System.err.println("dummy.read array of len " + len
+        // + " result was " + res + " bytes");
         if (SUPPORT_STATS) {
             if (res >= 0) {
                 count += res;
@@ -71,51 +74,61 @@ public class DummyInputStream extends InputStream {
         return res;
     }
 
+    @Override
     public long skip(long n) throws IOException {
         return in.skip(n);
     }
 
+    @Override
     public int available() throws IOException {
         return in.available();
     }
 
     /**
-     * Dummy close to prevent propagating the close to the underlying
-     * streams.
+     * Dummy close to prevent propagating the close to the underlying streams.
      */
+    @Override
     public void close() {
         /* ignore */
     }
 
     /**
      * Closes the underlying streams as well.
+     * 
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public void realClose() throws IOException {
         in.close();
     }
 
+    @Override
     public void mark(int readlimit) {
         in.mark(readlimit);
     }
 
+    @Override
     public void reset() throws IOException {
         in.reset();
     }
 
+    @Override
     public boolean markSupported() {
         return in.markSupported();
     }
 
     /**
      * Resets the "number of bytes read" counter.
-     */ 
+     */
     public void resetCount() {
         count = 0;
     }
 
     /**
-     * Returns the number of bytes read from this stream since the last 
-     * call to {@link #resetCount} or the beginning of its existence. 
+     * Returns the number of bytes read from this stream since the last call to
+     * {@link #resetCount} or the beginning of its existence.
+     * 
+     * @return the number of bytes read since the last reset.
      */
     public long getCount() {
         return count;

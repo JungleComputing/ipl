@@ -45,7 +45,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Constructs a typed properties object with the specified defaults.
-     * 
+     *
      * @param defaults
      *            the defaults.
      */
@@ -55,7 +55,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Adds the specified properties to the current ones.
-     * 
+     *
      * @param properties
      *            the properties to add.
      */
@@ -63,7 +63,8 @@ public class TypedProperties extends Properties {
         if (properties == null) {
             return;
         }
-        for (Enumeration<?> e = properties.propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = properties.propertyNames(); e
+                .hasMoreElements();) {
             String key = (String) e.nextElement();
             String value = properties.getProperty(key);
             setProperty(key, value);
@@ -72,7 +73,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Adds the specified properties.
-     * 
+     *
      * @param properties
      *            properties to add.
      */
@@ -82,6 +83,9 @@ public class TypedProperties extends Properties {
 
     /**
      * Tries to load properties from a properties file on the classpath.
+     *
+     * @param resourceName
+     *            the name of the properties file
      */
     public void loadFromClassPath(String resourceName) {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -120,9 +124,8 @@ public class TypedProperties extends Properties {
                 String strippedSystemVar = fullSystemVar.substring(2,
                         fullSystemVar.length() - 1);
                 if (System.getenv(strippedSystemVar) != null) {
-                    put(key,
-                            ((String) get(key)).replace(fullSystemVar,
-                                    System.getenv(strippedSystemVar)));
+                    put(key, ((String) get(key)).replace(fullSystemVar,
+                            System.getenv(strippedSystemVar)));
                     // update the matcher
                     matcher = pattern.matcher((String) get(key));
                 }
@@ -133,7 +136,7 @@ public class TypedProperties extends Properties {
     /**
      * Tries to load properties from a file. Does not throw any exceptions if
      * unsuccessful.
-     * 
+     *
      * @param fileName
      *            name of file to load from.
      */
@@ -165,20 +168,20 @@ public class TypedProperties extends Properties {
     /**
      * Tries to load properties from a file, which is located relative to the
      * users home directory. Does not throw any exceptions if unsuccessful.
-     * 
+     *
      * @param fileName
      *            name of file to load from.
      */
     public void loadFromHomeFile(String fileName) {
-        loadFromFile(System.getProperty("user.home") + File.separator
-                + fileName);
+        loadFromFile(
+                System.getProperty("user.home") + File.separator + fileName);
     }
 
     /**
      * Returns true if property <code>name</code> is defined and has a value
      * that is conventionally associated with 'true' (as in Ant): any of 1, on,
      * true, yes, or nothing.
-     * 
+     *
      * @return true if property is defined and set
      * @param name
      *            property name
@@ -192,7 +195,7 @@ public class TypedProperties extends Properties {
      * conventionally associated with 'true' (as in Ant): any of 1, on, true,
      * yes, or nothing. If the property is not defined, return the specified
      * default value.
-     * 
+     *
      * @return true if property is defined and set
      * @param key
      *            property name
@@ -212,7 +215,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns the integer value of property.
-     * 
+     *
      * @return the integer value of property
      * @param key
      *            property name
@@ -236,7 +239,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns the integer value of property.
-     * 
+     *
      * @return the integer value of property
      * @param key
      *            property name
@@ -262,7 +265,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns the long value of property.
-     * 
+     *
      * @return the long value of property
      * @param key
      *            property name
@@ -286,7 +289,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns the long value of property.
-     * 
+     *
      * @return the long value of property
      * @param key
      *            property name
@@ -312,7 +315,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns the short value of property.
-     * 
+     *
      * @return the short value of property
      * @param key
      *            property name
@@ -329,14 +332,14 @@ public class TypedProperties extends Properties {
         try {
             return Short.parseShort(value);
         } catch (NumberFormatException e) {
-            throw new NumberFormatException("Short expected for property "
-                    + key + ", not \"" + value + "\"");
+            throw new NumberFormatException("Short expected for property " + key
+                    + ", not \"" + value + "\"");
         }
     }
 
     /**
      * Returns the short value of property.
-     * 
+     *
      * @return the short value of property
      * @param key
      *            property name
@@ -355,14 +358,14 @@ public class TypedProperties extends Properties {
         try {
             return Short.parseShort(value);
         } catch (NumberFormatException e) {
-            throw new NumberFormatException("Short expected for property "
-                    + key + ", not \"" + value + "\"");
+            throw new NumberFormatException("Short expected for property " + key
+                    + ", not \"" + value + "\"");
         }
     }
 
     /**
      * Returns the double value of property.
-     * 
+     *
      * @return the double value of property
      * @param key
      *            property name
@@ -386,7 +389,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns the double value of property.
-     * 
+     *
      * @return the double value of property
      * @param key
      *            property name
@@ -412,7 +415,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns the float value of property.
-     * 
+     *
      * @return the float value of property
      * @param key
      *            property name
@@ -429,14 +432,14 @@ public class TypedProperties extends Properties {
         try {
             return Float.parseFloat(value);
         } catch (NumberFormatException e) {
-            throw new NumberFormatException("Float expected for property "
-                    + key + ", not \"" + value + "\"");
+            throw new NumberFormatException("Float expected for property " + key
+                    + ", not \"" + value + "\"");
         }
     }
 
     /**
      * Returns the float value of property.
-     * 
+     *
      * @return the float value of property
      * @param key
      *            property name
@@ -455,8 +458,8 @@ public class TypedProperties extends Properties {
         try {
             return Float.parseFloat(value);
         } catch (NumberFormatException e) {
-            throw new NumberFormatException("Float expected for property "
-                    + key + ", not \"" + value + "\"");
+            throw new NumberFormatException("Float expected for property " + key
+                    + ", not \"" + value + "\"");
         }
     }
 
@@ -465,7 +468,7 @@ public class TypedProperties extends Properties {
      * are a long, a long followed by K, a long followed by M or a long followed
      * by G. Size modifiers multiply the value by 1024, 1024^2 and 1024^3
      * respectively.
-     * 
+     *
      * @return the size value of property
      * @param key
      *            property name
@@ -487,7 +490,7 @@ public class TypedProperties extends Properties {
      * are a long, a long followed by K, a long followed by M or a long followed
      * by G. Size modifiers multiply the value by 1024, 1024^2 and 1024^3
      * respectively. Returns the default value if the property is undefined.
-     * 
+     *
      * @return the size value of property
      * @param key
      *            property name
@@ -506,15 +509,18 @@ public class TypedProperties extends Properties {
         try {
 
             if (value.endsWith("G") || value.endsWith("g")) {
-                return Long.parseLong(value.substring(0, value.length() - 1)) * 1024 * 1024 * 1024;
+                return Long.parseLong(value.substring(0, value.length() - 1))
+                        * 1024 * 1024 * 1024;
             }
 
             if (value.endsWith("M") || value.endsWith("m")) {
-                return Long.parseLong(value.substring(0, value.length() - 1)) * 1024 * 1024;
+                return Long.parseLong(value.substring(0, value.length() - 1))
+                        * 1024 * 1024;
             }
 
             if (value.endsWith("K") || value.endsWith("k")) {
-                return Long.parseLong(value.substring(0, value.length() - 1)) * 1024;
+                return Long.parseLong(value.substring(0, value.length() - 1))
+                        * 1024;
             }
 
             return Long.parseLong(value);
@@ -532,7 +538,7 @@ public class TypedProperties extends Properties {
      * amount of whitespace. See {@link java.lang.String#split(String)} for
      * details of the splitting. If the property is not defined, an empty array
      * of strings is returned.
-     * 
+     *
      * @param key
      *            the property name
      * @return the split-up property value.
@@ -546,7 +552,7 @@ public class TypedProperties extends Properties {
      * according to the specified delimiter. See
      * {@link java.lang.String#split(String)} for details of the splitting. If
      * the property is not defined, an empty array of strings is returned.
-     * 
+     *
      * @param key
      *            the property name
      * @param delim
@@ -562,7 +568,7 @@ public class TypedProperties extends Properties {
      * according to the specified delimiter. See
      * {@link java.lang.String#split(String)} for details of the splitting. If
      * the property is not defined, the specified default value is returned.
-     * 
+     *
      * @param key
      *            the property name
      * @param delim
@@ -585,7 +591,7 @@ public class TypedProperties extends Properties {
     /**
      * Returns true if property name is defined and has a string value that
      * equals match.
-     * 
+     *
      * @return true if property is defined and equals match
      * @param key
      *            property name
@@ -599,7 +605,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns true if the given element is a member of the given list.
-     * 
+     *
      * @param list
      *            the given list.
      * @param element
@@ -620,7 +626,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns true if the given string starts with one of the given prefixes.
-     * 
+     *
      * @param string
      *            the given string.
      * @param prefixes
@@ -641,7 +647,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Checks all properties with the given prefix for validity.
-     * 
+     *
      * @return a Property object containing all unrecognized properties.
      * @param prefix
      *            the prefix that should be checked
@@ -684,7 +690,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns all properties who's key start with a certain prefix.
-     * 
+     *
      * @return a Property object containing all matching properties.
      * @param prefix
      *            the desired prefix
@@ -727,7 +733,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Returns all properties who's key start with a certain prefix.
-     * 
+     *
      * @return a Property object containing all matching properties.
      * @param prefix
      *            the desired prefix
@@ -738,7 +744,7 @@ public class TypedProperties extends Properties {
 
     /**
      * Prints properties (including default properties) to a stream.
-     * 
+     *
      * @param out
      *            The stream to write output to.
      * @param prefix
@@ -762,9 +768,10 @@ public class TypedProperties extends Properties {
 
     /**
      * Creates a string representation of this properties object.
-     * 
+     *
      * @return the string representation.
      */
+    @Override
     public String toString() {
         String result = "";
 
@@ -792,11 +799,12 @@ public class TypedProperties extends Properties {
     /**
      * Compares this object to the specified object. They are equal if they have
      * the same property names and values.
-     * 
+     *
      * @param object
      *            object to compare to.
      * @return <code>true</code> if equal.
      */
+    @Override
     public boolean equals(Object object) {
         if (!(object instanceof TypedProperties)) {
             return false;

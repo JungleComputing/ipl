@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
  * This is the <code>SerializationOutputStream</code> version that is used for
  * Ibis serialization.
  */
-public class IbisSerializationOutputStream extends
-        DataSerializationOutputStream {
+public class IbisSerializationOutputStream
+        extends DataSerializationOutputStream {
     private static final Logger logger = LoggerFactory
             .getLogger(IbisSerializationOutputStream.class);
 
@@ -69,22 +69,21 @@ public class IbisSerializationOutputStream extends
                             System.out.println("Non-array handles sent "
                                     + statObjectHandle);
                             for (int i = Constants.BEGIN_TYPES; i < Constants.PRIMITIVE_TYPES; i++) {
-                                if (statArrayCount[i] + statArrayHandle[i] > 0) {
-                                    System.out
-                                            .println("       "
-                                                    + primitiveName(i)
-                                                    + " arrays "
-                                                    + statArrayCount[i]
-                                                    + " total bytes "
-                                                    + (statArrayLength[i] * primitiveBytes(i))
-                                                    + " handles "
-                                                    + statArrayHandle[i]);
+                                if (statArrayCount[i]
+                                        + statArrayHandle[i] > 0) {
+                                    System.out.println("       "
+                                            + primitiveName(i) + " arrays "
+                                            + statArrayCount[i]
+                                            + " total bytes "
+                                            + (statArrayLength[i]
+                                                    * primitiveBytes(i))
+                                            + " handles " + statArrayHandle[i]);
                                 }
                             }
                         }
                     });
-            System.out.println("IbisSerializationOutputStream.STATS_OBJECTS "
-                    + "enabled");
+            System.out.println(
+                    "IbisSerializationOutputStream.STATS_OBJECTS " + "enabled");
             statSendObjects = new Hashtable<Class<?>, Integer>();
             statArrayCount = new int[Constants.PRIMITIVE_TYPES];
             statArrayHandle = new int[Constants.PRIMITIVE_TYPES];
@@ -166,7 +165,7 @@ public class IbisSerializationOutputStream extends
 
     /**
      * Constructor with an <code>DataOutputStream</code>.
-     * 
+     *
      * @param out
      *            the underlying <code>DataOutputStream</code>
      * @exception IOException
@@ -184,6 +183,9 @@ public class IbisSerializationOutputStream extends
 
     /**
      * Constructor, may be used when this class is sub-classed.
+     * 
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     protected IbisSerializationOutputStream() throws IOException {
         super();
@@ -271,7 +273,7 @@ public class IbisSerializationOutputStream extends
      * Set a replacer. The replacement mechanism can be used to replace an
      * object with another object during serialization. This is used in RMI, for
      * instance, to replace a remote object with a stub.
-     * 
+     *
      * @param replacer
      *            the replacer object to be associated with this output stream
      */
@@ -301,22 +303,22 @@ public class IbisSerializationOutputStream extends
     private void types_clear() {
         lastClass = null;
         types.clear();
-        types.put(Constants.classBooleanArray, Constants.TYPE_BOOLEAN
-                | Constants.TYPE_BIT);
-        types.put(Constants.classByteArray, Constants.TYPE_BYTE
-                | Constants.TYPE_BIT);
-        types.put(Constants.classCharArray, Constants.TYPE_CHAR
-                | Constants.TYPE_BIT);
-        types.put(Constants.classShortArray, Constants.TYPE_SHORT
-                | Constants.TYPE_BIT);
-        types.put(Constants.classIntArray, Constants.TYPE_INT
-                | Constants.TYPE_BIT);
-        types.put(Constants.classLongArray, Constants.TYPE_LONG
-                | Constants.TYPE_BIT);
-        types.put(Constants.classFloatArray, Constants.TYPE_FLOAT
-                | Constants.TYPE_BIT);
-        types.put(Constants.classDoubleArray, Constants.TYPE_DOUBLE
-                | Constants.TYPE_BIT);
+        types.put(Constants.classBooleanArray,
+                Constants.TYPE_BOOLEAN | Constants.TYPE_BIT);
+        types.put(Constants.classByteArray,
+                Constants.TYPE_BYTE | Constants.TYPE_BIT);
+        types.put(Constants.classCharArray,
+                Constants.TYPE_CHAR | Constants.TYPE_BIT);
+        types.put(Constants.classShortArray,
+                Constants.TYPE_SHORT | Constants.TYPE_BIT);
+        types.put(Constants.classIntArray,
+                Constants.TYPE_INT | Constants.TYPE_BIT);
+        types.put(Constants.classLongArray,
+                Constants.TYPE_LONG | Constants.TYPE_BIT);
+        types.put(Constants.classFloatArray,
+                Constants.TYPE_FLOAT | Constants.TYPE_BIT);
+        types.put(Constants.classDoubleArray,
+                Constants.TYPE_DOUBLE | Constants.TYPE_BIT);
         next_type = Constants.PRIMITIVE_TYPES;
     }
 
@@ -355,7 +357,7 @@ public class IbisSerializationOutputStream extends
     /**
      * Called by IOGenerator-generated code to write a Class object to this
      * stream. For a Class object, only its name is written.
-     * 
+     *
      * @param ref
      *            the <code>Class</code> to be written
      * @exception IOException
@@ -389,7 +391,7 @@ public class IbisSerializationOutputStream extends
     /**
      * Sends out handles as normal int's. Also checks if we need to send out a
      * reset first.
-     * 
+     *
      * @param v
      *            the handle to be written
      * @exception IOException
@@ -449,7 +451,8 @@ public class IbisSerializationOutputStream extends
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
         }
-        if (writeArrayHeader(ref, Constants.classByteArray, ref.limit() - ref.position(), false)) {
+        if (writeArrayHeader(ref, Constants.classByteArray,
+                ref.limit() - ref.position(), false)) {
             internalWriteByteBuffer(ref);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -556,7 +559,7 @@ public class IbisSerializationOutputStream extends
      * this method writes its handle and returns <code>true</code>. If not, its
      * type is written, a new handle is associated with it, and
      * <code>false</code> is returned.
-     * 
+     *
      * @param ref
      *            the object that is going to be put on the stream
      * @param clazz
@@ -590,7 +593,7 @@ public class IbisSerializationOutputStream extends
      * and was detected. If a cycle was detected, it returns <code>false</code>,
      * otherwise <code>true</code>. The array header consists of a type and a
      * length.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param clazz
@@ -625,15 +628,15 @@ public class IbisSerializationOutputStream extends
         addStatSendArrayHandle(ref, len);
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArrayHeader " + clazz.getName() + " length = "
-                    + len);
+            logger.debug(
+                    "writeArrayHeader " + clazz.getName() + " length = " + len);
         }
         return true;
     }
 
     /**
      * Writes an array, but possibly only a handle.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param arrayClass
@@ -726,7 +729,7 @@ public class IbisSerializationOutputStream extends
     /**
      * Adds the type represented by <code>clazz</code> to the type table and
      * returns its number.
-     * 
+     *
      * @param clazz
      *            represents the type to be added
      * @return the type number.
@@ -742,7 +745,7 @@ public class IbisSerializationOutputStream extends
 
     /**
      * Writes a type number, and, when new, a type name to the output stream.
-     * 
+     *
      * @param clazz
      *            the clazz to be written.
      * @exception IOException
@@ -784,7 +787,7 @@ public class IbisSerializationOutputStream extends
     /**
      * Writes a (new or old) handle for object <code>ref</code> to the output
      * stream. Returns 1 if the object is new, -1 if not.
-     * 
+     *
      * @param ref
      *            the object whose handle is to be written
      * @exception IOException
@@ -804,16 +807,17 @@ public class IbisSerializationOutputStream extends
             Class<?> clazz = ref.getClass();
             next_handle++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeKnownObjectHeader -> writing NEW object, class = "
-                        + clazz.getName());
+                logger.debug(
+                        "writeKnownObjectHeader -> writing NEW object, class = "
+                                + clazz.getName());
             }
             writeType(clazz);
             return 1;
         }
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE "
-                    + handle);
+            logger.debug(
+                    "writeKnownObjectHeader -> writing OLD HANDLE " + handle);
         }
         writeHandle(handle);
 
@@ -823,7 +827,7 @@ public class IbisSerializationOutputStream extends
     /**
      * Writes a (new or old) handle for array of primitives <code>ref</code> to
      * the output stream. Returns 1 if the object is new, -1 if not.
-     * 
+     *
      * @param ref
      *            the object whose handle is to be written
      * @param typehandle
@@ -848,8 +852,8 @@ public class IbisSerializationOutputStream extends
         }
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE "
-                    + handle);
+            logger.debug(
+                    "writeKnownObjectHeader -> writing OLD HANDLE " + handle);
         }
         writeHandle(handle);
 
@@ -859,12 +863,12 @@ public class IbisSerializationOutputStream extends
     /**
      * Writes the serializable fields of an object <code>ref</code> using the
      * type information <code>t</code>.
-     * 
+     *
      * @param t
      *            the type info for object <code>ref</code>
      * @param ref
      *            the object of which the fields are to be written
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs
      * @exception IllegalAccessException
@@ -911,12 +915,12 @@ public class IbisSerializationOutputStream extends
     /**
      * Serializes an object <code>ref</code> using the type information
      * <code>t</code>.
-     * 
+     *
      * @param t
      *            the type info for object <code>ref</code>
      * @param ref
      *            the object of which the fields are to be written
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs
      * @exception IllegalAccessException
@@ -970,7 +974,7 @@ public class IbisSerializationOutputStream extends
      * Push the notions of <code>current_object</code>,
      * <code>current_level</code>, and <code>current_putfield</code> on their
      * stacks, and set new ones.
-     * 
+     *
      * @param ref
      *            the new <code>current_object</code> notion
      * @param level
@@ -1020,7 +1024,7 @@ public class IbisSerializationOutputStream extends
      * object, and also those of its parent objects. It gets called by
      * IOGenerator-generated code when an object has a superclass that is
      * serializable but not Ibis serializable.
-     * 
+     *
      * @param ref
      *            the object with a non-Ibis-serializable parent object
      * @param classname
@@ -1046,15 +1050,15 @@ public class IbisSerializationOutputStream extends
                         "Caught exception, rethrow as NotSerializableException",
                         e);
             }
-            throw new IbisNotSerializableException("Serializable failed for : "
-                    + classname, e);
+            throw new IbisNotSerializableException(
+                    "Serializable failed for : " + classname, e);
         }
     }
 
     /**
      * Writes a <code>String</code> object. This is a special case, because
      * strings are written as an UTF.
-     * 
+     *
      * @param ref
      *            the string to be written
      * @exception IOException
@@ -1139,7 +1143,7 @@ public class IbisSerializationOutputStream extends
     /**
      * Write objects and arrays. Duplicates are deteced when this call is used.
      * The replacement mechanism is implemented here as well.
-     * 
+     *
      * @param ref
      *            the object to be written
      * @exception java.io.IOException
@@ -1212,7 +1216,8 @@ public class IbisSerializationOutputStream extends
             }
             t.writer.writeObject(this, ref, t, hashCode, false);
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("finished writeObject of class " + clazz.getName());
+                logger.debug(
+                        "finished writeObject of class " + clazz.getName());
             }
         } else {
             if (DEBUG && logger.isDebugEnabled()) {
@@ -1234,7 +1239,7 @@ public class IbisSerializationOutputStream extends
      * declaration of the <code>current_level</code> field). It gets called from
      * IOGenerator-generated code, when a parent object is serializable but not
      * Ibis serializable.
-     * 
+     *
      * @param ref
      *            the object of which serializable fields must be written
      * @param depth
@@ -1292,7 +1297,8 @@ public class IbisSerializationOutputStream extends
         }
 
         @Override
-        public void defaultWriteObject() throws IOException, NotActiveException {
+        public void defaultWriteObject()
+                throws IOException, NotActiveException {
             if (current_object == null) {
                 throw new NotActiveException("defaultWriteObject: no object");
             }
@@ -1335,8 +1341,8 @@ public class IbisSerializationOutputStream extends
                     throw new IbisNotSerializableException("illegal access", e);
                 }
             } else {
-                throw new IbisNotSerializableException("Not Serializable : "
-                        + clazz.getName());
+                throw new IbisNotSerializableException(
+                        "Not Serializable : " + clazz.getName());
             }
         }
 

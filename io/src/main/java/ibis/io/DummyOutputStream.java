@@ -22,9 +22,9 @@ import java.io.OutputStream;
 
 /**
  * An <code>OutputStream</code> that can be placed on top of any existing
- * <code>java.io.OutputStream</code>. It adds statistics and prevents
- * a <code>close</code> from propagating to the streams below. You need
- * to use {@link #realClose()} for that.
+ * <code>java.io.OutputStream</code>. It adds statistics and prevents a
+ * <code>close</code> from propagating to the streams below. You need to use
+ * {@link #realClose()} for that.
  */
 public class DummyOutputStream extends OutputStream {
 
@@ -38,6 +38,7 @@ public class DummyOutputStream extends OutputStream {
         this.out = out;
     }
 
+    @Override
     public void write(int b) throws IOException {
         out.write(b);
 
@@ -46,6 +47,7 @@ public class DummyOutputStream extends OutputStream {
         }
     }
 
+    @Override
     public void write(byte[] b) throws IOException {
         out.write(b);
 
@@ -54,6 +56,7 @@ public class DummyOutputStream extends OutputStream {
         }
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException {
         out.write(b, off, len);
 
@@ -62,22 +65,27 @@ public class DummyOutputStream extends OutputStream {
         }
     }
 
+    @Override
     public void flush() throws IOException {
         out.flush();
     }
 
     /**
-     * Dummy close to prevent propagating the close to the underlying
-     * streams.
+     * Dummy close to prevent propagating the close to the underlying streams.
      */
+    @Override
     public void close() {
-        /* Don't propagate the close, otherwise we close the underlying
-         * socket, and that is not what we want here.
+        /*
+         * Don't propagate the close, otherwise we close the underlying socket,
+         * and that is not what we want here.
          */
     }
 
     /**
      * Closes the underlying streams as well.
+     * 
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public void realClose() throws IOException {
         out.close();
@@ -91,8 +99,10 @@ public class DummyOutputStream extends OutputStream {
     }
 
     /**
-     * Returns the number of bytes written to this stream since the last
-     * call to {@link #resetCount} or the beginning of its existence.
+     * Returns the number of bytes written to this stream since the last call to
+     * {@link #resetCount} or the beginning of its existence.
+     * 
+     * @return the number of bytes written since the last reset.
      */
     public long getCount() {
         return count;

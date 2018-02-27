@@ -29,7 +29,7 @@ public abstract class Conversion {
 
     /*
      * NOTE:
-     * 
+     *
      * All conversion methods in this class have the precondition that the data
      * actually fits in the destination buffer. The user should do the buffering
      * himself.
@@ -95,6 +95,12 @@ public abstract class Conversion {
 
     /**
      * Returns a conversion, given the class name of it.
+     *
+     * @param className
+     *            the class name
+     * @return the conversion object
+     * @throws Exception
+     *             when the class could not be loaded for some reason
      */
     public static final Conversion loadConversion(String className)
             throws Exception {
@@ -104,7 +110,11 @@ public abstract class Conversion {
     }
 
     /**
-     * Load a conversion
+     * Load a conversion.
+     *
+     * @param bigEndian
+     *            determines whether big-endian or little-endian is used
+     * @return the conversion object
      */
     public static final Conversion loadConversion(boolean bigEndian) {
         Properties properties = IOProperties.properties;
@@ -141,10 +151,11 @@ public abstract class Conversion {
             } catch (Exception e) {
                 // nio conversion loading failed
             }
-        } else if (conversion == null || conversion.equalsIgnoreCase("hybrid")) {
+        } else if (conversion == null
+                || conversion.equalsIgnoreCase("hybrid")) {
             // default conversion
             // if (conversion != null) {
-            //     System.err.println("hybrid conversion selected");
+            // System.err.println("hybrid conversion selected");
             // }
 
             try {
@@ -169,6 +180,8 @@ public abstract class Conversion {
 
     /**
      * Returns if this conversion converts to big-endian or not.
+     *
+     * @return if this conversion converts to big-endian
      */
     public abstract boolean bigEndian();
 
@@ -236,14 +249,20 @@ public abstract class Conversion {
     public abstract void byte2float(byte[] src, int index_src, float[] dst,
             int index_dst, int len);
 
-    public abstract void double2byte(double[] src, int off, int len,
-            byte[] dst, int off2);
+    public abstract void double2byte(double[] src, int off, int len, byte[] dst,
+            int off2);
 
     public abstract void byte2double(byte[] src, int index_src, double[] dst,
             int index_dst, int len);
 
     /**
      * Writes an object to a byte[].
+     *
+     * @param o
+     *            the object
+     * @return the byte array
+     * @throws IOException
+     *             on I/O error
      */
     public static final byte[] object2byte(Object o) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -256,9 +275,17 @@ public abstract class Conversion {
 
     /**
      * Reads an object from byte[].
+     *
+     * @param b
+     *            the byte array
+     * @return the object
+     * @throws IOException
+     *             on IO error
+     * @throws ClassNotFoundException
+     *             when the object class could not be loaded for some reason
      */
-    public static final Object byte2object(byte[] b) throws IOException,
-            ClassNotFoundException {
+    public static final Object byte2object(byte[] b)
+            throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(b);
         ObjectInputStream ois = new ObjectInputStream(bis);
         Object o = ois.readObject();
@@ -268,7 +295,13 @@ public abstract class Conversion {
 
     /**
      * Upwards-round <code>a</code> to a multiple of <code>d</code>.
-     * </code>d</code> <standout>MUST</standout> be a power of two
+     * <code>d</code> <b>MUST</b> be a power of two.
+     *
+     * @param a
+     *            the number to be rounded
+     * @param d
+     *            the power of two
+     * @return the rounded number
      */
     public static int align(int a, int d) {
         if (false) {

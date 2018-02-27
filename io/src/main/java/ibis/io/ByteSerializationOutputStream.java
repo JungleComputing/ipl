@@ -21,25 +21,25 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * The <code>ByteSerializationOutputStream</code> class can be used when 
- * only byte serialization is needed.
- * It provides an implementation for the <code>SerializationOutput</code>
- * interface, built on methods in <code>OutputStream</code>.
- * However, the only data that can be sent are bytes and byte arrays.
- * All other methods throw an exception.
- * It also provides a base class for "data" serialization and "ibis"
- * serialization.
+ * The <code>ByteSerializationOutputStream</code> class can be used when only
+ * byte serialization is needed. It provides an implementation for the
+ * <code>SerializationOutput</code> interface, built on methods in
+ * <code>OutputStream</code>. However, the only data that can be sent are bytes
+ * and byte arrays. All other methods throw an exception. It also provides a
+ * base class for "data" serialization and "ibis" serialization.
  */
 public class ByteSerializationOutputStream implements SerializationOutput {
 
     /** The underlying stream. */
     DataOutputStream out;
-    
+
     /**
      * Constructor.
      *
-     * @param s the underlying <code>OutputStream</code>
-     * @exception java.io.IOException is thrown when an IO error occurs.
+     * @param s
+     *            the underlying <code>OutputStream</code>
+     * @exception java.io.IOException
+     *                is thrown when an IO error occurs.
      */
     public ByteSerializationOutputStream(DataOutputStream s)
             throws IOException {
@@ -48,6 +48,9 @@ public class ByteSerializationOutputStream implements SerializationOutput {
 
     /**
      * Constructor, may be used when this class is sub-classed.
+     * 
+     * @throws IOException
+     *             on I/O error
      */
     protected ByteSerializationOutputStream() throws IOException {
         out = null;
@@ -100,8 +103,7 @@ public class ByteSerializationOutputStream implements SerializationOutput {
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 
         /*
-         * Call write() and read() here. It is supported.
-         * RFHH
+         * Call write() and read() here. It is supported. RFHH
          */
         if (off == 0 && len == ref.length) {
             out.write(ref);
@@ -215,6 +217,6 @@ public class ByteSerializationOutputStream implements SerializationOutput {
     }
 
     public void writeByteBuffer(ByteBuffer value) throws IOException {
-	out.writeByteBuffer(value);
+        out.writeByteBuffer(value);
     }
 }

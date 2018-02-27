@@ -17,18 +17,19 @@
 
 package ibis.ipl.impl;
 
-import ibis.io.SerializationInput;
-import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.PortType;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 
+import ibis.io.SerializationInput;
+import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.PortType;
+
 /**
- * Implementation of the {@link ibis.ipl.ReadMessage} interface.
- * This is a complete implementation, but may be extended by an implementation.
- * In that case, the {@link ReceivePort#createReadMessage(SerializationInput, ReceivePortConnectionInfo)} 
+ * Implementation of the {@link ibis.ipl.ReadMessage} interface. This is a
+ * complete implementation, but may be extended by an implementation. In that
+ * case, the
+ * {@link ReceivePort#createReadMessage(SerializationInput, ReceivePortConnectionInfo)}
  * method must also be redefined.
  */
 public class ReadMessage implements ibis.ipl.ReadMessage {
@@ -60,7 +61,9 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
     /**
      * May be called by an implementation to allow for detection of finish()
      * calls within an upcall.
-     * @param val the value to set.
+     * 
+     * @param val
+     *            the value to set.
      */
     public void setInUpcall(boolean val) {
         inUpcall = val;
@@ -69,18 +72,26 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
     /**
      * May be called by an implementation to allow for detection of finish()
      * calls within an upcall.
+     * 
+     * @return whether we are in an upcall
      */
     public boolean getInUpcall() {
         return inUpcall;
     }
 
+    /**
+     * May be called by an implementation to allow for detection of finish()
+     * calls within an upcall.
+     * 
+     * @return whether finish was called from upcall
+     */
     public boolean finishCalledInUpcall() {
         return finishCalledFromUpcall;
     }
 
     public long bytesRead() {
-	long after = info.bytesRead();
-	return after - before;
+        long after = info.bytesRead();
+        return after - before;
     }
 
     public int remaining() throws IOException {
@@ -90,7 +101,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
     public int size() throws IOException {
         return -1;
     }
-    
+
     public ReceivePortConnectionInfo getInfo() {
         return info;
     }
@@ -114,7 +125,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         checkNotFinished();
         return in.available();
     }
-    
+
     public boolean readBoolean() throws IOException {
         checkNotFinished();
         return in.readBoolean();
@@ -197,8 +208,8 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         readArray(destination, 0, destination.length);
     }
 
-    public void readArray(Object[] destination) throws IOException,
-            ClassNotFoundException {
+    public void readArray(Object[] destination)
+            throws IOException, ClassNotFoundException {
         readArray(destination, 0, destination.length);
     }
 
@@ -261,9 +272,9 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
     }
 
     public long sequenceNumber() {
-        if (! info.port.type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
-            throw new IbisConfigurationException("No COMMUNICATION_NUMBERED "
-                    + "specified in port type");
+        if (!info.port.type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
+            throw new IbisConfigurationException(
+                    "No COMMUNICATION_NUMBERED " + "specified in port type");
         }
         return sequenceNr;
     }
@@ -299,14 +310,14 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     public void setFinished(boolean val) {
         isFinished = val;
-        if (! isFinished) {
+        if (!isFinished) {
             before = info.bytesRead();
             finishCalledFromUpcall = false;
         }
     }
 
-    public void readByteBuffer(ByteBuffer value) throws IOException,
-	    ReadOnlyBufferException {
+    public void readByteBuffer(ByteBuffer value)
+            throws IOException, ReadOnlyBufferException {
         checkNotFinished();
         in.readByteBuffer(value);
     }

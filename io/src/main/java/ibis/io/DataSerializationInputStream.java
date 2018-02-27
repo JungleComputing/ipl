@@ -145,13 +145,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     static int typedBufferSize(int bufferSize, int elSize) {
         return (bufferSize - (Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES)
-                * Constants.SIZEOF_SHORT)
-                / elSize;
+                * Constants.SIZEOF_SHORT) / elSize;
     }
 
     /**
      * Constructor with an <code>DataInputStream</code>.
-     * 
+     *
      * @param in
      *            the underlying <code>DataInputStream</code>
      * @exception IOException
@@ -185,6 +184,9 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     /**
      * Constructor, may be used when this class is sub-classed.
+     * 
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     protected DataSerializationInputStream() throws IOException {
         super();
@@ -401,7 +403,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         return a;
     }
 
-    /**
+    /*
      * Reads (part of) an array of booleans. This method is here to make
      * extending this class easier.
      */
@@ -416,8 +418,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayBoolean: offset: " + off + " len: "
-                        + len + " type: " + Constants.TYPE_BOOLEAN);
+                logger.debug("readArrayBoolean: offset: " + off + " len: " + len
+                        + " type: " + Constants.TYPE_BOOLEAN);
             }
             in.readArray(ref, off, len);
         } else {
@@ -427,7 +429,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
-    /**
+    /*
      * Reads (part of) an array of bytes. This method is here to make extending
      * this class easier.
      */
@@ -472,7 +474,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
-    /**
+    /*
      * Reads (part of) an array of chars. This method is here to make extending
      * this class easier.
      */
@@ -498,7 +500,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
-    /**
+    /*
      * Reads (part of) an array of shorts. This method is here to make extending
      * this class easier.
      */
@@ -524,14 +526,16 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
-    /**
+    /*
      * Reads (part of) an array of ints. This method is here to make extending
      * this class easier.
      */
-    protected void readIntArray(int ref[], int off, int len) throws IOException {
+    protected void readIntArray(int ref[], int off, int len)
+            throws IOException {
         if (NO_ARRAY_BUFFERS) {
             in.readArray(ref, off, len);
-        } else if (len >= IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_INT) {
+        } else if (len >= IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_INT) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -548,7 +552,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
-    /**
+    /*
      * Reads (part of) an array of longs. This method is here to make extending
      * this class easier.
      */
@@ -574,7 +578,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
-    /**
+    /*
      * Reads (part of) an array of floats. This method is here to make extending
      * this class easier.
      */
@@ -600,7 +604,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
     }
 
-    /**
+    /*
      * Reads (part of) an array of doubles. This method is here to make
      * extending this class easier.
      */
@@ -742,7 +746,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     /**
      * Receive a new bunch of data.
-     * 
+     *
      * @exception IOException
      *                gets thrown when any of the reads throws it.
      */
@@ -760,15 +764,16 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                     + (max_double_index - double_index)
                     + (max_array_index - array_index);
             if (sum != 0) {
-                logger.debug("EEEEK : receiving while there is data in buffer !!!");
+                logger.debug(
+                        "EEEEK : receiving while there is data in buffer !!!");
                 logger.debug("byte_index " + (max_byte_index - byte_index));
                 logger.debug("char_index " + (max_char_index - char_index));
                 logger.debug("short_index " + (max_short_index - short_index));
                 logger.debug("int_index " + (max_int_index - int_index));
                 logger.debug("long_index " + (max_long_index - long_index));
                 logger.debug("float_index " + (max_float_index - float_index));
-                logger.debug("double_index "
-                        + (max_double_index - double_index));
+                logger.debug(
+                        "double_index " + (max_double_index - double_index));
                 logger.debug("array_index " + (max_array_index - array_index));
 
                 throw new SerializationError("Internal error!");
@@ -861,14 +866,14 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     @Override
     public int available() throws IOException {
-        return super.available() + (max_byte_index - byte_index)
-                * Constants.SIZEOF_BYTE + (max_char_index - char_index)
-                * Constants.SIZEOF_CHAR + (max_short_index - short_index)
-                * Constants.SIZEOF_SHORT + (max_int_index - int_index)
-                * Constants.SIZEOF_INT + (max_long_index - long_index)
-                * Constants.SIZEOF_LONG + (max_float_index - float_index)
-                * Constants.SIZEOF_FLOAT + (max_double_index - double_index)
-                * Constants.SIZEOF_DOUBLE;
+        return super.available()
+                + (max_byte_index - byte_index) * Constants.SIZEOF_BYTE
+                + (max_char_index - char_index) * Constants.SIZEOF_CHAR
+                + (max_short_index - short_index) * Constants.SIZEOF_SHORT
+                + (max_int_index - int_index) * Constants.SIZEOF_INT
+                + (max_long_index - long_index) * Constants.SIZEOF_LONG
+                + (max_float_index - float_index) * Constants.SIZEOF_FLOAT
+                + (max_double_index - double_index) * Constants.SIZEOF_DOUBLE;
     }
 
     public String readUTF() throws IOException {
@@ -908,8 +913,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             } else if ((bi & 0xe0) == 0xc0) {
                 if (i + 1 >= bn || (b[i + 1] & 0xc0) != 0x80) {
                     if (logger.isErrorEnabled()) {
-                        logger.error("i = " + i + ", len = " + bn + ", bi = "
-                                + bi);
+                        logger.error(
+                                "i = " + i + ", len = " + bn + ", bi = " + bi);
                         StringBuffer sb = new StringBuffer();
                         sb.append("bytes: ");
                         for (int j = 0; j < bn; j++) {
@@ -926,8 +931,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 if (i + 2 >= bn || (b[i + 1] & 0xc0) != 0x80
                         || (b[i + 2] & 0xc0) != 0x80) {
                     if (logger.isErrorEnabled()) {
-                        logger.error("i = " + i + ", len = " + bn + ", bi = "
-                                + bi);
+                        logger.error(
+                                "i = " + i + ", len = " + bn + ", bi = " + bi);
                         StringBuffer sb = new StringBuffer();
                         sb.append("bytes: ");
                         for (int j = 0; j < bn; j++) {

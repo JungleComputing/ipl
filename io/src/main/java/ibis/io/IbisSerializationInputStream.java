@@ -61,9 +61,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     static {
         if (STATS_NONREWRITTEN) {
             nonRewritten = new Hashtable<Class<?>, Integer>();
-            System.out
-                    .println("IbisSerializationInputStream.STATS_NONREWRITTEN"
-                            + " enabled");
+            System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN"
+                    + " enabled");
             Runtime.getRuntime().addShutdownHook(
                     new Thread("IbisSerializationInputStream ShutdownHook") {
                         @Override
@@ -158,7 +157,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * Constructor with a <code>DataInputStream</code>.
-     * 
+     *
      * @param in
      *            the underlying <code>DataInputStream</code>
      * @exception IOException
@@ -172,6 +171,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * Constructor, may be used when this class is sub-classed.
+     * 
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     protected IbisSerializationInputStream() throws IOException {
         super();
@@ -251,6 +253,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
     }
 
+    @Override
     public void readByteBuffer(ByteBuffer b) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
@@ -392,8 +395,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     @Override
-    public void readArray(Object[] ref, int off, int len) throws IOException,
-            ClassNotFoundException {
+    public void readArray(Object[] ref, int off, int len)
+            throws IOException, ClassNotFoundException {
         if (TIME_IBIS_SERIALIZATION) {
             timer.start();
         }
@@ -409,7 +412,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Allocates and reads an array of bytes from the input stream. This method
      * is used by IOGenerator-generated code.
-     * 
+     *
      * @return the array read.
      * @exception IOException
      *                in case of error.
@@ -429,7 +432,11 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readArrayByte()}, this one is for an array of boolans.
+     * See {@link #readArrayByte()}, this one is for an array of booleans.
+     *
+     * @return the array read.
+     * @exception IOException
+     *                in case of error.
      */
     public boolean[] readArrayBoolean() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -447,6 +454,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readArrayByte()}, this one is for an array of chars.
+     *
+     * @return the array read.
+     * @exception IOException
+     *                in case of error.
      */
     public char[] readArrayChar() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -464,6 +475,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readArrayByte()}, this one is for an array of shorts.
+     *
+     * @return the array read.
+     * @exception IOException
+     *                in case of error.
      */
     public short[] readArrayShort() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -480,7 +495,11 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readArrayByte()}, this one is for an array of ints.
+     * See {@link #readArrayByte()}, this one is for an array of integers.
+     *
+     * @return the array read.
+     * @exception IOException
+     *                in case of error.
      */
     public int[] readArrayInt() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -498,6 +517,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readArrayByte()}, this one is for an array of longs.
+     *
+     * @return the array read.
+     * @exception IOException
+     *                in case of error.
      */
     public long[] readArrayLong() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -515,6 +538,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readArrayByte()}, this one is for an array of floats.
+     *
+     * @return the array read.
+     * @exception IOException
+     *                in case of error.
      */
     public float[] readArrayFloat() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -532,6 +559,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readArrayByte()}, this one is for an array of doubles.
+     *
+     * @return the array read.
+     * @exception IOException
+     *                in case of error.
      */
     public double[] readArrayDouble() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
@@ -550,7 +581,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Initializes the <code>objects</code> and <code>types</code> fields,
      * including their indices.
-     * 
+     *
      * @param do_types
      *            set when the type table must be initialized as well (this is
      *            not needed after a reset).
@@ -604,7 +635,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Reads a handle, which is just an int representing an index in the object
      * table.
-     * 
+     *
      * @exception IOException
      *                gets thrown when an IO error occurs.
      * @return the handle read.
@@ -642,7 +673,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * Reads a <code>Class</code> object from the stream and tries to load it.
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs.
      * @exception ClassNotFoundException
@@ -689,14 +720,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * Reads the header of an array. This header consists of a handle, a type,
      * and an integer representing the length. Note that the data read is mostly
      * redundant.
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs.
      * @exception ClassNotFoundException
      *                when the array class could not be loaded.
      */
-    void readArrayHeader(Class<?> clazz, int len) throws IOException,
-            ClassNotFoundException {
+    void readArrayHeader(Class<?> clazz, int len)
+            throws IOException, ClassNotFoundException {
 
         if (DEBUG && logger.isDebugEnabled()) {
             logger.debug("readArrayHeader: class = " + clazz.getName()
@@ -717,8 +748,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     + " from read class " + in_clazz);
         }
         if (ASSERTS && in_len != len) {
-            throw new ArrayIndexOutOfBoundsException("Cannot read " + in_len
-                    + " into " + len + " elements");
+            throw new ArrayIndexOutOfBoundsException(
+                    "Cannot read " + in_len + " into " + len + " elements");
         }
     }
 
@@ -726,7 +757,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * Adds an object <code>o</code> to the object table, for cycle checking.
      * This method is public because it gets called from IOGenerator-generated
      * code.
-     * 
+     *
      * @param o
      *            the object to be added
      */
@@ -746,7 +777,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Looks up an object in the object table. This method is public because it
      * gets called from IOGenerator-generated code.
-     * 
+     *
      * @param handle
      *            the handle of the object to be looked up
      * @return the corresponding object.
@@ -764,14 +795,16 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Method used by IOGenerator-generated code to read a handle, and determine
      * if it has to read a new object or get one from the object table.
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs.
+     * @exception ClassNotFoundException
+     *                when the class could not be loaded
      * @return 0 for a null object, -1 for a new object, and the handle for an
      *         object already in the object table.
      */
-    public final int readKnownTypeHeader() throws IOException,
-            ClassNotFoundException {
+    public final int readKnownTypeHeader()
+            throws IOException, ClassNotFoundException {
         int handle_or_type = readHandle();
 
         if ((handle_or_type & Constants.TYPE_BIT) == 0) {
@@ -803,22 +836,22 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Reads an array from the stream. The handle and type have already been
      * read.
-     * 
+     *
      * @param clazz
      *            the type of the array to be read
      * @param type
      *            an index in the types table, but also an indication of the
      *            base type of the array
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs.
      * @exception ClassNotFoundException
      *                when element type is Object and readObject throws it.
-     * 
+     *
      * @return the array read.
      */
-    Object readArray(Class<?> clazz, int type) throws IOException,
-            ClassNotFoundException {
+    Object readArray(Class<?> clazz, int type)
+            throws IOException, ClassNotFoundException {
 
         if (DEBUG && logger.isDebugEnabled()) {
             if (clazz != null) {
@@ -845,8 +878,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             return readArrayDouble();
         default:
             int len = readInt();
-            Object ref = java.lang.reflect.Array.newInstance(
-                    clazz.getComponentType(), len);
+            Object ref = java.lang.reflect.Array
+                    .newInstance(clazz.getComponentType(), len);
             addObjectToCycleCheck(ref);
 
             for (int i = 0; i < len; i++) {
@@ -862,7 +895,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * Returns the <code>AlternativeTypeInfo</code> corresponding to the type
      * number given as parameter. If the parameter indicates a type not yet
      * read, its name is read (as an UTF), and the class is loaded.
-     * 
+     *
      * @param type
      *            the type number
      * @exception ClassNotFoundException
@@ -871,8 +904,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      *                is thrown when an IO error occurs
      * @return the <code>AlternativeTypeInfo</code> for <code>type</code>.
      */
-    private AlternativeTypeInfo readType(int type) throws IOException,
-            ClassNotFoundException {
+    private AlternativeTypeInfo readType(int type)
+            throws IOException, ClassNotFoundException {
         if (type < next_type) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("read type number 0x" + Integer.toHexString(type));
@@ -910,7 +943,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * The problem with this situation is that IOGenerator cannot create a
      * proper constructor for this object, so cannot assign to final fields
      * without falling back to native code.
-     * 
+     *
      * @param ref
      *            object with a final field
      * @param fieldname
@@ -934,6 +967,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldLong(Object ref, String fieldname, String classname)
             throws IOException {
@@ -949,6 +991,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldFloat(Object ref, String fieldname, String classname)
             throws IOException {
@@ -964,6 +1015,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldInt(Object ref, String fieldname, String classname)
             throws IOException {
@@ -979,6 +1039,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldShort(Object ref, String fieldname, String classname)
             throws IOException {
@@ -994,6 +1063,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldChar(Object ref, String fieldname, String classname)
             throws IOException {
@@ -1009,6 +1087,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldByte(Object ref, String fieldname, String classname)
             throws IOException {
@@ -1024,6 +1111,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldBoolean(Object ref, String fieldname, String classname)
             throws IOException {
@@ -1039,6 +1135,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      */
     public void readFieldString(Object ref, String fieldname, String classname)
             throws IOException {
@@ -1054,7 +1159,16 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
-     * 
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
+     *
      * @exception ClassNotFoundException
      *                when the class could not be loaded.
      */
@@ -1072,7 +1186,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /**
      * See {@link #readFieldDouble(Object, String, String)} for a description.
-     * 
+     *
+     * @param ref
+     *            object with a final field
+     * @param fieldname
+     *            name of the field
+     * @param classname
+     *            the name of the class
+     * @exception IOException
+     *                is thrown when an IO error occurs.
      * @param fieldsig
      *            signature of the field
      * @exception ClassNotFoundException
@@ -1094,12 +1216,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Reads the serializable fields of an object <code>ref</code> using the
      * type information <code>t</code>.
-     * 
+     *
      * @param t
      *            the type info for object <code>ref</code>
      * @param ref
      *            the object of which the fields are to be read
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs
      * @exception IllegalAccessException
@@ -1231,8 +1353,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                 if (f != null) {
                     if (DEBUG && logger.isDebugEnabled()) {
                         if (o == null) {
-                            logger.debug("Assigning null to field "
-                                    + f.getName());
+                            logger.debug(
+                                    "Assigning null to field " + f.getName());
                         } else {
                             logger.debug("Assigning an object of type "
                                     + o.getClass().getName() + " to field "
@@ -1249,12 +1371,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * De-serializes an object <code>ref</code> using the type information
      * <code>t</code>.
-     * 
+     *
      * @param t
      *            the type info for object <code>ref</code>
      * @param ref
      *            the object of which the fields are to be read
-     * 
+     *
      * @exception IOException
      *                when an IO error occurs
      * @exception IllegalAccessException
@@ -1316,7 +1438,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * object, and also those of its parent objects. Its gets called by
      * IOGenerator-generated code when an object has a superclass that is
      * serializable but not Ibis serializable.
-     * 
+     *
      * @param ref
      *            the object with a non-Ibis-serializable parent object
      * @param classname
@@ -1350,7 +1472,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * declaration of the <code>current_level</code> field. It gets called from
      * IOGenerator-generated code, when a parent object is serializable but not
      * Ibis serializable.
-     * 
+     *
      * @param ref
      *            the object of which serializable fields must be written
      * @param depth
@@ -1390,11 +1512,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * <code>classname</code>. The corresponding constructor called is the
      * parameter-less constructor of the "highest" superclass that is not
      * serializable.
-     * 
+     *
      * @param classname
      *            name of the class
+     * @return the object
      * @exception ClassNotFoundException
      *                when class <code>classname</code> cannot be loaded.
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     public Object create_uninitialized_object(String classname)
             throws ClassNotFoundException, IOException {
@@ -1429,7 +1554,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Push the notions of <code>current_object</code> and
      * <code>current_level</code> on their stacks, and set new ones.
-     * 
+     *
      * @param ref
      *            the new <code>current_object</code> notion
      * @param level
@@ -1469,7 +1594,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Reads and returns a <code>String</code> object. This is a special case,
      * because strings are written as an UTF.
-     * 
+     *
      * @exception IOException
      *                gets thrown on IO error
      * @return the string read.
@@ -1531,8 +1656,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         return doReadObject(false);
     }
 
-    final Object doReadObject(boolean unshared) throws IOException,
-            ClassNotFoundException {
+    final Object doReadObject(boolean unshared)
+            throws IOException, ClassNotFoundException {
         /*
          * ref < 0: type ref = 0: null ptr ref > 0: handle
          */
@@ -1653,8 +1778,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         @Override
-        public Object readObjectOverride() throws IOException,
-                ClassNotFoundException {
+        public Object readObjectOverride()
+                throws IOException, ClassNotFoundException {
             return ibisStream.doReadObject(false);
         }
 
@@ -1667,8 +1792,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         @Override
-        protected ObjectStreamClass readClassDescriptor() throws IOException,
-                ClassNotFoundException {
+        protected ObjectStreamClass readClassDescriptor()
+                throws IOException, ClassNotFoundException {
             Class<?> cl = ibisStream.readClass();
             if (cl == null) {
                 return null;
@@ -1693,7 +1818,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         @Override
-        public Object readUnshared() throws IOException, ClassNotFoundException {
+        public Object readUnshared()
+                throws IOException, ClassNotFoundException {
             return doReadObject(true);
         }
 
@@ -1738,7 +1864,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         @Override
-        public GetField readFields() throws IOException, ClassNotFoundException {
+        public GetField readFields()
+                throws IOException, ClassNotFoundException {
             if (current_object == null) {
                 throw new NotActiveException("not in readObject");
             }
@@ -1933,8 +2060,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         @Override
-        public void defaultReadObject() throws ClassNotFoundException,
-                IOException, NotActiveException {
+        public void defaultReadObject()
+                throws ClassNotFoundException, IOException, NotActiveException {
             if (current_object == null) {
                 throw new NotActiveException(
                         "defaultReadObject without a current object");
@@ -1949,8 +2076,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     logger.debug("generated_DefaultReadObject, class = " + type
                             + ", level = " + current_level);
                 }
-                ((ibis.io.Serializable) ref).generated_DefaultReadObject(
-                        ibisStream, current_level);
+                ((ibis.io.Serializable) ref)
+                        .generated_DefaultReadObject(ibisStream, current_level);
             } else if (t.isSerializable) {
 
                 /*
@@ -1971,8 +2098,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     throw new IbisNotSerializableException(type.getName(), e);
                 }
             } else {
-                throw new IbisNotSerializableException("Not Serializable : "
-                        + type.toString());
+                throw new IbisNotSerializableException(
+                        "Not Serializable : " + type.toString());
             }
         }
     }

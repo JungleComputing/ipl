@@ -24,13 +24,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Class representing a coordinate in a Cartesian space. Code copied from
  * Zorilla.
- * 
+ *
  * @author Niels Drost
- * 
+ *
  */
 public final class Coordinates implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(Coordinates.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(Coordinates.class);
 
     // nodes closer than this push each other off in some random direction
     public static final double CLOSEBY_THRESHOLD = 0.01;
@@ -94,9 +95,9 @@ public final class Coordinates implements Serializable {
     }
 
     private static double[] randomVector() {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("randomness commencing!");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("randomness commencing!");
+        }
 
         double[] result = new double[DIMENSIONS];
         for (int i = 0; i < DIMENSIONS; i++) {
@@ -122,7 +123,7 @@ public final class Coordinates implements Serializable {
 
         if (logger.isDebugEnabled()) {
             logger.debug("unitVector(" + toString(vector) + ") = "
-        	    + toString(result));
+                    + toString(result));
         }
 
         magnitude = magnitude(result);
@@ -145,7 +146,8 @@ public final class Coordinates implements Serializable {
 
     private final int byte2int(byte[] src, int off) {
         return (((src[off + 3] & 0xff) << 0) | ((src[off + 2] & 0xff) << 8)
-                | ((src[off + 1] & 0xff) << 16) | ((src[off + 0] & 0xff) << 24));
+                | ((src[off + 1] & 0xff) << 16)
+                | ((src[off + 0] & 0xff) << 24));
     }
 
     private final void long2byte(long src, byte[] dst, int off) {
@@ -216,12 +218,18 @@ public final class Coordinates implements Serializable {
 
     /**
      * Updates coordinate with new information...
+     * 
+     * @param remoteCoordinates
+     *            coordinates to update with
+     * @param rtt
+     *            distance
+     * @return the updated coordinates
      */
     public Coordinates update(Coordinates remoteCoordinates, double rtt) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("updating " + this + " with " + remoteCoordinates
-		    + " at distance " + rtt);
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("updating " + this + " with " + remoteCoordinates
+                    + " at distance " + rtt);
+        }
 
         double newError;
         double[] newCoordinates;
@@ -240,8 +248,8 @@ public final class Coordinates implements Serializable {
             logger.debug("sample error = " + sampleError);
         }
 
-        newError = sampleError * ERROR_CONTROL * weight + error
-                * (1 - ERROR_CONTROL * weight);
+        newError = sampleError * ERROR_CONTROL * weight
+                + error * (1 - ERROR_CONTROL * weight);
 
         if (newError > 1.0) {
             newError = 1.0;
@@ -257,8 +265,8 @@ public final class Coordinates implements Serializable {
             logger.debug("step = " + step);
         }
 
-        double[] unitVector = unitVector(subtract(coordinates,
-                remoteCoordinates.coordinates));
+        double[] unitVector = unitVector(
+                subtract(coordinates, remoteCoordinates.coordinates));
         if (logger.isDebugEnabled()) {
             logger.debug("unit vector = " + toString(unitVector));
         }
@@ -311,6 +319,7 @@ public final class Coordinates implements Serializable {
         return true;
     }
 
+    @Override
     public String toString() {
         return toString(coordinates) + " error = " + prettyPrint(error);
     }

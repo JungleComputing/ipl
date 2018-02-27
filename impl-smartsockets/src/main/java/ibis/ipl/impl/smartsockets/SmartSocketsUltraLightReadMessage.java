@@ -15,6 +15,11 @@
  */
 package ibis.ipl.impl.smartsockets;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
+
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.DataInputStream;
 import ibis.io.SerializationFactory;
@@ -23,11 +28,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ReadOnlyBufferException;
 
 public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 
@@ -46,9 +46,9 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
     private final SmartSocketsUltraLightReceivePort port;
 
     private final int len;
-    
-    SmartSocketsUltraLightReadMessage(SmartSocketsUltraLightReceivePort port, 
-            SendPortIdentifier origin, byte [] data) throws IOException {
+
+    SmartSocketsUltraLightReadMessage(SmartSocketsUltraLightReceivePort port,
+            SendPortIdentifier origin, byte[] data) throws IOException {
 
         this.origin = origin;
         this.port = port;
@@ -59,11 +59,11 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         String serialization = null;
 
         if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
-            serialization = "data";    
+            serialization = "data";
         } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
-            serialization = "sun";            
+            serialization = "sun";
         } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
-            serialization = "ibis";            
+            serialization = "ibis";
         } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
             serialization = "object";
         } else {
@@ -71,9 +71,9 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         }
 
         // bin = new SingleBufferArrayInputStream(data);
-        bin = new BufferedArrayInputStream(
-                new ByteArrayInputStream(data));
-        in = SerializationFactory.createSerializationInput(serialization, bin, port.properties);		
+        bin = new BufferedArrayInputStream(new ByteArrayInputStream(data));
+        in = SerializationFactory.createSerializationInput(serialization, bin,
+                port.properties);
     }
 
     public long bytesRead() throws IOException {
@@ -91,7 +91,9 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
     /**
      * May be called by an implementation to allow for detection of finish()
      * calls within an upcall.
-     * @param val the value to set.
+     *
+     * @param val
+     *            the value to set.
      */
     public void setInUpcall(boolean val) {
         inUpcall = val;
@@ -100,6 +102,8 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
     /**
      * May be called by an implementation to allow for detection of finish()
      * calls within an upcall.
+     *
+     * @return whether currently in an upcall.
      */
     public boolean getInUpcall() {
         return inUpcall;
@@ -109,7 +113,7 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         return finishCalledFromUpcall;
     }
 
-    public boolean isFinished() { 
+    public boolean isFinished() {
         return isFinished;
     }
 
@@ -126,11 +130,11 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
             finishCalledFromUpcall = true;
             port.newUpcallThread();
         }
-        
+
         long retval = bin.bytesRead();
         try {
             in.close();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             // ignore
         }
         return retval;
@@ -141,13 +145,13 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         if (isFinished) {
             return;
         }
-        
+
         try {
             in.close();
-        } catch(Throwable ex) {
+        } catch (Throwable ex) {
             // ignore
         }
-        
+
         isFinished = true;
 
         if (inUpcall) {
@@ -155,7 +159,6 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
             port.newUpcallThread();
         }
     }
-
 
     public ReceivePort localPort() {
         return port;
@@ -194,47 +197,57 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
     }
 
     public void readArray(double[] destination) throws IOException {
-        in.readArray(destination);		
+        in.readArray(destination);
     }
 
-    public void readArray(Object[] destination) throws IOException, ClassNotFoundException {
-        in.readArray(destination);		
+    public void readArray(Object[] destination)
+            throws IOException, ClassNotFoundException {
+        in.readArray(destination);
     }
 
-    public void readArray(boolean[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(boolean[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(byte[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(byte[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(char[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(char[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(short[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(short[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(int[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(int[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(long[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(long[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(float[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(float[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(double[] destination, int offset, int size) throws IOException {
-        in.readArray(destination, offset, size);		
+    public void readArray(double[] destination, int offset, int size)
+            throws IOException {
+        in.readArray(destination, offset, size);
     }
 
-    public void readArray(Object[] destination, int offset, int size) throws IOException, ClassNotFoundException {
-        in.readArray(destination, offset, size);		
+    public void readArray(Object[] destination, int offset, int size)
+            throws IOException, ClassNotFoundException {
+        in.readArray(destination, offset, size);
     }
 
     public boolean readBoolean() throws IOException {
@@ -282,10 +295,9 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
     }
 
     @Override
-    public void readByteBuffer(ByteBuffer value) throws IOException,
-	    ReadOnlyBufferException {
-	in.readByteBuffer(value);
+    public void readByteBuffer(ByteBuffer value)
+            throws IOException, ReadOnlyBufferException {
+        in.readByteBuffer(value);
     }
-
 
 }

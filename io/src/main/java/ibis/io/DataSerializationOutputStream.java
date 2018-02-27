@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
  * and arrays of basic types. It also serves as a base type for Ibis
  * serialization.
  */
-public class DataSerializationOutputStream extends
-        ByteSerializationOutputStream {
+public class DataSerializationOutputStream
+        extends ByteSerializationOutputStream {
 
     private static final boolean DEBUG = IOProperties.DEBUG;
 
@@ -99,7 +99,7 @@ public class DataSerializationOutputStream extends
     /**
      * Register how often we need to acquire a new set of primitive array
      * buffers. private int unfinished;
-     * 
+     *
      * { Runtime.getRuntime().addShutdownHook(new Thread() { public void run() {
      * logger.info(DataSerializationOutputStream.this + ": unfinished calls " +
      * unfinished); statistics(); } }); }
@@ -146,7 +146,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Constructor with a <code>DataOutputStream</code>.
-     * 
+     *
      * @param out
      *            the underlying <code>DataOutputStream</code>
      * @exception IOException
@@ -159,20 +159,20 @@ public class DataSerializationOutputStream extends
         if (bufferSize <= 0) {
             bufferSize = IOProperties.TYPED_BUFFER_SIZE;
         }
-        BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
-                bufferSize, Constants.SIZEOF_BYTE);
-        CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
-                bufferSize, Constants.SIZEOF_CHAR);
-        SHORT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
-                bufferSize, Constants.SIZEOF_SHORT);
-        INT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
-                bufferSize, Constants.SIZEOF_INT);
-        LONG_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
-                bufferSize, Constants.SIZEOF_LONG);
-        FLOAT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
-                bufferSize, Constants.SIZEOF_FLOAT);
-        DOUBLE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(
-                bufferSize, Constants.SIZEOF_DOUBLE);
+        BYTE_BUFFER_SIZE = DataSerializationInputStream
+                .typedBufferSize(bufferSize, Constants.SIZEOF_BYTE);
+        CHAR_BUFFER_SIZE = DataSerializationInputStream
+                .typedBufferSize(bufferSize, Constants.SIZEOF_CHAR);
+        SHORT_BUFFER_SIZE = DataSerializationInputStream
+                .typedBufferSize(bufferSize, Constants.SIZEOF_SHORT);
+        INT_BUFFER_SIZE = DataSerializationInputStream
+                .typedBufferSize(bufferSize, Constants.SIZEOF_INT);
+        LONG_BUFFER_SIZE = DataSerializationInputStream
+                .typedBufferSize(bufferSize, Constants.SIZEOF_LONG);
+        FLOAT_BUFFER_SIZE = DataSerializationInputStream
+                .typedBufferSize(bufferSize, Constants.SIZEOF_FLOAT);
+        DOUBLE_BUFFER_SIZE = DataSerializationInputStream
+                .typedBufferSize(bufferSize, Constants.SIZEOF_DOUBLE);
 
         if (!NO_ARRAY_BUFFERS) {
             initArrays();
@@ -187,6 +187,9 @@ public class DataSerializationOutputStream extends
 
     /**
      * Constructor, may be used when this class is sub-classed.
+     * 
+     * @exception IOException
+     *                gets thrown when an IO error occurs.
      */
     protected DataSerializationOutputStream() throws IOException {
         super();
@@ -219,14 +222,14 @@ public class DataSerializationOutputStream extends
      * Method to put a boolean array in the "array cache". If the cache is full
      * it is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -263,14 +266,14 @@ public class DataSerializationOutputStream extends
      * Method to put a byte array in the "array cache". If the cache is full it
      * is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -308,20 +311,20 @@ public class DataSerializationOutputStream extends
             int len = value.limit() - value.position();
             if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
 
-               for (int i = 0; i < len; i++) {
-                   writeByte(value.get());
-               }
+                for (int i = 0; i < len; i++) {
+                    writeByte(value.get());
+                }
             } else {
-               if (array_index == ARRAY_BUFFER_SIZE) {
-                   internalFlush();
-               }
-               array[array_index].type = Constants.TYPE_BYTE;
-               array[array_index].offset = 0;
-               array[array_index].len = len;
-               array[array_index].array = value;
-               array_index++;
+                if (array_index == ARRAY_BUFFER_SIZE) {
+                    internalFlush();
+                }
+                array[array_index].type = Constants.TYPE_BYTE;
+                array[array_index].offset = 0;
+                array[array_index].len = len;
+                array[array_index].array = value;
+                array_index++;
 
-               addStatSendArray(value, Constants.TYPE_BYTE, len);
+                addStatSendArray(value, Constants.TYPE_BYTE, len);
             }
         }
     }
@@ -330,14 +333,14 @@ public class DataSerializationOutputStream extends
      * Method to put a char array in the "array cache". If the cache is full it
      * is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -373,14 +376,14 @@ public class DataSerializationOutputStream extends
      * Method to put a short array in the "array cache". If the cache is full it
      * is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -415,14 +418,14 @@ public class DataSerializationOutputStream extends
      * Method to put a int array in the "array cache". If the cache is full it
      * is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -457,14 +460,14 @@ public class DataSerializationOutputStream extends
      * Method to put a long array in the "array cache". If the cache is full it
      * is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -472,7 +475,8 @@ public class DataSerializationOutputStream extends
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_LONG) {
+        } else if (len < IOProperties.SMALL_ARRAY_BOUND
+                / Constants.SIZEOF_LONG) {
             for (int i = offset; i < offset + len; i++) {
                 writeLong(ref[i]);
             }
@@ -499,14 +503,14 @@ public class DataSerializationOutputStream extends
      * Method to put a float array in the "array cache". If the cache is full it
      * is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -541,14 +545,14 @@ public class DataSerializationOutputStream extends
      * Method to put a double array in the "array cache". If the cache is full
      * it is written to the arrayOutputStream. This method is public because it
      * gets called from rewritten code.
-     * 
+     *
      * @param ref
      *            the array to be written
      * @param offset
      *            the offset at which to start
      * @param len
      *            number of elements to write
-     * 
+     *
      * @exception IOException
      *                on IO error.
      */
@@ -585,7 +589,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Flushes everything collected sofar.
-     * 
+     *
      * @exception IOException
      *                on an IO error.
      */
@@ -689,7 +693,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a boolean value to the accumulator.
-     * 
+     *
      * @param value
      *            The boolean value to write.
      * @exception IOException
@@ -718,7 +722,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a byte value to the accumulator.
-     * 
+     *
      * @param value
      *            The byte value to write.
      * @exception IOException
@@ -747,7 +751,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a char value to the accumulator.
-     * 
+     *
      * @param value
      *            The char value to write.
      * @exception IOException
@@ -776,7 +780,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a short value to the accumulator.
-     * 
+     *
      * @param value
      *            The short value to write.
      * @exception IOException
@@ -805,7 +809,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a int value to the accumulator.
-     * 
+     *
      * @param value
      *            The int value to write.
      * @exception IOException
@@ -835,7 +839,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a long value to the accumulator.
-     * 
+     *
      * @param value
      *            The long value to write.
      * @exception IOException
@@ -864,7 +868,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a float value to the accumulator.
-     * 
+     *
      * @param value
      *            The float value to write.
      * @exception IOException
@@ -893,7 +897,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Writes a double value to the accumulator.
-     * 
+     *
      * @param value
      *            The double value to write.
      * @exception IOException
@@ -1024,7 +1028,7 @@ public class DataSerializationOutputStream extends
 
     /**
      * Flush the primitive arrays.
-     * 
+     *
      * @exception IOException
      *                is thrown when any <code>writeArray</code> throws it.
      */

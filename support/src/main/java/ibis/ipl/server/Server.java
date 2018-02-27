@@ -15,6 +15,17 @@
  */
 package ibis.ipl.server;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.server.CentralRegistryService;
 import ibis.ipl.registry.gossip.BootstrapService;
@@ -27,20 +38,9 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ClassLister;
 import ibis.util.TypedProperties;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Main Ibis Server class.
- * 
+ *
  * @ibis.experimental
  */
 public final class Server implements ServerInterface {
@@ -78,8 +78,16 @@ public final class Server implements ServerInterface {
 
     /**
      * Create a server with the given server properties.
+     * 
+     * @param properties
+     *            the server properties
+     * @param policy
+     *            control policy
+     * @throws Exception
+     *             in case of trouble
      */
-    public Server(Properties properties, ControlPolicy policy) throws Exception {
+    public Server(Properties properties, ControlPolicy policy)
+            throws Exception {
         services = new HashMap<String, Service>();
 
         // get default properties.
@@ -112,11 +120,12 @@ public final class Server implements ServerInterface {
                     hubAddressFile);
         }
 
-//        if (typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS)) {
-//            smartProperties.put(SmartSocketsProperties.HUB_STATISTICS, "true");
-//            smartProperties.put(SmartSocketsProperties.HUB_STATS_INTERVAL,
-//                    "60000");
-//        }
+        // if (typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS))
+        // {
+        // smartProperties.put(SmartSocketsProperties.HUB_STATISTICS, "true");
+        // smartProperties.put(SmartSocketsProperties.HUB_STATS_INTERVAL,
+        // "60000");
+        // }
 
         hubOnly = typedProperties.getBooleanProperty(ServerProperties.HUB_ONLY);
 
@@ -158,10 +167,11 @@ public final class Server implements ServerInterface {
             smartProperties.put(SmartSocketsProperties.PORT_RANGE,
                     typedProperties.getProperty(ServerProperties.PORT));
 
-            if (typedProperties.getBooleanProperty(ServerProperties.START_HUB)) {
+            if (typedProperties
+                    .getBooleanProperty(ServerProperties.START_HUB)) {
                 smartProperties.put(SmartSocketsProperties.START_HUB, "true");
-                smartProperties
-                        .put(SmartSocketsProperties.HUB_DELEGATE, "true");
+                smartProperties.put(SmartSocketsProperties.HUB_DELEGATE,
+                        "true");
             }
 
             // create a factory, or get an existing one from SmartSockets
@@ -185,7 +195,8 @@ public final class Server implements ServerInterface {
                     if (typedProperties
                             .getBooleanProperty(ServerProperties.START_HUB)) {
 
-                        if (!sl.registerProperty("smartsockets.viz", "invisible")) {
+                        if (!sl.registerProperty("smartsockets.viz",
+                                "invisible")) {
                             sl.updateProperty("smartsockets.viz", "invisible");
                         }
                     } else {
@@ -194,8 +205,8 @@ public final class Server implements ServerInterface {
                         }
                     }
                 } else {
-                    logger
-                            .warn("could not set smartsockets viz property: could not get smartsockets service link");
+                    logger.warn(
+                            "could not set smartsockets viz property: could not get smartsockets service link");
                 }
             } catch (Throwable e) {
                 logger.warn("could not register smartsockets viz property", e);
@@ -223,8 +234,9 @@ public final class Server implements ServerInterface {
                 String[] services = typedProperties
                         .getStringList(ServerProperties.SERVICES);
                 if (services == null) {
-                    serviceClassList = classLister.getClassList("Ibis-Service",
-                            Service.class).toArray(new Class[0]);
+                    serviceClassList = classLister
+                            .getClassList("Ibis-Service", Service.class)
+                            .toArray(new Class[0]);
                 } else {
                     serviceClassList = new Class[services.length];
                     for (int i = 0; i < services.length; i++) {
@@ -232,27 +244,28 @@ public final class Server implements ServerInterface {
                     }
                 }
             } else {
-                serviceClassList = classLister.getClassList("Ibis-Service",
-                        Service.class).toArray(new Class[0]);
+                serviceClassList = classLister
+                        .getClassList("Ibis-Service", Service.class)
+                        .toArray(new Class[0]);
             }
 
             for (int i = 0; i < serviceClassList.length; i++) {
                 try {
                     Service service = (Service) serviceClassList[i]
-                            .getConstructor(
-                                    new Class[] { TypedProperties.class,
-                                            VirtualSocketFactory.class })
-                            .newInstance(
-                                    new Object[] { typedProperties,
-                                            virtualSocketFactory });
+                            .getConstructor(new Class[] { TypedProperties.class,
+                                    VirtualSocketFactory.class })
+                            .newInstance(new Object[] { typedProperties,
+                                    virtualSocketFactory });
                     services.put(service.getServiceName(), service);
                 } catch (InvocationTargetException e) {
                     if (e.getCause() == null) {
                         logger.warn("Could not create service "
                                 + serviceClassList[i] + ":", e);
                     } else {
-                        logger.warn("Could not create service "
-                                + serviceClassList[i] + ":", e.getCause());
+                        logger.warn(
+                                "Could not create service "
+                                        + serviceClassList[i] + ":",
+                                e.getCause());
                     }
                 } catch (Throwable e) {
                     logger.warn("Could not create service "
@@ -267,7 +280,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.server.ServerInterface#getRegistryService()
      */
     public CentralRegistryService getRegistryService() {
@@ -280,7 +293,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.server.ServerInterface#getManagementService()
      */
     public ManagementService getManagementService() {
@@ -289,7 +302,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.server.ServerInterface#getAddress()
      */
     public String getAddress() {
@@ -298,7 +311,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.server.ServerInterface#getServiceNames()
      */
     public String[] getServiceNames() {
@@ -307,7 +320,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.server.ServerInterface#getHubs()
      */
     public String[] getHubs() {
@@ -330,7 +343,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @seeibis.ipl.server.ServerInterface#addHubs(ibis.smartsockets.direct.
      * DirectSocketAddress)
      */
@@ -344,7 +357,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.server.ServerInterface#addHubs(java.lang.String)
      */
     public void addHubs(String... hubAddresses) {
@@ -355,6 +368,7 @@ public final class Server implements ServerInterface {
         }
     }
 
+    @Override
     public String toString() {
         if (hubOnly) {
             return "Hub running on " + getAddress();
@@ -373,7 +387,7 @@ public final class Server implements ServerInterface {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.server.ServerInterface#end(long)
      */
     public void end(long timeout) {
@@ -409,21 +423,21 @@ public final class Server implements ServerInterface {
         out.println("USAGE: ibis-server [OPTIONS]");
         out.println();
         out.println("--no-hub\t\t\tDo not start a hub.");
-        out
-                .println("--hub-only\t\t\tOnly start a hub, not the rest of the server.");
-        out
-                .println("--hub-addresses HUB[,HUB]\tAdditional hubs to connect to.");
-        out
-                .println("--hub-address-file [FILE_NAME]\tWrite the addresses of the hub to the given");
+        out.println(
+                "--hub-only\t\t\tOnly start a hub, not the rest of the server.");
+        out.println(
+                "--hub-addresses HUB[,HUB]\tAdditional hubs to connect to.");
+        out.println(
+                "--hub-address-file [FILE_NAME]\tWrite the addresses of the hub to the given");
         out.println("\t\t\t\tfile. The file is deleted on exit.");
         out.println("--port PORT\t\t\tPort used for the server.");
-        out
-                .println("--remote\t\t\tListen to commands for this server on stdin.");
+        out.println(
+                "--remote\t\t\tListen to commands for this server on stdin.");
         out.println();
         out.println("Output Options:");
         out.println("--events\t\t\tPrint events.");
-        out
-                .println("--errors\t\t\tPrint details of errors (such as stacktraces).");
+        out.println(
+                "--errors\t\t\tPrint details of errors (such as stacktraces).");
         out.println("--stats\t\t\t\tPrint statistics once in a while.");
         out.println("--help | -h | /?\t\tThis message.");
 
@@ -448,6 +462,7 @@ public final class Server implements ServerInterface {
             this.server = server;
         }
 
+        @Override
         public void run() {
             server.end(-1);
         }
@@ -455,6 +470,9 @@ public final class Server implements ServerInterface {
 
     /**
      * Run the ibis server
+     *
+     * @param args
+     *            program arguments
      */
     public static void main(String[] args) {
         TypedProperties properties = new TypedProperties();
@@ -506,20 +524,15 @@ public final class Server implements ServerInterface {
             System.exit(1);
         }
 
-        /* Don't remember what this was for. Maybe just a test?
-        System.out.println("Server started");
-        server.end(0);
-        System.out.println("Server stopped");
-        try {
-            server = new Server(properties);
-        } catch (Throwable t) {
-            System.err.println("Could not start Server");
-            t.printStackTrace();
-
-            System.exit(1);
-        }
-        System.out.println("Server started");
-        */
+        /*
+         * Don't remember what this was for. Maybe just a test?
+         * System.out.println("Server started"); server.end(0);
+         * System.out.println("Server stopped"); try { server = new
+         * Server(properties); } catch (Throwable t) {
+         * System.err.println("Could not start Server"); t.printStackTrace();
+         *
+         * System.exit(1); } System.out.println("Server started");
+         */
 
         // register shutdown hook
         try {

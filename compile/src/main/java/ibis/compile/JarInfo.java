@@ -31,13 +31,13 @@ import java.util.jar.JarFile;
 public class JarInfo {
 
     /** Wether the contents of the jarfile is modified. */
-    private boolean     modified;
+    private boolean modified;
 
     /** A list of entries of the jarfile, including their contents. */
-    private ArrayList<JarEntryInfo>  entries = new ArrayList<JarEntryInfo>();
+    private ArrayList<JarEntryInfo> entries = new ArrayList<JarEntryInfo>();
 
     /** Reference to the jarfile itself. */
-    private JarFile     jarFile;
+    private JarFile jarFile;
 
     private class Enum implements Enumeration<JarEntryInfo> {
         int count = 0;
@@ -55,15 +55,20 @@ public class JarInfo {
     }
 
     /**
-     * Creates a container for information about a jar file being processed by Ibisc.
-     * @param jf the jar file.
-     * @throws IOException when there is something wrong with the jar file.
+     * Creates a container for information about a jar file being processed by
+     * Ibisc.
+     * 
+     * @param jf
+     *            the jar file.
+     * @throws IOException
+     *             when there is something wrong with the jar file.
      */
     public JarInfo(JarFile jf) throws IOException {
         this.jarFile = jf;
         modified = false;
-        
-        for (Enumeration<JarEntry> iitems = jf.entries(); iitems.hasMoreElements();) {
+
+        for (Enumeration<JarEntry> iitems = jf.entries(); iitems
+                .hasMoreElements();) {
             JarEntry ient = iitems.nextElement();
             entries.add(new JarEntryInfo(ient, this));
         }
@@ -71,6 +76,7 @@ public class JarInfo {
 
     /**
      * Returns an enumeration of {@link JarEntryInfo}s for the jar file.
+     * 
      * @return an enumeration.
      */
     public Enumeration<JarEntryInfo> entries() {
@@ -79,39 +85,52 @@ public class JarInfo {
 
     /**
      * Adds the specified entry to this info object.
-     * @param e the entry to add.
+     * 
+     * @param e
+     *            the entry to add.
      */
     public void addEntry(IbiscEntry e) {
         JarEntry je = new JarEntry(e.fileName);
         JarEntryInfo jei = new JarEntryInfo(je, this, null, e);
         entries.add(jei);
     }
-    
+
     /**
      * Notifies the info object about the "modified" status of the jar file.
-     * @param val the "modified" status, either {@code true} or {@code false}
+     * 
+     * @param val
+     *            the "modified" status, either {@code true} or {@code false}
      */
     public void setModified(boolean val) {
         modified = val;
     }
-    
+
     /**
      * Return the "modified" status of the jar file.
+     * 
      * @return the "modified" status.
      */
     public boolean getModified() {
         return modified;
     }
- 
+
     /**
-     * See {@link JarFile#getName()}. 
+     * See {@link JarFile#getName()}.
+     * 
+     * @return the pathname of the JAR file
      */
     public String getName() {
         return jarFile.getName();
     }
 
     /**
-     * See {@link JarFile#getInputStream(java.util.zip.ZipEntry)}. 
+     * See {@link JarFile#getInputStream(java.util.zip.ZipEntry)}.
+     * 
+     * @param j
+     *            the JAR file entry
+     * @return an input stream for reading the JAR entry
+     * @throws IOException
+     *             if an I/O error has occurred
      */
     public InputStream getInputStream(JarEntry j) throws IOException {
         return jarFile.getInputStream(j);

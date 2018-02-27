@@ -15,6 +15,15 @@
  */
 package ibis.ipl.registry.central.server;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.Location;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.registry.ControlPolicy;
@@ -28,24 +37,17 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Server for the centralized registry implementation.
- * 
+ *
  */
-public final class CentralRegistryService extends Thread implements Service, RegistryServiceInterface {
+public final class CentralRegistryService extends Thread
+        implements Service, RegistryServiceInterface {
 
     // public static final int VIRTUAL_PORT = 302;
 
-    private static final Logger logger = LoggerFactory.getLogger(CentralRegistryService.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(CentralRegistryService.class);
 
     // do we remove old, terminated pools or not?
     // we shouldn't, but the ipl used to, so we keep this for backwards
@@ -63,7 +65,7 @@ public final class CentralRegistryService extends Thread implements Service, Reg
     private final boolean printEvents;
 
     private final boolean printErrors;
-    
+
     private final int connectTimeout;
 
     private ServerConnectionHandler handler;
@@ -72,25 +74,36 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
     /**
      * Constructor to create a registry server which is part of a IbisServer
-     * 
+     *
      * @param properties
+     *            the properties
      * @param socketFactory
+     *            the socket factory to use
+     * @param policy
+     *            the policy
      * @throws IOException
+     *             when an IO error occurs
      */
-    public CentralRegistryService(TypedProperties properties, VirtualSocketFactory socketFactory, ControlPolicy policy)
+    public CentralRegistryService(TypedProperties properties,
+            VirtualSocketFactory socketFactory, ControlPolicy policy)
             throws IOException {
         this.socketFactory = socketFactory;
 
-        TypedProperties typedProperties = RegistryProperties.getHardcodedProperties();
+        TypedProperties typedProperties = RegistryProperties
+                .getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        printStats = typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS);
+        printStats = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents = typedProperties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        printEvents = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors = typedProperties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
-        
-        connectTimeout = typedProperties.getIntProperty(RegistryProperties.SERVER_CONNECT_TIMEOUT) * 1000;
+        printErrors = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+
+        connectTimeout = typedProperties.getIntProperty(
+                RegistryProperties.SERVER_CONNECT_TIMEOUT) * 1000;
 
         pools = new TreeMap<String, Pool>();
 
@@ -100,7 +113,8 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         ThreadPool.createNew(this, "Central Registry Service");
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Started Central Registry service on virtual port " + Protocol.VIRTUAL_PORT);
+            logger.debug("Started Central Registry service on virtual port "
+                    + Protocol.VIRTUAL_PORT);
         }
     }
 
@@ -110,7 +124,7 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.registry.central.server.RegistryService#getServiceName()
      */
     public String getServiceName() {
@@ -118,17 +132,22 @@ public final class CentralRegistryService extends Thread implements Service, Reg
     }
 
     // atomic get/create pool
-    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap, long heartbeatInterval,
-            long eventPushInterval, boolean gossip, long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize, boolean keepStatistics, long statisticsInterval, boolean purgeHistory,
+    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap,
+            long heartbeatInterval, long eventPushInterval, boolean gossip,
+            long gossipInterval, boolean adaptGossipInterval, boolean tree,
+            boolean closedWorld, int poolSize, boolean keepStatistics,
+            long statisticsInterval, boolean purgeHistory,
             String implementationVersion) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || (result.hasEnded() && REMOVE_ENDED_POOLS)) {
 
-            result = new Pool(poolName, socketFactory, peerBootstrap, heartbeatInterval, eventPushInterval, gossip,
-                    gossipInterval, adaptGossipInterval, tree, closedWorld, poolSize, keepStatistics,
-                    statisticsInterval, connectTimeout, implementationVersion, printEvents, printErrors, purgeHistory);
+            result = new Pool(poolName, socketFactory, peerBootstrap,
+                    heartbeatInterval, eventPushInterval, gossip,
+                    gossipInterval, adaptGossipInterval, tree, closedWorld,
+                    poolSize, keepStatistics, statisticsInterval,
+                    connectTimeout, implementationVersion, printEvents,
+                    printErrors, purgeHistory);
             pools.put(poolName, result);
         }
 
@@ -163,11 +182,14 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         handler.end();
     }
 
+    @Override
     public String toString() {
-        return "Central Registry service on virtual port " + Protocol.VIRTUAL_PORT;
+        return "Central Registry service on virtual port "
+                + Protocol.VIRTUAL_PORT;
     }
 
     // pool cleanup thread
+    @Override
     public synchronized void run() {
 
         while (!stopped) {
@@ -215,7 +237,7 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.registry.central.server.RegistryService#getStats()
      */
     public synchronized Map<String, String> getStats() {
@@ -244,7 +266,7 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * ibis.ipl.registry.central.server.RegistryService#getMembers(java.lang
      * .String)
