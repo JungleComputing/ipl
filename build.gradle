@@ -13,14 +13,11 @@ plugins {
     id 'com.github.hierynomus.license' version '0.14.0'
 }
 
-allprojects {
+subprojects {
     apply from: "${rootProject.rootDir}/gradle/common.gradle"
 }
 
-javadoc {
-    failOnError = false
-    options.tags = [ "ibis.experimental" ]
-}
+defaultTasks 'clean', 'jar', 'javadoc'
 
 dependencies {
     compile project(path: 'api')
@@ -39,25 +36,3 @@ dependencies {
 }
 
 apply plugin: 'nebula-aggregate-javadocs'
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-	    artifact sourcesJar {
-		classifier "sources"
-	    }
-	    artifact javadocJar {
-		classifier "javadoc"
-	    }
-	    groupId 'junglecomputing'
-	    artifactId 'ipl'
-
-	    pom.withXml {
-                def root = asNode()
-                root.appendNode('url', 'https://github.com/junglecomputing/ipl.git')
-                root.children().last() + pomConfig
-            }
-        }
-    }
-}

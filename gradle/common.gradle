@@ -59,6 +59,7 @@ bintray {
 javadoc {
     options.tags = [ "ibis.experimental" ]
     failOnError = false
+    classpath = sourceSets.main.runtimeClasspath
     // options.addBooleanOption("Xdoclint:none", true)
 }
 
@@ -77,6 +78,28 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 artifacts {
     archives javadocJar
     archives sourcesJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+	    artifact sourcesJar {
+		classifier "sources"
+	    }
+	    artifact javadocJar {
+		classifier "javadoc"
+	    }
+	    groupId 'junglecomputing'
+	    artifactId 'ipl'
+
+	    pom.withXml {
+                def root = asNode()
+                root.appendNode('url', 'https://github.com/junglecomputing/ipl.git')
+                root.children().last() + pomConfig
+            }
+        }
+    }
 }
 
 tasks.withType(Jar) {
