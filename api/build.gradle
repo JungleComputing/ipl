@@ -2,6 +2,24 @@ apply from: "${rootProject.rootDir}/gradle/sub.gradle"
 
 archivesBaseName = 'ipl'
 
+def generatedResources = "$buildDir/generated-resources/main"
+
+sourceSets {
+    main {
+	output.dir(generatedResources, builtBy: 'generateManifest')
+    }
+}
+
+task generateManifest(type: Copy) {
+    from 'IPL_MANIFEST'
+    into "$generatedResources/ibis/ipl"
+    filter { line -> line.replaceAll('VERSION', "${version}") }
+}
+
+clean {
+    delete generatedResources
+}
+
 javadoc {
     // TODO: is supposed to generate a string
     options.tags = [ "ibis.experimental" ]

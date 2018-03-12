@@ -1,4 +1,4 @@
-** Ibis README **
+# Ibis Portability Layer
 
 Ibis is an open source Java grid software project of the Computer
 Systems group of the Computer Science department of the Faculty of
@@ -6,14 +6,13 @@ Sciences at the Vrije Universiteit, Amsterdam, The Netherlands.  The
 main goal of the Ibis project is to create an efficient Java-based
 platform for grid computing.
 
-This Ibis distribution contains the Ibis communication library (defined
+This release contains the Ibis communication library (defined
 by the Ibis Portability Layer (IPL)) and several implementations of this
 IPL. Some example applications are provided in the "examples"
 directory.
 
-Ibis is free software. See the file "LICENSE.txt" for copying permissions.
-
-See the file INSTALL.txt for a description of how to install ibis.
+Building the IPL is easy: on Unix, execute the included "gradlew" script,
+on Windows execute "gradlew.bat".
 
 The users's guide in the docs directory ("docs/usersguide.pdf") explains
 how to compile and run your Ibis application.
@@ -27,21 +26,20 @@ The javadoc of Ibis is available in "javadoc/index.html".
 Ibis has its own web-site: http://www.cs.vu.nl/ibis/.  There, you can
 find more Ibis documentation, papers, application sources.
 
-The current Ibis source repository tree is accessible through SVN at
-"https://gforge.cs.vu.nl/svn/ibis/ipl/trunk".  You can check it
-out anonymously using the command
-"svn checkout https://gforge.cs.vu.nl/svn/ibis/ipl/trunk ipl".
-There are also tags for the different releases. For instance, the 2.3 release
-can be checked out using the command
-"svn checkout https://gforge.cs.vu.nl/svn/ibis/ipl/tags/2.3 ipl-2.3".
-
-The file BUGS.txt contains information for filing bug reports.
+The current Ibis  source repository tree is accessible at GitHub:
+"https://github.com/junglecomputing/ipl".
 
 There is some dispute about the pronounciation of the word "Ibis". The
 file "docs/rob.mp3" shows how one of the Ibis designers feels about this
 issue.
 
-** Third party libraries included with Ibis **
+## Legal
+
+The IPL library is copyrighted by the Vrije Universiteit Amsterdam and released
+under the Apache License, Version 2.0. A copy of the license may be obtained
+from [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+IPL uses several third-party libraries. Details are below.
 
 This product includes software developed by the Apache Software
 Foundation (http://www.apache.org/).
