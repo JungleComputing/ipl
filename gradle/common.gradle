@@ -93,11 +93,11 @@ publishing {
 	    groupId 'junglecomputing'
 	    artifactId 'ipl'
 
-	    pom.withXml {
-                def root = asNode()
-                root.appendNode('url', 'https://github.com/junglecomputing/ipl.git')
-                root.children().last() + pomConfig
-            }
+//	    pom.withXml {
+//                def root = asNode()
+//                root.appendNode('url', 'https://github.com/junglecomputing/ipl.git')
+//                root.children().last() + pomConfig
+//            }
         }
     }
 }
