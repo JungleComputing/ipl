@@ -1,8 +1,10 @@
 buildscript {
-    repositories { jcenter() }
+    repositories {
+	jcenter()
+    }
 
     dependencies {
-        classpath 'com.netflix.nebula:gradle-aggregate-javadocs-plugin:2.2.+'
+	classpath 'com.netflix.nebula:gradle-aggregate-javadocs-plugin:2.2.+'
     }
 }
 
@@ -14,10 +16,12 @@ plugins {
 }
 
 subprojects {
-    apply from: "${rootProject.rootDir}/gradle/common.gradle"
+    if (it.name != 'docs') {
+	apply from: "${rootProject.rootDir}/gradle/common.gradle"
+    }
 }
 
-defaultTasks 'clean', 'assemble'
+defaultTasks 'clean', 'assemble', 'pdflatex'
 
 dependencies {
     compile project(path: 'api')

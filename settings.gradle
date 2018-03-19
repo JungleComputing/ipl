@@ -11,5 +11,6 @@ include 'impl-stacking-dummy'
 include 'impl-stacking-lrmc'
 include 'benchmarks'
 include 'examples'
+include 'docs'
 
 rootProject.name = 'ipl'
