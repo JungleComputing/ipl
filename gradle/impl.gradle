@@ -19,12 +19,3 @@ compileJava.doLast {
 	args = [ "." ]
     }
 }
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            // artifact javadocJar
-            artifact sourcesJar
-        }
-    }
-}

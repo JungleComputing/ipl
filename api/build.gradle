@@ -1,5 +1,3 @@
-apply from: "${rootProject.rootDir}/gradle/sub.gradle"
-
 archivesBaseName = 'ipl'
 
 def generatedResources = "$buildDir/generated-resources/main"

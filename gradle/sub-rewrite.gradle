@@ -6,15 +6,6 @@ dependencies {
     testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact javadocJar
-            artifact sourcesJar
-        }
-    }
-}
-
 compileJava.doLast {
     javaexec {
 	main = 'ibis.compile.Ibisc'

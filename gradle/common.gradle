@@ -44,18 +44,6 @@ license {
 
 licenseFormat.description = "Applies the license found in the header file in files missing the header"
 
-bintray {
-    user = System.getenv('BINTRAY_NAME')
-    key = System.getenv('BINTRAY_APIKEY')
-    publications = ['mavenJava']
-    pkg {
-	repo = 'JungleComputing'
-	userOrg = "$user"
-	vcsUrl = 'https://github.com/junglecomputing/ipl.git'
-	licenses = ['Apache-2.0']
-    }
-}
-
 javadoc {
     options.tags = [ "ibis.experimental" ]
     failOnError = false
@@ -78,28 +66,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 artifacts {
     archives javadocJar
     archives sourcesJar
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-	    artifact sourcesJar {
-		classifier "sources"
-	    }
-	    artifact javadocJar {
-		classifier "javadoc"
-	    }
-	    groupId 'junglecomputing'
-	    artifactId 'ipl'
-
-//	    pom.withXml {
-//                def root = asNode()
-//                root.appendNode('url', 'https://github.com/junglecomputing/ipl.git')
-//                root.children().last() + pomConfig
-//            }
-        }
-    }
 }
 
 tasks.withType(Jar) {
