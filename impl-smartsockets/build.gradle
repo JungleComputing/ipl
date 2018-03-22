@@ -1,7 +1,7 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 dependencies {
-    compile group: 'junglecomputing', name: 'smartsockets', version: '1.70'
+    compile group: 'nl.junglecomputing', name: 'smartsockets', version: '1.70'
 }
 
 archivesBaseName = 'ipl-impl-smartsockets'

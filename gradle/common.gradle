@@ -1,12 +1,9 @@
 apply plugin: 'java'
-apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.hierynomus.license'
 
 defaultTasks 'clean', 'assemble'
 
 version = '2.3.1'
-group = "junglecomputing"
 
 // Prevent warning about POM relocation not being fully supported
 configurations.all {
@@ -22,10 +19,6 @@ repositories {
     maven {
 	// For sbbi-upnplib
 	url 'http://maven.nuiton.org/release'
-    }
-    maven {
-	// Added for stuff that is not in jcenter yet.
-	url 'https://dl.bintray.com/cerieljacobs/JungleComputing'
     }
 }
 

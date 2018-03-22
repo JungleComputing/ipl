@@ -1,18 +1,14 @@
-buildscript {
-    repositories {
-	jcenter()
-    }
-
-    dependencies {
-	classpath 'com.netflix.nebula:gradle-aggregate-javadocs-plugin:2.2.+'
-    }
-}
-
 plugins {
     id 'java'
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.7.3'
     id 'com.github.hierynomus.license' version '0.14.0'
+}
+
+allprojects {
+    repositories {
+	jcenter()
+    }
 }
 
 subprojects {
@@ -21,49 +17,38 @@ subprojects {
     }
 }
 
-bintray {
-    user = System.getenv('BINTRAY_NAME')
-    key = System.getenv('BINTRAY_APIKEY')
-    publications = ['mavenJava']
-    pkg {
-        repo = 'JungleComputing'
-        userOrg = "$user"
-        vcsUrl = 'https://github.com/junglecomputing/ipl.git'
-        licenses = ['Apache-2.0']
-    }
-}
+configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.name != 'benchmarks'} ) {
+// configure(subprojects.findAll {it.name == 'api' && it.name != 'examples' && it.name != 'benchmarks'} ) {
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
 
-apply plugin: 'maven-publish'
-
-publishing {
-    publications {
-	mavenJava(MavenPublication) {
-	    groupId 'junglecomputing'
-	    subprojects.each {
-		if (it.name != 'docs' && it.name != '.') {
-		    this.setupPublishing(it)
+    publishing {
+	publications {
+	    mavenJava(MavenPublication) {
+		groupId 'nl.junglecomputing.ipl'
+		artifactId archivesBaseName
+		from components.java
+		artifact sourcesJar {
+		    classifier "sources"
 		}
+		artifact javadocJar {
+		    classifier "javadoc"
+		}
+		version version
 	    }
 	}
     }
-}
 
-private void setupPublishing(final Project p) {
-    p.apply plugin: 'maven-publish'
-
-    p.publishing {
-	publications {
-	    mavenJava(MavenPublication) {
-		groupId 'junglecomputing'
-		artifactId p.archivesBaseName
-		from p.components.java
-		artifact p.sourcesJar {
-		    classifier "sources"
-		}
-		artifact p.javadocJar {
-		    classifier "javadoc"
-		}
-	    }
+    bintray {
+	user = System.getenv('BINTRAY_NAME')
+	key = System.getenv('BINTRAY_APIKEY')
+	publications = ['mavenJava']
+	pkg {
+	    repo = 'JungleComputing-IPL'
+	    name = "$archivesBaseName"
+	    userOrg = "$user"
+	    vcsUrl = 'https://github.com/junglecomputing/ipl.git'
+	    licenses = ['Apache-2.0']
 	}
     }
 }
@@ -85,5 +70,3 @@ dependencies {
     compile project(path: 'impl-stacking-dummy')
     compile project(path: 'impl-stacking-lrmc')
 }
-
-apply plugin: 'nebula-aggregate-javadocs'
