@@ -1,8 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'com.github.hierynomus.license'
 
-defaultTasks 'clean', 'assemble'
-
 version = '2.3.1'
 
 // Prevent warning about POM relocation not being fully supported
@@ -72,7 +70,15 @@ tasks.withType(Jar) {
 //    println "Checksum: $checksum"
 //}
 //
-task copyRuntimeLibs(type: Copy) {
-    into "$rootDir/lib"
-    from configurations.runtime
+
+task copyDeps(type: Copy) {
+    def destination = project.file("$rootDir/lib")
+
+    from(configurations.runtime)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
+    }
 }

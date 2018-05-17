@@ -53,7 +53,7 @@ configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.
     }
 }
 
-defaultTasks 'clean', 'assemble', 'pdflatex'
+defaultTasks 'clean', 'assemble', 'pdflatex', 'copyDeps'
 
 dependencies {
     compile project(path: 'api')
