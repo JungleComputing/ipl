@@ -14,10 +14,6 @@ repositories {
     mavenLocal()
     mavenCentral()
     jcenter()
-    maven {
-	// For sbbi-upnplib
-	url 'http://maven.nuiton.org/release'
-    }
 }
 
 license {
