@@ -141,8 +141,10 @@ public interface Registry extends Manageable {
      * Returns the Ibis instances that joined the pool. Returns the changes
      * since the last joinedIbises call, or, if this is the first call, all Ibis
      * instances that joined. This call only works if this Ibis is configured to
-     * support registry downcalls. If no Ibis instances joined, an array with 0
-     * entries is returned.
+     * support registry downcalls. That is, no {@link RegistryEventHandler} is
+     * used and either {@link IbisCapabilities#MEMBERSHIP_UNRELIABLE} or
+     * {@link IbisCapabilities#MEMBERSHIP_TOTALLY_ORDERED} have been requested.
+     * If no Ibis instances joined, an array with 0 entries is returned.
      *
      * @exception IbisConfigurationException
      *                is thrown when the port was not configured to support
@@ -155,8 +157,10 @@ public interface Registry extends Manageable {
      * Returns the Ibis instances that left the pool. Returns the changes since
      * the last leftIbises call, or, if this is the first call, all Ibis
      * instances that left. This call only works if this Ibis is configured to
-     * support registry downcalls. If no Ibis instances left, an array with 0
-     * entries is returned.
+     * support registry downcalls. That is, no {@link RegistryEventHandler} is
+     * used and either {@link IbisCapabilities#MEMBERSHIP_UNRELIABLE} or
+     * {@link IbisCapabilities#MEMBERSHIP_TOTALLY_ORDERED} have been requested.
+     * If no Ibis instances left, an array with 0 entries is returned.
      *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support
@@ -169,8 +173,10 @@ public interface Registry extends Manageable {
      * Returns the Ibis instances that died. Returns the changes since the last
      * diedIbises call, or, if this is the first call, all Ibis instances that
      * died. This call only works if this Ibis is configured to support registry
-     * downcalls. If no Ibis instances died, an array with 0 entries is
-     * returned.
+     * downcalls. That is, no {@link RegistryEventHandler} is used and either
+     * {@link IbisCapabilities#MEMBERSHIP_UNRELIABLE} or
+     * {@link IbisCapabilities#MEMBERSHIP_TOTALLY_ORDERED} have been requested.
+     * If no Ibis instances died, an array with 0 entries is returned.
      *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support
@@ -183,8 +189,9 @@ public interface Registry extends Manageable {
      * Returns the signals received. Returns the changes since the last
      * receivedSignals call, or, if this is the first call, all signals received
      * so far. This call only works if this Ibis is configured to support
-     * registry downcalls. If no signals were received, an array with 0 entries
-     * is returned.
+     * registry downcalls. That is, no {@link RegistryEventHandler} is
+     * used and {@link IbisCapabilities#SIGNALS} has been requested.
+     * If no signals were received, an array with 0 entries is returned.
      *
      * @exception IbisConfigurationException
      *                is thrown when ibis was not configured to support signals.
@@ -274,7 +281,7 @@ public interface Registry extends Manageable {
     /**
      * Gets and subtracts a token from the registry. If it is not available,
      * NULL is returned.
-     * 
+     *
      * @param name
      *            the name of the token
      * @return the name of the token, or NULL if it is not available
