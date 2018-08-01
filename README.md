@@ -1,5 +1,7 @@
 # Ibis Portability Layer
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1324956.svg)](https://doi.org/10.5281/zenodo.1324956)
+
 Ibis is an open source Java grid software project of the Computer
 Systems group of the Computer Science department of the Faculty of
 Sciences at the Vrije Universiteit, Amsterdam, The Netherlands.  The
