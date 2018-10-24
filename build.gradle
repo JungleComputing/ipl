@@ -53,7 +53,7 @@ configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.
     }
 }
 
-defaultTasks 'clean', 'assemble', 'pdflatex', 'copyDeps'
+defaultTasks 'clean', 'assemble', 'copyDeps', 'pdflatex'
 
 dependencies {
     compile project(path: 'api')
@@ -69,4 +69,8 @@ dependencies {
     compile project(path: 'impl-smartsockets')
     compile project(path: 'impl-stacking-dummy')
     compile project(path: 'impl-stacking-lrmc')
+}
+
+clean {
+    delete "$rootDir/lib"
 }
