@@ -3,8 +3,8 @@ apply from: "${rootProject.rootDir}/gradle/sub.gradle"
 dependencies {
     // https://mvnrepository.com/artifact/org.apache.bcel/bcel
     compile group: 'org.apache.bcel', name: 'bcel', version: '6.2'
-    // https://mvnrepository.com/artifact/org.ow2.asm/asm-all
-    compile group: 'org.ow2.asm', name: 'asm-all', version: '5.2'
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm-util
+    compile group: 'org.ow2.asm', name: 'asm-util', version: '7.0'
     compile project(':util')
 }
 
