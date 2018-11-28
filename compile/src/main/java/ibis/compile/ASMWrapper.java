@@ -28,13 +28,12 @@ import org.objectweb.asm.tree.ClassNode;
 
 public class ASMWrapper implements ByteCodeWrapper {
 
-    private HashMap<String, ASMClassInfo> javaClasses
-            = new HashMap<String, ASMClassInfo>();
+    private HashMap<String, ASMClassInfo> javaClasses = new HashMap<String, ASMClassInfo>();
 
     public ASMWrapper(List<String> args) {
         // nothing for now.
     }
-    
+
     @Override
     public ClassInfo getInfo(Object cl) {
         ClassNode n = (ClassNode) cl;
@@ -50,7 +49,14 @@ public class ASMWrapper implements ByteCodeWrapper {
 
     @Override
     public ClassInfo parseClassFile(String fileName) throws IOException {
-        return parseInputStream(new BufferedInputStream(new FileInputStream(fileName)), fileName);
+        InputStream in = new BufferedInputStream(new FileInputStream(fileName));
+        ClassInfo result = parseInputStream(in, fileName);
+        try {
+            in.close();
+        } catch (Throwable e) {
+            // ignore
+        }
+        return result;
     }
 
     @Override
