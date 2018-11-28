@@ -17,12 +17,12 @@
 
 package ibis.compile;
 
-import ibis.util.ClassLister;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -30,16 +30,16 @@ import java.util.List;
 import java.util.jar.JarFile;
 import java.util.zip.ZipOutputStream;
 
+import ibis.util.ClassLister;
+
 /**
- * The main class of the Ibisc compiler.
- * Loads all Ibisc components that are found on the classpath, and runs them
- * all on the specified arguments.
+ * The main class of the Ibisc compiler. Loads all Ibisc components that are
+ * found on the classpath, and runs them all on the specified arguments.
  */
 public class Ibisc {
 
     /** Contains the (classname, <code>IbiscEntry</code>) pairs. */
-    public static HashMap<String, IbiscEntry> allClasses
-            = new HashMap<String, IbiscEntry>();
+    public static HashMap<String, IbiscEntry> allClasses = new HashMap<String, IbiscEntry>();
 
     /** The list of jarfiles. */
     private static ArrayList<JarInfo> jarFiles = new ArrayList<JarInfo>();
@@ -49,18 +49,17 @@ public class Ibisc {
 
     /** Set when jar files must be compressed. */
     private static boolean compress = true;
-    
+
     static boolean debug = false;
 
     static ByteCodeWrapper w;
 
     static ByteCodeWrapper bcelWrapper;
-    
+
     static ByteCodeWrapper asmWrapper;
 
-    private static ArrayList<IbiscComponent> ibiscComponents
-            = new ArrayList<IbiscComponent>();
-    
+    private static ArrayList<IbiscComponent> ibiscComponents = new ArrayList<IbiscComponent>();
+
     private Ibisc() {
         // prevent construction.
     }
@@ -68,7 +67,7 @@ public class Ibisc {
     private static void getClassesFromDirectory(File f, String prefix) {
         File[] list = f.listFiles();
 
-        if (! prefix.equals("")) {
+        if (!prefix.equals("")) {
             prefix = prefix + f.getName() + File.separator;
         } else {
             prefix = f.getName() + File.separator;
@@ -90,9 +89,9 @@ public class Ibisc {
         ClassInfo cl = null;
         try {
             cl = w.parseClassFile(fileName);
-        } catch(IOException e) {
-            System.err.println("Ibisc: warning: could not read class "
-                    + fileName);
+        } catch (IOException e) {
+            System.err.println(
+                    "Ibisc: warning: could not read class " + fileName);
         }
         if (cl != null) {
             allClasses.put(cl.getClassName(), new IbiscEntry(cl, fileName));
@@ -105,9 +104,9 @@ public class Ibisc {
         try {
             jf = new JarFile(f, true);
             jarInfo = new JarInfo(jf);
-        } catch(IOException e) {
-            System.err.println("Ibisc: warning: could not read jarfile "
-                    + fileName);
+        } catch (IOException e) {
+            System.err.println(
+                    "Ibisc: warning: could not read jarfile " + fileName);
             return;
         } finally {
             if (jf != null) {
@@ -119,18 +118,20 @@ public class Ibisc {
             }
         }
         jarFiles.add(jarInfo);
-        // jarInfo.modified = true;        // for testing ...
+        // jarInfo.modified = true; // for testing ...
     }
 
     /**
      * Verifies all modified classes.
-     * @param ic the <code>IbiscComponent</code> after which this
-     * verification is run.
+     * 
+     * @param ic
+     *            the <code>IbiscComponent</code> after which this verification
+     *            is run.
      */
     private static void verifyClasses(IbiscComponent ic) {
         for (IbiscEntry e : allClasses.values()) {
             if (e.getModified()) {
-                if (! e.getClassInfo().doVerify()) {
+                if (!e.getClassInfo().doVerify()) {
                     System.out.println("Ibisc: verification failed after "
                             + "component " + ic.getClass().getName());
                     System.exit(1);
@@ -170,21 +171,29 @@ public class Ibisc {
      * Safe(?) rename. Problem is that File.rename may not work if the
      * destination exists.
      */
-    private static void rename(File dest, File src, File dir) throws IOException {
+    private static void rename(File dest, File src, File dir)
+            throws IOException {
         File temp = File.createTempFile("Ibc_", null, dir);
-        temp.delete();
-        if (dest.exists() && ! dest.renameTo(temp)) {
-            throw new IOException("Could not rename "
-                    + dest.getPath() + " to temporary " + temp.getPath());
+        if (dest.exists()) {
+            Files.move(dest.toPath(), temp.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
         }
-        if (! src.renameTo(dest)) {
+        try {
+            Files.move(src.toPath(), dest.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
             if (temp.exists()) {
-                temp.renameTo(dest);    // Try to restore dest. If it fails,
-                                        // we at least have temp.
+                // try to restore dest.
+                try {
+                    Files.move(temp.toPath(), dest.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING);
+                } catch (Throwable ex) {
+                    // ignore
+                }
             }
-            throw new IOException("Could not rename " + src.getPath() + "to "
-                    + dest.getPath());
+            throw e;
         }
+
         temp.delete();
     }
 
@@ -213,19 +222,21 @@ public class Ibisc {
                     File canonicalDir = file.getCanonicalFile().getParentFile();
                     temp = File.createTempFile("Ibisc_", null, canonicalDir);
                     FileOutputStream out = new FileOutputStream(temp);
-                    BufferedOutputStream bo = new BufferedOutputStream(out, 16384);
+                    BufferedOutputStream bo = new BufferedOutputStream(out,
+                            16384);
                     ZipOutputStream zo = new ZipOutputStream(bo);
                     zo.setMethod(ZipOutputStream.DEFLATED);
-                    if (! compress) {
+                    if (!compress) {
                         zo.setLevel(0);
                     }
-                    for (Enumeration<JarEntryInfo> iitems = ji.entries(); iitems.hasMoreElements();) {
+                    for (Enumeration<JarEntryInfo> iitems = ji.entries(); iitems
+                            .hasMoreElements();) {
                         JarEntryInfo ient = iitems.nextElement();
                         ient.write(zo);
                     }
                     zo.close();
                     rename(file, temp, canonicalDir);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     System.err.println("Ibisc: got exception while writing "
                             + name + ": " + e);
                     e.printStackTrace();
@@ -249,7 +260,9 @@ public class Ibisc {
 
     /**
      * Reads all classes and jars from the specified arguments.
-     * @param leftArgs the arguments.
+     * 
+     * @param leftArgs
+     *            the arguments.
      */
     static void readAll(ArrayList<String> leftArgs) {
         // Convert the rest of the arguments to classes
@@ -275,7 +288,7 @@ public class Ibisc {
         for (int i = 0; i < ibiscComponents.size(); i++) {
             IbiscComponent ic = ibiscComponents.get(i);
             String s = ic.getUsageString();
-            if (! s.equals("")) {
+            if (!s.equals("")) {
                 rval = rval + s + " ";
             }
         }
@@ -284,7 +297,9 @@ public class Ibisc {
 
     /**
      * Main entry point for Ibisc
-     * @param args arguments from the command line
+     * 
+     * @param args
+     *            arguments from the command line
      */
     public static void main(String[] args) {
         boolean keep = false;
@@ -330,7 +345,8 @@ public class Ibisc {
 
         // Obtain a list of Ibisc components.
         ClassLister clstr = ClassLister.getClassLister(null);
-        List<Class<?>> clcomponents = clstr.getClassList("Ibisc-Component", IbiscComponent.class);
+        List<Class<?>> clcomponents = clstr.getClassList("Ibisc-Component",
+                IbiscComponent.class);
         ArrayList<IbiscComponent> components = new ArrayList<IbiscComponent>();
 
         // Instantiate Ibisc components.
@@ -345,7 +361,7 @@ public class Ibisc {
                     components.add(ic);
                 }
                 ibiscComponents.add(ic);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 System.err.println("Ibisc: warning: could not instantiate "
                         + cl.getName());
             }
@@ -393,7 +409,7 @@ public class Ibisc {
         for (int i = 0; i < components.size(); i++) {
             IbiscComponent ic = components.get(i);
             String knd = ic.rewriterImpl();
-            if (wrapperKind == null || ! knd.equals(wrapperKind)) {
+            if (wrapperKind == null || !knd.equals(wrapperKind)) {
                 if (wrapperKind != null) {
                     writeAll();
                 }
@@ -411,9 +427,9 @@ public class Ibisc {
                 readAll(leftArgs);
             }
             ic.setWrapper(w);
-            System.out.println("Ibisc: applying rewriter "
-                    + ic.getClass().getName()
-                    + " to " + allClasses.size() + " classes.");
+            System.out.println(
+                    "Ibisc: applying rewriter " + ic.getClass().getName()
+                            + " to " + allClasses.size() + " classes.");
             ic.processClasses(allClasses);
             if (verify) {
                 // Verify after each component.
