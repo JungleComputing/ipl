@@ -63,8 +63,8 @@ class SunJavaStuff extends JavaDependantStuff {
             // does not work when a classloader is present, so we get it
             // from ObjectStreamClass.
             Class<?> cl = Class
-                    .forName("java.io.ObjectStreamClass$FieldReflector");
-            Field uf = cl.getDeclaredField("unsafe");
+                    .forName("sun.misc.Unsafe");
+            Field uf = cl.getDeclaredField("theUnsafe");
             uf.setAccessible(true);
             unsafe = uf.get(null);
             cl = unsafe.getClass();
