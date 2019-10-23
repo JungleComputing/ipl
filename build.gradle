@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.jfrog.bintray' version '1.7.3'
+    id 'com.jfrog.bintray' version '1.8.4'
     id 'com.github.hierynomus.license' version '0.14.0'
 }
 
@@ -47,7 +47,7 @@ configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.
 	    repo = 'JungleComputing-IPL'
 	    name = "$archivesBaseName"
 	    userOrg = "$user"
-	    vcsUrl = 'https://github.com/junglecomputing/ipl.git'
+	    vcsUrl = 'https://github.com/JungleComputing/ipl.git'
 	    licenses = ['Apache-2.0']
 	}
     }
@@ -69,8 +69,4 @@ dependencies {
     compile project(path: 'impl-smartsockets')
     compile project(path: 'impl-stacking-dummy')
     compile project(path: 'impl-stacking-lrmc')
-}
-
-clean {
-    delete "$rootDir/lib"
 }
