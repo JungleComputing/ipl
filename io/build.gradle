@@ -1,9 +1,9 @@
 apply from: "${rootProject.rootDir}/gradle/sub.gradle"
 
 dependencies {
-    compile group: 'org.apache.bcel', name: 'bcel', version: '6.2'
-    // https://mvnrepository.com/artifact/org.ow2.asm/asm-all
-    compile group: 'org.ow2.asm', name: 'asm-all', version: '5.2'
+    compile group: 'org.apache.bcel', name: 'bcel', version: '6.4.0'
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm
+    compile group: 'org.ow2.asm', name: 'asm', version: '7.2'
     compile project(path: ':compile')
 }
 

@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'com.github.hierynomus.license'
 
-version = '2.3.2'
+version = '2.3.3'
 
 // Prevent warning about POM relocation not being fully supported
 configurations.all {
