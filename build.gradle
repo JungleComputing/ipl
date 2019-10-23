@@ -18,38 +18,39 @@ subprojects {
 }
 
 configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.name != 'benchmarks'} ) {
-// configure(subprojects.findAll {it.name == 'api' && it.name != 'examples' && it.name != 'benchmarks'} ) {
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
 
     publishing {
-	publications {
-	    mavenJava(MavenPublication) {
-		groupId 'nl.junglecomputing.ipl'
-		artifactId archivesBaseName
-		from components.java
-		artifact sourcesJar {
-		    classifier "sources"
-		}
-		artifact javadocJar {
-		    classifier "javadoc"
-		}
-		version version
-	    }
-	}
+        publications {
+            mavenJava(MavenPublication) {
+                groupId 'nl.junglecomputing.ipl'
+                from components.java
+                artifact sourcesJar {
+                    classifier "sources"
+                }
+                artifact javadocJar {
+                    classifier "javadoc"
+                }
+                afterEvaluate {
+                    artifactId archivesBaseName
+                }
+                version version
+            }
+        }
     }
 
     bintray {
-	user = System.getenv('BINTRAY_NAME')
-	key = System.getenv('BINTRAY_APIKEY')
-	publications = ['mavenJava']
-	pkg {
-	    repo = 'JungleComputing-IPL'
-	    name = "$archivesBaseName"
-	    userOrg = "$user"
-	    vcsUrl = 'https://github.com/JungleComputing/ipl.git'
-	    licenses = ['Apache-2.0']
-	}
+        user = System.getenv('BINTRAY_NAME')
+        key = System.getenv('BINTRAY_APIKEY')
+        publications = ['mavenJava']
+        pkg {
+            repo = 'JungleComputing-IPL'
+            name = "$archivesBaseName"
+            userOrg = "$user"
+            vcsUrl = 'https://github.com/JungleComputing/ipl.git'
+            licenses = ['Apache-2.0']
+        }
     }
 }
 
