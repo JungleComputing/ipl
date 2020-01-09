@@ -5,7 +5,7 @@ archivesBaseName = 'ipl-impl-dummy'
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.dummy.StackingIbisStarter",
-		   "Ibis-IPL-Cersion": version,
+		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "dummy$version",	// TODO: create checksum
 		   "Ibis-NickName": "dummy")
     }
