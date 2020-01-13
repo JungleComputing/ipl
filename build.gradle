@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'maven'
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.8.4'
     id 'com.github.hierynomus.license' version '0.14.0'
@@ -7,7 +8,8 @@ plugins {
 
 allprojects {
     repositories {
-	jcenter()
+        jcenter()
+        mavenCentral()
     }
 }
 
@@ -19,6 +21,7 @@ subprojects {
 
 configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.name != 'benchmarks'} ) {
     apply plugin: 'maven-publish'
+    apply plugin: 'maven'
     apply plugin: 'com.jfrog.bintray'
 
     publishing {
