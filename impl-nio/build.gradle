@@ -5,7 +5,7 @@ archivesBaseName = 'ipl-impl-nio'
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.nio.NioIbisStarter",
-		   "Ibis-IPL-Cersion": version,
+		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "nio$version",	// TODO: create checksum
 		   "Ibis-NickName": "nio")
     }
