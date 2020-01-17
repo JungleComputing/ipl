@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * specific <code>Class</code>, such as a list of serializable fields, whether
  * it has <code>readObject</code> and <code>writeObject</code> methods, et
  * cetera.
- * 
+ *
  * The serializable fields are first ordered alphabetically, and then by type,
  * in the order: double, long, float, int, short, char, byte, boolean,
  * reference. This determines the order in which fields are serialized.
@@ -80,8 +80,8 @@ final class AlternativeTypeInfo {
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
             out.push_current_object(ref, 0);
-            ((java.io.Externalizable) ref).writeExternal(out
-                    .getJavaObjectOutputStream());
+            ((java.io.Externalizable) ref)
+                    .writeExternal(out.getJavaObjectOutputStream());
             out.pop_current_object();
         }
     }
@@ -144,16 +144,16 @@ final class AlternativeTypeInfo {
         void writeObject(IbisSerializationOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
-            throw new IbisNotSerializableException("Not serializable: "
-                    + t.clazz.getName());
+            throw new IbisNotSerializableException(
+                    "Not serializable: " + t.clazz.getName());
         }
     }
 
     private static class IbisSerializableReader extends IbisReader {
         @Override
         Object readObject(IbisSerializationInputStream in,
-                AlternativeTypeInfo t, int typeHandle) throws IOException,
-                ClassNotFoundException {
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
             return t.gen.generated_newInstance(in);
         }
     }
@@ -161,8 +161,8 @@ final class AlternativeTypeInfo {
     private static class ArrayReader extends IbisReader {
         @Override
         Object readObject(IbisSerializationInputStream in,
-                AlternativeTypeInfo t, int typeHandle) throws IOException,
-                ClassNotFoundException {
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
             return in.readArray(t.clazz, typeHandle);
         }
     }
@@ -170,8 +170,8 @@ final class AlternativeTypeInfo {
     private static class StringReader extends IbisReader {
         @Override
         Object readObject(IbisSerializationInputStream in,
-                AlternativeTypeInfo t, int typeHandle) throws IOException,
-                ClassNotFoundException {
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
             String o = in.readUTF();
             in.addObjectToCycleCheck(o);
             return o;
@@ -181,8 +181,8 @@ final class AlternativeTypeInfo {
     private static class ClassReader extends IbisReader {
         @Override
         Object readObject(IbisSerializationInputStream in,
-                AlternativeTypeInfo t, int typeHandle) throws IOException,
-                ClassNotFoundException {
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
             String o = in.readUTF();
             Object obj = JavaDependantStuff.getClassFromName(o);
             in.addObjectToCycleCheck(obj);
@@ -195,14 +195,23 @@ final class AlternativeTypeInfo {
         @Override
         @SuppressWarnings("rawtypes")
         Object readObject(IbisSerializationInputStream in,
-                AlternativeTypeInfo t, int typeHandle) throws IOException,
-                ClassNotFoundException {
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
             String o = in.readUTF();
             Object obj;
+            Class<?> clazz = t.clazz;
+            while (!clazz.isEnum()) {
+                clazz = clazz.getSuperclass();
+                if (clazz == null || clazz == java.lang.Object.class) {
+                    throw new IOException(
+                            "Exception while reading enumeration: class is not an enumeration");
+                }
+            }
             try {
-                obj = Enum.valueOf((Class) t.clazz, o);
+                obj = Enum.valueOf((Class) clazz, o);
             } catch (Throwable e) {
-                throw new IOException("Exception while reading enumeration" + e);
+                throw new IOException(
+                        "Exception while reading enumeration" + e);
             }
             in.addObjectToCycleCheck(obj);
             return obj;
@@ -212,8 +221,8 @@ final class AlternativeTypeInfo {
     private static class ExternalizableReader extends IbisReader {
         @Override
         Object readObject(IbisSerializationInputStream in,
-                AlternativeTypeInfo t, int typeHandle) throws IOException,
-                ClassNotFoundException {
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
             Object obj;
             try {
                 // Also calls parameter-less constructor
@@ -221,14 +230,15 @@ final class AlternativeTypeInfo {
             } catch (Throwable e) {
                 if (logger.isDebugEnabled()) {
                     logger.debug(
-                            "Caught exception, now rethrow as ClassNotFound", e);
+                            "Caught exception, now rethrow as ClassNotFound",
+                            e);
                 }
                 throw new ClassNotFoundException("Could not instantiate", e);
             }
             in.addObjectToCycleCheck(obj);
             in.push_current_object(obj, 0);
-            ((java.io.Externalizable) obj).readExternal(in
-                    .getJavaObjectInputStream());
+            ((java.io.Externalizable) obj)
+                    .readExternal(in.getJavaObjectInputStream());
             in.pop_current_object();
             return obj;
         }
@@ -237,8 +247,8 @@ final class AlternativeTypeInfo {
     private static class SerializableReader extends IbisReader {
         @Override
         Object readObject(IbisSerializationInputStream in,
-                AlternativeTypeInfo t, int typeHandle) throws IOException,
-                ClassNotFoundException {
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
             Object obj = in.create_uninitialized_object(t.clazz);
             in.push_current_object(obj, 0);
             try {
@@ -392,7 +402,7 @@ final class AlternativeTypeInfo {
 
     /**
      * Return the name of the class.
-     * 
+     *
      * @return the name of the class.
      */
     @Override
@@ -406,9 +416,9 @@ final class AlternativeTypeInfo {
      * class, since that method calls the wrong constructor. The first
      * non-serializable class in the type hierarchy needs to have a
      * parameter-less constructor that is visible from this class.
-     * 
+     *
      * Returns <code>null</code> if it fails for some reason.
-     * 
+     *
      * @return the object, or <code>null</code>.
      */
     public Object newInstance() {
@@ -417,7 +427,7 @@ final class AlternativeTypeInfo {
 
     /**
      * Gets the <code>AlternativeTypeInfo</code> for class <code>type</code>.
-     * 
+     *
      * @param type
      *            the <code>Class</code> of the requested type.
      * @return the <code>AlternativeTypeInfo</code> structure for this type.
@@ -437,7 +447,7 @@ final class AlternativeTypeInfo {
     /**
      * Gets the <code>AlternativeTypeInfo</code> for class
      * <code>classname</code>.
-     * 
+     *
      * @param classname
      *            the name of the requested type.
      * @return the <code>AlternativeTypeInfo</code> structure for this type.
@@ -458,7 +468,7 @@ final class AlternativeTypeInfo {
 
     /**
      * Gets the method with the given name, parameter types and return type.
-     * 
+     *
      * @param name
      *            the name of the method
      * @param paramTypes
@@ -500,7 +510,7 @@ final class AlternativeTypeInfo {
 
     /**
      * Invokes the <code>writeObject</code> method on object <code>o</code>.
-     * 
+     *
      * @param o
      *            the object on which <code>writeObject</code> is to be invoked
      * @param out
@@ -517,7 +527,7 @@ final class AlternativeTypeInfo {
 
     /**
      * Invokes the <code>readObject</code> method on object <code>o</code>.
-     * 
+     *
      * @param o
      *            the object on which <code>readObject</code> is to be invoked
      * @param in
@@ -534,7 +544,7 @@ final class AlternativeTypeInfo {
 
     /**
      * Invokes the <code>readResolve</code> method on object <code>o</code>.
-     * 
+     *
      * @param o
      *            the object on which <code>readResolve</code> is to be invoked
      * @exception IOException
@@ -547,7 +557,7 @@ final class AlternativeTypeInfo {
 
     /**
      * Invokes the <code>writeReplace</code> method on object <code>o</code>.
-     * 
+     *
      * @param o
      *            the object on which <code>writeReplace</code> is to be invoked
      * @exception IOException
@@ -720,7 +730,8 @@ final class AlternativeTypeInfo {
 
                     int modifiers = field.getModifiers();
 
-                    if ((modifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0) {
+                    if ((modifiers
+                            & (Modifier.TRANSIENT | Modifier.STATIC)) == 0) {
                         Class<?> field_type = field.getType();
 
                         /*
@@ -730,8 +741,8 @@ final class AlternativeTypeInfo {
                          */
                         if (!field.isAccessible()) {
                             temporary_field = field;
-                            AccessController
-                                    .doPrivileged(new PrivilegedAction<Object>() {
+                            AccessController.doPrivileged(
+                                    new PrivilegedAction<Object>() {
                                         public Object run() {
                                             temporary_field.setAccessible(true);
                                             return null;
@@ -883,7 +894,7 @@ final class AlternativeTypeInfo {
         if (isClass) {
             return new ClassWriter();
         }
-        if (clazz.isEnum()) {
+        if (isEnum()) {
             return new EnumWriter();
         }
         if (isSerializable) {
@@ -908,10 +919,21 @@ final class AlternativeTypeInfo {
         if (isClass) {
             return new ClassReader();
         }
-        if (clazz.isEnum()) {
+        if (isEnum()) {
             return new EnumReader();
         }
         return new SerializableReader();
+    }
+
+    private boolean isEnum() {
+        Class<?> superClass = clazz;
+        while (superClass != null && superClass != java.lang.Object.class) {
+            if (superClass.isEnum()) {
+                return true;
+            }
+            superClass = superClass.getSuperclass();
+        }
+        return false;
     }
 
     /**
@@ -958,7 +980,7 @@ final class AlternativeTypeInfo {
      * <code>tp</code> in either <code>SerialPersistentFields</code>, if it
      * exists, or in the <code>serializable_fields</code> array. An exception is
      * thrown when such a field is not found.
-     * 
+     *
      * @param name
      *            name of the field we are looking for
      * @param tp
@@ -975,7 +997,8 @@ final class AlternativeTypeInfo {
             if (serial_persistent_fields != null) {
                 for (int i = 0; i < serial_persistent_fields.length; i++) {
                     if (serial_persistent_fields[i].getType() == tp) {
-                        if (name.equals(serial_persistent_fields[i].getName())) {
+                        if (name.equals(
+                                serial_persistent_fields[i].getName())) {
                             return offset;
                         }
                         offset++;
@@ -995,7 +1018,8 @@ final class AlternativeTypeInfo {
             if (serial_persistent_fields != null) {
                 for (int i = 0; i < serial_persistent_fields.length; i++) {
                     if (!serial_persistent_fields[i].getType().isPrimitive()) {
-                        if (name.equals(serial_persistent_fields[i].getName())) {
+                        if (name.equals(
+                                serial_persistent_fields[i].getName())) {
                             return offset;
                         }
                         offset++;
@@ -1012,8 +1036,8 @@ final class AlternativeTypeInfo {
                 }
             }
         }
-        throw new IllegalArgumentException("no field named " + name
-                + " with type " + tp);
+        throw new IllegalArgumentException(
+                "no field named " + name + " with type " + tp);
     }
 
     static Class<?> getClass(String n) {
