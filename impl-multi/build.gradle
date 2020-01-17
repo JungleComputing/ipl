@@ -5,7 +5,7 @@ archivesBaseName = 'ipl-impl-multi'
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.multi.MultiIbisStarter",
-		   "Ibis-IPL-Cersion": version,
+		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "Multi$version",	// TODO: create checksum
 		   "Ibis-NickName": "multi")
    }

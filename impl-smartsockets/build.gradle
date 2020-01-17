@@ -9,7 +9,7 @@ archivesBaseName = 'ipl-impl-smartsockets'
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter",
-		   "Ibis-IPL-Cersion": version,
+		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "SmartSockets$version",	// TODO: create checksum
 		   "Ibis-NickName": "smartsockets")
     }
