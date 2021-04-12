@@ -2,18 +2,13 @@ apply plugin: 'java'
 apply plugin: 'com.github.hierynomus.license'
 
 version = '2.3.3'
+group = 'nl.junglecomputing.ipl'
 
 // Prevent warning about POM relocation not being fully supported
 configurations.all {
     resolutionStrategy {
         force 'xml-apis:xml-apis:1.4.01'
     }
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    jcenter()
 }
 
 license {

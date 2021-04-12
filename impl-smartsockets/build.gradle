@@ -1,10 +1,15 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 dependencies {
-    compile group: 'nl.junglecomputing', name: 'smartsockets', version: '1.70'
+    compile group: 'nl.junglecomputing', name: 'smartsockets', version: '1.80'
 }
 
 archivesBaseName = 'ipl-impl-smartsockets'
+
+ext {
+  pname = 'Ibis Portability Layer: smartsockets'
+  pdescription = 'Smartsockets Ibis is an IPL implementation on top of the smartsockets library'
+}
 
 jar {
     manifest {

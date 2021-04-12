@@ -2,6 +2,11 @@ apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 archivesBaseName = 'ipl-impl-dummy'
 
+ext {
+  pname = 'Ibis Portability layer: stacking dummy'
+  pdescription = 'Stacking dummy Ibis is a stacking IPL implementation; that is, it adds some capability to an underlying IPL implementation, in this case nothing, but it illustrates how to write a stacking IPL'
+}
+
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.dummy.StackingIbisStarter",

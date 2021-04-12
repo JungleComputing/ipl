@@ -2,6 +2,11 @@ apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 archivesBaseName = 'ipl-impl-multi'
 
+ext {
+  pname = 'Ibis Portability Layer: Multi Ibis'
+  pdescription = 'Multi Ibis is an IPL implementation sitting on top of multiple other IPL implementations'
+}
+
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.multi.MultiIbisStarter",

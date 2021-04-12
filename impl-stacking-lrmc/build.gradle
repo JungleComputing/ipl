@@ -2,6 +2,11 @@ apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 archivesBaseName = 'ipl-impl-lrmc'
 
+ext {
+  pname = 'Ibis Portability Layer: Label-routed multicast stack'
+  pdescription = 'LRMC ibis is a stacking Ibis that adds multicast to an underlying implementation that may not have it'
+}
+
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.lrmc.LrmcIbisStarter",

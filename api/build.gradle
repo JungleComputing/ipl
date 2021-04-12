@@ -1,5 +1,10 @@
 archivesBaseName = 'ipl'
 
+ext {
+  pname = 'Ibis Portability Layer: API'
+  pdescription = 'API of the Ibis Portability layer'
+}
+
 def generatedResources = "$buildDir/generated-resources/main"
 
 sourceSets {

@@ -9,3 +9,8 @@ dependencies {
 }
 
 archivesBaseName = 'ibis-compile'
+
+ext {
+  pname = 'Ibis Portability Layer: Compiler'
+  pdescription = 'Bytecode rewriter framework of the Ibis Portability Layer'
+}

@@ -2,6 +2,11 @@ apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 archivesBaseName = 'ipl-impl-tcp'
 
+ext {
+  pname = 'Ibis Portability Layer: TCP Ibis'
+  pdescription = 'TCP Ibis is an IPL implementation on top of TCP'
+}
+
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.tcp.TcpIbisStarter",

@@ -1,55 +1,101 @@
 plugins {
     id 'java'
-    id 'maven-publish'
-    id 'com.jfrog.bintray' version '1.8.4'
-    id 'com.github.hierynomus.license' version '0.14.0'
+        id 'maven'
+        id 'signing'
+        id 'com.github.hierynomus.license' version '0.14.0'
 }
 
 allprojects {
     repositories {
-	jcenter()
+        mavenCentral()
     }
 }
 
 subprojects {
     if (it.name != 'docs') {
-	apply from: "${rootProject.rootDir}/gradle/common.gradle"
+        apply from: "${rootProject.rootDir}/gradle/common.gradle"
     }
 }
 
+
 configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.name != 'benchmarks'} ) {
-    apply plugin: 'maven-publish'
-    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'maven'
+        apply plugin: 'signing'
 
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                groupId 'nl.junglecomputing.ipl'
-                from components.java
-                artifact sourcesJar {
-                    classifier "sources"
-                }
-                artifact javadocJar {
-                    classifier "javadoc"
-                }
-                afterEvaluate {
-                    artifactId archivesBaseName
-                }
-                version version
-            }
+        signing {
+            sign configurations.archives
         }
-    }
 
-    bintray {
-        user = System.getenv('BINTRAY_NAME')
-        key = System.getenv('BINTRAY_APIKEY')
-        publications = ['mavenJava']
-        pkg {
-            repo = 'JungleComputing-IPL'
-            name = "$archivesBaseName"
-            userOrg = "$user"
-            vcsUrl = 'https://github.com/JungleComputing/ipl.git'
-            licenses = ['Apache-2.0']
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                // repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                  //   authentication(userName: ossrhUsername, password: ossrhPassword)
+                // }
+                repository(url: "file://${System.properties['user.home']}/.m2/repository") {
+                }
+
+                snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                }
+
+                project.afterEvaluate {
+                    pom.project {
+
+                        groupId 'nl.junglecomputing.ipl'
+
+                            artifactId archivesBaseName
+                            description "${project.ext.pdescription}"
+                            name "${project.ext.pname}"
+                            println "${project.ext.pname}"
+
+                            packaging 'jar'
+                            url 'https://github.com/junglecomputing/ipl'
+
+                            scm {
+                                connection 'scm:git:git://github.com/junglecomputing/ipl.git'
+                                    developerConnection 'scm:git:ssh://github.com:junglecomputing/ipl.git'
+                                    url 'https://github.com/junglecomputing/ipl/tree/master'
+                            }
+
+                        licenses {
+                            license {
+                                name 'The Apache License, Version 2.0'
+                                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                name 'Rob van Nieuwpoort'
+                                    organization 'Netherlands escience Center'
+                                    url 'https://www.esciencecenter.nl/team/prof-rob-van-nieuwpoort-3'
+                            }
+                            developer {
+                                name 'Jason Maassen'
+                                    organization 'Netherlands escience Center'
+                                    url 'https://www.esciencecenter.nl/team/dr-jason-maassen/'
+                            }
+                            developer {
+                                name 'Niels Drost'
+                                    organization 'Netherlands escience Center'
+                                    url 'https://www.esciencecenter.nl/team/dr-niels-drost'
+                            }
+                            developer {
+                                name 'Ceriel Jacobs'
+                                    organization 'Vrije Universiteit Amsterdam'
+                                    url 'https://github.com/CerielJacobs'
+                            }
+                            developer {
+                                name 'Nick Palmer'
+                                    url 'https://github.com/nickpalmer'
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -58,16 +104,16 @@ defaultTasks 'clean', 'assemble', 'copyDeps'
 
 dependencies {
     compile project(path: 'api')
-    compile project(path: 'compile')
-    compile project(path: 'support')
-    compile project(path: 'util')
-    compile project(path: 'io')
-    compile project(path: 'benchmarks')
-    compile project(path: 'examples')
-    compile project(path: 'impl-nio')
-    compile project(path: 'impl-multi')
-    compile project(path: 'impl-tcp')
-    compile project(path: 'impl-smartsockets')
-    compile project(path: 'impl-stacking-dummy')
-    compile project(path: 'impl-stacking-lrmc')
+        compile project(path: 'compile')
+        compile project(path: 'support')
+        compile project(path: 'util')
+        compile project(path: 'io')
+        compile project(path: 'benchmarks')
+        compile project(path: 'examples')
+        compile project(path: 'impl-nio')
+        compile project(path: 'impl-multi')
+        compile project(path: 'impl-tcp')
+        compile project(path: 'impl-smartsockets')
+        compile project(path: 'impl-stacking-dummy')
+        compile project(path: 'impl-stacking-lrmc')
 }

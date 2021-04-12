@@ -2,6 +2,11 @@ apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 archivesBaseName = 'ipl-impl-nio'
 
+ext {
+  pname = 'Ibis Portability Layer: NIO implementation'
+  pdescription = 'NIO Ibis is an IPL implementation sitting on top of Java NIO'
+}
+
 jar {
     manifest {
         attributes("Ibis-Starter-Class": "ibis.ipl.impl.nio.NioIbisStarter",

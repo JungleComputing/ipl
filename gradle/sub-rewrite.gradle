@@ -13,9 +13,6 @@ compileJava.doLast {
 	workingDir = "$buildDir/classes/java/main"
 	args = [ "." ]
     }
-//     sourceSets.main.runtimeClasspath.each { File file ->
-// 	println file.name
-//     }
 }
 
 javadoc {

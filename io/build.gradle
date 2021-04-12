@@ -9,6 +9,11 @@ dependencies {
 
 archivesBaseName = 'ibis-io'
 
+ext {
+  pname = 'Ibis Portability Layer: IO'
+  pdescription = 'Ibis-IO is the IO implementation of IPL. This includes serialization and bytecode rewriting for Ibis serialization'
+}
+
 jar {
     manifest {
         attributes("Ibisc-Component": "ibis.io.rewriter.ASMIOGenerator")

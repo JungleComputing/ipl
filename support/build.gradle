@@ -4,7 +4,12 @@ dependencies {
     compile project(':api')
     compile project(':util')
     compile project(':io')
-    compile group: 'nl.junglecomputing', name: 'smartsockets', version: '1.70'
+    compile group: 'nl.junglecomputing', name: 'smartsockets', version: '1.80'
 }
 
 archivesBaseName = 'ipl-support'
+
+ext {
+  pname = 'Ibis Portability Layer: support'
+  pdescription = 'Support for IPL implementations: mostly the Ibis registry'
+}
