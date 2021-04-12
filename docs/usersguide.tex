@@ -88,8 +88,9 @@ directory, on the class path, and at a location specified with the
 
 An application interfaces to Ibis using the \emph{Ibis Portability Layer} (IPL).
 The code for this package is provided in a single jar file:
-ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.3.jar}.
-It lives in the \emph{lib} directory of the Ibis distribution.
+ipl.jar, appended with the version of ibis, for instance \texttt{ipl-[version-number].jar}.
+It lives in the \emph{lib} directory of the Ibis distribution. Note that the \emph{lib}
+is generated after building the project by running \texttt{./gradelw build}.
 This jar file needs to be added to the class path of the application.
 
 \subsection{Provide the Ibis implementations}
@@ -254,7 +255,7 @@ the application without ipl-run, the following command can be used:
 \begin{verbatim}
 $ java \
     -cp \
-    $IPL_HOME/lib/ipl-2.3.jar:$IPL_HOME/examples/lib/ipl-examples.jar \
+    $IPL_HOME/lib/ipl-[version-number].jar:$IPL_HOME/examples/lib/ipl-examples.jar \
     -Dibis.implementation.path=$IPL_HOME/lib \
     -Dibis.server.address=localhost \
     -Dibis.pool.name=test \
@@ -324,7 +325,7 @@ This should just be a single line.
 {\small
 \begin{verbatim}
 C:\DOCUME~1\Temp> java
-    -cp "%IPL_HOME%"\lib\ipl-2.3.jar;"%IPL_HOME%"\examples\lib\ipl-examples.jar
+    -cp "%IPL_HOME%"\lib\ipl-[version-number].jar;"%IPL_HOME%"\examples\lib\ipl-examples.jar
     -Dibis.implementation.path="%IPL_HOME%"\lib
     -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties
     -Dibis.server.address=localhost -Dibis.pool.name=test
