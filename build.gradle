@@ -31,11 +31,11 @@ configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.
             mavenDeployer {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-                // repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                  //   authentication(userName: ossrhUsername, password: ossrhPassword)
-                // }
-                repository(url: "file://${System.properties['user.home']}/.m2/repository") {
+                repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
                 }
+                // repository(url: "file://${System.properties['user.home']}/.m2/repository") {
+                // }
 
                 snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
                     authentication(userName: ossrhUsername, password: ossrhPassword)
@@ -46,51 +46,51 @@ configure(subprojects.findAll {it.name != 'docs' && it.name != 'examples' && it.
 
                         groupId 'nl.junglecomputing.ipl'
 
-                            artifactId archivesBaseName
-                            description "${project.ext.pdescription}"
-                            name "${project.ext.pname}"
-                            println "${project.ext.pname}"
+                        artifactId archivesBaseName
+                        description "${project.ext.pdescription}"
+                        name "${project.ext.pname}"
+                        println "${project.ext.pname}"
 
-                            packaging 'jar'
-                            url 'https://github.com/junglecomputing/ipl'
+                        packaging 'jar'
+                        url 'https://github.com/junglecomputing/ipl'
 
-                            scm {
-                                connection 'scm:git:git://github.com/junglecomputing/ipl.git'
-                                    developerConnection 'scm:git:ssh://github.com:junglecomputing/ipl.git'
-                                    url 'https://github.com/junglecomputing/ipl/tree/master'
-                            }
+                        scm {
+                            connection 'scm:git:git://github.com/junglecomputing/ipl.git'
+                            developerConnection 'scm:git:ssh://github.com:junglecomputing/ipl.git'
+                            url 'https://github.com/junglecomputing/ipl/tree/master'
+                        }
 
                         licenses {
                             license {
                                 name 'The Apache License, Version 2.0'
-                                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                             }
                         }
 
                         developers {
                             developer {
-                                name 'Rob van Nieuwpoort'
-                                    organization 'Netherlands escience Center'
-                                    url 'https://www.esciencecenter.nl/team/prof-rob-van-nieuwpoort-3'
+                                name = 'Rob van Nieuwpoort'
+                                organization = 'Netherlands escience Center'
+                                url = 'https://www.esciencecenter.nl/team/prof-rob-van-nieuwpoort-3'
                             }
                             developer {
-                                name 'Jason Maassen'
-                                    organization 'Netherlands escience Center'
-                                    url 'https://www.esciencecenter.nl/team/dr-jason-maassen/'
+                                name = 'Jason Maassen'
+                                organization = 'Netherlands escience Center'
+                                url = 'https://www.esciencecenter.nl/team/dr-jason-maassen/'
                             }
                             developer {
-                                name 'Niels Drost'
-                                    organization 'Netherlands escience Center'
-                                    url 'https://www.esciencecenter.nl/team/dr-niels-drost'
+                                name = 'Niels Drost'
+                                organization = 'Netherlands escience Center'
+                                url = 'https://www.esciencecenter.nl/team/dr-niels-drost'
                             }
                             developer {
-                                name 'Ceriel Jacobs'
-                                    organization 'Vrije Universiteit Amsterdam'
-                                    url 'https://github.com/CerielJacobs'
+                                name = 'Ceriel Jacobs'
+                                organization = 'Vrije Universiteit Amsterdam'
+                                url = 'https://github.com/CerielJacobs'
                             }
                             developer {
-                                name 'Nick Palmer'
-                                    url 'https://github.com/nickpalmer'
+                                name = 'Nick Palmer'
+                                url = 'https://github.com/nickpalmer'
                             }
                         }
                     }
