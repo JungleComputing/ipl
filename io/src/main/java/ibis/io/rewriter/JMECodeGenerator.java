@@ -70,7 +70,7 @@ import org.apache.bcel.generic.Type;
  *
  */
 class JMECodeGenerator extends CodeGenerator
-        implements RewriterConstants, JMERewriterConstants {
+        implements JMERewriterConstants {
 
     boolean super_is_jme_serializable;
 

@@ -219,8 +219,7 @@ class ConcurrentSenders {
         int senders = 2;
         /* Parse commandline parameters. */
         for (int i = 0; i < args.length; i++) {
-            if (false) {
-            } else if (args[i].equals("-tree")) {
+            if (args[i].equals("-tree")) {
                 sendTree = true;
             } else if (args[i].equals("-count")) {
                 try {

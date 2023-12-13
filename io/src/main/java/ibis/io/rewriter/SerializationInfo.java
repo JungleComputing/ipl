@@ -387,7 +387,7 @@ class SerializationInfo implements RewriterConstants {
         Long ui = serialversionids.get(classname);
         if (ui == null) {
             uid = SerializationInfo.computeSUID(clazz);
-            serialversionids.put(classname, new Long(uid));
+            serialversionids.put(classname, Long.valueOf(uid));
         } else {
             uid = ui.longValue();
         }

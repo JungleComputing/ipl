@@ -116,7 +116,7 @@ public  class MultiNameResolver {
                             logger.debug("Locking for: " + ibisName);
                         }
                         synchronized (resolveQueue) {
-                            IbisIdentifier toResolve = resolveQueue.remove(new Integer(hashCode));
+                            IbisIdentifier toResolve = resolveQueue.remove(Integer.valueOf(hashCode));
                             synchronized(toResolve) {
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Notifying for resolution: " + ibisName + " on: " + this);
@@ -227,7 +227,7 @@ public  class MultiNameResolver {
         if (logger.isDebugEnabled()) {
             logger.debug("Making Resolve Request for: " + ibisName);
         }
-        Integer id = new Integer(toResolve.hashCode());
+        Integer id = Integer.valueOf(toResolve.hashCode());
         synchronized (resolveQueue) {
             // Make sure we don't collide
             while (resolveQueue.get(id) != null) {

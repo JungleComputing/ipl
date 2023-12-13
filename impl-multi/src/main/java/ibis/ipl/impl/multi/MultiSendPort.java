@@ -228,13 +228,11 @@ public class MultiSendPort implements SendPort {
 
     private final class DisconnectUpcaller
     implements SendPortDisconnectUpcall {
-        MultiSendPort port;
         SendPortDisconnectUpcall upcaller;
         String ibisName;
 
         public DisconnectUpcaller(String ibisName, MultiSendPort port,
                 SendPortDisconnectUpcall upcaller) {
-            this.port = port;
             this.upcaller = upcaller;
             this.ibisName = ibisName;
         }

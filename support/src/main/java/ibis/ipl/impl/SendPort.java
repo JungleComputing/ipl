@@ -219,7 +219,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             try {
                 Class<? extends Replacer> replacerClass = (Class<? extends Replacer>) Class
                         .forName(replacerName);
-                this.replacer = replacerClass.newInstance();
+                this.replacer = replacerClass.getDeclaredConstructor().newInstance();
             } catch (Throwable e) {
                 throw new IOException(
                         "Could not instantiate replacer class " + replacerName);

@@ -216,8 +216,7 @@ final class Main {
 	    int tests = 0;
 
 	    while (i < args.length) { 
-		if (false) {
-		} else if (args[i].equals("-ibis")) { 
+		if (args[i].equals("-ibis")) { 
 		    ibisSer = true;
 		    i++; 
 		} else if (args[i].equals("-upcalls")) { 

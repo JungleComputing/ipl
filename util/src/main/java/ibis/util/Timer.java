@@ -322,7 +322,7 @@ public class Timer implements java.io.Serializable {
     public static Timer createTimer(String impl) {
         try {
             Class<?> c = Class.forName(impl);
-            return (Timer) c.newInstance();
+            return (Timer) c.getDeclaredConstructor().newInstance();
         } catch (Throwable t) {
             System.err.println("Warning could not create timer " + impl
                     + ", falling back to default");
@@ -339,7 +339,7 @@ public class Timer implements java.io.Serializable {
         try {
             Class<?> c = null;
             c = Class.forName("ibis.util.nativeCode.Rdtsc");
-            return (Timer) c.newInstance();
+            return (Timer) c.getDeclaredConstructor().newInstance();
         } catch(Throwable t) {
             return new Timer();
         }

@@ -111,7 +111,7 @@ public class Postpone {
         // Make method accessible, so that it may be called.
         // Note that the main method is public, but the class
         // it lives in may not be.
-        if (!m.isAccessible()) {
+        if (!m.canAccess(null)) {
             final Method temporary_method = m;
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 public Object run() {

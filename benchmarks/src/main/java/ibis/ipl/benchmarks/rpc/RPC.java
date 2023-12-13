@@ -131,7 +131,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private boolean sequenced = false;
 
-    private final boolean EMPTY_REPLY = true; // false; // true;
+    private final boolean EMPTY_REPLY = true; // false; 
 
     private final boolean closePortsAtExit = false; // true;
 
@@ -461,6 +461,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
     }
 
+    @SuppressWarnings("unused")
     private void client() throws IOException, ClassNotFoundException {
         if (warmup > 0) {
             System.err.println("Do warmup:      " + warmup + " calls");
@@ -778,9 +779,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         for (int i = 0; i < args.length; i++) {
             // System.err.println("Now inspect option[" + i + "] = " + args[i]);
-            if (false) {
-
-            } else if (args[i].equals("-no-upcall")
+            if (args[i].equals("-no-upcall")
                     || args[i].equals("-downcall")) {
                 upcall = false;
             } else if (args[i].equals("-upcall")) {
@@ -952,7 +951,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             case DATA_HASH:
                 Hashtable<Integer, Object> h = new Hashtable<Integer, Object>();
                 for (int i = 0; i < size; i++) {
-                    h.put(new Integer(i), new Object());
+                    h.put(Integer.valueOf(i), new Object());
                 }
                 single_object = h;
                 break;

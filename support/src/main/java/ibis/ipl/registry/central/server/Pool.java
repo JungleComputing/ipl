@@ -581,7 +581,7 @@ final class Pool implements Runnable {
         Integer currentValue = sequencers.get(name);
 
         if (currentValue == null) {
-            currentValue = new Integer(0);
+            currentValue = Integer.valueOf(0);
         }
 
         int result = currentValue;

@@ -226,7 +226,7 @@ final class AlternativeTypeInfo {
             Object obj;
             try {
                 // Also calls parameter-less constructor
-                obj = t.clazz.newInstance();
+                obj = t.clazz.getDeclaredConstructor().newInstance();
             } catch (Throwable e) {
                 if (logger.isDebugEnabled()) {
                     logger.debug(
@@ -493,7 +493,7 @@ final class AlternativeTypeInfo {
             }
 
             /* Make method accessible, so that it may be called. */
-            if (!method.isAccessible()) {
+            if (!method.canAccess(method.getDeclaringClass())) {
                 temporary_method = method;
                 AccessController.doPrivileged(new PrivilegedAction<Object>() {
                     public Object run() {
@@ -675,7 +675,7 @@ final class AlternativeTypeInfo {
                 }
                 if (gen_class != null) {
                     try {
-                        gen = (Generator) gen_class.newInstance();
+                        gen = (Generator) gen_class.getDeclaredConstructor().newInstance();
                     } catch (Exception e) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Could not instantiate " + name);

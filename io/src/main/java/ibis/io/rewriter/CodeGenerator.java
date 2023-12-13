@@ -867,6 +867,7 @@ class CodeGenerator implements RewriterConstants {
         return read_il;
     }
 
+    @SuppressWarnings("unused") // apperently, this is not used
     private InstructionHandle generateReadField(String tpname, Type tp,
             InstructionList read_il, GOTO gto, boolean from_constructor) {
         InstructionHandle h;

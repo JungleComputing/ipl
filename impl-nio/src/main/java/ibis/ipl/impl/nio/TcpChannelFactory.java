@@ -230,6 +230,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 continue;
             } else {
                 logger.error("illegal opcode in ChannelFactory.connect()");
+                dissipator.close();
                 throw new IOException(
                         "illegal opcode in ChannelFactory.connect()");
             }

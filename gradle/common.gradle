@@ -45,6 +45,10 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
+compileJava {
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
 artifacts {
     archives javadocJar
     archives sourcesJar

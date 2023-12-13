@@ -420,7 +420,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             if (oldval != null) {
                 cnt += oldval.longValue();
             }
-            sentBytesPerIbis.put(i, new Long(cnt));
+            sentBytesPerIbis.put(i, Long.valueOf(cnt));
         }
     }
 
@@ -435,7 +435,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             if (oldval != null) {
                 cnt += oldval.longValue();
             }
-            receivedBytesPerIbis.put(i, new Long(cnt));
+            receivedBytesPerIbis.put(i, Long.valueOf(cnt));
         }
     }
 

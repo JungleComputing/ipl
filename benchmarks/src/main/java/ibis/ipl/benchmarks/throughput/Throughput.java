@@ -119,8 +119,7 @@ public class Throughput {
         /* parse the commandline */
         int options = 0;
         for (int i = 0; i < args.length; i++) {
-            if (false) {
-            } else if (args[i].equals("-bb")) {
+            if (args[i].equals("-bb")) {
                 bb = true;
             } else if (args[i].equals("-window")) {
                 windowSize = Integer.parseInt(args[++i]);

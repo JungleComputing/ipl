@@ -242,9 +242,7 @@ public class IbisSerializationOutputStream
     }
 
     private static int arrayClassType(Class<?> arrayClass) {
-        if (false) {
-            // nothing
-        } else if (arrayClass == Constants.classByteArray) {
+        if (arrayClass == Constants.classByteArray) {
             return Constants.TYPE_BYTE;
         } else if (arrayClass == Constants.classIntArray) {
             return Constants.TYPE_INT;
@@ -288,6 +286,7 @@ public class IbisSerializationOutputStream
     }
 
     @Override
+    @SuppressWarnings("unused")
     public void statistics() {
         if (false) {
             System.err.print("IbisOutput: references -> ");
@@ -1105,9 +1104,9 @@ public class IbisSerializationOutputStream
             Class<?> clazz = ref.getClass();
             Integer n = statSendObjects.get(clazz);
             if (n == null) {
-                n = new Integer(1);
+                n = Integer.valueOf(1);
             } else {
-                n = new Integer(n.intValue() + 1);
+                n = Integer.valueOf(n.intValue() + 1);
             }
             statSendObjects.put(clazz, n);
         }

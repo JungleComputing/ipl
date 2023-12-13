@@ -70,6 +70,7 @@ public final class ThreadPool {
             logger.debug("Thread removed from pool. Now " + nrOfThreads + " threads");
         }
 
+        @SuppressWarnings(value = { "unused" }) 
         private PoolThread() {
             //DO NOT USE
         }

@@ -169,7 +169,7 @@ public class LrmcIbis implements Ibis {
     public synchronized void addIbis(IbisIdentifier ibis) {
 
         if (!knownIbis.containsKey(ibis)) {
-            knownIbis.put(ibis, new Integer(nextIbisID));
+            knownIbis.put(ibis, Integer.valueOf(nextIbisID));
             ibisList.put(nextIbisID, ibis);
 
             logger.info("Adding Ibis " + nextIbisID + " " + ibis);

@@ -92,7 +92,6 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         }
     }
 
-    @SuppressWarnings("unchecked")
     ASMCodeGenerator(ASMIOGenerator generator, ClassNode cl) {
         this.generator = generator;
         clazz = cl;
@@ -142,7 +141,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
         if (uid != 0) {
             fields.add(new FieldNode(ACC_PRIVATE | ACC_FINAL | ACC_STATIC,
-                    FIELD_SERIAL_VERSION_UID, "J", null, new Long(uid)));
+                    FIELD_SERIAL_VERSION_UID, "J", null, Long.valueOf(uid)));
         }
     }
 
@@ -515,7 +514,6 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         return write_il;
     }
 
-    @SuppressWarnings("unchecked")
     private InsnList serialPersistentWrites(MethodNode write_gen) {
         String serialPersistentFieldsSig = "[L" + JAVA_IO_OBJECTSTREAMFIELD
                 + ";";
@@ -1085,7 +1083,6 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         read_il.add(new JumpInsnNode(GOTO, gto));
     }
 
-    @SuppressWarnings("unchecked")
     private InsnList serialPersistentReads(boolean from_constructor,
             MethodNode read_gen) {
         InsnList read_il = new InsnList();
@@ -1265,7 +1262,6 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         return read_il;
     }
 
-    @SuppressWarnings("unchecked")
     private ClassNode generateInstanceGenerator() {
 
         /*

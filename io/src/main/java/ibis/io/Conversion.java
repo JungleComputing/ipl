@@ -105,7 +105,7 @@ public abstract class Conversion {
     public static final Conversion loadConversion(String className)
             throws Exception {
 
-        return (Conversion) Class.forName(className).newInstance();
+        return (Conversion) Class.forName(className).getDeclaredConstructor().newInstance();
 
     }
 
@@ -303,6 +303,7 @@ public abstract class Conversion {
      *            the power of two
      * @return the rounded number
      */
+    @SuppressWarnings("unused")
     public static int align(int a, int d) {
         if (false) {
             if ((d | (d - 1)) != 2 * d - 1) {

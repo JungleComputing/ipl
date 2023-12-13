@@ -1534,9 +1534,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         if (STATS_NONREWRITTEN) {
             Integer n = nonRewritten.get(clazz);
             if (n == null) {
-                n = new Integer(1);
+                n = Integer.valueOf(1);
             } else {
-                n = new Integer(n.intValue() + 1);
+                n = Integer.valueOf(n.intValue() + 1);
             }
             nonRewritten.put(clazz, n);
         }

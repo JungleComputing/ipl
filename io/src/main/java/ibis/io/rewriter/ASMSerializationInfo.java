@@ -115,7 +115,6 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
     public static boolean directImplementationOf(ClassNode clazz,
             String name) {
-        @SuppressWarnings("unchecked")
         List<String> names = clazz.interfaces;
         String supername = clazz.superName;
 
@@ -200,7 +199,6 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
     }
 
     static boolean hasIbisConstructor(ClassNode cl) {
-        @SuppressWarnings("unchecked")
         List<MethodNode> methods = cl.methods;
         MethodNode[] clMethods = methods.toArray(new MethodNode[methods.size()]);
 
@@ -234,7 +232,6 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             & (ACC_PUBLIC | ACC_FINAL | ACC_INTERFACE | ACC_ABSTRACT);
 
             // Only set ABSTRACT for an interface when it has methods.
-            @SuppressWarnings("unchecked")
             List<MethodNode> methods = clazz.methods;
             MethodNode[] cMethods = methods.toArray(new MethodNode[methods.size()]);
             if ((classModifiers & ACC_INTERFACE) != 0) {
@@ -248,7 +245,6 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
             // 3. The name of each interface sorted by name written using
             //    UTF encoding.
-            @SuppressWarnings("unchecked")
             List<String> l = clazz.interfaces;
             String[] interfaceNames = l.toArray(new String[l.size()]);
             Arrays.sort(interfaceNames);
@@ -258,7 +254,6 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
             // 4. For each field of the class sorted by field name (except
             //    private static and private transient fields).
-            @SuppressWarnings("unchecked")
             List<FieldNode> fields = clazz.fields;
             FieldNode[] cFields = fields.toArray(new FieldNode[fields.size()]);
             Arrays.sort(cFields, fieldComparator);
@@ -375,7 +370,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         Long ui = serialversionids.get(classname);
         if (ui == null) {
             uid = ASMSerializationInfo.computeSUID(clazz);
-            serialversionids.put(classname, new Long(uid));
+            serialversionids.put(classname, Long.valueOf(uid));
         } else {
             uid = ui.longValue();
         }

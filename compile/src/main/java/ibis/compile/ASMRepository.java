@@ -121,7 +121,6 @@ public class ASMRepository implements Opcodes {
 
     public static boolean implementationOf(ClassNode clazz,
             String type) throws ClassNotFoundException {
-        @SuppressWarnings("unchecked")
         List<String> interfaces = clazz.interfaces;
         for (String i : interfaces) {
             if (i.equals(type)) {

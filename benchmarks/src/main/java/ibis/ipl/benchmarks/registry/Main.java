@@ -70,17 +70,17 @@ public final class Main {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--threads")) {
                 i++;
-                threads = new Integer(args[i]);
+                threads = Integer.valueOf(args[i]);
             } else if (args[i].equalsIgnoreCase("--events")) {
                 generateEvents = true;
             } else if (args[i].equalsIgnoreCase("--fail")) {
                 fail = true;
             } else if (args[i].equalsIgnoreCase("--runtime")) {
                 i++;
-                runtime = new Integer(args[i]) * 1000;
+                runtime = Integer.valueOf(args[i]) * 1000;
             } else if (args[i].equalsIgnoreCase("--delay")) {
                 i++;
-                delay = new Integer(args[i]) * 1000;
+                delay = Integer.valueOf(args[i]) * 1000;
             } else {
                 System.err.println("unknown option: " + args[i]);
                 System.exit(1);

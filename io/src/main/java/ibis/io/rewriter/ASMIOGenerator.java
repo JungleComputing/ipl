@@ -388,7 +388,6 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
         /* Find all references to final reference types and add these to the
          * rewrite list
          */
-        @SuppressWarnings("unchecked")
         List<FieldNode> fields = clazz.fields;
 
         for (FieldNode field : fields) {

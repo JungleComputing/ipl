@@ -54,7 +54,7 @@ abstract class JavaDependantStuff {
             // we try to instantiate it
             try {
                 Class<?> classDefinition = Class.forName(clName);
-                customClassLoader = (ClassLoader) classDefinition.newInstance();
+                customClassLoader = (ClassLoader) classDefinition.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 logger.warn("Warning: could not find or load custom "
                         + "classloader " + clName, e);

@@ -309,8 +309,7 @@ public class Ibisc {
 
         // Process own arguments.
         for (int i = 0; i < args.length; i++) {
-            if (false) {
-            } else if (args[i].equals("-v") || args[i].equals("-verbose")) {
+            if (args[i].equals("-v") || args[i].equals("-verbose")) {
                 verbose = true;
             } else if (args[i].equals("-no-verbose")) {
                 verbose = false;
@@ -353,7 +352,7 @@ public class Ibisc {
         for (Class<?> cl : clcomponents) {
             IbiscComponent ic = null;
             try {
-                ic = (IbiscComponent) cl.newInstance();
+                ic = (IbiscComponent) cl.getDeclaredConstructor().newInstance();
                 ic.setVerbose(verbose);
                 ic.fromIbisc = true;
                 ic.setKeep(keep);

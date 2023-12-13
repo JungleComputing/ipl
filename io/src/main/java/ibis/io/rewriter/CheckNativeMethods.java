@@ -58,6 +58,7 @@ public class CheckNativeMethods {
         return s;
     }
 
+        @SuppressWarnings("unused")
     public static void main(String[] args) {
 
         JavaClass[] clazz = null;
