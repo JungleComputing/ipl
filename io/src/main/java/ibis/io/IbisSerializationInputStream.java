@@ -1812,6 +1812,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         @Override
+        @Deprecated
         public String readLine() throws IOException {
             // Now really deprecated :-)
             return null;

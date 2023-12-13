@@ -1,5 +1,5 @@
-This directory contains some Ibis example programs. They can be compiled by 
-using "ant". Some of these examples are also used in the user's guide and 
+This directory contains some Ibis example programs. 
+Some of these examples are also used in the user's guide and 
 programmer's manual (located in the docs/ directory)
 
 Hello:

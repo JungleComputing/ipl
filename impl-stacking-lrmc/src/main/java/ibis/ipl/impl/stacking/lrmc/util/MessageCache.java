@@ -100,4 +100,8 @@ public class MessageCache {
     public int getPrefferedMessageSize() {
         return MESSAGE_SIZE;
     }
+
+    public void statistics() {
+        System.out.println("hits: " + hits + ", miss = " + miss + ", store = " + store + ", discard = " + discard);
+    }
 }

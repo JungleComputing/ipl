@@ -1517,6 +1517,7 @@ public class IbisSerializationOutputStream
             }
 
             @Override
+            @Deprecated
             public void write(ObjectOutput o) throws IOException {
                 for (int i = 0; i < t.double_count; i++) {
                     o.writeDouble(doubles[i]);

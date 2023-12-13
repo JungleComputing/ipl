@@ -362,6 +362,7 @@ public final class HandleHash {
         }
     }
 
+    @Deprecated
     public final void finalize() {
         statistics();
     }
