@@ -1,13 +1,22 @@
-apply from: "${rootProject.rootDir}/gradle/sub.gradle"
-
-dependencies {
-    compile group: 'org.apache.bcel', name: 'bcel', version: '6.4.0'
-    // https://mvnrepository.com/artifact/org.ow2.asm/asm
-    compile group: 'org.ow2.asm', name: 'asm', version: '7.2'
-    compile project(path: ':compile')
+plugins {
+    id 'base'
 }
 
-archivesBaseName = 'ibis-io'
+apply from: "${rootProject.rootDir}/gradle/sub.gradle"
+
+base {
+    archivesName = "ibis-io"
+}    
+
+dependencies {
+    implementation group: 'org.apache.bcel', name: 'bcel', version: '6.4.0'
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm
+    implementation group: 'org.ow2.asm', name: 'asm', version: '9.6'
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm
+    implementation group: 'org.ow2.asm', name: 'asm-util', version: '9.6'
+    implementation project(path: ':util')
+    implementation project(path: ':compile')
+}
 
 ext {
   pname = 'Ibis Portability Layer: IO'

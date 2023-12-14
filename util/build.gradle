@@ -1,7 +1,13 @@
+plugins {
+    id 'base'
+}
+
 apply from: "${rootProject.rootDir}/gradle/sub.gradle"
 
-archivesBaseName = 'ibis-util'
-
+base {
+    archivesName = "ibis-util"
+}    
+    
 ext {
   pname = 'Ibis Portability Layer: utilities'
   pdescription = 'Some utilities for Ibis implementations and applications'

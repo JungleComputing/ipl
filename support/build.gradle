@@ -1,13 +1,20 @@
-apply from: "${rootProject.rootDir}/gradle/sub-rewrite.gradle"
-
-dependencies {
-    compile project(':api')
-    compile project(':util')
-    compile project(':io')
-    compile group: 'nl.junglecomputing', name: 'smartsockets', version: '1.80'
+plugins {
+    id 'base'
 }
 
-archivesBaseName = 'ipl-support'
+apply from: "${rootProject.rootDir}/gradle/sub.gradle"
+apply from: "${rootProject.rootDir}/gradle/sub-rewrite.gradle"
+
+base {
+    archivesName = "ipl-support"
+}    
+
+dependencies {
+    implementation project(':api')
+    implementation project(':util')
+    implementation project(':io')
+    implementation group: 'nl.junglecomputing', name: 'smartsockets', version: '1.80'
+}
 
 ext {
   pname = 'Ibis Portability Layer: support'

@@ -1,6 +1,12 @@
+plugins {
+    id 'base'
+}
+
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
-archivesBaseName = 'ipl-impl-tcp'
+base {
+    archivesName = 'ipl-impl-tcp'
+}    
 
 ext {
   pname = 'Ibis Portability Layer: TCP Ibis'

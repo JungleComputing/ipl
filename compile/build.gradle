@@ -1,14 +1,22 @@
+plugins {
+    id 'base'
+}
+
 apply from: "${rootProject.rootDir}/gradle/sub.gradle"
+
+base {
+    archivesName = "ibis-compile"
+} 
 
 dependencies {
     // https://mvnrepository.com/artifact/org.apache.bcel/bcel
-    compile group: 'org.apache.bcel', name: 'bcel', version: '6.4.0'
+    implementation group: 'org.apache.bcel', name: 'bcel', version: '6.4.0'
     // https://mvnrepository.com/artifact/org.ow2.asm/asm-util
-    compile group: 'org.ow2.asm', name: 'asm-util', version: '7.2'
-    compile project(':util')
+    implementation group: 'org.ow2.asm', name: 'asm-util', version: '9.6'
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm
+    implementation group: 'org.ow2.asm', name: 'asm', version: '9.6'
+    implementation project(':util')
 }
-
-archivesBaseName = 'ibis-compile'
 
 ext {
   pname = 'Ibis Portability Layer: Compiler'

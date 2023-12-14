@@ -1,12 +1,12 @@
 dependencies {
-    compile project(':api')
-    compile project(':compile')
-    compile project(':support')
-    compile project(':io')
-    compile project(':util')
-    compile group: 'log4j', name: 'log4j', version: '1.2.13'
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21'
-    testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
+    implementation project(':api')
+    implementation project(':compile')
+    implementation project(':support')
+    implementation project(':io')
+    implementation project(':util')
+    implementation group: 'log4j', name: 'log4j', version: '1.2.13'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21'
+    testImplementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
 }
 
 // tasks.withType(Javadoc).all { enabled = false }

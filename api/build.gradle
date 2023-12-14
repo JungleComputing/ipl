@@ -1,4 +1,10 @@
-archivesBaseName = 'ipl'
+plugins {
+    id 'base'
+}
+
+base {
+    archivesName = "ipl"
+}
 
 ext {
   pname = 'Ibis Portability Layer: API'

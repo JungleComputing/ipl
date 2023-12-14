@@ -1,8 +1,8 @@
 plugins {
-    id 'java'
-        id 'maven'
-        id 'signing'
-        id 'com.github.hierynomus.license' version '0.14.0'
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'com.github.hierynomus.license' version '0.14.0'
 }
 
 allprojects {
@@ -103,17 +103,17 @@ subprojects {
 defaultTasks 'clean', 'assemble', 'copyDeps'
 
 dependencies {
-    compile project(path: 'api')
-        compile project(path: 'compile')
-        compile project(path: 'support')
-        compile project(path: 'util')
-        compile project(path: 'io')
-        compile project(path: 'benchmarks')
-        compile project(path: 'examples')
-        compile project(path: 'impl-nio')
-        compile project(path: 'impl-multi')
-        compile project(path: 'impl-tcp')
-        compile project(path: 'impl-smartsockets')
-        compile project(path: 'impl-stacking-dummy')
-        compile project(path: 'impl-stacking-lrmc')
+    implementation project(path: 'api')
+    implementation project(path: 'compile')
+    implementation project(path: 'support')
+    implementation project(path: 'util')
+    implementation project(path: 'io')
+    // implementation project(path: 'benchmarks')
+    // implementation project(path: 'examples')
+    // implementation project(path: 'impl-nio')
+    // implementation project(path: 'impl-multi')
+    implementation project(path: 'impl-tcp')
+    // implementation project(path: 'impl-smartsockets')
+    // implementation project(path: 'impl-stacking-dummy')
+    // implementation project(path: 'impl-stacking-lrmc')
 }

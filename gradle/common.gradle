@@ -29,19 +29,19 @@ licenseFormat.description = "Applies the license found in the header file in fil
 javadoc {
     options.tags = [ "ibis.experimental" ]
     failOnError = false
-    classpath = sourceSets.main.runtimeClasspath
-    // options.addBooleanOption("Xdoclint:none", true)
+    classpath = sourceSets.main.compileClasspath
+    options.addBooleanOption("Xdoclint:none", true)
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     description "Creates jar file of javadoc"
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     description "Creates jar file of Java sources"
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
@@ -55,7 +55,7 @@ artifacts {
 }
 
 tasks.withType(Jar) {
-    destinationDir = file("$rootDir/lib")
+    destinationDirectory = file("$rootDir/lib")
 }
 
 //compileJava.doLast {
@@ -66,10 +66,10 @@ tasks.withType(Jar) {
 //}
 //
 
-task copyDeps(type: Copy) {
+task copyDeps(type: Copy, dependsOn: javadoc) {
     def destination = project.file("$rootDir/lib")
 
-    from(configurations.runtime)
+    from(configurations.compileClasspath)
     into destination
     eachFile {
         if (it.getRelativePath().getFile(destination).exists()) {
