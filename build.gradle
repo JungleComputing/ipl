@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id 'java'
     id 'maven-publish'
     id 'signing'
     id 'com.github.hierynomus.license' version '0.14.0'
@@ -13,7 +13,7 @@ allprojects {
 
 subprojects {
     if (it.name != 'docs') {
-        apply from: "${rootProject.rootDir}/gradle/common.gradle"
+         apply from: "${rootProject.rootDir}/gradle/common.gradle"
     }
 }
 
@@ -70,8 +70,8 @@ subprojects {
 //                         developers {
 //                             developer {
 //                                 name = 'Rob van Nieuwpoort'
-//                                 organization = 'Netherlands escience Center'
-//                                 url = 'https://www.esciencecenter.nl/team/prof-rob-van-nieuwpoort-3'
+//                                 organization = 'Leiden University'
+//                                 url = 'https://vannieuwpoort.com'
 //                             }
 //                             developer {
 //                                 name = 'Jason Maassen'
@@ -100,20 +100,4 @@ subprojects {
 //     }
 // }
 
-defaultTasks 'clean', 'assemble', 'copyDeps'
-
-dependencies {
-    implementation project(path: 'api')
-    implementation project(path: 'compile')
-    implementation project(path: 'support')
-    implementation project(path: 'util')
-    implementation project(path: 'io')
-    // implementation project(path: 'benchmarks')
-    // implementation project(path: 'examples')
-    // implementation project(path: 'impl-nio')
-    // implementation project(path: 'impl-multi')
-    implementation project(path: 'impl-tcp')
-    // implementation project(path: 'impl-smartsockets')
-    // implementation project(path: 'impl-stacking-dummy')
-    // implementation project(path: 'impl-stacking-lrmc')
-}
+defaultTasks 'assemble', 'copyDeps'

@@ -1,7 +1,3 @@
-plugins {
-    id 'base'
-}
-
 apply from: "${rootProject.rootDir}/gradle/sub.gradle"
 
 base {
@@ -26,5 +22,22 @@ ext {
 jar {
     manifest {
         attributes("Ibisc-Component": "ibis.io.rewriter.ASMIOGenerator")
+    }
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":io:jar")
+    dependsOn(":io:javadocJar")
+    dependsOn(":io:sourcesJar")
+
+    dependsOn(":api:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
     }
 }

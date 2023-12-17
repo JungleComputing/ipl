@@ -46,7 +46,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 }
 
 compileJava {
-    options.compilerArgs << '-Xlint:deprecation'
+//    options.compilerArgs << '-Xlint:deprecation'
 }
 
 artifacts {
@@ -65,15 +65,3 @@ tasks.withType(Jar) {
 //    println "Checksum: $checksum"
 //}
 //
-
-task copyDeps(type: Copy, dependsOn: javadoc) {
-    def destination = project.file("$rootDir/lib")
-
-    from(configurations.compileClasspath)
-    into destination
-    eachFile {
-        if (it.getRelativePath().getFile(destination).exists()) {
-            it.exclude()
-        }
-    }
-}

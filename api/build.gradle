@@ -1,9 +1,6 @@
-plugins {
-    id 'base'
-}
 
 base {
-    archivesName = "ipl"
+    archivesName = "ipl-api"
 }
 
 ext {
@@ -33,4 +30,22 @@ javadoc {
     // TODO: is supposed to generate a string
     options.tags = [ "ibis.experimental" ]
     options.overview = "src/overview.html"
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":api:jar")
+    dependsOn(":api:javadocJar")
+    dependsOn(":api:sourcesJar")
+
+    dependsOn(":compile:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+
+    from(configurations.compileClasspath)
+    into project.file(destination)
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
+    }
 }

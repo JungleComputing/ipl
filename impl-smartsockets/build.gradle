@@ -1,10 +1,12 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
+base {
+    archivesName = 'ipl-impl-smartsockets'
+}    
+
 dependencies {
     implementation group: 'nl.junglecomputing', name: 'smartsockets', version: '1.80'
 }
-
-archivesBaseName = 'ipl-impl-smartsockets'
 
 ext {
   pname = 'Ibis Portability Layer: smartsockets'
@@ -17,5 +19,22 @@ jar {
 		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "SmartSockets$version",	// TODO: create checksum
 		   "Ibis-NickName": "smartsockets")
+    }
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":impl-smartsockets:jar")
+    dependsOn(":impl-smartsockets:javadocJar")
+    dependsOn(":impl-smartsockets:sourcesJar")
+
+    dependsOn(":impl-tcp:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
     }
 }

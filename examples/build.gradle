@@ -4,4 +4,6 @@ dependencies {
     implementation project(':api')
 }
 
-archivesBaseName = 'ibis-examples'
+base {
+    archivesName = 'ibis-examples'
+}    

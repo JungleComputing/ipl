@@ -1,7 +1,3 @@
-plugins {
-    id 'base'
-}
-
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 base {
@@ -19,5 +15,22 @@ jar {
 		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "Tcp$version",	// TODO: create checksum
 		   "Ibis-NickName": "tcp")
+    }
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":impl-tcp:jar")
+    dependsOn(":impl-tcp:javadocJar")
+    dependsOn(":impl-tcp:sourcesJar")
+
+    dependsOn(":support:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
     }
 }

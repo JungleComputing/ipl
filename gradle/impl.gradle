@@ -13,7 +13,7 @@ dependencies {
 
 compileJava.doLast {
     javaexec {
-	main = 'ibis.compile.Ibisc'
+	mainClass = 'ibis.compile.Ibisc'
 	classpath = sourceSets.main.runtimeClasspath
 	workingDir = "$buildDir/classes/java/main"
 	args = [ "." ]

@@ -1,7 +1,3 @@
-plugins {
-    id 'base'
-}
-
 apply from: "${rootProject.rootDir}/gradle/sub.gradle"
 apply from: "${rootProject.rootDir}/gradle/sub-rewrite.gradle"
 
@@ -13,10 +9,28 @@ dependencies {
     implementation project(':api')
     implementation project(':util')
     implementation project(':io')
+    implementation project(':compile')
     implementation group: 'nl.junglecomputing', name: 'smartsockets', version: '1.80'
 }
 
 ext {
   pname = 'Ibis Portability Layer: support'
   pdescription = 'Support for IPL implementations: mostly the Ibis registry'
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":support:jar")
+    dependsOn(":support:javadocJar")
+    dependsOn(":support:sourcesJar")
+
+    dependsOn(":io:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
+    }
 }
