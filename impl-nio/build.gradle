@@ -1,6 +1,8 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
-archivesBaseName = 'ipl-impl-nio'
+base {
+    archivesName = 'ipl-impl-nio'
+}    
 
 ext {
   pname = 'Ibis Portability Layer: NIO implementation'
@@ -13,5 +15,22 @@ jar {
 		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "nio$version",	// TODO: create checksum
 		   "Ibis-NickName": "nio")
+    }
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":impl-nio:jar")
+    dependsOn(":impl-nio:javadocJar")
+    dependsOn(":impl-nio:sourcesJar")
+
+    dependsOn(":impl-smartsockets:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
     }
 }

@@ -1,6 +1,17 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
-archivesBaseName = 'ipl-impl-dummy'
+base {
+    archivesName = 'ipl-impl-dumy'
+}    
+
+jar {
+    manifest {
+        attributes("Ibis-Starter-Class": "ibis.ipl.impl.multi.MultiIbisStarter",
+		   "Ibis-IPL-Version": version,
+                   "Ibis-Implementation-Version": "Multi$version",	// TODO: create checksum
+		   "Ibis-NickName": "multi")
+   }
+}
 
 ext {
   pname = 'Ibis Portability layer: stacking dummy'
@@ -13,5 +24,22 @@ jar {
 		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "dummy$version",	// TODO: create checksum
 		   "Ibis-NickName": "dummy")
+    }
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":impl-stacking-dummy:jar")
+    dependsOn(":impl-stacking-dummy:javadocJar")
+    dependsOn(":impl-stacking-dummy:sourcesJar")
+
+    dependsOn(":impl-multi:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
     }
 }

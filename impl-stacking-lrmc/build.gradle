@@ -1,6 +1,8 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
-archivesBaseName = 'ipl-impl-lrmc'
+base {
+    archivesName = 'ipl-impl-lrmc'
+}    
 
 ext {
   pname = 'Ibis Portability Layer: Label-routed multicast stack'
@@ -13,5 +15,22 @@ jar {
 		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "lrmc$version",	// TODO: create checksum
 		   "Ibis-NickName": "lrmc")
+    }
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":impl-stacking-lrmc:jar")
+    dependsOn(":impl-stacking-lrmc:javadocJar")
+    dependsOn(":impl-stacking-lrmc:sourcesJar")
+
+    dependsOn(":impl-stacking-dummy:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
     }
 }

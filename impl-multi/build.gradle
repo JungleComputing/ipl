@@ -1,6 +1,8 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
-archivesBaseName = 'ipl-impl-multi'
+base {
+    archivesName = 'ipl-impl-multi'
+}    
 
 ext {
   pname = 'Ibis Portability Layer: Multi Ibis'
@@ -14,4 +16,21 @@ jar {
                    "Ibis-Implementation-Version": "Multi$version",	// TODO: create checksum
 		   "Ibis-NickName": "multi")
    }
+}
+
+task copyDeps(type: Copy) {
+    dependsOn(":impl-multi:jar")
+    dependsOn(":impl-multi:javadocJar")
+    dependsOn(":impl-multi:sourcesJar")
+
+    dependsOn(":impl-nio:copyDeps")
+
+    def destination = project.file("$rootDir/lib")
+    from(configurations.compileClasspath)
+    into destination
+    eachFile {
+        if (it.getRelativePath().getFile(destination).exists()) {
+            it.exclude()
+        }
+    }
 }
