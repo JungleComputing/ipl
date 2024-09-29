@@ -572,6 +572,7 @@ final class AlternativeTypeInfo {
      * Constructor is private. Use {@link #getAlternativeTypeInfo(Class)} to
      * obtain the <code>AlternativeTypeInfo</code> for a type.
      */
+    @SuppressWarnings("deprecation")
     private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
@@ -740,7 +741,7 @@ final class AlternativeTypeInfo {
                          * private fields ....
                          */
                         if (!field.isAccessible()) {
-                            temporary_field = field;
+                                temporary_field = field;
                             AccessController.doPrivileged(
                                     new PrivilegedAction<Object>() {
                                         public Object run() {
@@ -940,6 +941,7 @@ final class AlternativeTypeInfo {
      * Looks for a declaration of serialPersistentFields, and, if present, makes
      * it accessible, and stores it in <code>serial_persistent_fields</code>.
      */
+    @SuppressWarnings("deprecation")
     private void getSerialPersistentFields() {
         try {
             Field f = clazz.getDeclaredField("serialPersistentFields");

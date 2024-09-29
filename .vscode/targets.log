@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Dec 13 17:18:12 2023
+# Make data base, printed on Sun Sep 29 16:57:33 2024
 
 # Variables
 
@@ -53,11 +53,9 @@ MAKEFLAGS = pqrR
 # makefile
 CURDIR := /home/rob/workspace/ipl
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
-# environment
-VSCODE_L10N_BUNDLE_LOCATION = 
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
@@ -91,13 +89,15 @@ SHELL = /bin/sh
 # default
 MAKECMDGOALS := all
 # environment
+IPL_HOME = /home/rob/workspace/ipl
+# environment
 SHLVL = 0
 # environment
 MAKELEVEL := 0
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
-PATH = /home/rob/.vscode-server/bin/1a5daa3a0231a0fbba4f14db7ec463cf99d7768e/bin/remote-cli:/home/rob/.local/bin:/home/rob/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Eclipse Adoptium/jdk-11.0.19.7-hotspot/bin:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/Pulse Secure/VC142.CRT/X64/:/mnt/c/Program Files (x86)/Pulse Secure/VC142.CRT/X86/:/mnt/c/Program Files (x86)/Common Files/Pulse Secure/TNC Client Plugin/:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/TortoiseGit/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/PuTTY/:/mnt/c/Users/rob/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/rob/AppData/Local/Programs/Microsoft VS Code/bin:/snap/bin
+PATH = /home/rob/.vscode-server/bin/1a5daa3a0231a0fbba4f14db7ec463cf99d7768e/bin/remote-cli:/home/rob/.local/bin:/home/rob/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Eclipse Adoptium/jdk-11.0.19.7-hotspot/bin:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/Pulse Secure/VC142.CRT/X64/:/mnt/c/Program Files (x86)/Pulse Secure/VC142.CRT/X86/:/mnt/c/Program Files (x86)/Common Files/Pulse Secure/TNC Client Plugin/:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/PuTTY/:/mnt/c/Users/rob/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/rob/AppData/Local/Programs/Microsoft VS Code/bin:/snap/bin
 # default
 MAKEFILES := 
 # automatic
@@ -115,13 +115,13 @@ LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:
 # automatic
 +F = $(notdir $+)
 # environment
-WSL_INTEROP = /run/WSL/14660_interop
+WSL_INTEROP = /run/WSL/48874_interop
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
 LOGNAME = rob
 # environment
-VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/rob/.vscode/extensions/ms-vscode-remote.remote-wsl-0.81.8
+VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/rob/.vscode/extensions/ms-vscode-remote.remote-wsl-0.81.9
 # makefile
 .DEFAULT_GOAL := 
 # environment
@@ -135,11 +135,13 @@ MAKE_VERSION := 4.3
 # environment
 PAGER = less
 # environment
+SATIN_HOME = /home/rob/workspace/satin
+# environment
 _ = /home/rob/.vscode-server/bin/1a5daa3a0231a0fbba4f14db7ec463cf99d7768e/node
 # environment
 XDG_RUNTIME_DIR = /run/user/1000/
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-d7616612-42bf-417c-a9bc-1346088184b9.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-51fc6fe1-f442-4a8a-bd4c-83fd44640c18.sock
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -158,8 +160,10 @@ SUFFIXES :=
 WSL_DISTRO_NAME = Ubuntu
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
+# environment
+RMI_HOME = /home/rob/workspace/rmi
 # variable set hash-table stats:
-# Load=73/1024=7%, Rehash=0, Collisions=2/100=2%
+# Load=75/1024=7%, Rehash=0, Collisions=1/102=1%
 
 # Pattern-specific Variable Values
 
@@ -225,6 +229,6 @@ GNUmakefile:
 # strcache performance: lookups = 46 / hit rate = 6%
 # hash-table stats:
 # Load=43/8192=1%, Rehash=0, Collisions=0/46=0%
-# Finished Make data base on Wed Dec 13 17:18:12 2023
+# Finished Make data base on Sun Sep 29 16:57:33 2024
 
  
