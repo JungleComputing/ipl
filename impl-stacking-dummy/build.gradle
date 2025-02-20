@@ -1,7 +1,7 @@
 apply from: "${rootProject.rootDir}/gradle/impl.gradle"
 
 base {
-    archivesName = 'ipl-impl-dumy'
+    archivesName = 'ipl-impl-dummy'
 }    
 
 jar {
