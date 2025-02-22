@@ -91,6 +91,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
      * Tries to connect the sendport to the receiveport for the given time.
      * Returns the resulting channel.
      */
+    @SuppressWarnings("resource")
     public Channel connect(NioSendPort spi, ReceivePortIdentifier rpi,
             long timeoutMillis) throws IOException {
         int reply;
@@ -248,6 +249,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         ReceivePortIdentifier rpi;
         NioReceivePort rp = null;
         ChannelDissipator dissipator = new ChannelDissipator(channel);
+        @SuppressWarnings("resource")
         ChannelAccumulator accumulator = new ChannelAccumulator(channel);
 
         if (logger.isDebugEnabled()) {

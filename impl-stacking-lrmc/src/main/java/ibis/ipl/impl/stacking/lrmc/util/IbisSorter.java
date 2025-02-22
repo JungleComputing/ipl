@@ -149,11 +149,11 @@ public class IbisSorter implements Comparator<IbisIdentifier> {
         // The clusters are different. If one of the two is equal to the
         // preferredCluster, we want that one to win. Otherwise, we just return
         // the 'natural order'.
-        if (cluster1.equals(preferredCluster)) {
+        if (cluster1.toString().equals(preferredCluster)) {
             return -1;
         }
 
-        if (cluster2.equals(preferredCluster)) {
+        if (cluster2.toString().equals(preferredCluster)) {
             return 1;
         }
 
