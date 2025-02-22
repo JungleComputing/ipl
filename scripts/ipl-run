@@ -15,8 +15,10 @@ fi
 
 # AFFINITY="taskset -c 0"
 
+echo "$CLASSPATH:$IPL_HOME:$IPL_HOME/lib/"'*'
+
 # Run ...
 # Note: this requires Java 6
 exec $AFFINITY java \
-    -classpath "$CLASSPATH:$IPL_HOME/lib/"'*' \
+    -classpath "$CLASSPATH:$IPL_HOME:$IPL_HOME/lib/"'*' \
     "$@"

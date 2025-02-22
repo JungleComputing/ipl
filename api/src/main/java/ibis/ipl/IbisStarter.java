@@ -77,6 +77,7 @@ public abstract class IbisStarter {
         } catch (Throwable t) {
             System.err.println("Could not create starter from class name "
                     + className + " : " + t);
+                    t.printStackTrace();
             return null;
         }
     }

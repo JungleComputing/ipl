@@ -11,7 +11,7 @@ ext {
 
 jar {
     manifest {
-        attributes("Ibis-Starter-Class": "ibis.ipl.impl.lrmc.LrmcIbisStarter",
+        attributes("Ibis-Starter-Class": "ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter",
 		   "Ibis-IPL-Version": version,
                    "Ibis-Implementation-Version": "lrmc$version",	// TODO: create checksum
 		   "Ibis-NickName": "lrmc")
