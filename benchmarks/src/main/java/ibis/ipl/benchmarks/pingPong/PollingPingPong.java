@@ -101,7 +101,7 @@ static class ExplicitReceiver {
     static Registry registry;
 
     public static void main(String[] args) {
-        int count = 100;
+        int count = 100000;
         int repeat = 10;
         int rank = 0;
 
