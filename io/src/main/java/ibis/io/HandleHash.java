@@ -362,11 +362,6 @@ public final class HandleHash {
         }
     }
 
-    @Deprecated
-    public final void finalize() {
-        statistics();
-    }
-
     final void statistics() {
         if (STATS) {
             System.err.println(this + ": " +

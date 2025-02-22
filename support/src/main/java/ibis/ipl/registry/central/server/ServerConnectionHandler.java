@@ -16,7 +16,6 @@
 package ibis.ipl.registry.central.server;
 
 import java.io.IOException;
-import java.security.AccessControlException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +137,7 @@ final class ServerConnectionHandler implements Runnable {
         if (policy != null) {
             try {
                 policy.onJoin(credentials);
-            } catch (AccessControlException e) {
+            } catch (Exception e) {
                 connection.closeWithError(e.getMessage());
                 throw e;
             }

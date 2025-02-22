@@ -25,8 +25,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Comparator;
 import java.util.HashMap;
 
@@ -494,13 +492,7 @@ final class AlternativeTypeInfo {
 
             /* Make method accessible, so that it may be called. */
             if (!method.canAccess(method.getDeclaringClass())) {
-                temporary_method = method;
-                AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                    public Object run() {
-                        temporary_method.setAccessible(true);
-                        return null;
-                    }
-                });
+        	method.setAccessible(true);
             }
             return method;
         } catch (NoSuchMethodException ex) {
@@ -572,7 +564,6 @@ final class AlternativeTypeInfo {
      * Constructor is private. Use {@link #getAlternativeTypeInfo(Class)} to
      * obtain the <code>AlternativeTypeInfo</code> for a type.
      */
-    @SuppressWarnings("deprecation")
     private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
@@ -740,16 +731,7 @@ final class AlternativeTypeInfo {
                          * Java field access checks so we are allowed to read
                          * private fields ....
                          */
-                        if (!field.isAccessible()) {
-                                temporary_field = field;
-                            AccessController.doPrivileged(
-                                    new PrivilegedAction<Object>() {
-                                        public Object run() {
-                                            temporary_field.setAccessible(true);
-                                            return null;
-                                        }
-                                    });
-                        }
+                        field.setAccessible(true);
 
                         if (field_type.isPrimitive()) {
                             if (field_type == Boolean.TYPE) {
@@ -778,15 +760,8 @@ final class AlternativeTypeInfo {
                 for (int i = 0; i < serial_persistent_fields.length; i++) {
                     Field field = findField(serial_persistent_fields[i]);
                     Class<?> field_type = serial_persistent_fields[i].getType();
-                    if (field != null && !field.isAccessible()) {
-                        temporary_field = field;
-                        AccessController
-                                .doPrivileged(new PrivilegedAction<Object>() {
-                                    public Object run() {
-                                        temporary_field.setAccessible(true);
-                                        return null;
-                                    }
-                                });
+                    if (field != null) {
+                	field.setAccessible(true);
                     }
 
                     if (field_type.isPrimitive()) {
@@ -941,22 +916,12 @@ final class AlternativeTypeInfo {
      * Looks for a declaration of serialPersistentFields, and, if present, makes
      * it accessible, and stores it in <code>serial_persistent_fields</code>.
      */
-    @SuppressWarnings("deprecation")
     private void getSerialPersistentFields() {
         try {
             Field f = clazz.getDeclaredField("serialPersistentFields");
             int mask = Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL;
             if ((f.getModifiers() & mask) == mask) {
-                if (!f.isAccessible()) {
-                    temporary_field = f;
-                    AccessController
-                            .doPrivileged(new PrivilegedAction<Object>() {
-                                public Object run() {
-                                    temporary_field.setAccessible(true);
-                                    return null;
-                                }
-                            });
-                }
+        	f.setAccessible(true);
                 serial_persistent_fields = (java.io.ObjectStreamField[]) f
                         .get(null);
             }

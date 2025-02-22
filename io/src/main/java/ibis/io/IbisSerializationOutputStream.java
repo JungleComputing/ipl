@@ -1157,6 +1157,7 @@ public class IbisSerializationOutputStream
     public void close() throws IOException {
         super.close();
         replacer = null;
+        references.statistics();
         references = null;
         types = null;
         current_object = null;
