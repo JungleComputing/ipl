@@ -19,7 +19,9 @@ import ibis.ipl.IbisIOException;
 
 public class RemoteException extends IbisIOException {
 
-    public RemoteException() {
+    private static final long serialVersionUID = 1L;
+
+	public RemoteException() {
 	super();
     }
 

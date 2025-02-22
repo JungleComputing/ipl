@@ -209,9 +209,7 @@ public final class IOProperties {
         return result;
     }
 
-    @SuppressWarnings("resource")
     private static Properties getPropertyFile(String file) {
-
         InputStream in = null;
 
         try {

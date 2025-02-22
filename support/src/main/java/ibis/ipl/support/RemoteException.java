@@ -19,7 +19,9 @@ import java.io.IOException;
 
 public class RemoteException extends IOException {
 
-    public RemoteException() {
+    private static final long serialVersionUID = 1L;
+
+	public RemoteException() {
     }
 
     public RemoteException(String message) {
