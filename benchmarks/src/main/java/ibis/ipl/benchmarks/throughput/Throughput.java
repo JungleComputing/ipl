@@ -175,12 +175,10 @@ public class Throughput {
             if (master.equals(ibis.identifier())) {
                 rank = 0;
                 remote = r.getElectionResult("1");
-                System.err.println(">>>>>>>> Righto, I'm the master");
             } else {
                 r.elect("1");
                 rank = 1;
                 remote = master;
-                System.err.println(">>>>>>>> Righto, I'm the slave");
             }
 
             rport = ibis.createReceivePort(t, "test port");

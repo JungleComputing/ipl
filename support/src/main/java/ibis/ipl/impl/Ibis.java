@@ -65,7 +65,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     /** Debugging output. */
     private static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.Ibis");
+            .getLogger(Ibis.class);
 
     /** The IbisCapabilities as specified by the user. */
     private final IbisCapabilities capabilities;

@@ -47,7 +47,7 @@ public abstract class ReceivePort extends Manageable
 
     /** Debugging output. */
     private static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.ReceivePort");
+            .getLogger(ReceivePort.class);
 
     // Possible results of a connection attempt.
 

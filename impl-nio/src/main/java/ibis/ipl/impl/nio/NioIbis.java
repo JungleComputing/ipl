@@ -50,7 +50,7 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     static final String[] props = { s_spi, s_rpi };
     
     private static final Logger logger
-            = LoggerFactory.getLogger("ibis.ipl.impl.nio.NioIbis");
+            = LoggerFactory.getLogger(NioIbis.class);
 
     ChannelFactory factory;
 

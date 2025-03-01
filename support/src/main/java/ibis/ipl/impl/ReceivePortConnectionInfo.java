@@ -34,7 +34,7 @@ public class ReceivePortConnectionInfo {
 
     /** Debugging. */
     protected static final Logger logger
-            = LoggerFactory.getLogger("ibis.ipl.impl.ReceivePortConnectionInfo");
+            = LoggerFactory.getLogger(ReceivePortConnectionInfo.class);
 
     /** Identifies the sendport side of the connection. */
     public final SendPortIdentifier origin;

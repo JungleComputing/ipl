@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public final class NioIbisStarter extends ibis.ipl.IbisStarter {
 
     static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.nio.NioIbisStarter");
+            .getLogger(NioIbisStarter.class);
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
             IbisCapabilities.CLOSED_WORLD,

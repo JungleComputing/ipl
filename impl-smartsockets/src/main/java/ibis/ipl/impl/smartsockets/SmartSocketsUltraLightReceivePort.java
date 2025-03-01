@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack, Runnable {
 
 	protected static final Logger logger
-            = LoggerFactory.getLogger("ibis.ipl.impl.smartsockets.ReceivePort");
+            = LoggerFactory.getLogger(SmartSocketsUltraLightReceivePort.class);
 
 	private final PortType type;
 	private final String name;

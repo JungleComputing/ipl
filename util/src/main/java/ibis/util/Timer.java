@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Timer implements java.io.Serializable {
 
-    static final Logger logger = LoggerFactory.getLogger(Timer.class.getName());
+    static final Logger logger = LoggerFactory.getLogger(Timer.class);
 
     private static final long serialVersionUID = 1L;
 

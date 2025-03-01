@@ -17,6 +17,8 @@
 
 package ibis.ipl.impl.stacking.lrmc;
 
+import java.util.Properties;
+
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Credentials;
 import ibis.ipl.Ibis;
@@ -26,15 +28,7 @@ import ibis.ipl.IbisFactory;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
-
-    static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter");
 
     public LrmcIbisStarter(String nickName, String iplVersion,
             String implementationVersion) {

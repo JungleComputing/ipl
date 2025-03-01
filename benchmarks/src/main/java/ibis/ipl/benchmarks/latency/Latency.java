@@ -409,7 +409,7 @@ class UpcallSender implements MessageUpcall {
 
 class Latency {
 
-    static Logger logger = LoggerFactory.getLogger(Latency.class.getName());
+    static Logger logger = LoggerFactory.getLogger(Latency.class);
 
     static Ibis ibis;
 

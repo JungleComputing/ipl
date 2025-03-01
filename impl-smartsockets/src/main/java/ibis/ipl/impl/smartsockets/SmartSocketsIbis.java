@@ -67,7 +67,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     private static final String SOCKET_TIMEOUT_PROPERTY = "ibis.ipl.impl.smartsockets.sotimeout";
 
     static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.smartsockets.SmartSocketsIbis");
+            .getLogger(SmartSocketsIbis.class);
 
     private VirtualSocketFactory factory;
 

@@ -491,9 +491,9 @@ final class AlternativeTypeInfo {
             }
 
             /* Make method accessible, so that it may be called. */
-            if (!method.canAccess(method.getDeclaringClass())) {
+//            if (!method.canAccess(method.getDeclaringClass())) {
         	method.setAccessible(true);
-            }
+  //          }
             return method;
         } catch (NoSuchMethodException ex) {
             return null;

@@ -54,7 +54,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         TcpProtocol {
 
     static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.tcp.TcpIbis");
+            .getLogger(TcpIbis.class);
 
     private IbisSocketFactory factory;
 

@@ -54,7 +54,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
     private static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.SendPort");
+            .getLogger(SendPort.class);
 
     private static final String ALLOW_COMM_IN_UPCALL = "ibis.upcall.communication";
 

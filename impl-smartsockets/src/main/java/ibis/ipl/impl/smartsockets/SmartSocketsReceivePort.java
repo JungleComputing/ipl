@@ -100,8 +100,8 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                             reader_busy = true;
                             interval = 10;
                         }
-                        if (logger.isInfoEnabled()) {
-                            logger.info("lazy handler starting read ...");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("lazy handler starting read ...");
                         }
                         reader(true);
                         synchronized(port) {

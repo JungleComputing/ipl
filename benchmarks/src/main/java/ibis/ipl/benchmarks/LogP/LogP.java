@@ -201,7 +201,7 @@ class ExplicitReceiver {
 
 class LogP {
 
-    static Logger logger = LoggerFactory.getLogger(LogP.class.getName());
+    static Logger logger = LoggerFactory.getLogger(LogP.class);
 
     static Ibis ibis;
 

@@ -199,7 +199,7 @@ class ConcurrentSenders {
 
     static Ibis ibis;
 
-    static Logger logger = LoggerFactory.getLogger(ConcurrentSenders.class.getName());
+    static Logger logger = LoggerFactory.getLogger(ConcurrentSenders.class);
 
     static Registry registry;
 

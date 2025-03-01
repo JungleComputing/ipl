@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
 
     static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter");
+            .getLogger(SmartSocketsIbisStarter.class);
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
             IbisCapabilities.CLOSED_WORLD,

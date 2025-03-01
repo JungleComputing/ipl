@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
 
     static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.tcp.TcpIbisStarter");
+            .getLogger(TcpIbisStarter.class);
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
             IbisCapabilities.CLOSED_WORLD,

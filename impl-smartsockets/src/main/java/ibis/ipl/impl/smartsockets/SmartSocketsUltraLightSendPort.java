@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class SmartSocketsUltraLightSendPort implements SendPort {
 
 	protected static final Logger logger = 
-		LoggerFactory.getLogger("ibis.ipl.impl.smartsockets.SendPort");
+		LoggerFactory.getLogger(SmartSocketsUltraLightSendPort.class);
 
 	private final PortType type;
 	private final String name;
