@@ -567,7 +567,9 @@ final class AlternativeTypeInfo {
     private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
-        if (SunJavaStuff.available) {
+/*        if (ObjenesisJavaStuff.available) {
+            javaDependantStuff = new ObjenesisJavaStuff(clazz);
+        } else*/ if (SunJavaStuff.available) {
             javaDependantStuff = new SunJavaStuff(clazz);
         } else if (HarmonyJavaStuff.available) {
             javaDependantStuff = new HarmonyJavaStuff(clazz);
@@ -579,6 +581,10 @@ final class AlternativeTypeInfo {
             javaDependantStuff = new DalvikJavaStuffV3(clazz);
         } else if (ClasspathJavaStuff.available) {
             javaDependantStuff = new ClasspathJavaStuff(clazz);
+        } else {
+            throw new Error(
+                    "Unrecognized Java version, ibis serialization not supported. Java version = "
+                            + System.getProperty("java.version") + ", " + System.getProperty("java.vm.name"));
         }
 
         try {
@@ -1026,9 +1032,5 @@ final class AlternativeTypeInfo {
                             + System.getProperty("java.version"));
         }
         return javaDependantStuff;
-    }
-
-    public void setJavaDependantStuff(JavaDependantStuff javaDependantStuff) {
-        this.javaDependantStuff = javaDependantStuff;
     }
 }

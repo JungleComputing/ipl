@@ -6,10 +6,9 @@ base {
 
 dependencies {
     implementation group: 'org.apache.bcel', name: 'bcel', version: '6.4.0'
-    // https://mvnrepository.com/artifact/org.ow2.asm/asm
     implementation group: 'org.ow2.asm', name: 'asm', version: '9.6'
-    // https://mvnrepository.com/artifact/org.ow2.asm/asm
     implementation group: 'org.ow2.asm', name: 'asm-util', version: '9.6'
+    implementation group: 'org.objenesis', name: 'objenesis', version: '3.4'
     implementation project(path: ':util')
     implementation project(path: ':compile')
 }

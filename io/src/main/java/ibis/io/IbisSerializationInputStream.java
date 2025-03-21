@@ -1548,7 +1548,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             return o;
         }
 
-        throw new IOException("newInstance failed");
+        throw new IOException("newInstance of " + clazz.getCanonicalName() + " failed");
     }
 
     /**
