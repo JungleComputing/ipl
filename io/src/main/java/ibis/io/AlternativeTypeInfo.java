@@ -567,20 +567,8 @@ final class AlternativeTypeInfo {
     private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
-/*        if (ObjenesisJavaStuff.available) {
+        if (ObjenesisJavaStuff.available) {
             javaDependantStuff = new ObjenesisJavaStuff(clazz);
-        } else */if (SunJavaStuff.available) {
-            javaDependantStuff = new SunJavaStuff(clazz);
-        } else if (HarmonyJavaStuff.available) {
-            javaDependantStuff = new HarmonyJavaStuff(clazz);
-        } else if (DalvikJavaStuff.available) {
-            javaDependantStuff = new DalvikJavaStuff(clazz);
-        } else if (DalvikJavaStuffV2.available) {
-            javaDependantStuff = new DalvikJavaStuffV2(clazz);
-        } else if (DalvikJavaStuffV3.available) {
-            javaDependantStuff = new DalvikJavaStuffV3(clazz);
-        } else if (ClasspathJavaStuff.available) {
-            javaDependantStuff = new ClasspathJavaStuff(clazz);
         } else {
             throw new Error(
                     "Unrecognized Java version, ibis serialization not supported. Java version = "
