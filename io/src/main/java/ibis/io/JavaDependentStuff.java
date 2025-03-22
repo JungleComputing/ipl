@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * This class is an abstraction of the JVM-specific methods used to
  * create an uninitialized object, or to set final fields when deserializing.
  */
-abstract class JavaDependantStuff {
+abstract class JavaDependentStuff {
 
     private static ClassLoader customClassLoader;
     
@@ -44,7 +44,7 @@ abstract class JavaDependantStuff {
     };
 
     static final Logger logger = LoggerFactory
-            .getLogger(JavaDependantStuff.class);
+            .getLogger(JavaDependentStuff.class);
 
     static final boolean DEBUG = IOProperties.DEBUG;
 
@@ -66,7 +66,7 @@ abstract class JavaDependantStuff {
     
     ObjectStreamClass objectStreamClass;
 
-    JavaDependantStuff(Class<?> clazz) {
+    JavaDependentStuff(Class<?> clazz) {
         this.clazz = clazz;
         objectStreamClass = ObjectStreamClass.lookup(clazz);
     }
@@ -101,7 +101,7 @@ abstract class JavaDependantStuff {
                             + "Thread.currentThread()."
                             + "getContextClassLoader().loadClass()");
                     logger.debug("Default class loader is "
-                            + JavaDependantStuff.class
+                            + JavaDependentStuff.class
                                     .getClassLoader());
                     logger.debug("now trying "
                             + Thread.currentThread().getContextClassLoader());

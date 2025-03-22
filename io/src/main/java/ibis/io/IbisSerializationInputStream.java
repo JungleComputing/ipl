@@ -707,7 +707,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         readType(handle & Constants.TYPE_MASK);
 
         String s = readUTF();
-        Class<?> c = JavaDependantStuff.getClassFromName(s);
+        Class<?> c = JavaDependentStuff.getClassFromName(s);
 
         addObjectToCycleCheck(c);
         if (TIME_IBIS_SERIALIZATION) {
@@ -925,7 +925,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     + " type " + typeName);
         }
 
-        Class<?> clazz = JavaDependantStuff.getClassFromName(typeName);
+        Class<?> clazz = JavaDependentStuff.getClassFromName(typeName);
 
         AlternativeTypeInfo t = AlternativeTypeInfo
                 .getAlternativeTypeInfo(clazz);
@@ -1523,7 +1523,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public Object create_uninitialized_object(String classname)
             throws ClassNotFoundException, IOException {
-        Class<?> clazz = JavaDependantStuff.getClassFromName(classname);
+        Class<?> clazz = JavaDependentStuff.getClassFromName(classname);
         return create_uninitialized_object(clazz);
     }
 

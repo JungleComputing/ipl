@@ -182,7 +182,7 @@ final class AlternativeTypeInfo {
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             String o = in.readUTF();
-            Object obj = JavaDependantStuff.getClassFromName(o);
+            Object obj = JavaDependentStuff.getClassFromName(o);
             in.addObjectToCycleCheck(obj);
             return obj;
         }
@@ -274,7 +274,7 @@ final class AlternativeTypeInfo {
     /**
      * Some Java-implementation-dependant stuff resides here.
      */
-    private JavaDependantStuff javaDependantStuff;
+    private JavaDependentStuff javaDependantStuff;
 
     /** The sorted list of serializable fields. */
     Field[] serializable_fields;
@@ -1013,7 +1013,7 @@ final class AlternativeTypeInfo {
         return c;
     }
 
-    public JavaDependantStuff getJavaDependantStuff() {
+    public JavaDependentStuff getJavaDependantStuff() {
         if (javaDependantStuff == null) {
             throw new Error(
                     "Unrecognized Java version, ibis serialization not supported. Java version = "

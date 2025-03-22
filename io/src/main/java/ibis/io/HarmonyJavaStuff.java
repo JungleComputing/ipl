@@ -21,7 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-class HarmonyJavaStuff extends JavaDependantStuff {
+class HarmonyJavaStuff extends JavaDependentStuff {
 
     private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
     

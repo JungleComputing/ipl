@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import org.objenesis.ObjenesisSerializer;
 import org.objenesis.instantiator.ObjectInstantiator;
 
-final class ObjenesisJavaStuff extends JavaDependantStuff {
+final class ObjenesisJavaStuff extends JavaDependentStuff {
 
     ObjectInstantiator<?> ins;
 
