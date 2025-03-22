@@ -16,14 +16,13 @@
 package ibis.io;
 
 import java.io.IOException;
-import java.io.ObjectStreamClass;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-final class ObjenesisJavaStuff extends JavaDependantStuff {
+import org.objenesis.ObjenesisSerializer;
+import org.objenesis.instantiator.ObjectInstantiator;
 
-    /** newInstance method of ObjectStreamClass, if it exists. */
-    private static Method newInstance = null;
+final class ObjenesisJavaStuff extends JavaDependantStuff {
 
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
@@ -55,9 +54,6 @@ final class ObjenesisJavaStuff extends JavaDependantStuff {
 
     static {
         try {
-            newInstance = ObjectStreamClass.class.getDeclaredMethod(
-                    "newInstance", new Class[] {});
-            newInstance.setAccessible(true);
 
             // unsafe = Unsafe.getUnsafe();
             // does not work when a classloader is present, so we get it
@@ -277,12 +273,9 @@ final class ObjenesisJavaStuff extends JavaDependantStuff {
      * ObjectStreamClass. Return null if it fails for some reason.
      */
     Object newInstance() {
-        try {
-            return newInstance.invoke(objectStreamClass,
-                    (java.lang.Object[]) null);
-        } catch (Throwable e) {
-            // System.out.println("newInstance fails: got exception " + e);
-            return null;
-        }
+	System.err.println("calling newInstance on " + clazz.getCanonicalName());
+	ObjenesisSerializer os = new ObjenesisSerializer();
+	ObjectInstantiator<?> ins = os.getInstantiatorOf(clazz);
+	return ins.newInstance();
     }
 }

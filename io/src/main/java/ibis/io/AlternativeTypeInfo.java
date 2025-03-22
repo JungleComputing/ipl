@@ -567,9 +567,9 @@ final class AlternativeTypeInfo {
     private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
-/*        if (ObjenesisJavaStuff.available) {
+        if (ObjenesisJavaStuff.available) {
             javaDependantStuff = new ObjenesisJavaStuff(clazz);
-        } else*/ if (SunJavaStuff.available) {
+        } else if (SunJavaStuff.available) {
             javaDependantStuff = new SunJavaStuff(clazz);
         } else if (HarmonyJavaStuff.available) {
             javaDependantStuff = new HarmonyJavaStuff(clazz);
