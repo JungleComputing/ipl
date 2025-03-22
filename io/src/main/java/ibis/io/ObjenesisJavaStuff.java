@@ -24,6 +24,7 @@ import org.objenesis.instantiator.ObjectInstantiator;
 
 final class ObjenesisJavaStuff extends JavaDependantStuff {
 
+    ObjectInstantiator<?> ins;
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
     // Use introspection, so that it at least compiles on systems that don't
@@ -95,6 +96,8 @@ final class ObjenesisJavaStuff extends JavaDependantStuff {
         if (! available) {
             throw new Error("ObjenesisJavaStuff not available");
         }
+
+	ins = new ObjenesisSerializer().getInstantiatorOf(clazz);
     }
 
     /**
@@ -273,9 +276,7 @@ final class ObjenesisJavaStuff extends JavaDependantStuff {
      * ObjectStreamClass. Return null if it fails for some reason.
      */
     Object newInstance() {
-	System.err.println("calling newInstance on " + clazz.getCanonicalName());
-	ObjenesisSerializer os = new ObjenesisSerializer();
-	ObjectInstantiator<?> ins = os.getInstantiatorOf(clazz);
+//	System.err.println("calling newInstance on " + clazz.getCanonicalName());
 	return ins.newInstance();
     }
 }
