@@ -47,8 +47,6 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 
     boolean silent = false;
 
-    boolean use_jme = false;
-
     Vector<ClassNode> classes_to_rewrite, target_classes, classes_to_save;
 
     HashMap<String, ClassNode> arguments;
@@ -75,10 +73,6 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 
     protected boolean forceGeneratedCalls() {
 	return force_generated_calls;
-    }
-
-    protected boolean useJME() {
-	return use_jme;
     }
 
     private boolean removeTarget(ClassNode clazz) {
@@ -121,15 +115,13 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 	}
     }
 
-    public ASMIOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean silent,
-	    boolean use_jme) {
+    public ASMIOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean silent) {
 	this();
 	this.verbose = verbose;
 	this.local = local;
 	this.file = file;
 	this.force_generated_calls = force_generated_calls;
 	this.silent = silent;
-	this.use_jme = use_jme;
     }
 
     public boolean processArgs(ArrayList<String> args) {
@@ -140,17 +132,12 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 		args.remove(i);
 		i--;
 	    }
-	    if (arg.equals("-jme")) {
-		use_jme = true;
-		args.remove(i);
-		i--;
-	    }
 	}
 	return true;
     }
 
     public String getUsageString() {
-	return "[-iogen-force] [-jme]";
+	return "[-iogen-force]";
     }
 
     public void process(Iterator<?> classes) {
@@ -161,16 +148,9 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 	    arguments.put(cl.name, cl);
 	}
 	for (ClassNode cl : arguments.values()) {
-	    if (useJME()) {
-		/*
-		 * TODO if (JMESerializationInfo.isJMESerializable(cl)) { if (!
-		 * JMESerializationInfo.isJMERewritten(cl)) { addClass(cl); } }
-		 */
-	    } else {
-		if (ASMSerializationInfo.isSerializable(cl)) {
-		    if (!ASMSerializationInfo.isIbisSerializable(cl)) {
-			addClass(cl);
-		    }
+	    if (ASMSerializationInfo.isSerializable(cl)) {
+		if (!ASMSerializationInfo.isIbisSerializable(cl)) {
+		    addClass(cl);
 		}
 	    }
 	}
@@ -184,11 +164,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 
 	for (int i = 0; i < classes_to_rewrite.size(); i++) {
 	    ClassNode clazz = classes_to_rewrite.get(i);
-	    if (useJME()) {
-		// TODO new JMECodeGenerator(this, clazz).generateEmptyMethods();
-	    } else {
-		new ASMCodeGenerator(this, clazz).generateEmptyMethods();
-	    }
+	    new ASMCodeGenerator(this, clazz).generateEmptyMethods();
 	}
 
 	if (verbose) {
@@ -202,11 +178,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 	    ClassNode clazz = target_classes.get(i);
 	    if ((clazz.access & ACC_INTERFACE) != ACC_INTERFACE) {
 		System.out.println("Generating serialization code for class: " + clazz.name);
-		if (useJME()) {
-		    // TODO new JMECodeGenerator(this, clazz).generateCode();
-		} else {
-		    new ASMCodeGenerator(this, clazz).generateCode();
-		}
+		new ASMCodeGenerator(this, clazz).generateCode();
 	    }
 	}
     }
@@ -216,22 +188,12 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
     }
 
     private void addTargetClass(ClassNode clazz) {
-	if (useJME()) {
-	    /*
-	     * TODO if (verbose) { System.out.println("Considering target: " +
-	     * clazz.getClassName()); } if (!target_classes.contains(clazz)) { String nm =
-	     * clazz.getClassName(); if (arguments.containsKey(nm)) {
-	     * target_classes.add(clazz); if (verbose) {
-	     * System.out.println("Adding jme target class : " + nm); } } }
-	     */
-	} else {
-	    if (!target_classes.contains(clazz) && !ASMSerializationInfo.isIbisSerializable(clazz)) {
-		String nm = clazz.name;
-		if (arguments.containsKey(nm)) {
-		    target_classes.add(clazz);
-		    if (verbose) {
-			System.out.println("Adding target class : " + nm);
-		    }
+	if (!target_classes.contains(clazz) && !ASMSerializationInfo.isIbisSerializable(clazz)) {
+	    String nm = clazz.name;
+	    if (arguments.containsKey(nm)) {
+		target_classes.add(clazz);
+		if (verbose) {
+		    System.out.println("Adding target class : " + nm);
 		}
 	    }
 	}
@@ -253,20 +215,10 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
     }
 
     private void addRewriteClass(ClassNode clazz) {
-	if (useJME()) {
-	    /*
-	     * TODO if (!classes_to_rewrite.contains(clazz) &&
-	     * JMESerializationInfo.isJMESerializable(clazz) &&
-	     * !JMESerializationInfo.isJMERewritten(clazz)) { classes_to_rewrite.add(clazz);
-	     * if (verbose) { System.out.println("Adding jme rewrite class : " +
-	     * clazz.getClassName()); } }
-	     */
-	} else {
-	    if (!classes_to_rewrite.contains(clazz) && !ASMSerializationInfo.isIbisSerializable(clazz)) {
-		classes_to_rewrite.add(clazz);
-		if (verbose) {
-		    System.out.println("Adding rewrite class : " + clazz.name);
-		}
+	if (!classes_to_rewrite.contains(clazz) && !ASMSerializationInfo.isIbisSerializable(clazz)) {
+	    classes_to_rewrite.add(clazz);
+	    if (verbose) {
+		System.out.println("Adding rewrite class : " + clazz.name);
 	    }
 	}
     }
@@ -302,40 +254,22 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 
 	    if (super_classes != null) {
 		for (int i = 0; i < super_classes.length; i++) {
-		    if (useJME()) {
-			/*
-			 * TODO if (JMESerializationInfo.isJMESerializable(super_classes[i])) {
-			 * serializable = true; if
-			 * (!JMESerializationInfo.isJMERewritten(super_classes[i])) { if (!local ||
-			 * clazz.getPa ckageName().equals( super_classes[i].getPackageName())) {
-			 * addRewriteClass(super_classes[i]); } } else { if (verbose) {
-			 * System.out.println(clazz.getClassName() + " already implements " +
-			 * JMERewriterConstants.TYPE_IBIS_IO_JME_JMESERIALIZABLE); } } }
-			 */
-		    } else {
-			if (ASMSerializationInfo.isSerializable(super_classes[i])) {
-			    serializable = true;
-			    if (!ASMSerializationInfo.isIbisSerializable(super_classes[i])) {
-				if (!local || ASMCodeGenerator.getPackageName(clazz.name)
-					.equals(ASMCodeGenerator.getPackageName(super_classes[i].name))) {
-				    addRewriteClass(super_classes[i]);
-				}
-			    } else {
-				if (verbose) {
-				    System.out.println(clazz.name + " already implements " + IBIS_IO_SERIALIZABLE);
-				}
+		    if (ASMSerializationInfo.isSerializable(super_classes[i])) {
+			serializable = true;
+			if (!ASMSerializationInfo.isIbisSerializable(super_classes[i])) {
+			    if (!local || ASMCodeGenerator.getPackageName(clazz.name)
+				    .equals(ASMCodeGenerator.getPackageName(super_classes[i].name))) {
+				addRewriteClass(super_classes[i]);
+			    }
+			} else {
+			    if (verbose) {
+				System.out.println(clazz.name + " already implements " + IBIS_IO_SERIALIZABLE);
 			    }
 			}
 		    }
 		}
 	    }
-	    if (useJME()) {
-		/*
-		 * TODO serializable |= JMESerializationInfo.isJMESerializable(clazz);
-		 */
-	    } else {
-		serializable |= ASMSerializationInfo.isSerializable(clazz);
-	    }
+	    serializable |= ASMSerializationInfo.isSerializable(clazz);
 	} else {
 	    serializable = true;
 	}
@@ -481,11 +415,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 
 	for (int i = 0; i < classes_to_rewrite.size(); i++) {
 	    ClassNode clazz = classes_to_rewrite.get(i);
-	    if (useJME()) {
-		// TODO new JMECodeGenerator(this, clazz).generateEmptyMethods();
-	    } else {
-		new ASMCodeGenerator(this, clazz).generateEmptyMethods();
-	    }
+	    new ASMCodeGenerator(this, clazz).generateEmptyMethods();
 	}
 
 	if (verbose) {
@@ -501,11 +431,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 		if (!silent) {
 		    System.out.println("  Rewrite class : " + clazz.name);
 		}
-		if (useJME()) {
-		    // TODO new JMECodeGenerator(this, clazz).generateCode();
-		} else {
-		    new ASMCodeGenerator(this, clazz).generateCode();
-		}
+		new ASMCodeGenerator(this, clazz).generateCode();
 	    }
 	}
 
@@ -538,7 +464,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
     }
 
     private static void usage() {
-	System.out.println("Usage : java IOGenerator [-dir|-local] " + "[-package <package>] [-v] [-jme]"
+	System.out.println("Usage : java IOGenerator [-dir|-local] " + "[-package <package>] [-v]"
 		+ "<fully qualified classname list | classfiles>");
 	System.exit(1);
     }
@@ -549,7 +475,6 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 	boolean file = false;
 	boolean force_generated_calls = false;
 	boolean silent = false;
-	boolean use_jme = false;
 	Vector<String> files = new Vector<String>();
 	String pack = null;
 
@@ -572,8 +497,6 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 		silent = true;
 	    } else if (args[i].equals("-force")) {
 		force_generated_calls = true;
-	    } else if (args[i].equals("-jme")) {
-		use_jme = true;
 	    } else if (args[i].equals("-package")) {
 		pack = args[i + 1];
 		i++; // skip arg
@@ -618,7 +541,7 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
 	    }
 	}
 
-	new ASMIOGenerator(verbose, local, file, force_generated_calls, silent, use_jme).scanClass(newArgs);
+	new ASMIOGenerator(verbose, local, file, force_generated_calls, silent).scanClass(newArgs);
     }
 
     private static void processDirectory(File f, Vector<String> args, String name) {
