@@ -692,12 +692,10 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall, SendPort
             } else {
                 rport = myIbis.createReceivePort(requestPortType, "server port", (MessageUpcall) this);
             }
+        } else if (connectUpcalls) {
+            rport = myIbis.createReceivePort(requestPortType, "server port", (ReceivePortConnectUpcall) this);
         } else {
-            if (connectUpcalls) {
-                rport = myIbis.createReceivePort(requestPortType, "server port", (ReceivePortConnectUpcall) this);
-            } else {
-                rport = myIbis.createReceivePort(requestPortType, "server port");
-            }
+            rport = myIbis.createReceivePort(requestPortType, "server port");
         }
         // System.err.println(rank + ": created \"server port " + (rank -
         // clients) + "\"");
@@ -1038,12 +1036,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall, SendPort
                 // Try again
             }
 
-        } catch (IOException e) {
-            System.out.println(rank + ": Got exception " + e);
-            System.out.println("StackTrace:");
-            e.printStackTrace();
-
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println(rank + ": Got exception " + e);
             System.out.println("StackTrace:");
             e.printStackTrace();

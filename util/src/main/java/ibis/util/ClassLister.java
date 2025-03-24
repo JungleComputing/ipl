@@ -47,7 +47,7 @@ public class ClassLister {
      * jar files found in the specified directories are used. if
      * <code>dirList</code> is <code>null</code>, all jar files from the classpath
      * are used instead.
-     * 
+     *
      * @param dirList a list of directories, or <code>null</code>, in which the
      *                classpath is used to find jar files.
      */
@@ -76,7 +76,7 @@ public class ClassLister {
      * Obtains a <code>ClassLister</code> for the specified directory list. All jar
      * files found in the specified directories are used. if <code>dirList</code> is
      * <code>null</code>, all jar files from the classpath are used instead.
-     * 
+     *
      * @param dirList a list of directories, or <code>null</code>, in which the
      *                classpath is used to find jar files.
      * @return the required <code>ClassLister</code>.
@@ -149,7 +149,7 @@ public class ClassLister {
     /**
      * This method reads all jar files found in the specified directories, and
      * stores them in a list that can be searched for specific names later on.
-     * 
+     *
      * @param dirList list of directories to search, separator is
      *                <code>java.io.File.pathSeparator</code>.
      */
@@ -170,7 +170,7 @@ public class ClassLister {
      * manifest attribute name is assumed to be mapped to a comma-separated list of
      * class names. All jar files in the classpath are scanned for the specified
      * manifest attribute name, and the attribute values are loaded.
-     * 
+     *
      * @param attribName the manifest attribute name.
      * @return the list of classes.
      */
@@ -215,7 +215,7 @@ public class ClassLister {
      * manifest attribute name, and the attribute values are loaded. The classes
      * thus obtained should be extensions of the specified class, or, if it is an
      * interface, implementations of it.
-     * 
+     *
      * @param attribName the manifest attribute name.
      * @param clazz      the class of which the returned classes are implementations
      *                   or extensions.

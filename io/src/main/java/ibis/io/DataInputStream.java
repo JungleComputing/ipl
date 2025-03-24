@@ -32,7 +32,7 @@ public abstract class DataInputStream extends java.io.InputStream implements Dat
     /**
      * Returns the number of bytes read from the stream since the last reset of this
      * counter.
-     * 
+     *
      * @return The number of bytes read.
      */
     public abstract long bytesRead();
@@ -44,7 +44,7 @@ public abstract class DataInputStream extends java.io.InputStream implements Dat
 
     /**
      * Reads a boolean value from the stream.
-     * 
+     *
      * @return The boolean read.
      */
     @Override

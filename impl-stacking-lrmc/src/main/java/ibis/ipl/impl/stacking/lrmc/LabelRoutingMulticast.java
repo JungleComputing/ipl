@@ -144,7 +144,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
                     if (ibisID != null) {
                         ibis.registry().maybeDead(ibisID);
                     }
-                    diedmachines.put(id, Long.valueOf(System.currentTimeMillis()));
+                    diedmachines.put(id, System.currentTimeMillis());
                 } catch (Exception e2) {
                     logger.info("Failed to inform nameserver! " + e2);
                     // ignore

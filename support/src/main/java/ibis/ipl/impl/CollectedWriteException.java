@@ -52,7 +52,7 @@ public class CollectedWriteException extends IOException {
 
     /**
      * Adds an exception.
-     * 
+     *
      * @param e the exception to be added.
      */
     public void add(IOException e) {
@@ -61,7 +61,7 @@ public class CollectedWriteException extends IOException {
 
     /**
      * Returns the exceptions.
-     * 
+     *
      * @return an array with one element for each exception.
      */
     public IOException[] getExceptions() {

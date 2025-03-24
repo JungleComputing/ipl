@@ -459,12 +459,10 @@ class Latency {
                 compRec = true;
             } else if (args[i].equals("-comp-snd")) {
                 compSnd = true;
+            } else if (count == -1) {
+                count = Integer.parseInt(args[i]);
             } else {
-                if (count == -1) {
-                    count = Integer.parseInt(args[i]);
-                } else {
-                    usage();
-                }
+                usage();
             }
         }
 

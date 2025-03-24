@@ -193,13 +193,11 @@ final class Pool implements Runnable {
             } else {
                 logger.error(message);
             }
+        } else if (printErrors) {
+            System.err.printf("%tT Central Registry: %s caused by:\n", System.currentTimeMillis(), message);
+            exception.printStackTrace(System.err);
         } else {
-            if (printErrors) {
-                System.err.printf("%tT Central Registry: %s caused by:\n", System.currentTimeMillis(), message);
-                exception.printStackTrace(System.err);
-            } else {
-                System.err.printf("%tT Central Registry: %s\n", System.currentTimeMillis(), message);
-            }
+            System.err.printf("%tT Central Registry: %s\n", System.currentTimeMillis(), message);
         }
     }
 
@@ -560,7 +558,7 @@ final class Pool implements Runnable {
         Integer currentValue = sequencers.get(name);
 
         if (currentValue == null) {
-            currentValue = Integer.valueOf(0);
+            currentValue = 0;
         }
 
         int result = currentValue;
@@ -594,10 +592,8 @@ final class Pool implements Runnable {
                 // wake up checker thread, this suspect now (among) the oldest
                 notifyAll();
             }
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("got maybeDead for " + identifier + " which is not in pool");
-            }
+        } else if (logger.isDebugEnabled()) {
+            logger.debug("got maybeDead for " + identifier + " which is not in pool");
         }
 
     }

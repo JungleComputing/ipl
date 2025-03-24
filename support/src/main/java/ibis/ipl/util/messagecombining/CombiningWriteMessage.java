@@ -57,7 +57,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#send()
      */
     @Override
@@ -68,7 +68,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#sync(int)
      */
     @Override
@@ -78,7 +78,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#reset()
      */
     @Override
@@ -88,7 +88,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#finish()
      */
     @Override
@@ -101,7 +101,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#finish(java.io.IOException)
      */
     @Override
@@ -121,7 +121,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#localPort()
      */
     @Override
@@ -131,7 +131,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeBoolean(boolean)
      */
     @Override
@@ -141,7 +141,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeByte(byte)
      */
     @Override
@@ -151,7 +151,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeChar(char)
      */
     @Override
@@ -161,7 +161,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeShort(short)
      */
     @Override
@@ -171,7 +171,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeInt(int)
      */
     @Override
@@ -181,7 +181,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeLong(long)
      */
     @Override
@@ -191,7 +191,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeFloat(float)
      */
     @Override
@@ -201,7 +201,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeDouble(double)
      */
     @Override
@@ -211,7 +211,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeString(java.lang.String)
      */
     @Override
@@ -221,7 +221,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeObject(java.lang.Object)
      */
     @Override
@@ -231,7 +231,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(boolean[])
      */
     @Override
@@ -241,7 +241,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(byte[])
      */
     @Override
@@ -251,7 +251,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(char[])
      */
     @Override
@@ -261,7 +261,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(short[])
      */
     @Override
@@ -271,7 +271,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(int[])
      */
     @Override
@@ -281,7 +281,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(long[])
      */
     @Override
@@ -291,7 +291,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(float[])
      */
     @Override
@@ -301,7 +301,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(double[])
      */
     @Override
@@ -311,7 +311,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(java.lang.Object[])
      */
     @Override
@@ -321,7 +321,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(boolean[], int, int)
      */
     @Override
@@ -331,7 +331,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(byte[], int, int)
      */
     @Override
@@ -341,7 +341,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(char[], int, int)
      */
     @Override
@@ -351,7 +351,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(short[], int, int)
      */
     @Override
@@ -361,7 +361,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(int[], int, int)
      */
     @Override
@@ -371,7 +371,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(long[], int, int)
      */
     @Override
@@ -381,7 +381,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(float[], int, int)
      */
     @Override
@@ -391,7 +391,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(double[], int, int)
      */
     @Override
@@ -401,7 +401,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see ibis.ipl.WriteMessage#writeArray(java.lang.Object[], int, int)
      */
     @Override

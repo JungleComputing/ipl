@@ -55,7 +55,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
 
     /**
      * Constructor.
-     * 
+     *
      * @param out     the underlying <code>OutputStream</code>
      * @param bufSize the size of the output buffer in bytes
      */
@@ -68,7 +68,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
 
     /**
      * Constructor.
-     * 
+     *
      * @param out the underlying <code>OutputStream</code>
      */
     public BufferedArrayOutputStream(OutputStream out) {

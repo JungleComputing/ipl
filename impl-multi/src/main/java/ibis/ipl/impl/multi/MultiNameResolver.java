@@ -227,7 +227,7 @@ public class MultiNameResolver {
         if (logger.isDebugEnabled()) {
             logger.debug("Making Resolve Request for: " + ibisName);
         }
-        Integer id = Integer.valueOf(toResolve.hashCode());
+        Integer id = toResolve.hashCode();
         synchronized (resolveQueue) {
             // Make sure we don't collide
             while (resolveQueue.get(id) != null) {

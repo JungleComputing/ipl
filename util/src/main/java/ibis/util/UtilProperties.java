@@ -33,7 +33,7 @@ class UtilProperties extends TypedProperties {
 
     /**
      * Constructs a typed properties object with the specified defaults.
-     * 
+     *
      * @param defaults the defaults.
      */
     public UtilProperties(Properties defaults, String prefix, String[] props) {

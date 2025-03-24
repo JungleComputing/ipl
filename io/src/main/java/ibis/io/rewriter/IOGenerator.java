@@ -271,10 +271,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
                             if (!local || clazz.getPackageName().equals(super_Class.getPackageName())) {
                                 addRewriteClass(super_Class);
                             }
-                        } else {
-                            if (verbose) {
-                                System.out.println(clazz.getClassName() + " already implements " + TYPE_IBIS_IO_SERIALIZABLE);
-                            }
+                        } else if (verbose) {
+                            System.out.println(clazz.getClassName() + " already implements " + TYPE_IBIS_IO_SERIALIZABLE);
                         }
                     }
                 }
@@ -397,10 +395,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
                 if (SerializationInfo.isSerializable(clazz)) {
                     if (!SerializationInfo.isIbisSerializable(clazz)) {
                         addClass(clazz);
-                    } else {
-                        if (verbose) {
-                            System.out.println(clazz.getClassName() + " already implements " + TYPE_IBIS_IO_SERIALIZABLE);
-                        }
+                    } else if (verbose) {
+                        System.out.println(clazz.getClassName() + " already implements " + TYPE_IBIS_IO_SERIALIZABLE);
                     }
                 } else {
                     if (verbose) {

@@ -228,13 +228,11 @@ public final class IOProperties {
             Properties fromFile = getPropertyFile(file);
             if (fromFile != null) {
                 addProperties(props, fromFile);
-            } else {
-                if (!file.equals(PROPERTIES_FILENAME)) {
-                    // If we fail to load the user specified file,
-                    // we give an error, since only the default file
-                    // may fail silently.
-                    System.err.println("User specified preferences \"" + file + "\" not found!");
-                }
+            } else if (!file.equals(PROPERTIES_FILENAME)) {
+                // If we fail to load the user specified file,
+                // we give an error, since only the default file
+                // may fail silently.
+                System.err.println("User specified preferences \"" + file + "\" not found!");
             }
         }
 

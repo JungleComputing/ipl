@@ -79,9 +79,7 @@ public class SerializationFactory {
             return (SerializationInput) cons.newInstance(new Object[] { in });
         } catch (ClassNotFoundException e) {
             throw new IbisIOException("No such class: " + impl, e);
-        } catch (NoSuchMethodException e) {
-            throw new IbisIOException("No suitable constructor in class: " + impl, e);
-        } catch (IllegalArgumentException e) {
+        } catch (NoSuchMethodException | IllegalArgumentException e) {
             throw new IbisIOException("No suitable constructor in class: " + impl, e);
         } catch (InstantiationException e) {
             throw new IbisIOException("class " + impl + " is abstract", e);
@@ -111,9 +109,7 @@ public class SerializationFactory {
             return (SerializationOutput) cons.newInstance(new Object[] { out });
         } catch (ClassNotFoundException e) {
             throw new IbisIOException("No such class: " + impl, e);
-        } catch (NoSuchMethodException e) {
-            throw new IbisIOException("No suitable constructor in class: " + impl, e);
-        } catch (IllegalArgumentException e) {
+        } catch (NoSuchMethodException | IllegalArgumentException e) {
             throw new IbisIOException("No suitable constructor in class: " + impl, e);
         } catch (InstantiationException e) {
             throw new IbisIOException("class " + impl + " is abstract", e);

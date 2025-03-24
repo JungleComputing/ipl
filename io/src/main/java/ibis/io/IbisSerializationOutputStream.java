@@ -1010,9 +1010,9 @@ public class IbisSerializationOutputStream extends DataSerializationOutputStream
             Class<?> clazz = ref.getClass();
             Integer n = statSendObjects.get(clazz);
             if (n == null) {
-                n = Integer.valueOf(1);
+                n = 1;
             } else {
-                n = Integer.valueOf(n.intValue() + 1);
+                n = n.intValue() + 1;
             }
             statSendObjects.put(clazz, n);
         }

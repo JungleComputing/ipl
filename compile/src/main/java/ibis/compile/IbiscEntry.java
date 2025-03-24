@@ -44,7 +44,7 @@ class IbiscEntry {
 
     /**
      * Constructs an <code>IbiscEntry</code> from the specified class and filename.
-     * 
+     *
      * @param cl the class.
      * @param fn the filename (or name of jar file entry).
      */

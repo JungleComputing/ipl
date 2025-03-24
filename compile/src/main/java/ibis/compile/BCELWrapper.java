@@ -40,7 +40,7 @@ public class BCELWrapper implements ByteCodeWrapper {
     /**
      * Constructs a BCEL implementation object for the <code>ByteCodeWrapper</code>
      * interface.
-     * 
+     *
      * @param args list of classpath elements.
      */
     public BCELWrapper(List<String> args) {

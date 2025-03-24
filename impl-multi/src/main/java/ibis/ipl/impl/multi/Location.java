@@ -58,7 +58,7 @@ public final class Location implements ibis.ipl.Location {
 
     /**
      * Constructs a location object from the specified level names.
-     * 
+     *
      * @param levels the level names.
      */
     public Location(String[] levels) {
@@ -72,7 +72,7 @@ public final class Location implements ibis.ipl.Location {
     /**
      * Constructs a location object from the specified string, in which level names
      * are separated by the separator character.
-     * 
+     *
      * @param s the specified string.
      */
     public Location(String s) {
@@ -86,7 +86,7 @@ public final class Location implements ibis.ipl.Location {
 
     /**
      * Constructs a <code>Location</code> from the specified coded form.
-     * 
+     *
      * @param codedForm the coded form.
      * @exception IOException is thrown in case of trouble.
      */
@@ -97,7 +97,7 @@ public final class Location implements ibis.ipl.Location {
     /**
      * Constructs a <code>Location</code> from the specified coded form, at a
      * particular offset and size.
-     * 
+     *
      * @param codedForm the coded form.
      * @param offset    offset in the coded form.
      * @param size      size of the coded form.
@@ -109,7 +109,7 @@ public final class Location implements ibis.ipl.Location {
 
     /**
      * Reads a <code>Location</code> from the specified input stream.
-     * 
+     *
      * @param dis the input stream.
      * @exception IOException is thrown in case of trouble.
      */
@@ -119,7 +119,7 @@ public final class Location implements ibis.ipl.Location {
 
     /**
      * Returns the coded form of this <code>Location</code>.
-     * 
+     *
      * @return the coded form.
      */
     public byte[] toBytes() {
@@ -144,7 +144,7 @@ public final class Location implements ibis.ipl.Location {
 
     /**
      * Adds coded form of this <code>Location</code> to the specified output stream.
-     * 
+     *
      * @param dos the output stream.
      * @exception IOException is thrown in case of trouble.
      */
@@ -206,7 +206,7 @@ public final class Location implements ibis.ipl.Location {
     /**
      * Method to retreive a default location, consisting of the domain and hostname
      * of this machine.
-     * 
+     *
      * @param props properties.
      * @return the default location of this machine.
      */

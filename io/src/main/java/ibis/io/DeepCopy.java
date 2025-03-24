@@ -1499,7 +1499,7 @@ public class DeepCopy {
 
     /**
      * Creates and returns a deep copy of the specified object.
-     * 
+     *
      * @param o the object to be copied
      * @return the copy.
      */
@@ -1541,7 +1541,7 @@ public class DeepCopy {
 
     /**
      * A little testing ...
-     * 
+     *
      * @param args ignored.
      */
     public static void main(String[] args) {

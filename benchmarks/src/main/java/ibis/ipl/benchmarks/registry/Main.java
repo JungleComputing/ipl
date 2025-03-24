@@ -67,7 +67,7 @@ public final class Main {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--threads")) {
                 i++;
-                threads = Integer.valueOf(args[i]);
+                threads = Integer.parseInt(args[i]);
             } else if (args[i].equalsIgnoreCase("--events")) {
                 generateEvents = true;
             } else if (args[i].equalsIgnoreCase("--fail")) {

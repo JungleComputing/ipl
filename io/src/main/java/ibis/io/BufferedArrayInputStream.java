@@ -56,7 +56,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
 
     /**
      * Constructor.
-     * 
+     *
      * @param in      the underlying <code>InStream</code>
      * @param bufSize the size of the input buffer in bytes
      */
@@ -69,7 +69,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
 
     /**
      * Constructor.
-     * 
+     *
      * @param in the underlying <code>InStream</code>
      */
     public BufferedArrayInputStream(InputStream in) {

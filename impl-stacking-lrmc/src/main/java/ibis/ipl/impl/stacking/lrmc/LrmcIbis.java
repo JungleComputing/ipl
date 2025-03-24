@@ -208,7 +208,7 @@ public class LrmcIbis implements Ibis {
         Integer s = knownIbis.get(ibis);
 
         if (s != null) {
-            return s.intValue();
+            return s;
         } else {
             logger.debug("Ibis " + ibis + " not known!");
             return -1;
@@ -221,9 +221,9 @@ public class LrmcIbis implements Ibis {
 
         if (tmp != null) {
             logger.info("Removing ibis " + tmp.intValue() + " " + ibis);
-            ibisList.remove(tmp.intValue());
+            ibisList.remove(tmp);
         }
-        diedIbises.set(tmp.intValue());
+        diedIbises.set(tmp);
     }
 
     synchronized Multicaster getMulticaster(String name, PortType portType) throws IOException {
@@ -231,10 +231,8 @@ public class LrmcIbis implements Ibis {
         if (om == null) {
             om = new Multicaster(this, portType, name);
             multicasters.put(name, om);
-        } else {
-            if (!om.portType.equals(portType)) {
-                throw new IOException("Mismatch in port types for name " + name);
-            }
+        } else if (!om.portType.equals(portType)) {
+            throw new IOException("Mismatch in port types for name " + name);
         }
         return om;
     }
@@ -391,7 +389,7 @@ public class LrmcIbis implements Ibis {
     /**
      * Determines if the specified port type is one that is implemented by Lrmc
      * ibis.
-     * 
+     *
      * @param tp the port type
      * @return <code>true</code> if LRMC Ibis deals with this port type,
      *         <code>false</code> if it is to be passed on to an underlying ibis.

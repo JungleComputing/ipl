@@ -107,10 +107,8 @@ public class InputStreams {
                 logger.debug("return stream " + is.getSource() + ", still has data");
             }
             hasData(is);
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("return stream " + is.getSource() + ", no data left");
-            }
+        } else if (logger.isDebugEnabled()) {
+            logger.debug("return stream " + is.getSource() + ", no data left");
         }
     }
 

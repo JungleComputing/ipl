@@ -218,14 +218,12 @@ class LogP {
                 ibisSer = true;
             } else if (args[i].equals("-none")) {
                 noneSer = true;
+            } else if (count == -1) {
+                count = Integer.parseInt(args[i]);
+            } else if (gapCount == -1) {
+                gapCount = Integer.parseInt(args[i]);
             } else {
-                if (count == -1) {
-                    count = Integer.parseInt(args[i]);
-                } else if (gapCount == -1) {
-                    gapCount = Integer.parseInt(args[i]);
-                } else {
-                    usage();
-                }
+                usage();
             }
         }
 

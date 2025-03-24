@@ -897,24 +897,22 @@ final class AlternativeTypeInfo {
                     }
                 }
             }
-        } else {
-            if (serial_persistent_fields != null) {
-                for (ObjectStreamField serial_persistent_field : serial_persistent_fields) {
-                    if (!serial_persistent_field.getType().isPrimitive()) {
-                        if (name.equals(serial_persistent_field.getName())) {
-                            return offset;
-                        }
-                        offset++;
+        } else if (serial_persistent_fields != null) {
+            for (ObjectStreamField serial_persistent_field : serial_persistent_fields) {
+                if (!serial_persistent_field.getType().isPrimitive()) {
+                    if (name.equals(serial_persistent_field.getName())) {
+                        return offset;
                     }
+                    offset++;
                 }
-            } else if (serializable_fields != null) {
-                for (Field serializable_field : serializable_fields) {
-                    if (!serializable_field.getType().isPrimitive()) {
-                        if (name.equals(serializable_field.getName())) {
-                            return offset;
-                        }
-                        offset++;
+            }
+        } else if (serializable_fields != null) {
+            for (Field serializable_field : serializable_fields) {
+                if (!serializable_field.getType().isPrimitive()) {
+                    if (name.equals(serializable_field.getName())) {
+                        return offset;
                     }
+                    offset++;
                 }
             }
         }

@@ -30,7 +30,7 @@ public abstract class SendPortConnectionInfo {
     /**
      * Constructs a <code>SendPortConnectionInfo</code> with the specified
      * parameters.
-     * 
+     *
      * @param port   the sendport.
      * @param target identifies the receiveport.
      */

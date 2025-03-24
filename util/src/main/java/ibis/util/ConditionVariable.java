@@ -64,7 +64,7 @@ final public class ConditionVariable {
     /**
      * Waits until the thread is signalled (by means of {@link #cv_signal()} or
      * {@link #cv_bcast}).
-     * 
+     *
      * @exception InterruptedException is thrown when the condition variable was
      *                                 created with interrupts enabled, and
      *                                 {@link Thread#interrupt()} was invoked on the
@@ -97,7 +97,7 @@ final public class ConditionVariable {
     /**
      * Waits until the thread is signalled (by means of {@link #cv_signal()} or
      * {@link #cv_bcast}), or the specified timeout expires.
-     * 
+     *
      * @param timeout the specified timeout.
      * @exception InterruptedException is thrown when the condition variable was
      *                                 created with interrupts enabled, and
@@ -166,7 +166,7 @@ final public class ConditionVariable {
 
     /**
      * When statistics are enabled, prints them on the specified stream.
-     * 
+     *
      * @param out the stream to print on.
      */
     static public void report(java.io.PrintStream out) {

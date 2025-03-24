@@ -107,7 +107,7 @@ public class JarEntryInfo {
 
     /**
      * Returns the {@link JarEntry} of this entry.
-     * 
+     *
      * @return the jarEntry
      */
     public JarEntry getJarEntry() {
@@ -116,7 +116,7 @@ public class JarEntryInfo {
 
     /**
      * Returns the {@link JarInfo} of this entry.
-     * 
+     *
      * @return the jarInfo
      */
     public JarInfo getJarInfo() {

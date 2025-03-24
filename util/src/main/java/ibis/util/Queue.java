@@ -42,7 +42,7 @@ public class Queue {
     /**
      * Enqueues the specified object, and notifies: if there are threads waiting, a
      * single one is notified.
-     * 
+     *
      * @param o the object to be enqueued.
      */
     public synchronized void enqueue(Object o) {
@@ -116,7 +116,7 @@ public class Queue {
 
     /**
      * Returns the length of the queue.
-     * 
+     *
      * @return the length of the queue.
      */
     public synchronized int size() {

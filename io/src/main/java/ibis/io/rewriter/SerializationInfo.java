@@ -214,7 +214,7 @@ class SerializationInfo implements RewriterConstants {
 
     /**
      * Computes the serial version UID value for the given class.
-     * 
+     *
      * @param clazz TODO
      */
     static long computeSUID(JavaClass clazz) {
@@ -365,7 +365,7 @@ class SerializationInfo implements RewriterConstants {
             uid = SerializationInfo.computeSUID(clazz);
             serialversionids.put(classname, Long.valueOf(uid));
         } else {
-            uid = ui.longValue();
+            uid = ui;
         }
         return uid;
     }

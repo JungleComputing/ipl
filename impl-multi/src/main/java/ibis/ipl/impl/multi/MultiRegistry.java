@@ -99,7 +99,7 @@ public class MultiRegistry implements Registry {
         return elect(electionName, 0);
     }
 
-    private final class ElectionRunner implements Runnable {
+    private static final class ElectionRunner implements Runnable {
 
         private final Registry subRegistry;
         private final String electionName;

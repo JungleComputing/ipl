@@ -40,7 +40,7 @@ public class IllegalLockStateException extends RuntimeException {
     /**
      * Constructs a <code>IllegalLockStateException</code> with the specified detail
      * message.
-     * 
+     *
      * @param s the detail message
      */
     public IllegalLockStateException(String s) {
@@ -50,7 +50,7 @@ public class IllegalLockStateException extends RuntimeException {
     /**
      * Constructs a <code>IllegalLockStateException</code> with the specified detail
      * message and cause
-     * 
+     *
      * @param s     the detail message
      * @param cause the cause
      */
@@ -60,7 +60,7 @@ public class IllegalLockStateException extends RuntimeException {
 
     /**
      * Constructs a <code>IllegalLockStateException</code> with the specified cause
-     * 
+     *
      * @param cause the cause
      */
     public IllegalLockStateException(Throwable cause) {

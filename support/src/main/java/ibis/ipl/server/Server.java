@@ -181,10 +181,8 @@ public final class Server implements ServerInterface {
                         if (!sl.registerProperty("smartsockets.viz", "invisible")) {
                             sl.updateProperty("smartsockets.viz", "invisible");
                         }
-                    } else {
-                        if (!sl.registerProperty("smartsockets.viz", vizInfo)) {
-                            sl.updateProperty("smartsockets.viz", vizInfo);
-                        }
+                    } else if (!sl.registerProperty("smartsockets.viz", vizInfo)) {
+                        sl.updateProperty("smartsockets.viz", vizInfo);
                     }
                 } else {
                     logger.warn("could not set smartsockets viz property: could not get smartsockets service link");

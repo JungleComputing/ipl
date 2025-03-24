@@ -80,14 +80,14 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     }
 
     /*
-     * 
+     *
      * // NOTE: this is wrong ? Even though the ibis has left, the IbisIdentifier
      * may still be floating around in the system... We should just have some
      * timeout on the cache entries instead...
-     * 
+     *
      * public void left(ibis.ipl.IbisIdentifier id) { super.left(id);
      * synchronized(addresses) { addresses.remove(id); } }
-     * 
+     *
      * public void died(ibis.ipl.IbisIdentifier id) { super.died(id);
      * synchronized(addresses) { addresses.remove(id); } }
      */

@@ -119,7 +119,7 @@ public final class SunSerializationInputStream extends java.io.ObjectInputStream
          */
         /*
          * int rd = 0; do { rd += read(ref, off + rd, len - rd); } while (rd < len);
-         * 
+         *
          * No, not good. It is written in such a way that it can be read back with
          * readObject(). (Ceriel)
          */

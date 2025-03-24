@@ -43,7 +43,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
     /**
      * Constructor, initializing the fields with the specified parameters.
-     * 
+     *
      * @param name the name of the receiveport.
      * @param ibis the Ibis instance that created the receiveport.
      */
@@ -61,7 +61,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     /**
      * Constructs a <code>ReceivePortIdentifier</code> from the specified coded
      * form.
-     * 
+     *
      * @param codedForm the coded form.
      * @exception IOException is thrown in case of trouble.
      */
@@ -72,7 +72,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     /**
      * Constructs a <code>ReceivePortIdentifier</code> from the specified coded
      * form, at a particular offset and size.
-     * 
+     *
      * @param codedForm the coded form.
      * @param offset    offset in the coded form.
      * @param length    length of the coded form.
@@ -85,7 +85,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     /**
      * Constructs a <code>ReceivePortIdentifier</code> by reading it from the
      * specified input stream.
-     * 
+     *
      * @param dis the input stream.
      * @exception IOException is thrown in case of trouble.
      */
@@ -96,7 +96,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
     /**
      * Returns the coded form of this <code>ReceivePortIdentifier</code>.
-     * 
+     *
      * @return the coded form.
      */
     public byte[] toBytes() {

@@ -88,7 +88,7 @@ public class Ticket {
         /**
          * Gets and resets the object. It first blocks until a value is put(), and then
          * grabs and destroys it.
-         * 
+         *
          * @return the object put into this bucket.
          */
         synchronized Object get() {
@@ -121,7 +121,7 @@ public class Ticket {
          * grabs and destroys it. The difference with <code>get</code> is that
          * <code>collect</code> also makes the bucket invalid, so that a new ticket is
          * required.
-         * 
+         *
          * @return the object put into this bucket.
          */
         synchronized Object collect() {
@@ -159,7 +159,7 @@ public class Ticket {
 
         /**
          * Gets the object. It first blocks until a value is put(), and then returns it.
-         * 
+         *
          * @return the object put into this bucket.
          */
         synchronized Object peek() {
@@ -182,7 +182,7 @@ public class Ticket {
         /**
          * Puts an object in the bucket. It first waits until the bucket is free, then
          * puts the data in it, and notifies waiters.
-         * 
+         *
          * @param o the object to be placed in the bucket.
          */
         synchronized void put(Object o) {
@@ -256,7 +256,7 @@ public class Ticket {
     /**
      * Returns a new ticket. If not available, the data structure is doubled in
      * size.
-     * 
+     *
      * @return a new ticket number.
      */
     public synchronized int get() {
@@ -444,7 +444,7 @@ public class Ticket {
 
     /**
      * Releases <code>ticket</code>. This makes the ticket available for reuse.
-     * 
+     *
      * @param ticket the ticket number to be released.
      */
     public void freeTicket(int ticket) {

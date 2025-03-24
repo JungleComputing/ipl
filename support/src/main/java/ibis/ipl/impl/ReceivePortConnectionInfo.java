@@ -60,7 +60,7 @@ public class ReceivePortConnectionInfo {
     /**
      * Constructs a new <code>ReceivePortConnectionInfo</code> with the specified
      * parameters.
-     * 
+     *
      * @param origin identifies the sendport of this connection.
      * @param port   the receiveport.
      * @param dataIn the inputstream on which a serialization input stream can be
@@ -78,7 +78,7 @@ public class ReceivePortConnectionInfo {
 
     /**
      * Returns the number of bytes read from the data stream.
-     * 
+     *
      * @return the number of bytes.
      */
     public long bytesRead() {
@@ -95,7 +95,7 @@ public class ReceivePortConnectionInfo {
      * This method must be called each time a connected sendport adds a new
      * connection. This new connection may either be to the current receiveport, or
      * to another one. In both cases, the serialization stream must be recreated.
-     * 
+     *
      * @exception IOException is thrown in case of trouble.
      */
     public void newStream() throws IOException {
@@ -110,7 +110,7 @@ public class ReceivePortConnectionInfo {
     /**
      * This method closes the connection, as the result of the specified exception.
      * Implementations may need to redefine this method
-     * 
+     *
      * @param e the exception.
      */
     public void close(Throwable e) {

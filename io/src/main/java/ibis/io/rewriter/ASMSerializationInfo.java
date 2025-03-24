@@ -355,7 +355,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             uid = ASMSerializationInfo.computeSUID(clazz);
             serialversionids.put(classname, Long.valueOf(uid));
         } else {
-            uid = ui.longValue();
+            uid = ui;
         }
         return uid;
     }

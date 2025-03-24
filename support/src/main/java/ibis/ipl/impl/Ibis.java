@@ -398,7 +398,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
             ibis.ipl.IbisIdentifier i = rp.ibisIdentifier();
             Long oldval = sentBytesPerIbis.get(i);
             if (oldval != null) {
-                cnt += oldval.longValue();
+                cnt += oldval;
             }
             sentBytesPerIbis.put(i, Long.valueOf(cnt));
         }
@@ -412,7 +412,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
             ibis.ipl.IbisIdentifier i = sp.ibisIdentifier();
             Long oldval = receivedBytesPerIbis.get(i);
             if (oldval != null) {
-                cnt += oldval.longValue();
+                cnt += oldval;
             }
             receivedBytesPerIbis.put(i, Long.valueOf(cnt));
         }
@@ -583,10 +583,8 @@ public abstract class Ibis implements ibis.ipl.Ibis {
             if (!tp.hasCapability(PortType.RECEIVE_AUTO_UPCALLS) && !tp.hasCapability(PortType.RECEIVE_POLL_UPCALLS)) {
                 throw new IbisConfigurationException("no message upcalls requested for this port type");
             }
-        } else {
-            if (!tp.hasCapability(PortType.RECEIVE_EXPLICIT)) {
-                throw new IbisConfigurationException("no explicit receive requested for this port type");
-            }
+        } else if (!tp.hasCapability(PortType.RECEIVE_EXPLICIT)) {
+            throw new IbisConfigurationException("no explicit receive requested for this port type");
         }
         if (name == null) {
             synchronized (this.getClass()) {

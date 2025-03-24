@@ -64,7 +64,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Adds the contents of the parameter to this timer.
-     * 
+     *
      * @param t the timer to be added.
      */
     public synchronized void add(Timer t) {
@@ -74,7 +74,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Adds the contents of the parameters to this timer.
-     * 
+     *
      * @param t   the time in microseconds to be added.
      * @param cnt the number of start/stop sequences.
      */
@@ -344,7 +344,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Times the timer itself.
-     * 
+     *
      * @param args the first argument, if given, indicates the number of start/stop
      *             sequences to time. Default is 1000000.
      */

@@ -214,7 +214,7 @@ abstract class JavaDependentStuff {
 
     /**
      * Creates a new object of this class, or <code>null</code> if it fails.
-     * 
+     *
      * @return the new object, or <code>null</code>.
      */
     abstract Object newInstance();

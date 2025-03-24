@@ -52,8 +52,6 @@ public class Multicaster implements MessageReceiver {
     SerializationInput sin;
 
     private long totalData = 0;
-    private long lastBytesWritten = 0;
-
     private MessageCache cache;
 
     private boolean finish = false;
@@ -141,7 +139,7 @@ public class Multicaster implements MessageReceiver {
     long finalizeSend() throws IOException {
         sout.flush();
         bout.forcedFlush();
-        lastBytesWritten = bout.bytesWritten();
+        long lastBytesWritten = bout.bytesWritten();
         totalData += lastBytesWritten;
         return lastBytesWritten;
     }

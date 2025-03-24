@@ -42,7 +42,7 @@ public class RunJavac {
 
     /**
      * Sets the compiler.
-     * 
+     *
      * @param c compiler name plus options
      */
     public static void setCompiler(String[] c) {
@@ -51,7 +51,7 @@ public class RunJavac {
 
     /**
      * Runs the Java compiler with the specified options on the specified class.
-     * 
+     *
      * @param compilerArgs the compiler arguments
      * @param verbose      if <code>true</code>, prints the compilation command on
      *                     standard output

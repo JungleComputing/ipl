@@ -57,7 +57,7 @@ public interface SerializationOutput extends DataOutput {
     /**
      * Returns true when the stream must be re-initialized when a connection is
      * added.
-     * 
+     *
      * @return true when the stream must be re-initialized when a connection is
      *         added.
      */
@@ -134,21 +134,21 @@ public interface SerializationOutput extends DataOutput {
 
     /**
      * Flushes the stream and its underlying streams.
-     * 
+     *
      * @exception java.io.IOException an error occurred
      */
     public void flush() throws IOException;
 
     /**
      * Flushes and closes this stream, and flushes the underlying streams.
-     * 
+     *
      * @exception java.io.IOException an error occurred
      */
     public void close() throws IOException;
 
     /**
      * Flushes and closes this stream and the underlying streams.
-     * 
+     *
      * @exception java.io.IOException an error occurred
      */
     public void realClose() throws IOException;

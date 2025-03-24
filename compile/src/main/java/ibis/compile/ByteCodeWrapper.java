@@ -30,7 +30,7 @@ public interface ByteCodeWrapper {
     /**
      * Obtains the <code>ClassInfo</code> object that encapsulates the parameter,
      * which represents a class for a specific bytecode rewriter.
-     * 
+     *
      * @param cl the class as represented by a specific bytecode rewriter.
      * @return the corresponding <code>ClassInfo</code> object.
      */
@@ -39,7 +39,7 @@ public interface ByteCodeWrapper {
     /**
      * Reads a class from the specified file and returns the corresponding
      * <code>ClassInfo</code> object.
-     * 
+     *
      * @param fileName the name of the file to read the class from.
      * @exception IOException is thrown on a read error.
      * @return the corresponding <code>ClassInfo</code> object.
@@ -49,7 +49,7 @@ public interface ByteCodeWrapper {
     /**
      * Reads a class from the specified input stream and returns the corresponding
      * <code>ClassInfo</code> object.
-     * 
+     *
      * @param in       the input stream to read the class from.
      * @param fileName the name of the file/jar entry.
      * @exception IOException is thrown on a read error.

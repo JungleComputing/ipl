@@ -83,7 +83,7 @@ public abstract class IbiscComponent {
      * This method accepts an array of program arguments, processes the arguments
      * that are intended for this component, and removes these arguments from the
      * list. The parameter array may/must be modified.
-     * 
+     *
      * @param args the array of program arguments.
      * @return <code>true</code> when this component must be run, <code>false</code>
      *         otherwise.
@@ -95,7 +95,7 @@ public abstract class IbiscComponent {
     /**
      * This method returns a short string, usable for a "usage" message when the
      * user passes wrong parameters to ibisc.
-     * 
+     *
      * @return a usage string.
      */
     public abstract String getUsageString();
@@ -105,14 +105,14 @@ public abstract class IbiscComponent {
      * classes as represented by the byte code rewriter used. The component
      * processes these entries as it sees fit. It can add entries by means of the
      * {@link #addEntry(ClassInfo cl, String fromClass)} method.
-     * 
+     *
      * @param classes the class iterator to process.
      */
     public abstract void process(Iterator<?> classes);
 
     /**
      * Returns the rewriter implementation. ASM and BCEL are supported.
-     * 
+     *
      * @return the rewriter implementation needed/used by this
      *         <code>IbiscComponent</code>.
      */
@@ -131,7 +131,7 @@ public abstract class IbiscComponent {
      * class indicated by the specified class name was read. Returns
      * <code>null</code> if the class is not found or the file lived in the current
      * directory.
-     * 
+     *
      * @param cl the classname.
      * @return the directory name or <code>null</code>.
      */
@@ -155,7 +155,7 @@ public abstract class IbiscComponent {
 
     /**
      * Set the verbose flag to the specified value.
-     * 
+     *
      * @param v the value.
      */
     void setVerbose(boolean v) {
@@ -166,7 +166,7 @@ public abstract class IbiscComponent {
      * Set the keep flag to the specified value. When set, this flag instructs the
      * component not to remove Java files that it may generate while processing the
      * classes.
-     * 
+     *
      * @param v the value.
      */
     void setKeep(boolean v) {
@@ -182,7 +182,7 @@ public abstract class IbiscComponent {
 
     /**
      * Notifies that the specified class has changed.
-     * 
+     *
      * @param cl the class that has changed.
      */
     protected void setModified(ClassInfo cl) {
@@ -200,7 +200,7 @@ public abstract class IbiscComponent {
      * Adds a new entry to the class list. The new entry is derived from the
      * specified class, and is ultimately written in the same directory, or the same
      * jar file as the class from which it is derived.
-     * 
+     *
      * @param cl        the new entry.
      * @param fromClass the name of the class from which it is derived.
      */
@@ -234,7 +234,7 @@ public abstract class IbiscComponent {
      * Compiles the specified list of arguments, which are all derived from the
      * specified class. The resulting classes are ultimately written in the same
      * directory or the same jar file as the class from which they are derived.
-     * 
+     *
      * @param args      the list of Java files to compile.
      * @param fromClass the name of the class from which they are derived.
      */

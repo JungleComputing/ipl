@@ -46,7 +46,7 @@ public class MessageSplitter {
 
     /**
      * Construct a new CombiningReceivePort
-     * 
+     *
      * @param prop properties for the splitter (currently only the Serialization
      *             property is used).
      * @param rp   The ReceivePort that will produce the messages

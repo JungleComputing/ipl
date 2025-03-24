@@ -31,7 +31,7 @@ public final class Stats {
 
     /**
      * Calculates the mean of an array of numbers.
-     * 
+     *
      * @param data the numbers to calculate the mean of.
      * @return the mean.
      */
@@ -61,7 +61,7 @@ public final class Stats {
     /**
      * Calculates the standard deviation of an array of numbers. See
      * http://www.davidmlane.com/hyperstat/A16252.html
-     * 
+     *
      * @param data the numbers to calculate the standard deviation of.
      * @return the standard deviation.
      */
@@ -72,7 +72,7 @@ public final class Stats {
     /**
      * Calculates the standard deviation of a subset of an array of numbers. See
      * http://www.davidmlane.com/hyperstat/A16252.html
-     * 
+     *
      * @param data the numbers to calculate the standard deviation of
      * @param off  offset
      * @param len  length
@@ -97,7 +97,7 @@ public final class Stats {
     /**
      * Calculates a speed in Mb/s given the size in bytes and the time in
      * milliseconds. The result is rounded to one hundreth of an integer
-     * 
+     *
      * @param bytes  size of the data in bytes
      * @param millis the time of the measurement in milliseconds
      * @return the speed.
@@ -124,7 +124,7 @@ public final class Stats {
 
     /**
      * Rounds up a double. Rounds to one hundreth of an integer.
-     * 
+     *
      * @param v the value to be rounded.
      * @return the rounded value.
      */

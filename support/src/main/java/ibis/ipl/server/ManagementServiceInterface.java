@@ -29,7 +29,7 @@ public interface ManagementServiceInterface {
     /**
      * Obtains the attributes from the specified Ibis instance, one object per
      * attribute description.
-     * 
+     *
      * @param ibis         the Ibis instance to obtain attributes from.
      * @param descriptions the attribute descriptions.
      * @return the attributes.

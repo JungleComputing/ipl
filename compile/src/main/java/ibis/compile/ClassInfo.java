@@ -29,7 +29,7 @@ import java.io.IOException;
 public interface ClassInfo {
     /**
      * Obtains the name of the class.
-     * 
+     *
      * @return the classname.
      */
     public String getClassName();
@@ -38,14 +38,14 @@ public interface ClassInfo {
      * Obtains the object that represents this class for this specific byte code
      * rewriter. For instance, for BCEL, this is an object of type
      * <code>org.apache.bcel.classfile.JavaClass</code>.
-     * 
+     *
      * @return the class object.
      */
     public Object getClassObject();
 
     /**
      * Writes the class to the specified filename.
-     * 
+     *
      * @param fileName the name of the file to which the class is dumped.
      * @exception IOException is thrown when an error occurs during the write.
      */
@@ -53,14 +53,14 @@ public interface ClassInfo {
 
     /**
      * Obtains the class as a byte array.
-     * 
+     *
      * @return the byte array.
      */
     public byte[] getBytes();
 
     /**
      * Verifies the byte code, if the byte code rewriter supports it.
-     * 
+     *
      * @return <code>true</code> if the verification succeeds or byte code
      *         verification is not supported, <code>false</code> otherwise.
      */

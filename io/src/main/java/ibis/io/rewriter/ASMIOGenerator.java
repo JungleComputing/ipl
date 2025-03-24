@@ -256,10 +256,8 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
                             if (!local || ASMCodeGenerator.getPackageName(clazz.name).equals(ASMCodeGenerator.getPackageName(super_Class.name))) {
                                 addRewriteClass(super_Class);
                             }
-                        } else {
-                            if (verbose) {
-                                System.out.println(clazz.name + " already implements " + IBIS_IO_SERIALIZABLE);
-                            }
+                        } else if (verbose) {
+                            System.out.println(clazz.name + " already implements " + IBIS_IO_SERIALIZABLE);
                         }
                     }
                 }
@@ -380,10 +378,8 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
                 if (ASMSerializationInfo.isSerializable(clazz)) {
                     if (!ASMSerializationInfo.isIbisSerializable(clazz)) {
                         addClass(clazz);
-                    } else {
-                        if (verbose) {
-                            System.out.println(clazz.name + " already implements " + IBIS_IO_SERIALIZABLE);
-                        }
+                    } else if (verbose) {
+                        System.out.println(clazz.name + " already implements " + IBIS_IO_SERIALIZABLE);
                     }
                 } else {
                     if (verbose) {

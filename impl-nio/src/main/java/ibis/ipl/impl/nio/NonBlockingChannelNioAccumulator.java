@@ -141,6 +141,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             for (int i = 0; i < nrOfConnections; i++) {
                 if (connections[i] == connection) {
                     found = true;
+                    break;
                 }
             }
             if (!found) {
