@@ -15,6 +15,18 @@
  */
 package ibis.ipl.impl.stacking.lrmc;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.Credentials;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
@@ -33,25 +45,11 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.stacking.lrmc.util.DynamicObjectArray;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class LrmcIbis implements Ibis {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(LrmcIbis.class);
+    private static final Logger logger = LoggerFactory.getLogger(LrmcIbis.class);
 
-    static final PortType additionalPortType = new PortType(
-            PortType.SERIALIZATION_DATA, PortType.COMMUNICATION_RELIABLE,
+    static final PortType additionalPortType = new PortType(PortType.SERIALIZATION_DATA, PortType.COMMUNICATION_RELIABLE,
             PortType.CONNECTION_MANY_TO_ONE, PortType.RECEIVE_AUTO_UPCALLS);
 
     private static class EventHandler implements RegistryEventHandler {
@@ -64,6 +62,7 @@ public class LrmcIbis implements Ibis {
             this.ibis = ibis;
         }
 
+        @Override
         public void joined(IbisIdentifier id) {
             ibis.addIbis(id);
             if (h != null) {
@@ -71,6 +70,7 @@ public class LrmcIbis implements Ibis {
             }
         }
 
+        @Override
         public void left(IbisIdentifier id) {
             ibis.removeIbis(id);
             if (h != null) {
@@ -78,6 +78,7 @@ public class LrmcIbis implements Ibis {
             }
         }
 
+        @Override
         public void died(IbisIdentifier id) {
             ibis.removeIbis(id);
             if (h != null) {
@@ -85,24 +86,28 @@ public class LrmcIbis implements Ibis {
             }
         }
 
+        @Override
         public void gotSignal(String s, IbisIdentifier id) {
             if (h != null) {
                 h.gotSignal(s, id);
             }
         }
 
+        @Override
         public void electionResult(String electionName, IbisIdentifier winner) {
             if (h != null) {
                 h.electionResult(electionName, winner);
             }
         }
 
+        @Override
         public void poolClosed() {
             if (h != null) {
                 h.poolClosed();
             }
         }
 
+        @Override
         public void poolTerminated(IbisIdentifier source) {
             if (h != null) {
                 h.poolTerminated(source);
@@ -122,24 +127,20 @@ public class LrmcIbis implements Ibis {
 
     private BitSet diedIbises = new BitSet();
 
-    HashMap<IbisIdentifier, Integer> knownIbis = new HashMap<IbisIdentifier, Integer>();
+    HashMap<IbisIdentifier, Integer> knownIbis = new HashMap<>();
 
-    DynamicObjectArray<IbisIdentifier> ibisList = new DynamicObjectArray<IbisIdentifier>();
+    DynamicObjectArray<IbisIdentifier> ibisList = new DynamicObjectArray<>();
 
-    HashMap<String, Multicaster> multicasters = new HashMap<String, Multicaster>();
+    HashMap<String, Multicaster> multicasters = new HashMap<>();
 
-    public LrmcIbis(IbisFactory factory,
-            RegistryEventHandler registryEventHandler,
-            Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, byte[] applicationTag, PortType[] portTypes,
-            String specifiedSubImplementation, LrmcIbisStarter lrmcIbisStarter)
+    public LrmcIbis(IbisFactory factory, RegistryEventHandler registryEventHandler, Properties userProperties, IbisCapabilities capabilities,
+            Credentials credentials, byte[] applicationTag, PortType[] portTypes, String specifiedSubImplementation, LrmcIbisStarter lrmcIbisStarter)
             throws IbisCreationFailedException {
-        List<PortType> requiredPortTypes = new ArrayList<PortType>();
+        List<PortType> requiredPortTypes = new ArrayList<>();
         logger.info("Constructor LRMC Ibis");
 
         if (specifiedSubImplementation == null) {
-            throw new IbisCreationFailedException(
-                    "LrmcIbis: child Ibis implementation not specified");
+            throw new IbisCreationFailedException("LrmcIbis: child Ibis implementation not specified");
         }
 
         EventHandler h = null;
@@ -153,17 +154,16 @@ public class LrmcIbis implements Ibis {
 
         // add additional port-type as a requirement, and remove port-types
         // that we deal with ourselves.
-        for (PortType portType: portTypes) {
-            if (! ourPortType(portType)) {
+        for (PortType portType : portTypes) {
+            if (!ourPortType(portType)) {
                 requiredPortTypes.add(portType);
             }
         }
-       
+
         requiredPortTypes.add(additionalPortType);
 
         base = factory.createIbis(h, capabilities, userProperties, credentials, applicationTag,
-                requiredPortTypes.toArray(new PortType[requiredPortTypes.size()]),
-                specifiedSubImplementation);
+                requiredPortTypes.toArray(new PortType[requiredPortTypes.size()]), specifiedSubImplementation);
     }
 
     public synchronized void addIbis(IbisIdentifier ibis) {
@@ -226,8 +226,7 @@ public class LrmcIbis implements Ibis {
         diedIbises.set(tmp.intValue());
     }
 
-    synchronized Multicaster getMulticaster(String name, PortType portType)
-            throws IOException {
+    synchronized Multicaster getMulticaster(String name, PortType portType) throws IOException {
         Multicaster om = multicasters.get(name);
         if (om == null) {
             om = new Multicaster(this, portType, name);
@@ -240,27 +239,25 @@ public class LrmcIbis implements Ibis {
         return om;
     }
 
+    @Override
     public String getVersion() {
         return "LrmcIbis on top of " + base.getVersion();
     }
 
-    public SendPort createSendPort(PortType portType, String name,
-            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+    @Override
+    public SendPort createSendPort(PortType portType, String name, SendPortDisconnectUpcall cU, Properties props) throws IOException {
         matchPortType(portType);
         if (ourPortType(portType)) {
             if (name == null) {
                 throw new IOException("Anonymous  ports not supported");
             }
-            if (cU != null
-                    && !portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
-                throw new IbisConfigurationException(
-                        "connection upcalls not supported by this porttype");
+            if (cU != null && !portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
+                throw new IbisConfigurationException("connection upcalls not supported by this porttype");
             }
             synchronized (this) {
                 Multicaster mc = getMulticaster(name, portType);
                 if (mc.sendPort != null) {
-                    throw new IOException(
-                            "A sendport with the same name already exists");
+                    throw new IOException("A sendport with the same name already exists");
                 }
                 mc.sendPort = new LrmcSendPort(mc, this, props);
                 return mc.sendPort;
@@ -269,33 +266,27 @@ public class LrmcIbis implements Ibis {
         return new StackingSendPort(portType, this, name, cU, props);
     }
 
-    public ReceivePort createReceivePort(PortType portType, String name,
-            MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String name, MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
         matchPortType(portType);
         if (ourPortType(portType)) {
             if (name == null) {
                 throw new IOException("Anonymous  ports not supported");
             }
-            if (cU != null
-                    && !portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
-                throw new IbisConfigurationException(
-                        "connection upcalls not supported by this porttype");
+            if (cU != null && !portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
+                throw new IbisConfigurationException("connection upcalls not supported by this porttype");
             }
-            if (u != null
-                    && !portType.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)) {
-                throw new IbisConfigurationException(
-                        "upcalls not supported by this porttype");
+            if (u != null && !portType.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)) {
+                throw new IbisConfigurationException("upcalls not supported by this porttype");
             }
             if (u == null && !portType.hasCapability(PortType.RECEIVE_EXPLICIT)) {
-                throw new IbisConfigurationException(
-                        "explicit receive not supported by this porttype");
+                throw new IbisConfigurationException("explicit receive not supported by this porttype");
             }
             synchronized (this) {
                 Multicaster mc = getMulticaster(name, portType);
                 if (mc.receivePort != null) {
-                    throw new IOException(
-                            "A receiveport with the same name already exists");
+                    throw new IOException("A receiveport with the same name already exists");
                 }
                 mc.receivePort = new LrmcReceivePort(mc, this, u, props);
                 return mc.receivePort;
@@ -304,32 +295,29 @@ public class LrmcIbis implements Ibis {
         return new StackingReceivePort(portType, this, name, u, cU, props);
     }
 
-    public ReceivePort createReceivePort(PortType portType,
-            String receivePortName) throws IOException {
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String receivePortName) throws IOException {
         return createReceivePort(portType, receivePortName, null, null, null);
     }
 
-    public ReceivePort createReceivePort(PortType portType,
-            String receivePortName, MessageUpcall messageUpcall)
-            throws IOException {
-        return createReceivePort(portType, receivePortName, messageUpcall,
-                null, null);
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String receivePortName, MessageUpcall messageUpcall) throws IOException {
+        return createReceivePort(portType, receivePortName, messageUpcall, null, null);
     }
 
-    public ReceivePort createReceivePort(PortType portType,
-            String receivePortName,
-            ReceivePortConnectUpcall receivePortConnectUpcall)
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String receivePortName, ReceivePortConnectUpcall receivePortConnectUpcall)
             throws IOException {
-        return createReceivePort(portType, receivePortName, null,
-                receivePortConnectUpcall, null);
+        return createReceivePort(portType, receivePortName, null, receivePortConnectUpcall, null);
     }
 
+    @Override
     public ibis.ipl.SendPort createSendPort(PortType tp) throws IOException {
         return createSendPort(tp, null, null, null);
     }
 
-    public ibis.ipl.SendPort createSendPort(PortType tp, String name)
-            throws IOException {
+    @Override
+    public ibis.ipl.SendPort createSendPort(PortType tp, String name) throws IOException {
         return createSendPort(tp, name, null, null);
     }
 
@@ -341,11 +329,11 @@ public class LrmcIbis implements Ibis {
             }
         }
         if (!matched) {
-            throw new IbisConfigurationException("PortType " + tp
-                    + " not specified when creating this Ibis instance");
+            throw new IbisConfigurationException("PortType " + tp + " not specified when creating this Ibis instance");
         }
     }
 
+    @Override
     public void end() throws IOException {
         for (Map.Entry<String, Multicaster> x : multicasters.entrySet()) {
             x.getValue().done();
@@ -353,62 +341,65 @@ public class LrmcIbis implements Ibis {
         base.end();
     }
 
+    @Override
     public Registry registry() {
         // return new
         // ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
         return base.registry();
     }
 
+    @Override
     public Map<String, String> managementProperties() {
         return base.managementProperties();
     }
 
-    public String getManagementProperty(String key)
-            throws NoSuchPropertyException {
+    @Override
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         return base.getManagementProperty(key);
     }
 
-    public void setManagementProperties(Map<String, String> properties)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         base.setManagementProperties(properties);
     }
 
-    public void setManagementProperty(String key, String val)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperty(String key, String val) throws NoSuchPropertyException {
         base.setManagementProperty(key, val);
     }
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
         base.printManagementProperties(stream);
     }
 
+    @Override
     public void poll() throws IOException {
         base.poll();
     }
 
+    @Override
     public IbisIdentifier identifier() {
         return base.identifier();
     }
 
+    @Override
     public Properties properties() {
         return base.properties();
     }
 
-    
     /**
-     * Determines if the specified port type is one that is implemented
-     * by Lrmc ibis.
+     * Determines if the specified port type is one that is implemented by Lrmc
+     * ibis.
+     * 
      * @param tp the port type
      * @return <code>true</code> if LRMC Ibis deals with this port type,
-     * <code>false</code> if it is to be passed on to an underlying ibis.
+     *         <code>false</code> if it is to be passed on to an underlying ibis.
      */
     private static boolean ourPortType(PortType tp) {
-        return (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY) || tp
-                .hasCapability(PortType.CONNECTION_ONE_TO_MANY))
-                && !tp.hasCapability(PortType.COMMUNICATION_RELIABLE)
-                && !tp.hasCapability(PortType.CONNECTION_UPCALLS)
-                && !tp.hasCapability(PortType.CONNECTION_DOWNCALLS)
-                && !tp.hasCapability(PortType.COMMUNICATION_NUMBERED)
+        return (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY) || tp.hasCapability(PortType.CONNECTION_ONE_TO_MANY))
+                && !tp.hasCapability(PortType.COMMUNICATION_RELIABLE) && !tp.hasCapability(PortType.CONNECTION_UPCALLS)
+                && !tp.hasCapability(PortType.CONNECTION_DOWNCALLS) && !tp.hasCapability(PortType.COMMUNICATION_NUMBERED)
                 && !tp.hasCapability(PortType.COMMUNICATION_FIFO);
     }
 }

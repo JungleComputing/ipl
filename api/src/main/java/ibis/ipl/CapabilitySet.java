@@ -34,16 +34,15 @@ import java.util.Properties;
 /**
  * Container for the capabilities of an {@link ibis.ipl.Ibis Ibis} or a
  * representation of a port type. These are represented as boolean capabilities,
- * its presence indicating that a certain capability is present.
- * There are a number of predefined capabilities, but Ibis implementations may
- * add new ones.
+ * its presence indicating that a certain capability is present. There are a
+ * number of predefined capabilities, but Ibis implementations may add new ones.
  * A <code>CapabilitySet</code> object is immutable.
  */
 public class CapabilitySet {
 
     private transient byte[] codedForm;
 
-    private final HashSet<String> capabilities = new HashSet<String>();
+    private final HashSet<String> capabilities = new HashSet<>();
 
     /**
      * Constructs an empty capabilities object.
@@ -54,8 +53,8 @@ public class CapabilitySet {
 
     /**
      * Creates a capability set with the specified values.
-     * @param values
-     *          the specified values.
+     *
+     * @param values the specified values.
      */
     public CapabilitySet(String... values) {
         for (String value : values) {
@@ -66,8 +65,8 @@ public class CapabilitySet {
 
     /**
      * Creates a copy of a capability set.
-     * @param capabilitySet
-     *          the capability set to copy.
+     *
+     * @param capabilitySet the capability set to copy.
      */
     public CapabilitySet(CapabilitySet capabilitySet) {
         capabilities.addAll(capabilitySet.capabilities);
@@ -75,20 +74,16 @@ public class CapabilitySet {
     }
 
     /**
-     * Creates a capability set with the values specified in a
-     * Properties object.
-     * @param properties
-     *          the specified values.
+     * Creates a capability set with the values specified in a Properties object.
+     *
+     * @param properties the specified values.
      */
     @SuppressWarnings("unchecked")
-	protected CapabilitySet(Properties properties) {
-        for (Enumeration<String> e = (Enumeration<String>)properties.propertyNames(); e.hasMoreElements();) {
+    protected CapabilitySet(Properties properties) {
+        for (Enumeration<String> e = (Enumeration<String>) properties.propertyNames(); e.hasMoreElements();) {
             String name = e.nextElement();
             String value = properties.getProperty(name);
-            if (value != null
-                    && (value.equals("1") || value.equals("on")
-                        || value.equals("") || value.equals("true")
-                        || value.equals("yes"))) {
+            if (value != null && (value.equals("1") || value.equals("on") || value.equals("") || value.equals("true") || value.equals("yes"))) {
                 capabilities.add(name.toLowerCase());
             }
         }
@@ -98,11 +93,10 @@ public class CapabilitySet {
 
     /**
      * Creates a capability set from a serialized form.
-     * @param codedForm
-     *          the serialized form, as produced by the {@link #toBytes()}
-     *          method.
-     * @exception IOException
-     *          is thrown in case of trouble.
+     *
+     * @param codedForm the serialized form, as produced by the {@link #toBytes()}
+     *                  method.
+     * @exception IOException is thrown in case of trouble.
      */
     public CapabilitySet(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
@@ -110,28 +104,22 @@ public class CapabilitySet {
 
     /**
      * Creates a capability set from a serialized form.
-     * @param codedForm
-     *          contains the serialized form, as produced by the
-     *          {@link #toBytes()} method.
-     * @param offset
-     *          offset where input for this method starts.
-     * @param length
-     *          length of input for this method.
-     * @exception IOException
-     *          is thrown in case of trouble.
+     *
+     * @param codedForm contains the serialized form, as produced by the
+     *                  {@link #toBytes()} method.
+     * @param offset    offset where input for this method starts.
+     * @param length    length of input for this method.
+     * @exception IOException is thrown in case of trouble.
      */
-    public CapabilitySet(byte[] codedForm, int offset, int length)
-            throws IOException {
-        this(new DataInputStream(
-                new ByteArrayInputStream(codedForm, offset, length)));
+    public CapabilitySet(byte[] codedForm, int offset, int length) throws IOException {
+        this(new DataInputStream(new ByteArrayInputStream(codedForm, offset, length)));
     }
 
     /**
      * Creates a capability set by reading it from the specified input stream.
-     * @param dis
-     *          the input stream to read from.
-     * @exception IOException
-     *          is thrown in case of trouble.
+     *
+     * @param dis the input stream to read from.
+     * @exception IOException is thrown in case of trouble.
      */
     public CapabilitySet(DataInput dis) throws IOException {
         doRead(dis);
@@ -140,8 +128,8 @@ public class CapabilitySet {
 
     /**
      * Returns the capability set represented as a byte array.
-     * @return
-     *          the byte array.
+     *
+     * @return the byte array.
      */
     public byte[] toBytes() {
         return codedForm.clone();
@@ -154,7 +142,7 @@ public class CapabilitySet {
             doWrite(dos);
             dos.close();
             return bos.toByteArray();
-        } catch(Exception e) {
+        } catch (Exception e) {
             // Should not happen. Ignored.
             return new byte[0];
         }
@@ -162,10 +150,9 @@ public class CapabilitySet {
 
     /**
      * Writes the capability set to the specified output stream.
-     * @param dataOutput
-     *          the output stream to write to.
-     * @exception IOException
-     *          is thrown in case of trouble.
+     *
+     * @param dataOutput the output stream to write to.
+     * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dataOutput) throws IOException {
         dataOutput.write(codedForm);
@@ -173,28 +160,24 @@ public class CapabilitySet {
 
     /**
      * Returns true if the specified capability is set.
-     * @param capability
-     *          the specified capability.
-     * @return
-     *          true if the capability is set.
+     *
+     * @param capability the specified capability.
+     * @return true if the capability is set.
      */
     public boolean hasCapability(String capability) {
         return capabilities.contains(capability.toLowerCase());
     }
 
     /**
-     * Matches the current capabilities with the capabilities
-     * supplied. We have a match if the current capabilities are a subset
-     * of the specified capabilities.
-     * @param capabilitySet
-     *          the capabilities to be matched with.
-     * @return
-     *          <code>true</code> if we have a match, <code>false</code>
-     *          otherwise.
+     * Matches the current capabilities with the capabilities supplied. We have a
+     * match if the current capabilities are a subset of the specified capabilities.
+     *
+     * @param capabilitySet the capabilities to be matched with.
+     * @return <code>true</code> if we have a match, <code>false</code> otherwise.
      */
     public boolean matchCapabilities(CapabilitySet capabilitySet) {
         for (String capability : capabilities) {
-            if (! capabilitySet.hasCapability(capability)) {
+            if (!capabilitySet.hasCapability(capability)) {
                 return false;
             }
         }
@@ -202,12 +185,10 @@ public class CapabilitySet {
     }
 
     /**
-     * Returns the subset of capabilities that start with the specified
-     * prefix.
-     * @param prefix
-     *          the specified prefix.
-     * @return
-     *          the capabilities that start with the specified prefix.
+     * Returns the subset of capabilities that start with the specified prefix.
+     *
+     * @param prefix the specified prefix.
+     * @return the capabilities that start with the specified prefix.
      */
     public CapabilitySet getCapabilitiesWithPrefix(String prefix) {
         CapabilitySet result = new CapabilitySet();
@@ -221,17 +202,16 @@ public class CapabilitySet {
     }
 
     /**
-     * Matches the current capabilities with the capabilities
-     * supplied. Returns a capability set with the unmatched capabilities.
-     * @param capabilitySet
-     *          the capabilities to be matched with.
-     * @return
-     *          the capabilities that don't match.
+     * Matches the current capabilities with the capabilities supplied. Returns a
+     * capability set with the unmatched capabilities.
+     *
+     * @param capabilitySet the capabilities to be matched with.
+     * @return the capabilities that don't match.
      */
     public CapabilitySet unmatchedCapabilities(CapabilitySet capabilitySet) {
         CapabilitySet result = new CapabilitySet();
         for (String capability : capabilities) {
-            if (! capabilitySet.hasCapability(capability)) {
+            if (!capabilitySet.hasCapability(capability)) {
                 result.capabilities.add(capability);
             }
         }
@@ -241,8 +221,8 @@ public class CapabilitySet {
 
     /**
      * Computes and returns the number of entries in this capability set.
-     * @return
-     *          the number of entries.
+     *
+     * @return the number of entries.
      */
     public int size() {
         return capabilities.size();
@@ -251,16 +231,13 @@ public class CapabilitySet {
     /**
      * Reads and returns the capabilities from the specified file name, which is
      * searched for in the classpath.
-     * @param name
-     *          the file name.
-     * @return
-     *          the capabilities from the specified file.
-     * @exception IOException
-     *          is thrown when an IO error occurs.
+     *
+     * @param name the file name.
+     * @return the capabilities from the specified file.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public static CapabilitySet load(String name) throws IOException {
-        InputStream in
-            = ClassLoader.getSystemClassLoader().getResourceAsStream(name);
+        InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(name);
         if (in == null) {
             throw new IOException("Could not open " + name);
         }
@@ -269,12 +246,10 @@ public class CapabilitySet {
 
     /**
      * Reads and returns the capabilities from the specified input stream.
-     * @param input
-     *          the input stream.
-     * @return
-     *          the capabilities from the specified input stream.
-     * @exception IOException
-     *          is thrown when an IO error occurs.
+     *
+     * @param input the input stream.
+     * @return the capabilities from the specified input stream.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public static CapabilitySet load(InputStream input) throws IOException {
         Properties properties = new Properties();
@@ -286,16 +261,13 @@ public class CapabilitySet {
     /**
      * Returns <code>true</code> if <code>other</code> represents the same
      * capability set.
-     * @param other
-     *          the object to compare with.
-     * @return
-     *          <code>true</code> if equal, <code>false</code> otherwise.
+     *
+     * @param other the object to compare with.
+     * @return <code>true</code> if equal, <code>false</code> otherwise.
      */
+    @Override
     public boolean equals(Object other) {
-        if (other == null) {
-            return false;
-        }
-        if (!(other instanceof CapabilitySet)) {
+        if ((other == null) || !(other instanceof CapabilitySet)) {
             return false;
         }
 
@@ -305,9 +277,10 @@ public class CapabilitySet {
 
     /**
      * Returns the hashcode of this capability set.
-     * @return
-     *          the hashcode.
+     *
+     * @return the hashcode.
      */
+    @Override
     public int hashCode() {
         return capabilities.hashCode();
     }
@@ -337,8 +310,10 @@ public class CapabilitySet {
 
     /**
      * Returns a string representation of this capability.
+     *
      * @return a string representation.
      */
+    @Override
     public String toString() {
         StringBuffer result = new StringBuffer();
         String append = "";
@@ -351,10 +326,10 @@ public class CapabilitySet {
     }
 
     /**
-     * Returns all the capabilities in this capability set as a String
-     * array, one element per capability.
-     * @return
-     *          the capabilities.
+     * Returns all the capabilities in this capability set as a String array, one
+     * element per capability.
+     *
+     * @return the capabilities.
      */
     public String[] getCapabilities() {
         int size = capabilities.size();

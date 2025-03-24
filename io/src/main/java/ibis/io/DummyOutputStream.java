@@ -76,16 +76,15 @@ public class DummyOutputStream extends OutputStream {
     @Override
     public void close() {
         /*
-         * Don't propagate the close, otherwise we close the underlying socket,
-         * and that is not what we want here.
+         * Don't propagate the close, otherwise we close the underlying socket, and that
+         * is not what we want here.
          */
     }
 
     /**
      * Closes the underlying streams as well.
-     * 
-     * @exception IOException
-     *                gets thrown when an IO error occurs.
+     *
+     * @exception IOException gets thrown when an IO error occurs.
      */
     public void realClose() throws IOException {
         out.close();
@@ -101,7 +100,7 @@ public class DummyOutputStream extends OutputStream {
     /**
      * Returns the number of bytes written to this stream since the last call to
      * {@link #resetCount} or the beginning of its existence.
-     * 
+     *
      * @return the number of bytes written since the last reset.
      */
     public long getCount() {

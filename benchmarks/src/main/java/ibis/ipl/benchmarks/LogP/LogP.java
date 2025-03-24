@@ -15,6 +15,12 @@
  */
 package ibis.ipl.benchmarks.LogP;
 
+import java.io.IOException;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /* $Id$ */
 
 import ibis.ipl.Ibis;
@@ -28,13 +34,6 @@ import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
 class Sender {
     SendPort sport;
 
@@ -47,59 +46,53 @@ class Sender {
 
     void send(int count, int gapCount, int repeat) throws Exception {
         long time;
-	long sendStart, sendTotal;
-	long recvStart, recvTotal;
-	long nanoStart, nanoTotal;
-	long nanoStartTicks, nanoTotalTicks;
-	int timeCount;
+        long sendStart, sendTotal;
+        long recvStart, recvTotal;
+        long nanoStart, nanoTotal;
+        long nanoStartTicks, nanoTotalTicks;
+        int timeCount;
 
-        System.out.println("LogP:" +
-	    " repeat " + repeat +
-	    " count " + count +
-	    " gapCount " + gapCount +
-	    " (times in usec)");
+        System.out.println("LogP:" + " repeat " + repeat + " count " + count + " gapCount " + gapCount + " (times in usec)");
 
-	// measure clock overhead of the o_r/o_s tests below
-	timeCount = 100000;
-	sendTotal = 0;
-	nanoStart = System.nanoTime();
-	nanoStartTicks = Native.timestamp();
+        // measure clock overhead of the o_r/o_s tests below
+        timeCount = 100000;
+        sendTotal = 0;
+        nanoStart = System.nanoTime();
+        nanoStartTicks = Native.timestamp();
         for (int i = 0; i < timeCount; i++) {
-	    sendStart = System.nanoTime();
-	    sendTotal += System.nanoTime() - sendStart;
+            sendStart = System.nanoTime();
+            sendTotal += System.nanoTime() - sendStart;
         }
-	nanoTotalTicks = Native.timestamp() - nanoStartTicks;
-	nanoTotal = System.nanoTime() - nanoStart;
-	double clock = (nanoTotal / 1000.0) / timeCount;
-	double ratio = ((double) nanoTotalTicks / (double) nanoTotal);
+        nanoTotalTicks = Native.timestamp() - nanoStartTicks;
+        nanoTotal = System.nanoTime() - nanoStart;
+        double clock = (nanoTotal / 1000.0) / timeCount;
+        double ratio = ((double) nanoTotalTicks / (double) nanoTotal);
 
-	// rdtsc() overhead
-	nanoStart = System.nanoTime();
+        // rdtsc() overhead
+        nanoStart = System.nanoTime();
         for (int i = 0; i < timeCount; i++) {
-	    sendStart = Native.timestamp();
-	    sendTotal += Native.timestamp() - sendStart;
+            sendStart = Native.timestamp();
+            sendTotal += Native.timestamp() - sendStart;
         }
-	nanoTotal = System.nanoTime() - nanoStart;
-	double tick = (nanoTotal / 1000.0) / timeCount;
+        nanoTotal = System.nanoTime() - nanoStart;
+        double tick = (nanoTotal / 1000.0) / timeCount;
 
-	System.out.println("LogP:" +
-	    " overhead: nano " + String.format("%.3f", clock) +
-	    " rdtsc " + String.format("%.3f", tick) +
-	    "; rdtsc/nano tickrate ratio " + String.format("%.3f", ratio));
+        System.out.println("LogP:" + " overhead: nano " + String.format("%.3f", clock) + " rdtsc " + String.format("%.3f", tick)
+                + "; rdtsc/nano tickrate ratio " + String.format("%.3f", ratio));
 
         for (int r = 0; r < repeat; r++) {
-	    WriteMessage writeMessage;
-	    ReadMessage readMessage;
+            WriteMessage writeMessage;
+            ReadMessage readMessage;
 
-	    // rtt and o_s (send overhead)
-	    sendTotal = 0;
-	    time = System.nanoTime();
+            // rtt and o_s (send overhead)
+            sendTotal = 0;
+            time = System.nanoTime();
             for (int i = 0; i < count; i++) {
-		// do send, measuring overhead
-	        sendStart = Native.timestamp();
+                // do send, measuring overhead
+                sendStart = Native.timestamp();
                 writeMessage = sport.newMessage();
                 writeMessage.finish();
-		sendTotal += Native.timestamp() - sendStart;
+                sendTotal += Native.timestamp() - sendStart;
 
                 readMessage = rport.receive();
                 readMessage.finish();
@@ -107,49 +100,45 @@ class Sender {
             time = System.nanoTime() - time;
 
             double rtt = (time / 1000.0) / count;
-	    double sendOverhead = (sendTotal / ratio / 1000.0) / count;
+            double sendOverhead = (sendTotal / ratio / 1000.0) / count;
 
-	    time = System.nanoTime();
+            time = System.nanoTime();
             for (int i = 0; i < gapCount; i++) {
                 writeMessage = sport.newMessage();
                 writeMessage.finish();
             }
             time = System.nanoTime() - time;
 
-	    double g = (time / 1000.0) / gapCount;
-	    // wait till everything is received:
-	    readMessage = rport.receive();
-	    readMessage.finish();
+            double g = (time / 1000.0) / gapCount;
+            // wait till everything is received:
+            readMessage = rport.receive();
+            readMessage.finish();
 
-	    // o_r (receive overhead)
-	    recvTotal = 0;
+            // o_r (receive overhead)
+            recvTotal = 0;
             for (int i = 0; i < count; i++) {
-		writeMessage = sport.newMessage();
-		writeMessage.finish();
+                writeMessage = sport.newMessage();
+                writeMessage.finish();
 
-		// busywait for 2*RTT so that the next message
-		// should be pending when we read it away
-		recvStart = System.nanoTime() +
-		    (long) ((2.0 * rtt) * 1000.0);
-		while (System.nanoTime() < recvStart) {
-		    // nothing
-		}
+                // busywait for 2*RTT so that the next message
+                // should be pending when we read it away
+                recvStart = System.nanoTime() + (long) ((2.0 * rtt) * 1000.0);
+                while (System.nanoTime() < recvStart) {
+                    // nothing
+                }
 
-		// do receive, measuring overhead
-	        recvStart = Native.timestamp();
+                // do receive, measuring overhead
+                recvStart = Native.timestamp();
                 readMessage = rport.receive();
                 readMessage.finish();
-		recvTotal += Native.timestamp() - recvStart;
+                recvTotal += Native.timestamp() - recvStart;
             }
 
-	    double recvOverhead = (recvTotal / ratio / 1000.0) / count;
+            double recvOverhead = (recvTotal / ratio / 1000.0) / count;
 
-	    double ovhd = tick / 2;
-            System.out.println("LogP:" + 
-		" RTT " + String.format("%.2f", (rtt - ovhd)) +
-		" os " +  String.format("%.2f", (sendOverhead - ovhd)) +
-		" or " +  String.format("%.2f", (recvOverhead - ovhd)) +
-		" g " +   String.format("%.2f", g));
+            double ovhd = tick / 2;
+            System.out.println("LogP:" + " RTT " + String.format("%.2f", (rtt - ovhd)) + " os " + String.format("%.2f", (sendOverhead - ovhd))
+                    + " or " + String.format("%.2f", (recvOverhead - ovhd)) + " g " + String.format("%.2f", g));
         }
     }
 }
@@ -166,11 +155,11 @@ class ExplicitReceiver {
     }
 
     void receive(int count, int gapCount, int repeat) throws IOException {
-	WriteMessage writeMessage;
-	ReadMessage readMessage;
+        WriteMessage writeMessage;
+        ReadMessage readMessage;
 
         for (int r = 0; r < repeat; r++) {
-	    // rtt/o_s
+            // rtt/o_s
             for (int i = 0; i < count; i++) {
                 readMessage = rport.receive();
                 readMessage.finish();
@@ -179,15 +168,15 @@ class ExplicitReceiver {
                 writeMessage.finish();
             }
 
-	    // g
+            // g
             for (int i = 0; i < gapCount; i++) {
                 readMessage = rport.receive();
                 readMessage.finish();
             }
-	    writeMessage = sport.newMessage();
-	    writeMessage.finish();
+            writeMessage = sport.newMessage();
+            writeMessage.finish();
 
-	    // o_r
+            // o_r
             for (int i = 0; i < count; i++) {
                 readMessage = rport.receive();
                 readMessage.finish();
@@ -206,7 +195,6 @@ class LogP {
     static Ibis ibis;
 
     static Registry registry;
-
 
     static void usage() {
         System.out.println("Usage: LogP [-ibis] [-none] [count] [gapcount]");
@@ -235,7 +223,7 @@ class LogP {
                     count = Integer.parseInt(args[i]);
                 } else if (gapCount == -1) {
                     gapCount = Integer.parseInt(args[i]);
-		} else {
+                } else {
                     usage();
                 }
             }
@@ -246,24 +234,19 @@ class LogP {
         }
 
         if (gapCount == -1) {
-	    if (count <= 10000) {
-            	gapCount = count;
-	    } else {
-		// by default limit it for the gap since it is one-way
-            	gapCount = 10000;
-	    }
+            if (count <= 10000) {
+                gapCount = count;
+            } else {
+                // by default limit it for the gap since it is one-way
+                gapCount = 10000;
+            }
         }
 
         try {
 
-            IbisCapabilities s = new IbisCapabilities(
-                    IbisCapabilities.ELECTIONS_STRICT
-            );
-            PortType t = new PortType(
-                    noneSer ? PortType.SERIALIZATION_BYTE : PortType.SERIALIZATION_OBJECT,
-                    PortType.COMMUNICATION_RELIABLE,
-                    PortType.CONNECTION_ONE_TO_ONE,
-                    PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT);
+            IbisCapabilities s = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
+            PortType t = new PortType(noneSer ? PortType.SERIALIZATION_BYTE : PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
+                    PortType.CONNECTION_ONE_TO_ONE, PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT);
             Properties p = new Properties();
             if (ibisSer) {
                 p.setProperty("ibis.serialization", "ibis");
@@ -294,21 +277,21 @@ class LogP {
             }
 
             if (rank == 0) {
-		rport = ibis.createReceivePort(t, "master");
-		rport.enableConnections();
+                rport = ibis.createReceivePort(t, "master");
+                rport.enableConnections();
 
-		sport.connect(remote, "slave");
+                sport.connect(remote, "slave");
 
-		Sender sender = new Sender(rport, sport);
-		sender.send(count, gapCount, repeat);
+                Sender sender = new Sender(rport, sport);
+                sender.send(count, gapCount, repeat);
             } else {
                 sport.connect(remote, "master");
 
-		rport = ibis.createReceivePort(t, "slave");
-		rport.enableConnections();
+                rport = ibis.createReceivePort(t, "slave");
+                rport.enableConnections();
 
-		ExplicitReceiver receiver = new ExplicitReceiver(rport, sport);
-		receiver.receive(count, gapCount, repeat);
+                ExplicitReceiver receiver = new ExplicitReceiver(rport, sport);
+                receiver.receive(count, gapCount, repeat);
             }
 
             /* free the send ports first */

@@ -22,20 +22,19 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 /**
- * Contract: write to multiple outputstreams.
- * when an exception occurs, store it and continue.
- * when the data is written to all streams, throw one large exception
- * that contains all previous exceptions.
- * This way, even when one of the streams dies, the rest will receive the data.
+ * Contract: write to multiple outputstreams. when an exception occurs, store it
+ * and continue. when the data is written to all streams, throw one large
+ * exception that contains all previous exceptions. This way, even when one of
+ * the streams dies, the rest will receive the data.
  **/
 public final class DataOutputStreamSplitter extends DataOutputStream {
 
     private boolean removeOnException = false;
 
-    ArrayList<DataOutputStream> out = new ArrayList<DataOutputStream>();
+    ArrayList<DataOutputStream> out = new ArrayList<>();
 
     int bytesWritten = 0;
-    
+
     public DataOutputStreamSplitter() {
         // empty constructor
     }
@@ -58,8 +57,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         out.remove(i);
     }
 
-    private SplitterException handleException(SplitterException e,
-            IOException newException, int pos) {
+    private SplitterException handleException(SplitterException e, IOException newException, int pos) {
         if (e == null) {
             e = new SplitterException();
         }
@@ -70,25 +68,29 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         return e;
     }
 
+    @Override
     public void write(int b) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten++;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).write(b);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void write(byte[] b) throws IOException {
         SplitterException e = null;
         bytesWritten += b.length;
@@ -108,6 +110,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException {
         SplitterException e = null;
         bytesWritten += len;
@@ -127,6 +130,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
     }
 
+    @Override
     public void flush() throws IOException {
         SplitterException e = null;
 
@@ -146,6 +150,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
     }
 
+    @Override
     public void finish() throws IOException {
         SplitterException e = null;
 
@@ -165,6 +170,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
     }
 
+    @Override
     public void close() throws IOException {
         SplitterException e = null;
 
@@ -184,12 +190,13 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
     }
 
+    @Override
     public boolean finished() throws IOException {
         SplitterException e = null;
 
         for (int i = 0; i < out.size(); i++) {
             try {
-                if (! out.get(i).finished()) {
+                if (!out.get(i).finished()) {
                     return false;
                 }
             } catch (IOException e2) {
@@ -207,321 +214,373 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         return true;
     }
 
+    @Override
     public long bytesWritten() {
         return bytesWritten;
     }
 
+    @Override
     public void resetBytesWritten() {
         bytesWritten = 0;
     }
 
+    @Override
     public void writeArray(boolean[] source, int offset, int length) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += length;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
-    
+
+    @Override
     public void writeByteBuffer(ByteBuffer b) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += b.limit() - b.position();
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeByteBuffer(b);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeArray(byte[] source, int offset, int length) throws IOException {
         write(source, offset, length);
     }
 
+    @Override
     public void writeArray(char[] source, int offset, int length) throws IOException {
         SplitterException e = null;
-        
-        bytesWritten += length*2;
-        
+
+        bytesWritten += length * 2;
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeArray(double[] source, int offset, int length) throws IOException {
         SplitterException e = null;
-        
-        bytesWritten += length*8;
-        
+
+        bytesWritten += length * 8;
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeArray(float[] source, int offset, int length) throws IOException {
         SplitterException e = null;
-        
-        bytesWritten += length*4;
-        
+
+        bytesWritten += length * 4;
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeArray(int[] source, int offset, int length) throws IOException {
         SplitterException e = null;
-        
-        bytesWritten += length*4;
-        
+
+        bytesWritten += length * 4;
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeArray(long[] source, int offset, int length) throws IOException {
         SplitterException e = null;
-        
-        bytesWritten += length*8;
-        
+
+        bytesWritten += length * 8;
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeArray(short[] source, int offset, int length) throws IOException {
         SplitterException e = null;
-        
-        bytesWritten += length*2;
-        
+
+        bytesWritten += length * 2;
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 1;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeBoolean(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeByte(byte value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 1;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeByte(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeChar(char value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 2;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeChar(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeDouble(double value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 8;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeDouble(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeFloat(float value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 4;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeFloat(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeInt(int value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 4;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeInt(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeLong(long value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 8;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeLong(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
 
+    @Override
     public void writeShort(short value) throws IOException {
         SplitterException e = null;
-        
+
         bytesWritten += 2;
-        
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).writeShort(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
-                if (removeOnException)
+                if (removeOnException) {
                     i--;
+                }
             }
         }
 
-        if (e != null)
+        if (e != null) {
             throw e;
+        }
     }
-    
+
+    @Override
     public int bufferSize() {
         int min = Integer.MAX_VALUE;
         for (DataOutputStream o : out) {

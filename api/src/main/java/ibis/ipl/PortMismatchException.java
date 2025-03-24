@@ -26,63 +26,54 @@ public class PortMismatchException extends ConnectionFailedException {
     /**
      * Constructs a <code>PortMismatchException</code> with the specified
      * parameters.
-     * @param detailMessage
-     *          the detail message.
-     * @param receivePortIdentifier
-     *          identifies the target port of the failed connection attempt.
-     * @param cause
-     *          cause of the failure.
+     *
+     * @param detailMessage         the detail message.
+     * @param receivePortIdentifier identifies the target port of the failed
+     *                              connection attempt.
+     * @param cause                 cause of the failure.
      */
-    public PortMismatchException(String detailMessage,
-            ReceivePortIdentifier receivePortIdentifier, Throwable cause) {
+    public PortMismatchException(String detailMessage, ReceivePortIdentifier receivePortIdentifier, Throwable cause) {
         super(detailMessage, receivePortIdentifier, cause);
     }
-    
+
     /**
      * Constructs a <code>PortMismatchException</code> with the specified
      * parameters.
-     * @param detailMessage
-     *          the detail message.
-     * @param receivePortIdentifier
-     *          identifies the target port of the failed connection attempt.
+     *
+     * @param detailMessage         the detail message.
+     * @param receivePortIdentifier identifies the target port of the failed
+     *                              connection attempt.
      */
-    public PortMismatchException(String detailMessage,
-            ReceivePortIdentifier receivePortIdentifier) {
+    public PortMismatchException(String detailMessage, ReceivePortIdentifier receivePortIdentifier) {
         super(detailMessage, receivePortIdentifier);
     }
-    
+
     /**
      * Constructs a <code>PortMismatchException</code> with the specified
      * parameters.
-     * @param detailMessage
-     *          the detail message.
-     * @param ibisIdentifier 
-     *          identifies the Ibis instance of the target port of
-     *          the failed connection attempt.
-     * @param receivePortName
-     *          the name of the receive port of the failed connection attempt.
-     * @param cause
-     *          the cause of the failure.
+     *
+     * @param detailMessage   the detail message.
+     * @param ibisIdentifier  identifies the Ibis instance of the target port of the
+     *                        failed connection attempt.
+     * @param receivePortName the name of the receive port of the failed connection
+     *                        attempt.
+     * @param cause           the cause of the failure.
      */
-    public PortMismatchException(String detailMessage,
-            IbisIdentifier ibisIdentifier, String receivePortName,
-            Throwable cause) {
+    public PortMismatchException(String detailMessage, IbisIdentifier ibisIdentifier, String receivePortName, Throwable cause) {
         super(detailMessage, ibisIdentifier, receivePortName, cause);
     }
-    
+
     /**
      * Constructs a <code>PortMismatchException</code> with the specified
      * parameters.
-     * @param detailMessage
-     *          the detail message.
-     * @param ibisIdentifier 
-     *          identifies the Ibis instance of the target port of
-     *          the failed connection attempt.
-     * @param receivePortName
-     *          the name of the receive port of the failed connection attempt.
+     *
+     * @param detailMessage   the detail message.
+     * @param ibisIdentifier  identifies the Ibis instance of the target port of the
+     *                        failed connection attempt.
+     * @param receivePortName the name of the receive port of the failed connection
+     *                        attempt.
      */
-    public PortMismatchException(String detailMessage,
-            IbisIdentifier ibisIdentifier, String receivePortName) {
+    public PortMismatchException(String detailMessage, IbisIdentifier ibisIdentifier, String receivePortName) {
         super(detailMessage, ibisIdentifier, receivePortName);
     }
 }

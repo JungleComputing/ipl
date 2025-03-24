@@ -17,6 +17,16 @@
 
 package ibis.ipl.impl.multi;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.Ibis;
@@ -30,16 +40,6 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class MultiSendPort implements SendPort {
 
     /** Debugging output. */
@@ -47,9 +47,9 @@ public class MultiSendPort implements SendPort {
 
     private final ManageableMapper ManageableMapper;
 
-    private final HashMap<String, SendPort>subPortMap = new HashMap<String, SendPort>();
+    private final HashMap<String, SendPort> subPortMap = new HashMap<>();
 
-    private ArrayList<DowncallHandler> handlers = new ArrayList<DowncallHandler>();
+    private ArrayList<DowncallHandler> handlers = new ArrayList<>();
 
     private final PortType portType;
 
@@ -62,8 +62,8 @@ public class MultiSendPort implements SendPort {
     private SendPort activeSendPort;
     private String activeIbisName;
 
-    private final ArrayList<ReceivePortIdentifier>idQueue = new ArrayList<ReceivePortIdentifier>();
-    private final ArrayList<IOException>errorQueue = new ArrayList<IOException>();
+    private final ArrayList<ReceivePortIdentifier> idQueue = new ArrayList<>();
+    private final ArrayList<IOException> errorQueue = new ArrayList<>();
 
     private int handlerCount;
 
@@ -82,7 +82,7 @@ public class MultiSendPort implements SendPort {
         int opcode = OPP_NOOP;
 
         ReceivePortIdentifier[] rpids;
-        Map<IbisIdentifier, String>iidMap;
+        Map<IbisIdentifier, String> iidMap;
         IbisIdentifier id;
         String name;
         ReceivePortIdentifier rpid;
@@ -105,8 +105,7 @@ public class MultiSendPort implements SendPort {
                     activeIbisName = ibisName;
                     idQueue.notifyAll();
                     set = true;
-                }
-                else {
+                } else {
                     try {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Closing Inactive SendPort port: " + subPort);
@@ -150,6 +149,7 @@ public class MultiSendPort implements SendPort {
             }
         }
 
+        @Override
         public void run() {
             while (opcode != OPP_QUIT) {
                 if (logger.isDebugEnabled()) {
@@ -164,8 +164,7 @@ public class MultiSendPort implements SendPort {
                             try {
                                 logger.debug("Handler waiting.");
                                 idQueue.wait();
-                            }
-                            catch (InterruptedException e) {
+                            } catch (InterruptedException e) {
                                 // Ignored
                             }
                         }
@@ -179,8 +178,8 @@ public class MultiSendPort implements SendPort {
                     break;
                 case OPP_CONNECT_RPID_ARRAY:
                     try {
-                        for (int i=0; i<rpids.length; i++) {
-                            rpids[i] = ((MultiReceivePortIdentifier)rpids[i]).getSubId(ibisName);
+                        for (int i = 0; i < rpids.length; i++) {
+                            rpids[i] = ((MultiReceivePortIdentifier) rpids[i]).getSubId(ibisName);
                         }
                         subPort.connect(rpids, timeout, fillTimeout);
                         setActive();
@@ -190,9 +189,9 @@ public class MultiSendPort implements SendPort {
                     break;
                 case OPP_CONNECT_IID_NAME_MAP:
                     try {
-                        HashMap<IbisIdentifier, String>ids = new HashMap<IbisIdentifier, String>();
-                        for (IbisIdentifier id:iidMap.keySet()) {
-                            MultiIbisIdentifier mid = (MultiIbisIdentifier)id;
+                        HashMap<IbisIdentifier, String> ids = new HashMap<>();
+                        for (IbisIdentifier id : iidMap.keySet()) {
+                            MultiIbisIdentifier mid = (MultiIbisIdentifier) id;
                             ids.put(mid.subIdForIbis(ibisName), iidMap.get(id));
                         }
                         ReceivePortIdentifier[] portId = subPort.connect(ids, timeout, fillTimeout);
@@ -205,7 +204,7 @@ public class MultiSendPort implements SendPort {
                     break;
                 case OPP_CONNECT_RPID:
                     try {
-                        rpid = ((MultiReceivePortIdentifier)rpid).getSubId(ibisName);
+                        rpid = ((MultiReceivePortIdentifier) rpid).getSubId(ibisName);
                         subPort.connect(rpid, timeout, fillTimeout);
                         setActive();
                     } catch (ConnectionFailedException e) {
@@ -214,7 +213,7 @@ public class MultiSendPort implements SendPort {
                     break;
                 case OPP_CONNECT_IID_NAME:
                     try {
-                        MultiIbisIdentifier mid = (MultiIbisIdentifier)id;
+                        MultiIbisIdentifier mid = (MultiIbisIdentifier) id;
                         ReceivePortIdentifier portId = subPort.connect(mid.subIdForIbis(ibisName), name, timeout, fillTimeout);
                         setActive(portId);
                     } catch (ConnectionFailedException e) {
@@ -226,40 +225,36 @@ public class MultiSendPort implements SendPort {
         }
     }
 
-    private final class DisconnectUpcaller
-    implements SendPortDisconnectUpcall {
+    private final class DisconnectUpcaller implements SendPortDisconnectUpcall {
         SendPortDisconnectUpcall upcaller;
         String ibisName;
 
-        public DisconnectUpcaller(String ibisName, MultiSendPort port,
-                SendPortDisconnectUpcall upcaller) {
+        public DisconnectUpcaller(String ibisName, MultiSendPort port, SendPortDisconnectUpcall upcaller) {
             this.upcaller = upcaller;
             this.ibisName = ibisName;
         }
 
-        public void lostConnection(SendPort me,
-                ReceivePortIdentifier johnDoe, Throwable reason) {
+        @Override
+        public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe, Throwable reason) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Passing lost connection along: " + me + " : " + johnDoe + " : " + reason.getMessage());
             }
             try {
                 upcaller.lostConnection(ibis.sendPortMap.get(me), ibis.mapReceivePortIdentifier(johnDoe, ibisName), reason);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 // TODO What the hell to do here?
             }
         }
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public MultiSendPort(PortType type, MultiIbis ibis, String name,
-            SendPortDisconnectUpcall connectUpcall, Properties props) throws IOException {
+    public MultiSendPort(PortType type, MultiIbis ibis, String name, SendPortDisconnectUpcall connectUpcall, Properties props) throws IOException {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Constructing MultiSendPort");
         }
 
-        for (String ibisName:ibis.subIbisMap.keySet()) {
+        for (String ibisName : ibis.subIbisMap.keySet()) {
             Ibis subIbis = ibis.subIbisMap.get(ibisName);
             DisconnectUpcaller upcaller = null;
             if (connectUpcall != null) {
@@ -267,38 +262,39 @@ public class MultiSendPort implements SendPort {
             }
             SendPort subPort = subIbis.createSendPort(type, name, upcaller, props);
             DowncallHandler handler = new DowncallHandler(subPort, ibisName);
-            handlers .add(handler);
+            handlers.add(handler);
             subPortMap.put(ibisName, subPort);
             ibis.sendPortMap.put(subPort, this);
             ThreadPool.createNew(handler, "Connect Handler: " + ibisName);
         }
-        ManageableMapper = new ManageableMapper((Map)subPortMap);
+        ManageableMapper = new ManageableMapper((Map) subPortMap);
         this.portType = type;
         this.id = new MultiSendPortIdentifier(ibis.identifier(), name);
         this.name = name;
         this.ibis = ibis;
     }
 
-
+    @Override
     public void close() throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Closing port: " + this);
         }
-        for (SendPort port:subPortMap.values()) {
+        for (SendPort port : subPortMap.values()) {
             try {
                 port.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 // TODO Bundle up exceptions
             }
         }
         ibis.closeSendPort(this);
     }
 
+    @Override
     public void connect(ReceivePortIdentifier receiver) throws ConnectionFailedException {
         connect(receiver, 0L, true);
     }
 
+    @Override
     public synchronized void connect(ReceivePortIdentifier receiver, long timeoutMillis, boolean fillTimeout) throws ConnectionFailedException {
         synchronized (idQueue) {
             logger.debug("Attempting to connect.");
@@ -307,7 +303,7 @@ public class MultiSendPort implements SendPort {
             handlerCount = 0;
             if (activeSendPort == null) {
                 logger.debug("No active sendport.");
-                for (DowncallHandler handler:handlers) {
+                for (DowncallHandler handler : handlers) {
                     handler.timeout = timeoutMillis;
                     handler.fillTimeout = fillTimeout;
                     handler.opcode = DowncallHandler.OPP_CONNECT_RPID;
@@ -320,8 +316,7 @@ public class MultiSendPort implements SendPort {
                             logger.debug("Waiting for connection to open.");
                         }
                         idQueue.wait();
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         // Ignored
                     }
                 }
@@ -335,13 +330,11 @@ public class MultiSendPort implements SendPort {
                     // TODO: Map exception properly
                     if (errorQueue.size() == 0) {
                         throw new ConnectionFailedException("Unable to open connection.", receiver);
-                    }
-                    else {
+                    } else {
                         throw new ConnectionFailedException("Unable to open connection.", receiver, errorQueue.get(0));
                     }
                 }
-            }
-            else {
+            } else {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Using active send port to connect");
                 }
@@ -350,17 +343,20 @@ public class MultiSendPort implements SendPort {
         }
     }
 
+    @Override
     public ReceivePortIdentifier connect(IbisIdentifier id, String name) throws ConnectionFailedException {
         return connect(id, name, 0L, true);
     }
 
-    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis, boolean fillTimeout) throws ConnectionFailedException {
+    @Override
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis, boolean fillTimeout)
+            throws ConnectionFailedException {
         synchronized (idQueue) {
             if (id == null) {
                 throw new IllegalArgumentException("Null ibis identifier!");
             }
             if (logger.isDebugEnabled()) {
-                        logger.debug("Connecting to: " + id + ":" + name + " timeout: " + timeoutMillis + " fill: " + fillTimeout);
+                logger.debug("Connecting to: " + id + ":" + name + " timeout: " + timeoutMillis + " fill: " + fillTimeout);
             }
             errorQueue.clear();
             idQueue.clear();
@@ -369,12 +365,12 @@ public class MultiSendPort implements SendPort {
                 if (logger.isDebugEnabled()) {
                     logger.debug("No active connection...");
                 }
-                for (DowncallHandler handler:handlers) {
-                        handler.timeout = timeoutMillis;
-                        handler.fillTimeout = fillTimeout;
-                        handler.opcode = DowncallHandler.OPP_CONNECT_IID_NAME;
-                        handler.id = id;
-                        handler.name = name;
+                for (DowncallHandler handler : handlers) {
+                    handler.timeout = timeoutMillis;
+                    handler.fillTimeout = fillTimeout;
+                    handler.opcode = DowncallHandler.OPP_CONNECT_IID_NAME;
+                    handler.id = id;
+                    handler.name = name;
                 }
                 // Wake all the handlers up.
                 idQueue.notifyAll();
@@ -382,8 +378,7 @@ public class MultiSendPort implements SendPort {
                     try {
                         logger.debug("Waiting for handler to connect.");
                         idQueue.wait();
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         // Ignored
                     }
                 }
@@ -391,12 +386,10 @@ public class MultiSendPort implements SendPort {
                     // TODO Map exceptions properly
                     if (errorQueue.size() == 0) {
                         throw new ConnectionFailedException("Unable to open connection.", id, name);
-                    }
-                    else {
+                    } else {
                         throw new ConnectionFailedException("Unable to open connection.", id, name, errorQueue.get(0));
                     }
-                }
-                else {
+                } else {
                     try {
                         return ibis.mapReceivePortIdentifier(idQueue.get(0), activeIbisName);
                     } catch (IOException e) {
@@ -404,13 +397,13 @@ public class MultiSendPort implements SendPort {
                         throw new ConnectionFailedException("Unable to map identifier.", null, idQueue.get(0).name(), e);
                     }
                 }
-            }
-            else {
+            } else {
                 logger.debug("Using active send port to connect.");
                 // TODO catch and map exception
                 try {
-                    MultiIbisIdentifier ident = (MultiIbisIdentifier)id;
-                    return ibis.mapReceivePortIdentifier(activeSendPort.connect(ident.subIdForIbis(activeIbisName), name, timeoutMillis, fillTimeout), activeIbisName);
+                    MultiIbisIdentifier ident = (MultiIbisIdentifier) id;
+                    return ibis.mapReceivePortIdentifier(activeSendPort.connect(ident.subIdForIbis(activeIbisName), name, timeoutMillis, fillTimeout),
+                            activeIbisName);
                 } catch (IOException e) {
                     throw new ConnectionFailedException("Unable to map identifier.", null, name, e);
                 }
@@ -418,10 +411,12 @@ public class MultiSendPort implements SendPort {
         }
     }
 
+    @Override
     public void connect(ReceivePortIdentifier[] ports) throws ConnectionsFailedException {
         connect(ports, 0L, true);
     }
 
+    @Override
     public void connect(ReceivePortIdentifier[] ports, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
         synchronized (idQueue) {
             logger.debug("Connecting...");
@@ -430,7 +425,7 @@ public class MultiSendPort implements SendPort {
             handlerCount = 0;
             if (activeSendPort == null) {
                 logger.debug("No active connection");
-                for (DowncallHandler handler:handlers) {
+                for (DowncallHandler handler : handlers) {
                     handler.timeout = timeoutMillis;
                     handler.fillTimeout = fillTimeout;
                     handler.opcode = DowncallHandler.OPP_CONNECT_RPID_ARRAY;
@@ -441,8 +436,7 @@ public class MultiSendPort implements SendPort {
                     try {
                         logger.debug("Waiting for handler to connect...");
                         idQueue.wait();
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         // Ignored
                     }
                 }
@@ -451,8 +445,7 @@ public class MultiSendPort implements SendPort {
                     // TODO Handle Connections Failed properly.
                     throw new ConnectionsFailedException("All of them!");
                 }
-            }
-            else {
+            } else {
                 logger.debug("Using active send port to connect");
                 // TODO Catch exception and remap
                 activeSendPort.connect(ports, timeoutMillis, fillTimeout);
@@ -460,11 +453,14 @@ public class MultiSendPort implements SendPort {
         }
     }
 
+    @Override
     public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports) throws ConnectionsFailedException {
         return connect(ports, 0L, true);
     }
 
-    public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
+    @Override
+    public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports, long timeoutMillis, boolean fillTimeout)
+            throws ConnectionsFailedException {
         synchronized (idQueue) {
             logger.debug("Connecting...");
             errorQueue.clear();
@@ -472,7 +468,7 @@ public class MultiSendPort implements SendPort {
             handlerCount = 0;
             if (activeSendPort == null) {
                 logger.debug("No active sendport");
-                for (DowncallHandler handler:handlers) {
+                for (DowncallHandler handler : handlers) {
                     handler.timeout = timeoutMillis;
                     handler.fillTimeout = fillTimeout;
                     handler.opcode = DowncallHandler.OPP_CONNECT_IID_NAME_MAP;
@@ -483,18 +479,16 @@ public class MultiSendPort implements SendPort {
                     try {
                         logger.debug("Waiting for connection...");
                         idQueue.wait();
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         // Ignored
                     }
                 }
                 if (activeSendPort == null) {
                     // TODO Handle Connections Failed properly.
                     throw new ConnectionsFailedException("All of them!");
-                }
-                else {
+                } else {
                     ReceivePortIdentifier[] ids = activeSendPort.connectedTo();
-                    for (int i=0; i<ids.length; i++) {
+                    for (int i = 0; i < ids.length; i++) {
                         try {
                             ids[i] = ibis.mapReceivePortIdentifier(ids[i], activeIbisName);
                         } catch (IOException e) {
@@ -503,12 +497,11 @@ public class MultiSendPort implements SendPort {
                     }
                     return ids;
                 }
-            }
-            else {
+            } else {
                 logger.debug("Using active send port to connect.");
                 // TODO Catch and map exception
                 ReceivePortIdentifier[] ids = activeSendPort.connect(ports, timeoutMillis, fillTimeout);
-                for (int i=0; i<ids.length; i++) {
+                for (int i = 0; i < ids.length; i++) {
                     try {
                         ids[i] = ibis.mapReceivePortIdentifier(ids[i], activeIbisName);
                     } catch (IOException e) {
@@ -520,12 +513,13 @@ public class MultiSendPort implements SendPort {
         }
     }
 
+    @Override
     public ReceivePortIdentifier[] connectedTo() {
-        HashMap<ReceivePortIdentifier, String>idList = new HashMap<ReceivePortIdentifier, String>();
-        for(String ibisName:subPortMap.keySet()) {
+        HashMap<ReceivePortIdentifier, String> idList = new HashMap<>();
+        for (String ibisName : subPortMap.keySet()) {
             SendPort subPort = subPortMap.get(ibisName);
             ReceivePortIdentifier[] ids = subPort.connectedTo();
-            for (ReceivePortIdentifier id:ids) {
+            for (ReceivePortIdentifier id : ids) {
                 try {
                     idList.put(ibis.mapReceivePortIdentifier(id, ibisName), ibisName);
                 } catch (IOException e) {
@@ -536,50 +530,53 @@ public class MultiSendPort implements SendPort {
         return idList.keySet().toArray(new ReceivePortIdentifier[idList.size()]);
     }
 
+    @Override
     public void disconnect(ReceivePortIdentifier receiver) throws IOException {
-        MultiIbisIdentifier id = (MultiIbisIdentifier)receiver.ibisIdentifier();
-        for(String ibisName:subPortMap.keySet()) {
+        MultiIbisIdentifier id = (MultiIbisIdentifier) receiver.ibisIdentifier();
+        for (String ibisName : subPortMap.keySet()) {
             SendPort subPort = subPortMap.get(ibisName);
             IbisIdentifier subId = id.subIdForIbis(ibisName);
             try {
                 subPort.disconnect(subId, receiver.name());
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 // TODO: Bundle IO Exceptions
             }
         }
     }
 
+    @Override
     public void disconnect(IbisIdentifier identifier, String name) throws IOException {
-        MultiIbisIdentifier id = (MultiIbisIdentifier)identifier;
-        for(String ibisName:subPortMap.keySet()) {
+        MultiIbisIdentifier id = (MultiIbisIdentifier) identifier;
+        for (String ibisName : subPortMap.keySet()) {
             SendPort subPort = subPortMap.get(ibisName);
             IbisIdentifier subId = id.subIdForIbis(ibisName);
             try {
                 subPort.disconnect(subId, name);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 // TODO: Bundle IO Exceptions
             }
         }
     }
 
+    @Override
     public PortType getPortType() {
         return portType;
     }
 
+    @Override
     public SendPortIdentifier identifier() {
         return id;
     }
 
+    @Override
     public ReceivePortIdentifier[] lostConnections() {
-        HashMap<ReceivePortIdentifier, String>idList = new HashMap<ReceivePortIdentifier, String>();
-        for(String ibisName:subPortMap.keySet()) {
+        HashMap<ReceivePortIdentifier, String> idList = new HashMap<>();
+        for (String ibisName : subPortMap.keySet()) {
             SendPort subPort = subPortMap.get(ibisName);
             ReceivePortIdentifier[] ids = subPort.lostConnections();
-            for (int i=0; i< ids.length; i++) {
+            for (ReceivePortIdentifier id2 : ids) {
                 try {
-                    idList.put(ibis.mapReceivePortIdentifier(ids[i], ibisName), ibisName);
+                    idList.put(ibis.mapReceivePortIdentifier(id2, ibisName), ibisName);
                 } catch (IOException e) {
                     // TODO Should we ignore this?
                 }
@@ -588,40 +585,44 @@ public class MultiSendPort implements SendPort {
         return idList.keySet().toArray(new ReceivePortIdentifier[idList.size()]);
     }
 
+    @Override
     public String name() {
         return name;
     }
 
+    @Override
     public WriteMessage newMessage() throws IOException {
         // TODO: Throw error if activeSendPort is null?
         return new MultiWriteMessage(activeSendPort.newMessage(), this);
     }
 
-    public String getManagementProperty(String key)
-    throws NoSuchPropertyException {
+    @Override
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         return ManageableMapper.getManagementProperty(key);
     }
 
+    @Override
     public Map<String, String> managementProperties() {
         return ManageableMapper.managementProperties();
     }
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
         ManageableMapper.printManagementProperties(stream);
     }
 
-    public void setManagementProperties(Map<String, String> properties)
-    throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         ManageableMapper.setManagementProperties(properties);
     }
 
-    public void setManagementProperty(String key, String value)
-    throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
         ManageableMapper.setManagementProperty(key, value);
     }
 
     public void quit(MultiSendPort port) {
-        for(DowncallHandler handler:port.handlers) {
+        for (DowncallHandler handler : port.handlers) {
             handler.opcode = DowncallHandler.OPP_QUIT;
             synchronized (handler) {
                 handler.notifyAll();

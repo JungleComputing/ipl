@@ -22,7 +22,7 @@ package ibis.ipl.impl.nio;
  */
 interface Config {
 
-    /** Byte buffer size used. Must be a multiple of eight.  */
+    /** Byte buffer size used. Must be a multiple of eight. */
     static final int BYTE_BUFFER_SIZE = 60 * 1024;
 
     /**

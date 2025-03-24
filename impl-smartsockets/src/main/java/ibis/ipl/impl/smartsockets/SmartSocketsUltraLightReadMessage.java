@@ -47,8 +47,7 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 
     private final int len;
 
-    SmartSocketsUltraLightReadMessage(SmartSocketsUltraLightReceivePort port,
-            SendPortIdentifier origin, byte[] data) throws IOException {
+    SmartSocketsUltraLightReadMessage(SmartSocketsUltraLightReceivePort port, SendPortIdentifier origin, byte[] data) throws IOException {
 
         this.origin = origin;
         this.port = port;
@@ -72,36 +71,37 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 
         // bin = new SingleBufferArrayInputStream(data);
         bin = new BufferedArrayInputStream(new ByteArrayInputStream(data));
-        in = SerializationFactory.createSerializationInput(serialization, bin,
-                port.properties);
+        in = SerializationFactory.createSerializationInput(serialization, bin, port.properties);
     }
 
+    @Override
     public long bytesRead() throws IOException {
         return bin.bytesRead();
     }
 
+    @Override
     public int remaining() throws IOException {
         return bin.available();
     }
 
+    @Override
     public int size() throws IOException {
         return len;
     }
 
     /**
-     * May be called by an implementation to allow for detection of finish()
-     * calls within an upcall.
+     * May be called by an implementation to allow for detection of finish() calls
+     * within an upcall.
      *
-     * @param val
-     *            the value to set.
+     * @param val the value to set.
      */
     public void setInUpcall(boolean val) {
         inUpcall = val;
     }
 
     /**
-     * May be called by an implementation to allow for detection of finish()
-     * calls within an upcall.
+     * May be called by an implementation to allow for detection of finish() calls
+     * within an upcall.
      *
      * @return whether currently in an upcall.
      */
@@ -117,11 +117,11 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         return isFinished;
     }
 
+    @Override
     public long finish() throws IOException {
 
         if (isFinished) {
-            throw new IOException(
-                    "Operating on a message that was already finished");
+            throw new IOException("Operating on a message that was already finished");
         }
 
         isFinished = true;
@@ -140,6 +140,7 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         return retval;
     }
 
+    @Override
     public void finish(IOException e) {
 
         if (isFinished) {
@@ -160,143 +161,163 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         }
     }
 
+    @Override
     public ReceivePort localPort() {
         return port;
     }
 
+    @Override
     public SendPortIdentifier origin() {
         return origin;
     }
 
+    @Override
     public void readArray(boolean[] destination) throws IOException {
         in.readArray(destination);
     }
 
+    @Override
     public void readArray(byte[] destination) throws IOException {
         in.readArray(destination);
     }
 
+    @Override
     public void readArray(char[] destination) throws IOException {
         in.readArray(destination);
     }
 
+    @Override
     public void readArray(short[] destination) throws IOException {
         in.readArray(destination);
     }
 
+    @Override
     public void readArray(int[] destination) throws IOException {
         in.readArray(destination);
     }
 
+    @Override
     public void readArray(long[] destination) throws IOException {
         in.readArray(destination);
     }
 
+    @Override
     public void readArray(float[] destination) throws IOException {
         in.readArray(destination);
     }
 
+    @Override
     public void readArray(double[] destination) throws IOException {
         in.readArray(destination);
     }
 
-    public void readArray(Object[] destination)
-            throws IOException, ClassNotFoundException {
+    @Override
+    public void readArray(Object[] destination) throws IOException, ClassNotFoundException {
         in.readArray(destination);
     }
 
-    public void readArray(boolean[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(boolean[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(byte[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(byte[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(char[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(char[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(short[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(short[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(int[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(int[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(long[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(long[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(float[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(float[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(double[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(double[] destination, int offset, int size) throws IOException {
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(Object[] destination, int offset, int size)
-            throws IOException, ClassNotFoundException {
+    @Override
+    public void readArray(Object[] destination, int offset, int size) throws IOException, ClassNotFoundException {
         in.readArray(destination, offset, size);
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         return in.readBoolean();
     }
 
+    @Override
     public byte readByte() throws IOException {
         return in.readByte();
     }
 
+    @Override
     public char readChar() throws IOException {
         return in.readChar();
     }
 
+    @Override
     public double readDouble() throws IOException {
         return in.readDouble();
     }
 
+    @Override
     public float readFloat() throws IOException {
         return in.readFloat();
     }
 
+    @Override
     public int readInt() throws IOException {
         return in.readInt();
     }
 
+    @Override
     public long readLong() throws IOException {
         return in.readLong();
     }
 
+    @Override
     public Object readObject() throws IOException, ClassNotFoundException {
         return in.readObject();
     }
 
+    @Override
     public short readShort() throws IOException {
         return in.readShort();
     }
 
+    @Override
     public String readString() throws IOException {
         return in.readString();
     }
 
+    @Override
     public long sequenceNumber() {
         return 0;
     }
 
     @Override
-    public void readByteBuffer(ByteBuffer value)
-            throws IOException, ReadOnlyBufferException {
+    public void readByteBuffer(ByteBuffer value) throws IOException, ReadOnlyBufferException {
         in.readByteBuffer(value);
     }
 

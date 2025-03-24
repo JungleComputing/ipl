@@ -15,68 +15,68 @@
  */
 package ibis.ipl.impl;
 
-import ibis.ipl.NoSuchPropertyException;
-
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import ibis.ipl.NoSuchPropertyException;
+
 public abstract class Manageable implements ibis.ipl.Manageable {
 
-    private HashSet<String> validKeys = new HashSet<String>();
+    private HashSet<String> validKeys = new HashSet<>();
 
     /** Map for implementing the dynamic properties. */
-    private HashMap<String, String> properties = new HashMap<String, String>();
+    private HashMap<String, String> properties = new HashMap<>();
 
+    @Override
     public synchronized Map<String, String> managementProperties() {
         updateProperties();
-        return new HashMap<String,String>(properties);
+        return new HashMap<>(properties);
     }
 
-    public synchronized void setManagementProperties(
-            Map<String, String> properties) throws NoSuchPropertyException {
-        HashSet<String> keys = new HashSet<String>(properties.keySet());
+    @Override
+    public synchronized void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        HashSet<String> keys = new HashSet<>(properties.keySet());
 
         for (String key : keys) {
-            if (! validKeys.contains(key)) {
+            if (!validKeys.contains(key)) {
                 throw new NoSuchPropertyException("Invalid key: " + key);
             }
         }
         this.properties.putAll(properties);
         doProperties(properties);
     }
-    
+
     protected void doProperties(Map<String, String> properties) {
         // default implementation is empty.
         // This method is called when the user calls setManagementProperties,
         // so that implementations can adapt their internal matching variables.
     }
-    
-    public synchronized String getManagementProperty(String key)
-            throws NoSuchPropertyException {
-        if (! validKeys.contains(key)) {
+
+    @Override
+    public synchronized String getManagementProperty(String key) throws NoSuchPropertyException {
+        if (!validKeys.contains(key)) {
             throw new NoSuchPropertyException("Invalid key: " + key);
         }
         updateProperties();
         return properties.get(key);
     }
-    
-    public synchronized void setManagementProperty(String key, String val)
-            throws NoSuchPropertyException {
-        if (! validKeys.contains(key)) {
+
+    @Override
+    public synchronized void setManagementProperty(String key, String val) throws NoSuchPropertyException {
+        if (!validKeys.contains(key)) {
             throw new NoSuchPropertyException("Invalid key: " + key);
         }
         properties.put(key, val);
         doProperty(key, val);
     }
-    
+
     protected void doProperty(String key, String value) {
         // default implementation is empty.
         // This method is called when the user calls setManagementProperty,
         // so that implementations can adapt their internal matching variables.
     }
-    
 
     protected void addValidKey(String key) {
         validKeys.add(key);
@@ -85,12 +85,13 @@ public abstract class Manageable implements ibis.ipl.Manageable {
     protected synchronized void setProperty(String key, String val) {
         properties.put(key, val);
     }
-      
+
     protected abstract void updateProperties();
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
         updateProperties();
-        for(Map.Entry<String, String> entry: properties.entrySet()) {
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
             stream.println(entry.getKey() + " " + entry.getValue());
         }
     }

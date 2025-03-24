@@ -15,6 +15,11 @@
  */
 package ibis.ipl.impl.stacking.dummy;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Map;
+import java.util.Properties;
+
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
@@ -24,11 +29,6 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Map;
-import java.util.Properties;
-
 public class StackingReceivePort implements ReceivePort {
 
     final ReceivePort base;
@@ -36,28 +36,26 @@ public class StackingReceivePort implements ReceivePort {
     /**
      * This class forwards upcalls with the proper receive port.
      */
-    private static final class ConnectUpcaller
-            implements ReceivePortConnectUpcall {
+    private static final class ConnectUpcaller implements ReceivePortConnectUpcall {
         StackingReceivePort port;
         ReceivePortConnectUpcall upcaller;
 
-        public ConnectUpcaller(StackingReceivePort port,
-                ReceivePortConnectUpcall upcaller) {
+        public ConnectUpcaller(StackingReceivePort port, ReceivePortConnectUpcall upcaller) {
             this.port = port;
             this.upcaller = upcaller;
         }
 
-        public boolean gotConnection(ReceivePort me,
-                SendPortIdentifier applicant) {
+        @Override
+        public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
             return upcaller.gotConnection(port, applicant);
         }
 
-        public void lostConnection(ReceivePort me,
-                SendPortIdentifier johnDoe, Throwable reason) {
+        @Override
+        public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe, Throwable reason) {
             upcaller.lostConnection(port, johnDoe, reason);
         }
     }
-    
+
     /**
      * This class forwards message upcalls with the proper message.
      */
@@ -70,15 +68,14 @@ public class StackingReceivePort implements ReceivePort {
             this.port = port;
         }
 
+        @Override
         public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
             upcaller.upcall(new StackingReadMessage(m, port));
         }
     }
-    
-    public StackingReceivePort(PortType type, StackingIbis ibis,
-            String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
-            Properties properties)
-            throws IOException {
+
+    public StackingReceivePort(PortType type, StackingIbis ibis, String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
+            Properties properties) throws IOException {
         if (connectUpcall != null) {
             connectUpcall = new ConnectUpcaller(this, connectUpcall);
         }
@@ -88,54 +85,67 @@ public class StackingReceivePort implements ReceivePort {
         base = ibis.base.createReceivePort(type, name, upcall, connectUpcall, properties);
     }
 
+    @Override
     public void close() throws IOException {
         base.close();
     }
 
+    @Override
     public void close(long timeoutMillis) throws IOException {
         base.close(timeoutMillis);
     }
 
+    @Override
     public SendPortIdentifier[] connectedTo() {
         return base.connectedTo();
     }
 
+    @Override
     public void disableConnections() {
         base.disableConnections();
     }
 
+    @Override
     public void disableMessageUpcalls() {
         base.disableMessageUpcalls();
     }
 
+    @Override
     public void enableConnections() {
         base.enableConnections();
     }
 
+    @Override
     public void enableMessageUpcalls() {
         base.enableMessageUpcalls();
     }
 
+    @Override
     public PortType getPortType() {
         return base.getPortType();
     }
 
+    @Override
     public ReceivePortIdentifier identifier() {
         return base.identifier();
     }
 
+    @Override
     public SendPortIdentifier[] lostConnections() {
         return base.lostConnections();
     }
 
+    @Override
     public String name() {
         return base.name();
     }
 
+    @Override
     public SendPortIdentifier[] newConnections() {
         return base.newConnections();
     }
 
+    @Override
     public ReadMessage poll() throws IOException {
         ReadMessage m = base.poll();
         if (m != null) {
@@ -144,33 +154,37 @@ public class StackingReceivePort implements ReceivePort {
         return m;
     }
 
+    @Override
     public ReadMessage receive() throws IOException {
         return receive(0);
     }
 
+    @Override
     public ReadMessage receive(long timeoutMillis) throws IOException {
         return new StackingReadMessage(base.receive(timeoutMillis), this);
     }
 
+    @Override
     public Map<String, String> managementProperties() {
         return base.managementProperties();
     }
 
-    public String getManagementProperty(String key)
-            throws NoSuchPropertyException {
+    @Override
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         return base.getManagementProperty(key);
     }
 
-    public void setManagementProperties(Map<String, String> properties)
-            throws NoSuchPropertyException {
-        base.setManagementProperties(properties);      
+    @Override
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        base.setManagementProperties(properties);
     }
 
-    public void setManagementProperty(String key, String val)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperty(String key, String val) throws NoSuchPropertyException {
         base.setManagementProperty(key, val);
     }
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
         base.printManagementProperties(stream);
     }

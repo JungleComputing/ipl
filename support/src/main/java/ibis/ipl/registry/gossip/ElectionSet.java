@@ -15,9 +15,6 @@
  */
 package ibis.ipl.registry.gossip;
 
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.util.TypedProperties;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -26,6 +23,9 @@ import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.impl.IbisIdentifier;
+import ibis.util.TypedProperties;
 
 public class ElectionSet implements Iterable<Election> {
 
@@ -41,14 +41,13 @@ public class ElectionSet implements Iterable<Election> {
         this.properties = properties;
         this.registry = registry;
 
-        elections = new HashMap<String, Election>();
+        elections = new HashMap<>();
     }
 
-    public synchronized void writeGossipData(DataOutputStream out)
-            throws IOException {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("writing " + elections.size() + " elections");
-	}
+    public synchronized void writeGossipData(DataOutputStream out) throws IOException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("writing " + elections.size() + " elections");
+        }
         out.writeInt(elections.size());
 
         for (Election election : elections.values()) {
@@ -85,12 +84,10 @@ public class ElectionSet implements Iterable<Election> {
         }
     }
 
-    public synchronized IbisIdentifier[] getElectionResult(String electionName,
-            long timeoutMillis) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("trying to get election result for: " + electionName
-		    + ", waiting " + timeoutMillis);
-	}
+    public synchronized IbisIdentifier[] getElectionResult(String electionName, long timeoutMillis) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("trying to get election result for: " + electionName + ", waiting " + timeoutMillis);
+        }
 
         if (timeoutMillis > 0) {
             try {
@@ -112,20 +109,16 @@ public class ElectionSet implements Iterable<Election> {
 
         return election.getCandidates();
     }
-    
+
     public IbisIdentifier[] getElectionResult(String electionName) {
-        return getElectionResult(
-            electionName,
-            properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);
+        return getElectionResult(electionName, properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);
     }
 
-    public synchronized IbisIdentifier[] elect(String electionName,
-            long timeoutMillis) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("electing result for: " + electionName + ", waiting "
-		    + timeoutMillis);
-	}
-	    
+    public synchronized IbisIdentifier[] elect(String electionName, long timeoutMillis) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("electing result for: " + electionName + ", waiting " + timeoutMillis);
+        }
+
         Election election = elections.get(electionName);
 
         if (election == null) {
@@ -165,9 +158,7 @@ public class ElectionSet implements Iterable<Election> {
     }
 
     public IbisIdentifier[] elect(String electionName) {
-        return elect(
-            electionName,
-            properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);
+        return elect(electionName, properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);
     }
 
     @Override

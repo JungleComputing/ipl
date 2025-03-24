@@ -23,7 +23,7 @@ public final class Data implements Serializable {
 
     private static final long serialVersionUID = 5187586557508679233L;
 
-    public static final int PAYLOAD = 4*4;
+    public static final int PAYLOAD = 4 * 4;
 
     int i;
     int i1;
@@ -33,8 +33,3 @@ public final class Data implements Serializable {
     public Data() {
     }
 }
-
-
-
-
-

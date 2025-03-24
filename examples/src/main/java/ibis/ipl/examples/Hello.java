@@ -15,6 +15,8 @@
  */
 package ibis.ipl.examples;
 
+import java.io.IOException;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -25,8 +27,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
-
 /**
  * This program is to be run as two instances. One is a server, the other a
  * client. The client sends a hello message to the server. The server prints it.
@@ -35,12 +35,10 @@ import java.io.IOException;
 
 public class Hello {
 
-    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
             PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
     private void server(Ibis myIbis) throws IOException {
 

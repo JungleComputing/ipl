@@ -23,7 +23,7 @@ public final class List implements Serializable {
 
     private static final long serialVersionUID = 3707293386751871390L;
 
-    public static final int PAYLOAD = 4*4;
+    public static final int PAYLOAD = 4 * 4;
 
     List next;
 
@@ -33,13 +33,8 @@ public final class List implements Serializable {
     int i3;
 
     public List(int size) {
-	if (size > 0) {
-	    this.next = new List(size-1);
-	}
+        if (size > 0) {
+            this.next = new List(size - 1);
+        }
     }
 }
-
-
-
-
-

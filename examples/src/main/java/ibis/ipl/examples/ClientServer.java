@@ -15,6 +15,9 @@
  */
 package ibis.ipl.examples;
 
+import java.io.IOException;
+import java.util.Date;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -26,9 +29,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-
-import java.io.IOException;
-import java.util.Date;
 
 /**
  * Example of a client application. The server waits until a request comes in,
@@ -42,19 +42,16 @@ public class ClientServer implements MessageUpcall {
     /**
      * Port type used for sending a request to the server
      */
-    PortType requestPortType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_OBJECT, PortType.RECEIVE_AUTO_UPCALLS,
+    PortType requestPortType = new PortType(PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_OBJECT, PortType.RECEIVE_AUTO_UPCALLS,
             PortType.CONNECTION_MANY_TO_ONE);
 
     /**
      * Port type used for sending a reply back
      */
-    PortType replyPortType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
+    PortType replyPortType = new PortType(PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
             PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
     private final Ibis myIbis;
 
@@ -64,8 +61,7 @@ public class ClientServer implements MessageUpcall {
     private ClientServer() throws Exception {
         // Create an ibis instance.
         // Notice createIbis uses varargs for its parameters.
-        myIbis = IbisFactory.createIbis(ibisCapabilities, null,
-                requestPortType, replyPortType);
+        myIbis = IbisFactory.createIbis(ibisCapabilities, null, requestPortType, replyPortType);
 
         // Elect a server
         IbisIdentifier server = myIbis.registry().elect("Server");
@@ -82,15 +78,13 @@ public class ClientServer implements MessageUpcall {
     }
 
     /**
-     * Function called by Ibis to give us a newly arrived message. This message
-     * will contain the ReceivePortIdentifier of the receive port of the ibis
-     * that send the request. We connect to this receive port, and send the
-     * reply.
+     * Function called by Ibis to give us a newly arrived message. This message will
+     * contain the ReceivePortIdentifier of the receive port of the ibis that send
+     * the request. We connect to this receive port, and send the reply.
      */
-    public void upcall(ReadMessage message) throws IOException,
-            ClassNotFoundException {
-        ReceivePortIdentifier requestor = (ReceivePortIdentifier) message
-                .readObject();
+    @Override
+    public void upcall(ReadMessage message) throws IOException, ClassNotFoundException {
+        ReceivePortIdentifier requestor = (ReceivePortIdentifier) message.readObject();
 
         System.err.println("received request from: " + requestor);
 
@@ -117,8 +111,7 @@ public class ClientServer implements MessageUpcall {
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
-        ReceivePort receiver = myIbis.createReceivePort(requestPortType,
-                "server", this);
+        ReceivePort receiver = myIbis.createReceivePort(requestPortType, "server", this);
         // enable connections
         receiver.enableConnections();
         // enable upcalls

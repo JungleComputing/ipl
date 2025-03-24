@@ -42,12 +42,10 @@ import ibis.ipl.ReceiveTimedOutException;
  * Implementation of the {@link ibis.ipl.ReceivePort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class ReceivePort extends Manageable
-        implements ibis.ipl.ReceivePort {
+public abstract class ReceivePort extends Manageable implements ibis.ipl.ReceivePort {
 
     /** Debugging output. */
-    private static final Logger logger = LoggerFactory
-            .getLogger(ReceivePort.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReceivePort.class);
 
     // Possible results of a connection attempt.
 
@@ -72,8 +70,7 @@ public abstract class ReceivePort extends Manageable
     /** Receiveport already has a connection, and ManyToOne is not specified. */
     public static final byte NO_MANY_TO_X = 6;
 
-    final static Set<Thread> threadsInUpcallSet = Collections
-            .synchronizedSet(new HashSet<Thread>());
+    final static Set<Thread> threadsInUpcallSet = Collections.synchronizedSet(new HashSet<Thread>());
 
     /** The type of this port. */
     public final PortType type;
@@ -93,12 +90,12 @@ public abstract class ReceivePort extends Manageable
     /**
      * The connections lost since the last call to {@link #lostConnections()}.
      */
-    private ArrayList<SendPortIdentifier> lostConnections = new ArrayList<SendPortIdentifier>();
+    private ArrayList<SendPortIdentifier> lostConnections = new ArrayList<>();
 
     /**
      * The new connections since the last call to {@link #newConnections()}.
      */
-    private ArrayList<SendPortIdentifier> newConnections = new ArrayList<SendPortIdentifier>();
+    private ArrayList<SendPortIdentifier> newConnections = new ArrayList<>();
 
     /** Message upcall, if specified, or <code>null</code>. */
     protected MessageUpcall upcall;
@@ -107,7 +104,7 @@ public abstract class ReceivePort extends Manageable
     protected ReceivePortConnectUpcall connectUpcall;
 
     /** The current connections. */
-    protected HashMap<SendPortIdentifier, ReceivePortConnectionInfo> connections = new HashMap<SendPortIdentifier, ReceivePortConnectionInfo>();
+    protected HashMap<SendPortIdentifier, ReceivePortConnectionInfo> connections = new HashMap<>();
 
     /** Set when upcalls are enabled. */
     protected boolean allowUpcalls = false;
@@ -151,39 +148,29 @@ public abstract class ReceivePort extends Manageable
      * Constructs a <code>ReceivePort</code> with the specified parameters. Note
      * that all property checks are already performed in the
      * <code>Ibis.createReceivePort</code> methods.
-     * 
-     * @param ibis
-     *            the ibis instance.
-     * @param type
-     *            the port type.
-     * @param name
-     *            the name of the <code>ReceivePort</code>.
-     * @param upcall
-     *            the message upcall object, or <code>null</code>.
-     * @param connectUpcall
-     *            the connection upcall object, or <code>null</code>.
-     * @param properties
-     *            the port properties.
-     * @throws IOException
-     *             when an IO error occurs
+     *
+     * @param ibis          the ibis instance.
+     * @param type          the port type.
+     * @param name          the name of the <code>ReceivePort</code>.
+     * @param upcall        the message upcall object, or <code>null</code>.
+     * @param connectUpcall the connection upcall object, or <code>null</code>.
+     * @param properties    the port properties.
+     * @throws IOException when an IO error occurs
      */
     @SuppressWarnings("unchecked")
-    protected ReceivePort(Ibis ibis, PortType type, String name,
-            MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
-            Properties properties) throws IOException {
+    protected ReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall, Properties properties)
+            throws IOException {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
         this.ident = ibis.createReceivePortIdentifier(name, ibis.ident);
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
-        this.connectionDowncalls = type
-                .hasCapability(PortType.CONNECTION_DOWNCALLS);
+        this.connectionDowncalls = type.hasCapability(PortType.CONNECTION_DOWNCALLS);
         this.numbered = type.hasCapability(PortType.COMMUNICATION_NUMBERED);
         this.properties = ibis.properties();
         if (properties != null) {
-            for (Enumeration<String> e = (Enumeration<String>) properties
-                    .propertyNames(); e.hasMoreElements();) {
+            for (Enumeration<String> e = (Enumeration<String>) properties.propertyNames(); e.hasMoreElements();) {
                 String key = e.nextElement();
                 String value = properties.getProperty(key);
                 this.properties.setProperty(key, value);
@@ -212,25 +199,25 @@ public abstract class ReceivePort extends Manageable
         addValidKey("ClosedConnections");
     }
 
-    protected ReadMessage createReadMessage(SerializationInput in,
-            ReceivePortConnectionInfo info) {
+    protected ReadMessage createReadMessage(SerializationInput in, ReceivePortConnectionInfo info) {
         return new ReadMessage(in, info);
     }
 
+    @Override
     public synchronized void enableMessageUpcalls() {
         allowUpcalls = true;
         notifyAll();
     }
 
     public synchronized Map<IbisIdentifier, Set<String>> getConnectionTypes() {
-        HashMap<IbisIdentifier, Set<String>> result = new HashMap<IbisIdentifier, Set<String>>();
+        HashMap<IbisIdentifier, Set<String>> result = new HashMap<>();
         for (SendPortIdentifier port : connections.keySet()) {
             ReceivePortConnectionInfo i = connections.get(port);
             if (i != null) {
                 IbisIdentifier id = port.ibis;
                 Set<String> s = result.get(id);
                 if (s == null) {
-                    s = new HashSet<String>();
+                    s = new HashSet<>();
                 }
                 s.add(i.connectionType());
                 result.put(id, s);
@@ -259,81 +246,88 @@ public abstract class ReceivePort extends Manageable
         return "UNKNOWN";
     }
 
+    @Override
     public synchronized void disableMessageUpcalls() {
         allowUpcalls = false;
     }
 
+    @Override
     public synchronized ibis.ipl.SendPortIdentifier[] connectedTo() {
         return connections.keySet().toArray(new ibis.ipl.SendPortIdentifier[0]);
     }
 
+    @Override
     public PortType getPortType() {
         return type;
     }
 
+    @Override
     public synchronized ibis.ipl.SendPortIdentifier[] lostConnections() {
         if (!connectionDowncalls) {
-            throw new IbisConfigurationException("ReceivePort.lostConnections()"
-                    + " called but connectiondowncalls not configured");
+            throw new IbisConfigurationException("ReceivePort.lostConnections()" + " called but connectiondowncalls not configured");
         }
-        ibis.ipl.SendPortIdentifier[] result = lostConnections
-                .toArray(new ibis.ipl.SendPortIdentifier[0]);
+        ibis.ipl.SendPortIdentifier[] result = lostConnections.toArray(new ibis.ipl.SendPortIdentifier[0]);
         lostConnections.clear();
         return result;
     }
 
+    @Override
     public synchronized ibis.ipl.SendPortIdentifier[] newConnections() {
         if (!connectionDowncalls) {
-            throw new IbisConfigurationException("ReceivePort.newConnections()"
-                    + " called but connectiondowncalls not configured");
+            throw new IbisConfigurationException("ReceivePort.newConnections()" + " called but connectiondowncalls not configured");
         }
-        ibis.ipl.SendPortIdentifier[] result = newConnections
-                .toArray(new ibis.ipl.SendPortIdentifier[0]);
+        ibis.ipl.SendPortIdentifier[] result = newConnections.toArray(new ibis.ipl.SendPortIdentifier[0]);
         newConnections.clear();
         return result;
     }
 
+    @Override
     public String name() {
         return name;
     }
 
+    @Override
     public ibis.ipl.ReceivePortIdentifier identifier() {
         return ident;
     }
 
+    @Override
     public synchronized void enableConnections() {
         connectionsEnabled = true;
     }
 
+    @Override
     public synchronized void disableConnections() {
         connectionsEnabled = false;
     }
 
+    @Override
     public ReadMessage receive() throws IOException {
         return receive(0);
     }
 
+    @Override
     public ReadMessage receive(long timeout) throws IOException {
         if (upcall != null) {
-            throw new IbisConfigurationException(
-                    "Configured Receiveport for upcalls, downcall not allowed");
+            throw new IbisConfigurationException("Configured Receiveport for upcalls, downcall not allowed");
         }
 
         if (timeout < 0) {
             throw new IOException("timeout must be a non-negative number");
         }
         if (timeout > 0 && !type.hasCapability(PortType.RECEIVE_TIMEOUT)) {
-            throw new IbisConfigurationException(
-                    "This port is not configured for receive() with timeout");
+            throw new IbisConfigurationException("This port is not configured for receive() with timeout");
         }
 
         return getMessage(timeout);
     }
 
+    @Override
     public final void close() throws IOException {
         close(0L);
     }
 
+    @Override
     public void close(long timeout) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Receiveport " + name + ": closing");
@@ -357,8 +351,7 @@ public abstract class ReceivePort extends Manageable
         }
     }
 
-    public synchronized byte connectionAllowed(SendPortIdentifier id,
-            PortType sp) {
+    public synchronized byte connectionAllowed(SendPortIdentifier id, PortType sp) {
         byte retval = ACCEPTED;
 
         if (isConnectedTo(id)) {
@@ -368,8 +361,7 @@ public abstract class ReceivePort extends Manageable
         } else if (!connectionsEnabled) {
             retval = DISABLED;
         } else if ((outstanding != 0 || connections.size() != 0)
-                && !(type.hasCapability(PortType.CONNECTION_MANY_TO_ONE) || type
-                        .hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
+                && !(type.hasCapability(PortType.CONNECTION_MANY_TO_ONE) || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
             retval = NO_MANY_TO_X;
         } else if (connectUpcall != null) {
             retval = DENIED;
@@ -378,8 +370,7 @@ public abstract class ReceivePort extends Manageable
                     retval = ACCEPTED;
                 }
             } catch (Throwable e) {
-                logger.error("Unexpected exception in gotConnection(), "
-                        + "this Java instance will be terminated", e);
+                logger.error("Unexpected exception in gotConnection(), " + "this Java instance will be terminated", e);
                 System.exit(1);
             }
         }
@@ -387,8 +378,7 @@ public abstract class ReceivePort extends Manageable
             newConnections.add(id);
         }
         if (logger.isDebugEnabled()) {
-            logger.debug(
-                    "Connection attempt from " + id + ": " + getString(retval));
+            logger.debug("Connection attempt from " + id + ": " + getString(retval));
         }
         if (retval == ACCEPTED) {
             outstanding++;
@@ -418,10 +408,10 @@ public abstract class ReceivePort extends Manageable
         return getInfo(id) != null;
     }
 
+    @Override
     public ReadMessage poll() throws IOException {
         if (!type.hasCapability(PortType.RECEIVE_POLL)) {
-            throw new IbisConfigurationException(
-                    "Receiveport not configured for polls");
+            throw new IbisConfigurationException("Receiveport not configured for polls");
         }
         return doPoll();
     }
@@ -431,15 +421,12 @@ public abstract class ReceivePort extends Manageable
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
-     * Notifies this receiveport that the connection associated with the
-     * specified sendport must be assumed to be lost, due to the specified
-     * reason. It updates the administration, and performs the lostConnection
-     * upcall, if required.
-     * 
-     * @param id
-     *            the identification of the sendport.
-     * @param e
-     *            the cause of the lost connection.
+     * Notifies this receiveport that the connection associated with the specified
+     * sendport must be assumed to be lost, due to the specified reason. It updates
+     * the administration, and performs the lostConnection upcall, if required.
+     *
+     * @param id the identification of the sendport.
+     * @param e  the cause of the lost connection.
      */
     public void lostConnection(SendPortIdentifier id, Throwable e) {
         if (connectionDowncalls) {
@@ -451,8 +438,7 @@ public abstract class ReceivePort extends Manageable
             try {
                 connectUpcall.lostConnection(this, id, e);
             } catch (Throwable e2) {
-                logger.error("Unexpected exception in lostConnection(), "
-                        + "this Java instance will be terminated", e2);
+                logger.error("Unexpected exception in lostConnection(), " + "this Java instance will be terminated", e2);
                 System.exit(1);
             }
         }
@@ -466,27 +452,22 @@ public abstract class ReceivePort extends Manageable
 
     /**
      * Returns the connection information for the specified sendport identifier.
-     * 
-     * @param id
-     *            the identification of the sendport.
+     *
+     * @param id the identification of the sendport.
      * @return the connection information, or <code>null</code> if not present.
      */
-    public synchronized ReceivePortConnectionInfo getInfo(
-            SendPortIdentifier id) {
+    public synchronized ReceivePortConnectionInfo getInfo(SendPortIdentifier id) {
         return connections.get(id);
     }
 
     /**
-     * Adds a connection entry for the specified sendport identifier, and
-     * notifies, for possible waiters on a new connection.
-     * 
-     * @param id
-     *            the identification of the sendport.
-     * @param info
-     *            the associated connection information.
+     * Adds a connection entry for the specified sendport identifier, and notifies,
+     * for possible waiters on a new connection.
+     *
+     * @param id   the identification of the sendport.
+     * @param info the associated connection information.
      */
-    public synchronized void addInfo(SendPortIdentifier id,
-            ReceivePortConnectionInfo info) {
+    public synchronized void addInfo(SendPortIdentifier id, ReceivePortConnectionInfo info) {
         nConnections++;
         connections.put(id, info);
         outstanding--;
@@ -494,16 +475,14 @@ public abstract class ReceivePort extends Manageable
     }
 
     /**
-     * Removes the connection entry for the specified sendport identifier. If
-     * after this there are no connections left, a notify is done. A
-     * {@link #closePort} can wait for this to happen.
-     * 
-     * @param id
-     *            the identification of the sendport.
+     * Removes the connection entry for the specified sendport identifier. If after
+     * this there are no connections left, a notify is done. A {@link #closePort}
+     * can wait for this to happen.
+     *
+     * @param id the identification of the sendport.
      * @return the removed connection.
      */
-    public synchronized ReceivePortConnectionInfo removeInfo(
-            SendPortIdentifier id) {
+    public synchronized ReceivePortConnectionInfo removeInfo(SendPortIdentifier id) {
         ReceivePortConnectionInfo info = connections.remove(id);
         if (connections.size() == 0) {
             notifyAll();
@@ -513,7 +492,7 @@ public abstract class ReceivePort extends Manageable
 
     /**
      * Returns an array with entries for each connection.
-     * 
+     *
      * @return the connections.
      */
     public synchronized ReceivePortConnectionInfo[] connections() {
@@ -521,18 +500,15 @@ public abstract class ReceivePort extends Manageable
     }
 
     /**
-     * Waits for a new message and returns it. If the specified timeout is
-     * larger than 0, the implementation waits for the specified time. This
-     * method gets called by {@link #receive()} or {@link #receive(long)}, and
-     * may be redefined by implementations, for instance when there is no
-     * separate thread delivering the messages.
-     * 
-     * @param timeout
-     *            the timeout in milliseconds.
-     * @exception ReceiveTimedOutException
-     *                is thrown on timeout.
-     * @exception IOException
-     *                is thrown in case of trouble.
+     * Waits for a new message and returns it. If the specified timeout is larger
+     * than 0, the implementation waits for the specified time. This method gets
+     * called by {@link #receive()} or {@link #receive(long)}, and may be redefined
+     * by implementations, for instance when there is no separate thread delivering
+     * the messages.
+     *
+     * @param timeout the timeout in milliseconds.
+     * @exception ReceiveTimedOutException is thrown on timeout.
+     * @exception IOException              is thrown in case of trouble.
      * @return the new message, or <code>null</code>.
      */
     public ReadMessage getMessage(long timeout) throws IOException {
@@ -546,8 +522,7 @@ public abstract class ReceivePort extends Manageable
                     if (timeout > 0) {
                         long time = System.currentTimeMillis();
                         if (time >= deadLine) {
-                            throw new ReceiveTimedOutException(
-                                    "timeout expired in receive()");
+                            throw new ReceiveTimedOutException("timeout expired in receive()");
                         }
                         time = deadLine - time;
                         wait(time);
@@ -558,8 +533,7 @@ public abstract class ReceivePort extends Manageable
                     // ignored
                 }
                 if (closed) {
-                    throw new ConnectionClosedException(
-                            "receive() on closed port");
+                    throw new ConnectionClosedException("receive() on closed port");
                 }
             }
             delivered = true;
@@ -568,15 +542,14 @@ public abstract class ReceivePort extends Manageable
     }
 
     /**
-     * This method is called when a message arrived and the port is configured
-     * for upcalls. The assumption here is that when the upcall does an explicit
+     * This method is called when a message arrived and the port is configured for
+     * upcalls. The assumption here is that when the upcall does an explicit
      * {@link ReadMessage#finish()}, a new message is allocated, because at that
-     * point new messages can be delivered to the receive port. This method may
-     * be redefined, for instance when there is a separate thread for dealing
-     * with upcalls.
-     * 
-     * @param msg
-     *            the message.
+     * point new messages can be delivered to the receive port. This method may be
+     * redefined, for instance when there is a separate thread for dealing with
+     * upcalls.
+     *
+     * @param msg the message.
      */
     public void doUpcall(ReadMessage msg) {
         synchronized (this) {
@@ -600,22 +573,19 @@ public abstract class ReceivePort extends Manageable
                 msg.finish(e);
                 return;
             }
-            logger.error("Got unexpected exception in upcall, continuing ...",
-                    e);
+            logger.error("Got unexpected exception in upcall, continuing ...", e);
         } catch (ClassNotFoundException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Got exception from upcall", e);
             }
             if (!msg.isFinished()) {
-                IOException ioex = new IOException(
-                        "Got ClassNotFoundException: " + e.getMessage());
+                IOException ioex = new IOException("Got ClassNotFoundException: " + e.getMessage());
                 ioex.initCause(e);
                 msg.finish(ioex);
             }
             return;
         } catch (Throwable e) {
-            logger.error("Got unexpected throwable in upcall(), "
-                    + "this Java instance will be terminated", e);
+            logger.error("Got unexpected throwable in upcall(), " + "this Java instance will be terminated", e);
             System.exit(1);
 
         } finally {
@@ -653,11 +623,9 @@ public abstract class ReceivePort extends Manageable
     /**
      * Notifies the port that {@link ReadMessage#finish()} was called on the
      * specified message. The port should prepare for a new message.
-     * 
-     * @param r
-     *            the message.
-     * @param cnt
-     *            the byte count of this message.
+     *
+     * @param r   the message.
+     * @param cnt the byte count of this message.
      */
     public void finishMessage(ReadMessage r, long cnt) {
         ibis.ipl.SendPortIdentifier[] ports;
@@ -674,14 +642,12 @@ public abstract class ReceivePort extends Manageable
     }
 
     /**
-     * Notifies the port that {@link ReadMessage#finish(IOException)} was called
-     * on the specified message. The port should close the connection, with the
+     * Notifies the port that {@link ReadMessage#finish(IOException)} was called on
+     * the specified message. The port should close the connection, with the
      * specified reason.
-     * 
-     * @param r
-     *            the message.
-     * @param e
-     *            the Exception.
+     *
+     * @param r the message.
+     * @param e the Exception.
      */
     public synchronized void finishMessage(ReadMessage r, IOException e) {
         r.getInfo().close(e);
@@ -691,12 +657,11 @@ public abstract class ReceivePort extends Manageable
     }
 
     /**
-     * Waits for all connections to close. If the specified timeout is larger
-     * than 0, the implementation waits for the specified time, and then
-     * forcibly closes all connections.
-     * 
-     * @param timeout
-     *            the timeout in milliseconds.
+     * Waits for all connections to close. If the specified timeout is larger than
+     * 0, the implementation waits for the specified time, and then forcibly closes
+     * all connections.
+     *
+     * @param timeout the timeout in milliseconds.
      */
     public synchronized void closePort(long timeout) {
         if (timeout == 0) {
@@ -718,9 +683,8 @@ public abstract class ReceivePort extends Manageable
                 timeout = endTime - System.currentTimeMillis();
             }
             ReceivePortConnectionInfo[] conns = connections();
-            for (int i = 0; i < conns.length; i++) {
-                conns[i].close(
-                        new IOException("receiver forcibly closed connection"));
+            for (ReceivePortConnectionInfo conn : conns) {
+                conn.close(new IOException("receiver forcibly closed connection"));
             }
             nClosedConnections += conns.length;
         }
@@ -730,20 +694,16 @@ public abstract class ReceivePort extends Manageable
     }
 
     /**
-     * Called in case an Ibis died or left. The connections originating from it
-     * must be removed.
-     * 
-     * @param id
-     *            the IbisIdentifier of the Ibis that left/died.
+     * Called in case an Ibis died or left. The connections originating from it must
+     * be removed.
+     *
+     * @param id the IbisIdentifier of the Ibis that left/died.
      */
-    protected synchronized void killConnectionsWith(
-            ibis.ipl.IbisIdentifier id) {
-        SendPortIdentifier[] keys = connections.keySet()
-                .toArray(new SendPortIdentifier[connections.size()]);
+    protected synchronized void killConnectionsWith(ibis.ipl.IbisIdentifier id) {
+        SendPortIdentifier[] keys = connections.keySet().toArray(new SendPortIdentifier[connections.size()]);
         for (SendPortIdentifier s : keys) {
             if (s.ibisIdentifier().equals(id)) {
-                connections.get(s).close(new ConnectionClosedException(
-                        "Connection origin died or left"));
+                connections.get(s).close(new ConnectionClosedException("Connection origin died or left"));
                 removeInfo(s);
             }
         }
@@ -791,9 +751,8 @@ public abstract class ReceivePort extends Manageable
     /**
      * Implementation-dependent part of the {@link #poll()} method. This version
      * assumes that other threads deliver messages and do upcalls.
-     * 
-     * @exception IOException
-     *                is thrown in case of trouble.
+     *
+     * @exception IOException is thrown in case of trouble.
      * @return a new {@link ReadMessage} or <code>null</code>.
      */
     protected ReadMessage doPoll() throws IOException {

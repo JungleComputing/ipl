@@ -46,8 +46,7 @@ import ibis.util.ThreadPool;
  */
 class TcpChannelFactory implements ChannelFactory, Protocol {
 
-    private static Logger logger = LoggerFactory
-            .getLogger(TcpChannelFactory.class);
+    private static Logger logger = LoggerFactory.getLogger(TcpChannelFactory.class);
 
     // Server socket Channel we listen for new connection on
     private ServerSocketChannel ssc;
@@ -77,10 +76,12 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         ThreadPool.createNew(this, "TcpChannelFactory");
     }
 
+    @Override
     public InetSocketAddress getAddress() {
         return address;
     }
 
+    @Override
     public void quit() throws IOException {
         // this will make the accept() throw an AsynchronusCloseException
         // or an ClosedChannelException and make the thread exit
@@ -88,12 +89,12 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
     }
 
     /**
-     * Tries to connect the sendport to the receiveport for the given time.
-     * Returns the resulting channel.
+     * Tries to connect the sendport to the receiveport for the given time. Returns
+     * the resulting channel.
      */
+    @Override
     @SuppressWarnings("resource")
-    public Channel connect(NioSendPort spi, ReceivePortIdentifier rpi,
-            long timeoutMillis) throws IOException {
+    public Channel connect(NioSendPort spi, ReceivePortIdentifier rpi, long timeoutMillis) throws IOException {
         int reply;
         SocketChannel channel;
 
@@ -135,17 +136,13 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 if (selector.select(deadline - time) == 0) {
                     // nothing selected, so we had a timeout
 
-                    logger.error("timed out while connecting socket "
-                            + "to receiver");
+                    logger.error("timed out while connecting socket " + "to receiver");
 
-                    throw new ConnectionTimedOutException("timed out while"
-                            + " connecting socket to receiver", rpi);
+                    throw new ConnectionTimedOutException("timed out while" + " connecting socket to receiver", rpi);
                 }
 
                 if (!channel.finishConnect()) {
-                    throw new IOException(
-                            "finish connect failed while we made sure"
-                                    + " it would work");
+                    throw new IOException("finish connect failed while we made sure" + " it would work");
                 }
 
                 selector.close();
@@ -192,8 +189,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
                     logger.error("timed out while for reply from receiver");
 
-                    throw new ConnectionTimedOutException("timed out while"
-                            + " waiting for reply from receiver", rpi);
+                    throw new ConnectionTimedOutException("timed out while" + " waiting for reply from receiver", rpi);
                 }
                 selector.close();
                 channel.configureBlocking(true);
@@ -206,12 +202,10 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             if (reply == ReceivePort.DENIED) {
                 logger.error("Receiver denied connection");
                 dissipator.close();
-                throw new ConnectionRefusedException(
-                        "Receiver denied connection", rpi);
+                throw new ConnectionRefusedException("Receiver denied connection", rpi);
             } else if (reply == ReceivePort.ACCEPTED) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("made new connection from \"" + spi
-                            + "\" to \"" + rpi + "\"");
+                    logger.debug("made new connection from \"" + spi + "\" to \"" + rpi + "\"");
                 }
                 channel.configureBlocking(true);
                 return channel;
@@ -232,8 +226,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             } else {
                 logger.error("illegal opcode in ChannelFactory.connect()");
                 dissipator.close();
-                throw new IOException(
-                        "illegal opcode in ChannelFactory.connect()");
+                throw new IOException("illegal opcode in ChannelFactory.connect()");
             }
         }
     }
@@ -253,9 +246,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         ChannelAccumulator accumulator = new ChannelAccumulator(channel);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("got new connection from "
-                    + channel.socket().getInetAddress() + ":"
-                    + channel.socket().getPort());
+            logger.debug("got new connection from " + channel.socket().getInetAddress() + ":" + channel.socket().getPort());
         }
 
         try {
@@ -309,8 +300,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 return;
             }
         } catch (IOException e) {
-            logger.error("got an exception on handling an incoming request"
-                    + ", closing channel" + e);
+            logger.error("got an exception on handling an incoming request" + ", closing channel" + e);
             try {
                 channel.close();
             } catch (IOException e2) {
@@ -327,6 +317,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
     /**
      * Accepts connections on the server socket channel
      */
+    @Override
     public void run() {
         SocketChannel channel = null;
 

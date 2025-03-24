@@ -17,14 +17,14 @@
 
 package ibis.ipl.impl;
 
-import ibis.io.DataInputStream;
-import ibis.io.SerializationFactory;
-import ibis.io.SerializationInput;
-
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.io.DataInputStream;
+import ibis.io.SerializationFactory;
+import ibis.io.SerializationInput;
 
 /**
  * This class represents the information about a particular sendport/receiveport
@@ -33,8 +33,7 @@ import org.slf4j.LoggerFactory;
 public class ReceivePortConnectionInfo {
 
     /** Debugging. */
-    protected static final Logger logger
-            = LoggerFactory.getLogger(ReceivePortConnectionInfo.class);
+    protected static final Logger logger = LoggerFactory.getLogger(ReceivePortConnectionInfo.class);
 
     /** Identifies the sendport side of the connection. */
     public final SendPortIdentifier origin;
@@ -49,8 +48,8 @@ public class ReceivePortConnectionInfo {
     public ReadMessage message;
 
     /**
-     * The underlying data stream for this connection.
-     * The serialization stream lies on top of this.
+     * The underlying data stream for this connection. The serialization stream lies
+     * on top of this.
      */
     public DataInputStream dataIn;
 
@@ -59,26 +58,27 @@ public class ReceivePortConnectionInfo {
     private long cnt = 0;
 
     /**
-     * Constructs a new <code>ReceivePortConnectionInfo</code> with the
-     * specified parameters.
+     * Constructs a new <code>ReceivePortConnectionInfo</code> with the specified
+     * parameters.
+     * 
      * @param origin identifies the sendport of this connection.
-     * @param port the receiveport.
-     * @param dataIn the inputstream on which a serialization input stream
-     * can be built.
+     * @param port   the receiveport.
+     * @param dataIn the inputstream on which a serialization input stream can be
+     *               built.
      * @exception IOException is thrown in case of trouble.
      */
-    public ReceivePortConnectionInfo(SendPortIdentifier origin,
-            ReceivePort port, DataInputStream dataIn) throws IOException {
+    public ReceivePortConnectionInfo(SendPortIdentifier origin, ReceivePort port, DataInputStream dataIn) throws IOException {
         this.origin = origin;
         this.port = port;
         this.dataIn = dataIn;
-        // newStream(); 
+        // newStream();
         // Moved to subtypes. Calling it here may cause deadlocks!
         port.addInfo(origin, this);
     }
 
     /**
      * Returns the number of bytes read from the data stream.
+     * 
      * @return the number of bytes.
      */
     public long bytesRead() {
@@ -93,9 +93,9 @@ public class ReceivePortConnectionInfo {
 
     /**
      * This method must be called each time a connected sendport adds a new
-     * connection. This new connection may either be to the current receiveport,
-     * or to another one. In both cases, the serialization stream must be
-     * recreated.
+     * connection. This new connection may either be to the current receiveport, or
+     * to another one. In both cases, the serialization stream must be recreated.
+     * 
      * @exception IOException is thrown in case of trouble.
      */
     public void newStream() throws IOException {
@@ -103,49 +103,47 @@ public class ReceivePortConnectionInfo {
         if (in != null) {
             in.close();
         }
-        in = SerializationFactory.createSerializationInput(port.serialization,
-                dataIn, port.properties);
+        in = SerializationFactory.createSerializationInput(port.serialization, dataIn, port.properties);
         message = port.createReadMessage(in, this);
     }
 
     /**
-     * This method closes the connection, as the result of the specified
-     * exception. Implementations may need to redefine this method 
+     * This method closes the connection, as the result of the specified exception.
+     * Implementations may need to redefine this method
+     * 
      * @param e the exception.
      */
     public void close(Throwable e) {
         try {
             in.close();
-        } catch(Throwable z) {
+        } catch (Throwable z) {
             // ignore
         }
         try {
             dataIn.close();
-        } catch(Throwable z) {
+        } catch (Throwable z) {
             // ignore
         }
-	closed = true;
+        closed = true;
         in = null;
         if (logger.isDebugEnabled()) {
-            logger.debug(port.name + ": connection with " + origin
-                    + " closing", e);
+            logger.debug(port.name + ": connection with " + origin + " closing", e);
         }
         port.lostConnection(origin, e);
     }
 
     /**
-     * This method gets called when the upcall for the message explicitly
-     * called {@link ReadMessage#finish()}.
-     * The default implementation just allocates a new message.
+     * This method gets called when the upcall for the message explicitly called
+     * {@link ReadMessage#finish()}. The default implementation just allocates a new
+     * message.
      */
     protected void upcallCalledFinish() {
         message = port.createReadMessage(in, this);
         if (logger.isDebugEnabled()) {
-            logger.debug(port.name + ": new connection handler for " + origin
-                    + ", finish called from upcall");
+            logger.debug(port.name + ": new connection handler for " + origin + ", finish called from upcall");
         }
     }
-    
+
     public String connectionType() {
         return "unknown";
     }

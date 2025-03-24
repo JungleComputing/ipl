@@ -53,9 +53,9 @@ final class SendBuffer implements Config {
     private static final int NR_OF_BUFFERS = 9;
 
     /**
-     * The header contains 1 byte for the byte order, one byte indicating the
-     * length of the padding at the end of the packet (in bytes), and 7 shorts
-     * (14 bytes) for the number of each primitive send (in bytes!)
+     * The header contains 1 byte for the byte order, one byte indicating the length
+     * of the padding at the end of the packet (in bytes), and 7 shorts (14 bytes)
+     * for the number of each primitive send (in bytes!)
      */
     private static final int SIZEOF_HEADER = 16;
 
@@ -96,7 +96,7 @@ final class SendBuffer implements Config {
             return cache[cacheSize];
         }
         if (logger.isDebugEnabled()) {
-        	logger.debug("SendBuffer: got new empty buffer");
+            logger.debug("SendBuffer: got new empty buffer");
         }
         return new SendBuffer();
     }
@@ -112,8 +112,7 @@ final class SendBuffer implements Config {
             }
             if (cacheSize >= BUFFER_CACHE_SIZE) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("SendBuffer: cache full"
-                            + " apon recycling buffer, throwing away");
+                    logger.debug("SendBuffer: cache full" + " apon recycling buffer, throwing away");
                 }
                 return;
             }
@@ -130,9 +129,7 @@ final class SendBuffer implements Config {
             if (buffer.parent.copies == 0) {
                 if (cacheSize >= BUFFER_CACHE_SIZE) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("SendBuffer: cache full"
-                                + " apon recycling parent of child buffer,"
-                                + " throwing away");
+                        logger.debug("SendBuffer: cache full" + " apon recycling parent of child buffer," + " throwing away");
                     }
                     return;
                 }
@@ -186,8 +183,8 @@ final class SendBuffer implements Config {
     ByteBuffer[] byteBuffers;
 
     /**
-     * Used to keep track of a buffer. Recycling a buffer will reset its
-     * sequence number.
+     * Used to keep track of a buffer. Recycling a buffer will reset its sequence
+     * number.
      */
     long sequenceNr;
 
@@ -195,10 +192,8 @@ final class SendBuffer implements Config {
         ByteOrder order = ByteOrder.nativeOrder();
 
         byteBuffers = new ByteBuffer[NR_OF_BUFFERS];
-        byteBuffers[HEADER] = ByteBuffer.allocateDirect(SIZEOF_HEADER).order(
-                order);
-        byteBuffers[PADDING] = ByteBuffer.allocateDirect(SIZEOF_PADDING).order(
-                order);
+        byteBuffers[HEADER] = ByteBuffer.allocateDirect(SIZEOF_HEADER).order(order);
+        byteBuffers[PADDING] = ByteBuffer.allocateDirect(SIZEOF_PADDING).order(order);
 
         // put the byte order in the first byte of the header
         if (order == ByteOrder.BIG_ENDIAN) {
@@ -208,8 +203,7 @@ final class SendBuffer implements Config {
         }
 
         for (int i = 1; i < (NR_OF_BUFFERS - 1); i++) {
-            byteBuffers[i] = ByteBuffer.allocateDirect(PRIMITIVE_BUFFER_SIZE)
-                    .order(order);
+            byteBuffers[i] = ByteBuffer.allocateDirect(PRIMITIVE_BUFFER_SIZE).order(order);
         }
 
         header = byteBuffers[HEADER].asShortBuffer();
@@ -237,8 +231,8 @@ final class SendBuffer implements Config {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * /** Resets a buffer as though it's a newly created buffer. Sets the
      * sequencenr to a new value
      */
@@ -305,9 +299,7 @@ final class SendBuffer implements Config {
         // add padding to make the total nr of bytes send a multiple of eight
 
         // find out length of padding we need
-        int totalLength = SIZEOF_HEADER + headerArray[LONGS]
-                + headerArray[DOUBLES] + headerArray[INTS]
-                + headerArray[FLOATS] + headerArray[SHORTS]
+        int totalLength = SIZEOF_HEADER + headerArray[LONGS] + headerArray[DOUBLES] + headerArray[INTS] + headerArray[FLOATS] + headerArray[SHORTS]
                 + headerArray[CHARS] + headerArray[BYTES];
 
         paddingLength = (8 - (totalLength % 8));
@@ -317,12 +309,9 @@ final class SendBuffer implements Config {
         byteBuffers[HEADER].put(1, (byte) paddingLength);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("flipping buffer, sending: l[" + longs.position()
-                    + "] d[" + doubles.position() + "] i[" + ints.position()
-                    + "] f[" + floats.position() + "] s[" + shorts.position()
-                    + "] c[" + chars.position() + "] b[" + bytes.position()
-                    + "] total size: " + remaining() + " padding size: "
-                    + paddingLength);
+            logger.debug("flipping buffer, sending: l[" + longs.position() + "] d[" + doubles.position() + "] i[" + ints.position() + "] f["
+                    + floats.position() + "] s[" + shorts.position() + "] c[" + chars.position() + "] b[" + bytes.position() + "] total size: "
+                    + remaining() + " padding size: " + paddingLength);
         }
     }
 
@@ -330,8 +319,8 @@ final class SendBuffer implements Config {
      * set a mark on all Byte Buffers
      */
     void mark() {
-        for (int i = 0; i < byteBuffers.length; i++) {
-            byteBuffers[i].mark();
+        for (ByteBuffer byteBuffer : byteBuffers) {
+            byteBuffer.mark();
         }
     }
 
@@ -339,8 +328,8 @@ final class SendBuffer implements Config {
      * reset all Byte Buffers
      */
     void reset() {
-        for (int i = 0; i < byteBuffers.length; i++) {
-            byteBuffers[i].reset();
+        for (ByteBuffer byteBuffer : byteBuffers) {
+            byteBuffer.reset();
         }
     }
 
@@ -349,8 +338,8 @@ final class SendBuffer implements Config {
      */
     long remaining() {
         long result = 0;
-        for (int i = 0; i < byteBuffers.length; i++) {
-            result += byteBuffers[i].remaining();
+        for (ByteBuffer byteBuffer : byteBuffers) {
+            result += byteBuffer.remaining();
         }
         return result;
     }
@@ -359,15 +348,13 @@ final class SendBuffer implements Config {
      * returns if this buffer is empty (before flipping)
      */
     boolean isEmpty() {
-        return ((longs.position() == 0) && (doubles.position() == 0)
-                && (ints.position() == 0) && (floats.position() == 0)
-                && (shorts.position() == 0) && (chars.position() == 0) && (bytes
-                .position() == 0));
+        return ((longs.position() == 0) && (doubles.position() == 0) && (ints.position() == 0) && (floats.position() == 0) && (shorts.position() == 0)
+                && (chars.position() == 0) && (bytes.position() == 0));
     }
 
     /**
-     * Returns if this buffer has any data remaining in it. Only works _after_
-     * it has been flipped!
+     * Returns if this buffer has any data remaining in it. Only works _after_ it
+     * has been flipped!
      */
     boolean hasRemaining() {
         return byteBuffers[PADDING].hasRemaining();

@@ -53,8 +53,7 @@ import ibis.util.TypedProperties;
 public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
-    private static final Logger logger = LoggerFactory
-            .getLogger(SendPort.class);
+    private static final Logger logger = LoggerFactory.getLogger(SendPort.class);
 
     private static final String ALLOW_COMM_IN_UPCALL = "ibis.upcall.communication";
 
@@ -62,11 +61,9 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     private static final String[][] propertiesList = new String[][] {
             { ALLOW_COMM_IN_UPCALL, "false",
-                    "Boolean: when set, communication is allowed from inside upcalls,"
-                            + " without first calling finish()." },
+                    "Boolean: when set, communication is allowed from inside upcalls," + " without first calling finish()." },
             { ALLOW_CONN_IN_UPCALL, "false",
-                    "Boolean: when set, connection setup is allowed from inside upcalls,"
-                            + " without first calling finish()." }, };
+                    "Boolean: when set, connection setup is allowed from inside upcalls," + " without first calling finish()." }, };
 
     /** The type of this port. */
     public final PortType type;
@@ -86,17 +83,17 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     /**
      * The connections lost since the last call to {@link #lostConnections()}.
      */
-    protected ArrayList<ReceivePortIdentifier> lostConnections = new ArrayList<ReceivePortIdentifier>();
+    protected ArrayList<ReceivePortIdentifier> lostConnections = new ArrayList<>();
 
     /** The current connections. */
-    protected HashMap<ReceivePortIdentifier, SendPortConnectionInfo> receivers = new HashMap<ReceivePortIdentifier, SendPortConnectionInfo>();
+    protected HashMap<ReceivePortIdentifier, SendPortConnectionInfo> receivers = new HashMap<>();
 
     /** Set when a message is currently being used. */
     private boolean aMessageIsAlive = false;
 
     /**
-     * Counts the number of threads waiting for a message in a
-     * {@link #newMessage()} call.
+     * Counts the number of threads waiting for a message in a {@link #newMessage()}
+     * call.
      */
     private int waitingForMessage = 0;
 
@@ -125,8 +122,8 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     protected final Properties properties;
 
     /**
-     * The number of messages sent with this sendport. Actually counts the
-     * number of finish() calls.
+     * The number of messages sent with this sendport. Actually counts the number of
+     * finish() calls.
      */
     private long nMessages = 0;
 
@@ -146,8 +143,8 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /**
      * Cumulative value of totalWritten(), including in-between calls of
-     * resetWritten(). Note that totalWritten() and resetWritten() can be
-     * redefined by subclasses.
+     * resetWritten(). Note that totalWritten() and resetWritten() can be redefined
+     * by subclasses.
      */
     private long prevBytes = 0;
 
@@ -175,68 +172,52 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     private final boolean allowConnectionsInUpcall;
 
     /**
-     * Constructs a <code>SendPort</code> with the specified parameters. Note
-     * that all property checks are already performed in the
+     * Constructs a <code>SendPort</code> with the specified parameters. Note that
+     * all property checks are already performed in the
      * <code>Ibis.createSendPort</code> methods.
      *
-     * @param ibis
-     *            the ibis instance.
-     * @param type
-     *            the port type.
-     * @param name
-     *            the name of the <code>SendPort</code>.
-     * @param connectUpcall
-     *            the connection upcall object, or <code>null</code>.
-     * @param properties
-     *            the port properties.
-     * @exception IOException
-     *                is thrown in case of trouble.
+     * @param ibis          the ibis instance.
+     * @param type          the port type.
+     * @param name          the name of the <code>SendPort</code>.
+     * @param connectUpcall the connection upcall object, or <code>null</code>.
+     * @param properties    the port properties.
+     * @exception IOException is thrown in case of trouble.
      */
     @SuppressWarnings("unchecked")
-    protected SendPort(Ibis ibis, PortType type, String name,
-            SendPortDisconnectUpcall connectUpcall, Properties properties)
-            throws IOException {
+    protected SendPort(Ibis ibis, PortType type, String name, SendPortDisconnectUpcall connectUpcall, Properties properties) throws IOException {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
         this.ident = ibis.createSendPortIdentifier(name, ibis.ident);
-        this.connectionDowncalls = type
-                .hasCapability(PortType.CONNECTION_DOWNCALLS);
+        this.connectionDowncalls = type.hasCapability(PortType.CONNECTION_DOWNCALLS);
         this.connectUpcall = connectUpcall;
         this.properties = ibis.properties();
         if (properties != null) {
-            for (Enumeration<String> e = (Enumeration<String>) properties
-                    .propertyNames(); e.hasMoreElements();) {
+            for (Enumeration<String> e = (Enumeration<String>) properties.propertyNames(); e.hasMoreElements();) {
                 String key = e.nextElement();
                 String value = properties.getProperty(key);
                 this.properties.setProperty(key, value);
             }
         }
 
-        String replacerName = this.properties
-                .getProperty("ibis.serialization.replacer");
+        String replacerName = this.properties.getProperty("ibis.serialization.replacer");
         if (replacerName != null) {
             try {
-                Class<? extends Replacer> replacerClass = (Class<? extends Replacer>) Class
-                        .forName(replacerName);
+                Class<? extends Replacer> replacerClass = (Class<? extends Replacer>) Class.forName(replacerName);
                 this.replacer = replacerClass.getDeclaredConstructor().newInstance();
             } catch (Throwable e) {
-                throw new IOException(
-                        "Could not instantiate replacer class " + replacerName);
+                throw new IOException("Could not instantiate replacer class " + replacerName);
             }
         } else {
             this.replacer = null;
         }
 
         TypedProperties tp = new TypedProperties(this.properties);
-        allowCommunicationInUpcall = tp.getBooleanProperty(ALLOW_COMM_IN_UPCALL,
-                false);
-        allowConnectionsInUpcall = tp.getBooleanProperty(ALLOW_CONN_IN_UPCALL,
-                false);
+        allowCommunicationInUpcall = tp.getBooleanProperty(ALLOW_COMM_IN_UPCALL, false);
+        allowConnectionsInUpcall = tp.getBooleanProperty(ALLOW_CONN_IN_UPCALL, false);
         ibis.register(this);
         if (logger.isDebugEnabled()) {
-            logger.debug(
-                    ibis.identifier() + ": Sendport '" + name + "' created");
+            logger.debug(ibis.identifier() + ": Sendport '" + name + "' created");
         }
         w = createWriteMessage();
 
@@ -254,7 +235,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      * @return the name/description map.
      */
     public static Map<String, String> getDescriptions() {
-        Map<String, String> result = new LinkedHashMap<String, String>();
+        Map<String, String> result = new LinkedHashMap<>();
 
         for (String[] element : propertiesList) {
             result.put(element[0], element[2]);
@@ -264,14 +245,14 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     }
 
     public synchronized Map<IbisIdentifier, Set<String>> getConnectionTypes() {
-        HashMap<IbisIdentifier, Set<String>> result = new HashMap<IbisIdentifier, Set<String>>();
+        HashMap<IbisIdentifier, Set<String>> result = new HashMap<>();
         for (ReceivePortIdentifier port : receivers.keySet()) {
             SendPortConnectionInfo i = receivers.get(port);
             if (i != null) {
                 IbisIdentifier id = port.ibis;
                 Set<String> s = result.get(id);
                 if (s == null) {
-                    s = new HashSet<String>();
+                    s = new HashSet<>();
                 }
                 s.add(i.connectionType());
                 result.put(id, s);
@@ -286,7 +267,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      * @return the list of properties
      */
     public static List<String> getPropertyNames() {
-        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<String> result = new ArrayList<>();
         for (String[] element : propertiesList) {
             result.add(element[0]);
         }
@@ -359,58 +340,54 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         } else {
             serialization = "byte";
         }
-        out = SerializationFactory.createSerializationOutput(serialization,
-                dataOut, properties);
+        out = SerializationFactory.createSerializationOutput(serialization, dataOut, properties);
         if (replacer != null) {
             out.setReplacer(replacer);
         }
     }
 
+    @Override
     public PortType getPortType() {
         return type;
     }
 
+    @Override
     public synchronized ibis.ipl.ReceivePortIdentifier[] lostConnections() {
         if (!connectionDowncalls) {
-            throw new IbisConfigurationException("SendPort.lostConnections()"
-                    + " called but connectiondowncalls not configured");
+            throw new IbisConfigurationException("SendPort.lostConnections()" + " called but connectiondowncalls not configured");
         }
-        ibis.ipl.ReceivePortIdentifier[] result = lostConnections.toArray(
-                new ibis.ipl.ReceivePortIdentifier[lostConnections.size()]);
+        ibis.ipl.ReceivePortIdentifier[] result = lostConnections.toArray(new ibis.ipl.ReceivePortIdentifier[lostConnections.size()]);
         lostConnections.clear();
         return result;
     }
 
+    @Override
     public String name() {
         return name;
     }
 
+    @Override
     public ibis.ipl.SendPortIdentifier identifier() {
         return ident;
     }
 
-    public void connect(ibis.ipl.ReceivePortIdentifier receiver)
-            throws ConnectionFailedException {
+    @Override
+    public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws ConnectionFailedException {
         connect(receiver, 0, true);
     }
 
-    public ibis.ipl.ReceivePortIdentifier connect(ibis.ipl.IbisIdentifier id,
-            String name) throws ConnectionFailedException {
+    @Override
+    public ibis.ipl.ReceivePortIdentifier connect(ibis.ipl.IbisIdentifier id, String name) throws ConnectionFailedException {
         if (logger.isDebugEnabled()) {
-            logger.debug("Sendport '" + this.name + "' connecting to " + name
-                    + " at " + id);
+            logger.debug("Sendport '" + this.name + "' connecting to " + name + " at " + id);
         }
         return connect(id, name, 0, true);
     }
 
-    private void checkConnect(ReceivePortIdentifier r)
-            throws ConnectionFailedException {
+    private void checkConnect(ReceivePortIdentifier r) throws ConnectionFailedException {
 
-        if (receivers.size() > 0
-                && !type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
-                && !type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
-            throw new IbisConfigurationException("Sendport already has a "
-                    + "connection and OneToMany or ManyToMany not requested");
+        if (receivers.size() > 0 && !type.hasCapability(PortType.CONNECTION_ONE_TO_MANY) && !type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
+            throw new IbisConfigurationException("Sendport already has a " + "connection and OneToMany or ManyToMany not requested");
         }
 
         if (getInfo(r) != null) {
@@ -418,14 +395,11 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         }
     }
 
-    public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver,
-            long timeout, boolean fillTimeout)
-            throws ConnectionFailedException {
+    @Override
+    public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeout, boolean fillTimeout) throws ConnectionFailedException {
 
-        if (!allowConnectionsInUpcall && ReceivePort.threadsInUpcallSet
-                .contains(Thread.currentThread())) {
-            throw new ConnectionFailedException(
-                    "Connection attempt in upcall is not allowed", receiver);
+        if (!allowConnectionsInUpcall && ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+            throw new ConnectionFailedException("Connection attempt in upcall is not allowed", receiver);
         }
 
         if (logger.isDebugEnabled()) {
@@ -433,14 +407,11 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         }
 
         if (aMessageIsAlive) {
-            throw new ConnectionFailedException(
-                    "A message was alive while adding a new connection",
-                    receiver);
+            throw new ConnectionFailedException("A message was alive while adding a new connection", receiver);
         }
 
         if (timeout < 0) {
-            throw new ConnectionFailedException(
-                    "connect(): timeout must be >= 0", receiver);
+            throw new ConnectionFailedException("connect(): timeout must be >= 0", receiver);
         }
 
         ReceivePortIdentifier r = (ReceivePortIdentifier) receiver;
@@ -452,31 +423,26 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         } catch (ConnectionFailedException e) {
             throw e;
         } catch (Throwable e1) {
-            throw new ConnectionFailedException("Got unexpected exception", r,
-                    e1);
+            throw new ConnectionFailedException("Got unexpected exception", r, e1);
         }
         nConnections++;
     }
 
-    public ibis.ipl.ReceivePortIdentifier[] connect(
-            Map<ibis.ipl.IbisIdentifier, String> ports)
-            throws ConnectionsFailedException {
+    @Override
+    public ibis.ipl.ReceivePortIdentifier[] connect(Map<ibis.ipl.IbisIdentifier, String> ports) throws ConnectionsFailedException {
         return connect(ports, 0, true);
     }
 
-    public ibis.ipl.ReceivePortIdentifier[] connect(
-            Map<ibis.ipl.IbisIdentifier, String> ports, long timeout,
-            boolean fillTimeout) throws ConnectionsFailedException {
+    @Override
+    public ibis.ipl.ReceivePortIdentifier[] connect(Map<ibis.ipl.IbisIdentifier, String> ports, long timeout, boolean fillTimeout)
+            throws ConnectionsFailedException {
 
-        ibis.ipl.ReceivePortIdentifier[] ids = new ibis.ipl.ReceivePortIdentifier[ports
-                .size()];
+        ibis.ipl.ReceivePortIdentifier[] ids = new ibis.ipl.ReceivePortIdentifier[ports.size()];
 
         int index = 0;
 
-        for (Map.Entry<ibis.ipl.IbisIdentifier, String> entry : ports
-                .entrySet()) {
-            ids[index++] = ibis.createReceivePortIdentifier(entry.getValue(),
-                    (IbisIdentifier) entry.getKey());
+        for (Map.Entry<ibis.ipl.IbisIdentifier, String> entry : ports.entrySet()) {
+            ids[index++] = ibis.createReceivePortIdentifier(entry.getValue(), (IbisIdentifier) entry.getKey());
         }
 
         connect(ids, timeout, fillTimeout); // may throw an exception
@@ -484,20 +450,19 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         return ids;
     }
 
-    public void connect(ibis.ipl.ReceivePortIdentifier[] ports)
-            throws ConnectionsFailedException {
+    @Override
+    public void connect(ibis.ipl.ReceivePortIdentifier[] ports) throws ConnectionsFailedException {
         connect(ports, 0, true);
     }
 
-    public synchronized void connect(ibis.ipl.ReceivePortIdentifier[] ports,
-            long timeout, boolean fillTimeout)
-            throws ConnectionsFailedException {
+    @Override
+    public synchronized void connect(ibis.ipl.ReceivePortIdentifier[] ports, long timeout, boolean fillTimeout) throws ConnectionsFailedException {
 
-        ArrayList<ibis.ipl.ReceivePortIdentifier> succes = new ArrayList<ibis.ipl.ReceivePortIdentifier>();
+        ArrayList<ibis.ipl.ReceivePortIdentifier> succes = new ArrayList<>();
 
-        LinkedList<ibis.ipl.ReceivePortIdentifier> todo = new LinkedList<ibis.ipl.ReceivePortIdentifier>();
+        LinkedList<ibis.ipl.ReceivePortIdentifier> todo = new LinkedList<>();
 
-        HashMap<ibis.ipl.ReceivePortIdentifier, Throwable> results = new HashMap<ibis.ipl.ReceivePortIdentifier, Throwable>();
+        HashMap<ibis.ipl.ReceivePortIdentifier, Throwable> results = new HashMap<>();
 
         long deadline = 0;
 
@@ -512,10 +477,8 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         }
 
         if (todo.size() > 0) {
-            if (!allowConnectionsInUpcall && ReceivePort.threadsInUpcallSet
-                    .contains(Thread.currentThread())) {
-                throw new ConnectionsFailedException(
-                        "Connection attempt in upcall is not allowed");
+            if (!allowConnectionsInUpcall && ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+                throw new ConnectionsFailedException("Connection attempt in upcall is not allowed");
             }
         }
 
@@ -580,48 +543,43 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
                 Throwable tmp = results.get(rp);
 
                 if (tmp == null) {
-                    ex.add(new ConnectionTimedOutException(
-                            "Out of time, connection not even tried", rp));
+                    ex.add(new ConnectionTimedOutException("Out of time, connection not even tried", rp));
                 } else if (tmp instanceof ConnectionFailedException) {
                     ex.add((ConnectionFailedException) tmp);
                 } else {
-                    ex.add(new ConnectionFailedException("Connection failed",
-                            rp, tmp));
+                    ex.add(new ConnectionFailedException("Connection failed", rp, tmp));
                 }
             }
 
             // Add a list of connections that were successful.
-            ex.setObtainedConnections(succes.toArray(
-                    new ibis.ipl.ReceivePortIdentifier[succes.size()]));
+            ex.setObtainedConnections(succes.toArray(new ibis.ipl.ReceivePortIdentifier[succes.size()]));
 
             throw ex;
         }
     }
 
-    public ibis.ipl.ReceivePortIdentifier connect(ibis.ipl.IbisIdentifier id,
-            String name, long timeout, boolean fillTimeout)
+    @Override
+    public ibis.ipl.ReceivePortIdentifier connect(ibis.ipl.IbisIdentifier id, String name, long timeout, boolean fillTimeout)
             throws ConnectionFailedException {
 
-        ReceivePortIdentifier r = ibis.createReceivePortIdentifier(name,
-                (IbisIdentifier) id);
+        ReceivePortIdentifier r = ibis.createReceivePortIdentifier(name, (IbisIdentifier) id);
 
         connect(r, timeout, fillTimeout);
 
         return r;
     }
 
-    private synchronized void addConnectionInfo(ReceivePortIdentifier ri,
-            SendPortConnectionInfo connection) {
+    private synchronized void addConnectionInfo(ReceivePortIdentifier ri, SendPortConnectionInfo connection) {
         if (logger.isDebugEnabled()) {
             logger.debug("SendPort '" + name + "': added connection to " + ri);
         }
         addInfo(ri, connection);
     }
 
+    @Override
     public ibis.ipl.WriteMessage newMessage() throws IOException {
 
-        if (!allowCommunicationInUpcall && ReceivePort.threadsInUpcallSet
-                .contains(Thread.currentThread())) {
+        if (!allowCommunicationInUpcall && ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
             throw new IOException("Communication in upcall is not allowed");
         }
         synchronized (this) {
@@ -658,15 +616,14 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         return w;
     }
 
+    @Override
     public void close() throws IOException {
         ReceivePortIdentifier[] ports;
         synchronized (this) {
-            ports = receivers.keySet()
-                    .toArray(new ReceivePortIdentifier[receivers.size()]);
+            ports = receivers.keySet().toArray(new ReceivePortIdentifier[receivers.size()]);
             boolean alive = receivers.size() > 0 && aMessageIsAlive;
             if (alive) {
-                throw new ConnectionClosedException(
-                        "Closed a sendport port while a message is alive!");
+                throw new ConnectionClosedException("Closed a sendport port while a message is alive!");
             }
             if (logger.isDebugEnabled()) {
                 logger.debug("SendPort '" + name + "': start close()");
@@ -700,8 +657,8 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             // Otherwise, deadlocks may arise when someone is calling
             // ibis.printStatistics()
             // at the same time. --Ceriel
-            for (int i = 0; i < ports.length; i++) {
-                SendPortConnectionInfo c = removeInfo(ports[i]);
+            for (ReceivePortIdentifier port : ports) {
+                SendPortConnectionInfo c = removeInfo(port);
                 try {
                     c.closeConnection();
                 } catch (Throwable e) {
@@ -716,26 +673,23 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         }
     }
 
-    public void disconnect(ibis.ipl.IbisIdentifier id, String name)
-            throws IOException {
+    @Override
+    public void disconnect(ibis.ipl.IbisIdentifier id, String name) throws IOException {
         disconnect(ibis.createReceivePortIdentifier(name, (IbisIdentifier) id));
     }
 
-    public synchronized void disconnect(ibis.ipl.ReceivePortIdentifier receiver)
-            throws IOException {
+    @Override
+    public synchronized void disconnect(ibis.ipl.ReceivePortIdentifier receiver) throws IOException {
         if (logger.isDebugEnabled()) {
-            logger.debug("Sendport '" + this.name + "' disconnecting from "
-                    + receiver.name() + " at " + receiver.ibisIdentifier());
+            logger.debug("Sendport '" + this.name + "' disconnecting from " + receiver.name() + " at " + receiver.ibisIdentifier());
         }
         ReceivePortIdentifier r = (ReceivePortIdentifier) receiver;
         if (aMessageIsAlive) {
-            throw new IOException(
-                    "Trying to disconnect while a message is alive!");
+            throw new IOException("Trying to disconnect while a message is alive!");
         }
         SendPortConnectionInfo c = removeInfo(r);
         if (c == null) {
-            throw new IOException("Cannot disconnect from " + r
-                    + " since we are not connected with it");
+            throw new IOException("Cannot disconnect from " + r + " since we are not connected with it");
         }
         try {
             sendDisconnectMessage(r, c);
@@ -755,9 +709,9 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         nClosedConnections++;
     }
 
+    @Override
     public synchronized ibis.ipl.ReceivePortIdentifier[] connectedTo() {
-        return receivers.keySet()
-                .toArray(new ibis.ipl.ReceivePortIdentifier[receivers.size()]);
+        return receivers.keySet().toArray(new ibis.ipl.ReceivePortIdentifier[receivers.size()]);
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -766,16 +720,12 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
-     * Called in case an Ibis died or left. The connections to it must be
-     * removed.
+     * Called in case an Ibis died or left. The connections to it must be removed.
      *
-     * @param id
-     *            the IbisIdentifier of the Ibis that left/died.
+     * @param id the IbisIdentifier of the Ibis that left/died.
      */
-    protected synchronized void killConnectionsWith(
-            ibis.ipl.IbisIdentifier id) {
-        ReceivePortIdentifier[] keys = receivers.keySet()
-                .toArray(new ReceivePortIdentifier[receivers.size()]);
+    protected synchronized void killConnectionsWith(ibis.ipl.IbisIdentifier id) {
+        ReceivePortIdentifier[] keys = receivers.keySet().toArray(new ReceivePortIdentifier[receivers.size()]);
         for (ReceivePortIdentifier r : keys) {
             if (r.ibisIdentifier().equals(id)) {
                 receivers.get(r).closeConnection();
@@ -785,40 +735,32 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     }
 
     /**
-     * Returns the connection information for the specified receiveport
-     * identifier.
+     * Returns the connection information for the specified receiveport identifier.
      *
-     * @param id
-     *            the identification of the receiveport.
+     * @param id the identification of the receiveport.
      * @return the connection information, or <code>null</code> if not present.
      */
-    protected synchronized SendPortConnectionInfo getInfo(
-            ReceivePortIdentifier id) {
+    protected synchronized SendPortConnectionInfo getInfo(ReceivePortIdentifier id) {
         return receivers.get(id);
     }
 
     /**
      * Adds a connection entry for the specified receiveport identifier.
      *
-     * @param id
-     *            the identification of the receiveport.
-     * @param info
-     *            the associated connection information.
+     * @param id   the identification of the receiveport.
+     * @param info the associated connection information.
      */
-    private synchronized void addInfo(ReceivePortIdentifier id,
-            SendPortConnectionInfo info) {
+    private synchronized void addInfo(ReceivePortIdentifier id, SendPortConnectionInfo info) {
         receivers.put(id, info);
     }
 
     /**
      * Removes the connection entry for the specified receiveport identifier.
      *
-     * @param id
-     *            the identification of the receiveport.
+     * @param id the identification of the receiveport.
      * @return the removed connection.
      */
-    protected synchronized SendPortConnectionInfo removeInfo(
-            ReceivePortIdentifier id) {
+    protected synchronized SendPortConnectionInfo removeInfo(ReceivePortIdentifier id) {
         return receivers.remove(id);
     }
 
@@ -828,20 +770,16 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      * @return the connections.
      */
     public synchronized SendPortConnectionInfo[] connections() {
-        return receivers.values()
-                .toArray(new SendPortConnectionInfo[receivers.size()]);
+        return receivers.values().toArray(new SendPortConnectionInfo[receivers.size()]);
     }
 
     /**
-     * Implements the SendPort side of a message finish. This method is called
-     * by the {@link WriteMessage#finish()} implementation.
+     * Implements the SendPort side of a message finish. This method is called by
+     * the {@link WriteMessage#finish()} implementation.
      *
-     * @param w
-     *            the write message that calls this method.
-     * @param cnt
-     *            the number of bytes written.
-     * @throws IOException
-     *             when an IO error occurs.
+     * @param w   the write message that calls this method.
+     * @param cnt the number of bytes written.
+     * @throws IOException when an IO error occurs.
      */
     protected void finishMessage(WriteMessage w, long cnt) throws IOException {
         ibis.ipl.ReceivePortIdentifier[] ports = null;
@@ -869,15 +807,13 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     }
 
     /**
-     * Implements the SendPort side of a message finish with exception. This
-     * method is called by the {@link WriteMessage#finish(java.io.IOException)}
+     * Implements the SendPort side of a message finish with exception. This method
+     * is called by the {@link WriteMessage#finish(java.io.IOException)}
      * implementation.
      *
-     * @param w
-     *            the write message that calls this method.
-     * @param e
-     *            the exception that was passed on to the
-     *            {@link WriteMessage#finish(java.io.IOException)} call.
+     * @param w the write message that calls this method.
+     * @param e the exception that was passed on to the
+     *          {@link WriteMessage#finish(java.io.IOException)} call.
      */
     protected void finishMessage(WriteMessage w, IOException e) {
         try {
@@ -888,9 +824,9 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     }
 
     /**
-     * Returns the number of bytes written to the current data output stream.
-     * This method is called by the {@link WriteMessage} implementation.
-     * 
+     * Returns the number of bytes written to the current data output stream. This
+     * method is called by the {@link WriteMessage} implementation.
+     *
      * @return number of bytes written
      */
     protected long bytesWritten() {
@@ -900,22 +836,16 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     /**
      * Called when a method from {@link WriteMessage} receives an
      * <code>IOException</code>. It calls the implementation-specific
-     * {@link #handleSendException} method and then rethrows the exception
-     * unless we are dealing with a multicast port, in which case the exception
-     * is saved.
+     * {@link #handleSendException} method and then rethrows the exception unless we
+     * are dealing with a multicast port, in which case the exception is saved.
      *
-     * @param w
-     *            the write message
-     * @param e
-     *            the exception received
-     * @throws IOException
-     *             thrown when <code>e</code> must be rethrown.
+     * @param w the write message
+     * @param e the exception received
+     * @throws IOException thrown when <code>e</code> must be rethrown.
      */
-    protected void gotSendException(WriteMessage w, IOException e)
-            throws IOException {
+    protected void gotSendException(WriteMessage w, IOException e) throws IOException {
         handleSendException(w, e);
-        if (type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
-                || type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
+        if (type.hasCapability(PortType.CONNECTION_ONE_TO_ONE) || type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
             // Otherwise exception will be saved until the finish.
             throw e;
         }
@@ -931,14 +861,12 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /**
      * This method must be called by an implementation when it detects that a
-     * connection to a particular receive port is lost. It takes care of the
-     * user upcall if requested, and updates the administration accordingly.
+     * connection to a particular receive port is lost. It takes care of the user
+     * upcall if requested, and updates the administration accordingly.
      *
-     * @param id
-     *            identifies the receive port.
-     * @param cause
-     *            the exception that describes the reason for the loss of the
-     *            connection.
+     * @param id    identifies the receive port.
+     * @param cause the exception that describes the reason for the loss of the
+     *              connection.
      */
     public void lostConnection(ReceivePortIdentifier id, Throwable cause) {
         if (logger.isDebugEnabled() && cause != null) {
@@ -953,8 +881,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             try {
                 connectUpcall.lostConnection(this, id, cause);
             } catch (Throwable e) {
-                logger.error("Unexpected exception in lostConnection(), "
-                        + "this Java instance will be terminated", e);
+                logger.error("Unexpected exception in lostConnection(), " + "this Java instance will be terminated", e);
                 System.exit(1);
             }
         }
@@ -970,14 +897,13 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     }
 
     /**
-     * This method (re-)initializes the {@link ibis.io.DataOutputStream}, and
-     * closes the serialization stream if there was one. This method should be
-     * called from the implementation-specific constructor, and from each
+     * This method (re-)initializes the {@link ibis.io.DataOutputStream}, and closes
+     * the serialization stream if there was one. This method should be called from
+     * the implementation-specific constructor, and from each
      * {@link #doConnect(ReceivePortIdentifier, long,boolean)} call.
      *
-     * @param dataOut
-     *            the {@link ibis.io.DataOutputStream} to be used when creating
-     *            a new serialization stream is created.
+     * @param dataOut the {@link ibis.io.DataOutputStream} to be used when creating
+     *                a new serialization stream is created.
      */
     public void initStream(DataOutputStream dataOut) {
         this.dataOut = dataOut;
@@ -1003,66 +929,50 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      * This method must notify the receiveports that a new message is coming, if
      * needed. It must also deal with sequencing, if implemented/required.
      *
-     * @exception IOException
-     *                may be thrown when this notification fails.
+     * @exception IOException may be thrown when this notification fails.
      */
     protected abstract void announceNewMessage() throws IOException;
 
     /**
      * This method must set up a connection with the specified receive port.
      *
-     * @param receiver
-     *            identifies the receive port.
-     * @param timeout
-     *            the timeout, in milliseconds.
-     * @param fillTimeout
-     *            whether connections should be retried until the timeout is
-     *            expired
-     * @exception IOException
-     *                may be thrown when the connection fails.
-     * @return the {@link SendPortConnectionInfo} associated with the
-     *         connection.
+     * @param receiver    identifies the receive port.
+     * @param timeout     the timeout, in milliseconds.
+     * @param fillTimeout whether connections should be retried until the timeout is
+     *                    expired
+     * @exception IOException may be thrown when the connection fails.
+     * @return the {@link SendPortConnectionInfo} associated with the connection.
      */
-    protected abstract SendPortConnectionInfo doConnect(
-            ReceivePortIdentifier receiver, long timeout, boolean fillTimeout)
-            throws IOException;
+    protected abstract SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver, long timeout, boolean fillTimeout) throws IOException;
 
     /**
      * This method must notify the specified receive port that this sendport has
      * disconnected from it.
      *
-     * @param receiver
-     *            identifies the receive port.
-     * @param c
-     *            the connection information.
-     * @exception IOException
-     *                is thrown in case of trouble.
+     * @param receiver identifies the receive port.
+     * @param c        the connection information.
+     * @exception IOException is thrown in case of trouble.
      */
-    protected abstract void sendDisconnectMessage(
-            ReceivePortIdentifier receiver, SendPortConnectionInfo c)
-            throws IOException;
+    protected abstract void sendDisconnectMessage(ReceivePortIdentifier receiver, SendPortConnectionInfo c) throws IOException;
 
     /**
-     * This method should notify the connected receiveport(s) that this sendport
-     * is being closed.
+     * This method should notify the connected receiveport(s) that this sendport is
+     * being closed.
      *
-     * @exception IOException
-     *                may be thrown when communication with the receiveport(s)
-     *                fails for some reason.
+     * @exception IOException may be thrown when communication with the
+     *                        receiveport(s) fails for some reason.
      */
     protected abstract void closePort() throws IOException;
 
     /**
      * This method is called when a {@link WriteMessage} method receives an
-     * <code>IOException</code>. The implementation should try and find out
-     * which connection(s) were lost, and call the
-     * {@link #lostConnection(ReceivePortIdentifier, Throwable)} method for each
-     * of them.
+     * <code>IOException</code>. The implementation should try and find out which
+     * connection(s) were lost, and call the
+     * {@link #lostConnection(ReceivePortIdentifier, Throwable)} method for each of
+     * them.
      *
-     * @param w
-     *            the {@link WriteMessage}.
-     * @param e
-     *            the exception that was thrown.
+     * @param w the {@link WriteMessage}.
+     * @param e the exception that was thrown.
      */
     protected abstract void handleSendException(WriteMessage w, IOException e);
 

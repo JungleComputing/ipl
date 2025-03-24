@@ -15,6 +15,15 @@
  */
 package ibis.ipl.impl.smartsockets;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
@@ -28,289 +37,294 @@ import ibis.smartsockets.hub.servicelink.CallBack;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack, Runnable {
 
-	protected static final Logger logger
-            = LoggerFactory.getLogger(SmartSocketsUltraLightReceivePort.class);
+    protected static final Logger logger = LoggerFactory.getLogger(SmartSocketsUltraLightReceivePort.class);
 
-	private final PortType type;
-	private final String name;
-	private final MessageUpcall upcall;	
-// 	private final Properties properties;	
-	private final ReceivePortIdentifier id;
+    private final PortType type;
+    private final String name;
+    private final MessageUpcall upcall;
+// 	private final Properties properties;
+    private final ReceivePortIdentifier id;
 // 	private final SmartSocketsIbis ibis;
-	
-	private boolean allowUpcalls = false;
-	private boolean closed = false;
-	Properties properties;
 
+    private boolean allowUpcalls = false;
+    private boolean closed = false;
+    Properties properties;
 
-	private final LinkedList<SmartSocketsUltraLightReadMessage> messages = 
-		new LinkedList<SmartSocketsUltraLightReadMessage>();
+    private final LinkedList<SmartSocketsUltraLightReadMessage> messages = new LinkedList<>();
 
-	SmartSocketsUltraLightReceivePort(SmartSocketsIbis ibis, PortType type, 
-			String name, MessageUpcall upcall, Properties properties) throws IOException {
+    SmartSocketsUltraLightReceivePort(SmartSocketsIbis ibis, PortType type, String name, MessageUpcall upcall, Properties properties)
+            throws IOException {
 
 // 		this.ibis = ibis;
-		this.type = type;
-		this.name = name; 
-		this.upcall = upcall;
-		this.properties = properties;
-		// this.properties = properties;		
-		this.id = new ibis.ipl.impl.ReceivePortIdentifier(name, ibis.ident);
+        this.type = type;
+        this.name = name;
+        this.upcall = upcall;
+        this.properties = properties;
+        // this.properties = properties;
+        this.id = new ibis.ipl.impl.ReceivePortIdentifier(name, ibis.ident);
 
-		ServiceLink link = ibis.getServiceLink();
-		
-		if (link == null) { 
-			throw new IOException("No ServiceLink available");
-		}
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("Registering ultralight receive port " + name);
-		}
-		
-		link.register(name, this);
-		
-		if (type.hasCapability(PortType.RECEIVE_AUTO_UPCALLS) && upcall != null) { 
-			ThreadPool.createNew(this, "ConnectionHandler");
-		}		
-	}
+        ServiceLink link = ibis.getServiceLink();
 
-	public synchronized void close() {
-		closed = true;
-		notifyAll();
-	}
+        if (link == null) {
+            throw new IOException("No ServiceLink available");
+        }
 
-	public void close(long timeoutMillis) {
-		close();
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Registering ultralight receive port " + name);
+        }
 
-	private synchronized boolean getClosed() {
-		return closed;
-	}
+        link.register(name, this);
 
-	public SendPortIdentifier[] connectedTo() {
-		return new SendPortIdentifier[0];
-	}
+        if (type.hasCapability(PortType.RECEIVE_AUTO_UPCALLS) && upcall != null) {
+            ThreadPool.createNew(this, "ConnectionHandler");
+        }
+    }
 
-	public void disableConnections() {
-		// empty ? 
-	}
+    @Override
+    public synchronized void close() {
+        closed = true;
+        notifyAll();
+    }
 
-	public void enableConnections() {
-		// empty ? 
-	}
+    @Override
+    public void close(long timeoutMillis) {
+        close();
+    }
 
-	public synchronized void disableMessageUpcalls() {
-		allowUpcalls = false;
-	}
+    private synchronized boolean getClosed() {
+        return closed;
+    }
 
-	public synchronized void enableMessageUpcalls() {
-		// TODO Auto-generated method stub
-		allowUpcalls = true;
-		notifyAll();
-	}
+    @Override
+    public SendPortIdentifier[] connectedTo() {
+        return new SendPortIdentifier[0];
+    }
 
-	public PortType getPortType() {
-		return type;
-	}
+    @Override
+    public void disableConnections() {
+        // empty ?
+    }
 
-	public ReceivePortIdentifier identifier() {
-		return id;
-	}
+    @Override
+    public void enableConnections() {
+        // empty ?
+    }
 
-	public SendPortIdentifier[] lostConnections() {
-		return new SendPortIdentifier[0];
-	}
+    @Override
+    public synchronized void disableMessageUpcalls() {
+        allowUpcalls = false;
+    }
 
-	public String name() {
-		return name;
-	}
+    @Override
+    public synchronized void enableMessageUpcalls() {
+        // TODO Auto-generated method stub
+        allowUpcalls = true;
+        notifyAll();
+    }
 
-	public SendPortIdentifier[] newConnections() {
-		return new SendPortIdentifier[0];
-	}
+    @Override
+    public PortType getPortType() {
+        return type;
+    }
 
-	public ReadMessage poll() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ReceivePortIdentifier identifier() {
+        return id;
+    }
 
-	public ReadMessage receive() throws IOException {
-		return receive(0L);
-	}
+    @Override
+    public SendPortIdentifier[] lostConnections() {
+        return new SendPortIdentifier[0];
+    }
 
-	public ReadMessage receive(long timeoutMillis) throws IOException {
-		return getMessage(timeoutMillis);
-	}
+    @Override
+    public String name() {
+        return name;
+    }
 
-	public String getManagementProperty(String key) throws NoSuchPropertyException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public SendPortIdentifier[] newConnections() {
+        return new SendPortIdentifier[0];
+    }
 
-	public Map<String, String> managementProperties() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ReadMessage poll() throws IOException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	public void printManagementProperties(PrintStream stream) {
-		// TODO Auto-generated method stub
+    @Override
+    public ReadMessage receive() throws IOException {
+        return receive(0L);
+    }
 
-	}
+    @Override
+    public ReadMessage receive(long timeoutMillis) throws IOException {
+        return getMessage(timeoutMillis);
+    }
 
-	public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
-		// TODO Auto-generated method stub
+    @Override
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	}
+    @Override
+    public Map<String, String> managementProperties() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
-		// TODO Auto-generated method stub
+    @Override
+    public void printManagementProperties(PrintStream stream) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	public void gotMessage(DirectSocketAddress src, DirectSocketAddress srcProxy, int opcode, 
-			boolean returnToSender, byte [][] message) {
+    @Override
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        // TODO Auto-generated method stub
 
-		logger.debug("Got message from + " + src);
-		
-		if (returnToSender || opcode != 0xDEADBEEF || message == null || message.length == 0 
-				|| message[0] == null || message[0].length == 0) {			
-			logger.warn("Received malformed message from " + src.toString() + " (" 
-					+ returnToSender + ", " + opcode + ", " + (message== null) + ", " 
-					+ message.length + ", " + (message[0] == null) + ", " + message[0].length + ")");
-			return;
-		}
+    }
 
-		IbisIdentifier source = null;
+    @Override
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
+        // TODO Auto-generated method stub
 
-		try { 
-			source = new IbisIdentifier(message[0]);
-	
-			if (logger.isDebugEnabled()) {
-				logger.debug("Message was send by " + source);
-			} 
-		
-		} catch (Exception e) {
-			logger.warn("Message from contains malformed IbisIdentifier", e);
-			return;
-		}
+    }
 
-		SmartSocketsUltraLightReadMessage rm = null;
+    @Override
+    public void gotMessage(DirectSocketAddress src, DirectSocketAddress srcProxy, int opcode, boolean returnToSender, byte[][] message) {
 
-		try { 
-			rm = new SmartSocketsUltraLightReadMessage(this, 
-					new SendPortIdentifier("anonymous", source), message[1]);
-		} catch (Exception e) {
-			logger.warn("Message from contains malformed data", e);
-			return;
-		}
+        logger.debug("Got message from + " + src);
 
-		synchronized (this) {
-			messages.addLast(rm);
-			notifyAll();
-		}
-	}    
+        if (returnToSender || opcode != 0xDEADBEEF || message == null || message.length == 0 || message[0] == null || message[0].length == 0) {
+            logger.warn("Received malformed message from " + src.toString() + " (" + returnToSender + ", " + opcode + ", " + (message == null) + ", "
+                    + message.length + ", " + (message[0] == null) + ", " + message[0].length + ")");
+            return;
+        }
 
-	private synchronized SmartSocketsUltraLightReadMessage getMessage(long timeout) { 
+        IbisIdentifier source = null;
 
-		long endTime = System.currentTimeMillis() + timeout;
-		
-		while (!closed && messages.size() == 0) {			
-			if (timeout > 0) { 			
-				long waitTime = endTime - System.currentTimeMillis();
-				
-				if (waitTime <= 0) { 
-					break;
-				}
-				
-				try { 
-					wait(waitTime);
-				} catch (InterruptedException e) {
-					// ignore
-				}				
-			} else { 
-				try { 
-					wait();
-				} catch (InterruptedException e) {
-					// ignore
-				}
-			}
-		}
+        try {
+            source = new IbisIdentifier(message[0]);
 
-		if (closed || messages.size() == 0) { 
-			return null;
-		}
+            if (logger.isDebugEnabled()) {
+                logger.debug("Message was send by " + source);
+            }
 
-		return messages.removeFirst();		
-	}
+        } catch (Exception e) {
+            logger.warn("Message from contains malformed IbisIdentifier", e);
+            return;
+        }
 
-	private synchronized boolean waitUntilUpcallAllowed() { 
+        SmartSocketsUltraLightReadMessage rm = null;
 
-		while (!closed && !allowUpcalls) { 
-			try { 
-				wait();
-			} catch (InterruptedException e) {
-				// ignored
-			}
-		}
+        try {
+            rm = new SmartSocketsUltraLightReadMessage(this, new SendPortIdentifier("anonymous", source), message[1]);
+        } catch (Exception e) {
+            logger.warn("Message from contains malformed data", e);
+            return;
+        }
 
-		return !closed;
-	}
+        synchronized (this) {
+            messages.addLast(rm);
+            notifyAll();
+        }
+    }
 
-	private void performUpcall(SmartSocketsUltraLightReadMessage message) {
+    private synchronized SmartSocketsUltraLightReadMessage getMessage(long timeout) {
 
-		if (waitUntilUpcallAllowed()) { 
-			try {
-				// Notify the message that is is processed from an upcall,
-				// so that finish() calls can be detected.
-				message.setInUpcall(true);
-				upcall.upcall(message);
-			} catch(IOException e) {
-				if (!message.isFinished()) {
-					message.finish(e);
-					return;
-				}
-				logger.error("Got unexpected exception in upcall, continuing ...", e);
-			} catch(Throwable t) {
-				if (!message.isFinished()) {
-					IOException ioex = 
-						new IOException("Got Throwable: " + t.getMessage());
-					ioex.initCause(t);
-					message.finish(ioex);
-				}
-				return;
-			} finally {
-				message.setInUpcall(false);
-			}
-		}
-	}
+        long endTime = System.currentTimeMillis() + timeout;
 
-	protected void newUpcallThread() {
-		ThreadPool.createNew(this, "ConnectionHandler");
-	}
+        while (!closed && messages.size() == 0) {
+            if (timeout > 0) {
+                long waitTime = endTime - System.currentTimeMillis();
 
-	public void run() { 
-		while (!getClosed()) { 
-			SmartSocketsUltraLightReadMessage message = getMessage(0L);
+                if (waitTime <= 0) {
+                    break;
+                }
 
-			if (message != null) { 
-				performUpcall(message);
+                try {
+                    wait(waitTime);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            } else {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
 
-				if (message.finishCalledInUpcall()) {
-					// A new thread has take our place
-					return;
-				}
-			}
-		}
-	}
+        if (closed || messages.size() == 0) {
+            return null;
+        }
+
+        return messages.removeFirst();
+    }
+
+    private synchronized boolean waitUntilUpcallAllowed() {
+
+        while (!closed && !allowUpcalls) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // ignored
+            }
+        }
+
+        return !closed;
+    }
+
+    private void performUpcall(SmartSocketsUltraLightReadMessage message) {
+
+        if (waitUntilUpcallAllowed()) {
+            try {
+                // Notify the message that is is processed from an upcall,
+                // so that finish() calls can be detected.
+                message.setInUpcall(true);
+                upcall.upcall(message);
+            } catch (IOException e) {
+                if (!message.isFinished()) {
+                    message.finish(e);
+                    return;
+                }
+                logger.error("Got unexpected exception in upcall, continuing ...", e);
+            } catch (Throwable t) {
+                if (!message.isFinished()) {
+                    IOException ioex = new IOException("Got Throwable: " + t.getMessage());
+                    ioex.initCause(t);
+                    message.finish(ioex);
+                }
+                return;
+            } finally {
+                message.setInUpcall(false);
+            }
+        }
+    }
+
+    protected void newUpcallThread() {
+        ThreadPool.createNew(this, "ConnectionHandler");
+    }
+
+    @Override
+    public void run() {
+        while (!getClosed()) {
+            SmartSocketsUltraLightReadMessage message = getMessage(0L);
+
+            if (message != null) {
+                performUpcall(message);
+
+                if (message.finishCalledInUpcall()) {
+                    // A new thread has take our place
+                    return;
+                }
+            }
+        }
+    }
 }

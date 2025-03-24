@@ -35,26 +35,25 @@ import org.apache.bcel.util.SyntheticRepository;
  */
 public class BCELWrapper implements ByteCodeWrapper {
 
-    private HashMap<String, BCELClassInfo> javaClasses
-            = new HashMap<String, BCELClassInfo>();
+    private HashMap<String, BCELClassInfo> javaClasses = new HashMap<>();
 
     /**
-     * Constructs a BCEL implementation object for the <code>ByteCodeWrapper</code> interface.
+     * Constructs a BCEL implementation object for the <code>ByteCodeWrapper</code>
+     * interface.
+     * 
      * @param args list of classpath elements.
      */
     public BCELWrapper(List<String> args) {
         /*
-        String classPath = ClassPath.getClassPath();
-        String sep = System.getProperty("path.separator");
-        for (String arg : args) {
-            classPath = classPath + sep + arg;
-        }
-        SyntheticRepository rep = SyntheticRepository.getInstance(
-                new ClassPath(classPath));
-        Repository.setRepository(rep);
-        */
+         * String classPath = ClassPath.getClassPath(); String sep =
+         * System.getProperty("path.separator"); for (String arg : args) { classPath =
+         * classPath + sep + arg; } SyntheticRepository rep =
+         * SyntheticRepository.getInstance( new ClassPath(classPath));
+         * Repository.setRepository(rep);
+         */
     }
 
+    @Override
     public ClassInfo getInfo(Object o) {
         JavaClass cl = (JavaClass) o;
         String name = cl.getClassName();
@@ -67,6 +66,7 @@ public class BCELWrapper implements ByteCodeWrapper {
         return e;
     }
 
+    @Override
     public ClassInfo parseClassFile(String fileName) throws IOException {
         ClassParser parser = new ClassParser(fileName);
         JavaClass cl = parser.parse();
@@ -82,8 +82,8 @@ public class BCELWrapper implements ByteCodeWrapper {
         return e;
     }
 
-    public ClassInfo parseInputStream(InputStream in, String fileName)
-            throws IOException {
+    @Override
+    public ClassInfo parseInputStream(InputStream in, String fileName) throws IOException {
         JavaClass cl = new ClassParser(in, fileName).parse();
         in.close();
         Repository.addClass(cl);

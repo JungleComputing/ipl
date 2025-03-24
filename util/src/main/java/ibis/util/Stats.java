@@ -31,6 +31,7 @@ public final class Stats {
 
     /**
      * Calculates the mean of an array of numbers.
+     * 
      * @param data the numbers to calculate the mean of.
      * @return the mean.
      */
@@ -42,8 +43,8 @@ public final class Stats {
      * Calculates the mean of a subset of an array of numbers.
      *
      * @param data the numbers to calculate the mean of
-     * @param off offset
-     * @param len length
+     * @param off  offset
+     * @param len  length
      * @return the mean.
      */
     public static double mean(double[] data, int off, int len) {
@@ -58,8 +59,9 @@ public final class Stats {
     }
 
     /**
-     * Calculates the standard deviation of an array of numbers.
-     * See http://www.davidmlane.com/hyperstat/A16252.html 
+     * Calculates the standard deviation of an array of numbers. See
+     * http://www.davidmlane.com/hyperstat/A16252.html
+     * 
      * @param data the numbers to calculate the standard deviation of.
      * @return the standard deviation.
      */
@@ -68,12 +70,12 @@ public final class Stats {
     }
 
     /**
-     * Calculates the standard deviation of a subset of an array
-     * of numbers.
-     * See http://www.davidmlane.com/hyperstat/A16252.html 
+     * Calculates the standard deviation of a subset of an array of numbers. See
+     * http://www.davidmlane.com/hyperstat/A16252.html
+     * 
      * @param data the numbers to calculate the standard deviation of
-     * @param off offset
-     * @param len length
+     * @param off  offset
+     * @param len  length
      * @return the standard deviation.
      */
     public static double stdDev(double[] data, int off, int len) {
@@ -93,9 +95,10 @@ public final class Stats {
     }
 
     /**
-     * Calculates a speed in Mb/s given the size in bytes and the time
-     * in milliseconds. The result is rounded to one hundreth of an integer
-     * @param bytes size of the data in bytes
+     * Calculates a speed in Mb/s given the size in bytes and the time in
+     * milliseconds. The result is rounded to one hundreth of an integer
+     * 
+     * @param bytes  size of the data in bytes
      * @param millis the time of the measurement in milliseconds
      * @return the speed.
      */
@@ -104,14 +107,13 @@ public final class Stats {
     }
 
     /**
-     * Calculates a speed in Mb/s given the size in bytes and a number of
-     * times in milliseconds. The result is rounded to one hundreth of an 
-     * integer.
+     * Calculates a speed in Mb/s given the size in bytes and a number of times in
+     * milliseconds. The result is rounded to one hundreth of an integer.
      *
-     * @param bytes size of the data in bytes
+     * @param bytes  size of the data in bytes
      * @param millis a number of time measurements in milliseconds
-     * @param off the first measurement used in the calculation
-     * @param len the number of measurements used in the calculation
+     * @param off    the first measurement used in the calculation
+     * @param len    the number of measurements used in the calculation
      * @return the speed.
      */
     public static double mbs(double bytes, double[] millis, int off, int len) {
@@ -122,6 +124,7 @@ public final class Stats {
 
     /**
      * Rounds up a double. Rounds to one hundreth of an integer.
+     * 
      * @param v the value to be rounded.
      * @return the rounded value.
      */
@@ -130,12 +133,12 @@ public final class Stats {
     }
 
     /**
-     * Returns the standard deviation as a percentage of the mean. 
-     * The result is rounded up to a hundredth of an integer.
+     * Returns the standard deviation as a percentage of the mean. The result is
+     * rounded up to a hundredth of an integer.
      *
      * @param data array with input data (numbers)
-     * @param off offset in the data at which to start calculating
-     * @param len number of array elements to use for the calculation
+     * @param off  offset in the data at which to start calculating
+     * @param len  number of array elements to use for the calculation
      * @return the standard deviation as a percentage.
      */
     public static double stdDevError(double[] data, int off, int len) {

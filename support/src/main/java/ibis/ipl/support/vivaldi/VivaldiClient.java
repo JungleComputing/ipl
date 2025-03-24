@@ -15,15 +15,6 @@
  */
 package ibis.ipl.support.vivaldi;
 
-import ibis.ipl.impl.Ibis;
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.registry.Registry;
-import ibis.ipl.support.Client;
-import ibis.ipl.support.Connection;
-import ibis.smartsockets.virtual.VirtualServerSocket;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
-import ibis.util.ThreadPool;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -34,10 +25,18 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.impl.Ibis;
+import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.registry.Registry;
+import ibis.ipl.support.Client;
+import ibis.ipl.support.Connection;
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
+import ibis.util.ThreadPool;
+
 public class VivaldiClient implements Runnable {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(VivaldiClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(VivaldiClient.class);
 
     // how long do we wait for a connection
     public static final int CONNECTION_TIMEOUT = 10 * 1000;
@@ -59,8 +58,7 @@ public class VivaldiClient implements Runnable {
 
     private Coordinates coordinates;
 
-    public VivaldiClient(Properties properties, Registry registry)
-            throws IOException {
+    public VivaldiClient(Properties properties, Registry registry) throws IOException {
         this.registry = registry;
 
         this.coordinates = new Coordinates();
@@ -69,8 +67,7 @@ public class VivaldiClient implements Runnable {
         Client client = Client.getOrCreateClient(clientID, properties, 0);
         this.virtualSocketFactory = client.getFactory();
 
-        serverSocket = virtualSocketFactory.createServerSocket(
-                Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
+        serverSocket = virtualSocketFactory.createServerSocket(Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
 
         // start handling connections
         new ConnectionHandler(serverSocket, this);
@@ -78,16 +75,14 @@ public class VivaldiClient implements Runnable {
         ThreadPool.createNew(this, "Vivaldi Client");
     }
 
-    public double ping(IbisIdentifier identifier, boolean updateCoordinates)
-            throws IOException {
+    public double ping(IbisIdentifier identifier, boolean updateCoordinates) throws IOException {
         double result = Double.MAX_VALUE;
 
         if (logger.isDebugEnabled()) {
             logger.debug("ping to " + identifier);
         }
 
-        Connection connection = new Connection(identifier, CONNECTION_TIMEOUT,
-                true, virtualSocketFactory, Protocol.VIRTUAL_PORT);
+        Connection connection = new Connection(identifier, CONNECTION_TIMEOUT, true, virtualSocketFactory, Protocol.VIRTUAL_PORT);
 
         InputStream in = connection.in();
         OutputStream out = connection.out();
@@ -130,9 +125,8 @@ public class VivaldiClient implements Runnable {
         }
 
         if (logger.isInfoEnabled()) {
-            logger.info("vivaldi distance to " + identifier + " is "
-                    + remoteCoordinates.distance(getCoordinates())
-                    + " actual distance is " + result + " ms, coordinates now " + getCoordinates());
+            logger.info("vivaldi distance to " + identifier + " is " + remoteCoordinates.distance(getCoordinates()) + " actual distance is " + result
+                    + " ms, coordinates now " + getCoordinates());
         }
 
         return result;
@@ -166,8 +160,7 @@ public class VivaldiClient implements Runnable {
         }
     }
 
-    private synchronized void updateCoordinates(Coordinates remoteCoordinates,
-            double rtt) {
+    private synchronized void updateCoordinates(Coordinates remoteCoordinates, double rtt) {
         coordinates = coordinates.update(remoteCoordinates, rtt);
 
         if (logger.isDebugEnabled()) {
@@ -201,19 +194,18 @@ public class VivaldiClient implements Runnable {
         }
     }
 
+    @Override
     public void run() {
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         while (!ended()) {
 
             IbisIdentifier randomNode = registry.getRandomPoolMember();
-            if (randomNode != null
-                    && !randomNode.equals(registry.getIbisIdentifier())) {
+            if (randomNode != null && !randomNode.equals(registry.getIbisIdentifier())) {
                 try {
                     ping(randomNode, true);
                 } catch (Exception e) {
                     if (logger.isDebugEnabled()) {
-                	logger.debug("error on pinging random node " + randomNode,
-                		e);
+                        logger.debug("error on pinging random node " + randomNode, e);
                     }
 
                 }

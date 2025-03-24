@@ -42,7 +42,7 @@ public class Experiment {
     private final long endTime;
 
     Experiment(File directory) throws IOException {
-        
+
         poolName = directory.getName();
 
         File serverFile = new File(directory, "server");
@@ -52,11 +52,11 @@ public class Experiment {
         } else {
             serverStatistics = null;
             if (logger.isDebugEnabled()) {
-        	logger.debug("no server file found");
+                logger.debug("no server file found");
             }
         }
 
-        clientStatistics = new ArrayList<Statistics>();
+        clientStatistics = new ArrayList<>();
 
         if (!directory.isDirectory()) {
             throw new IOException(directory + " not a directory");
@@ -64,17 +64,15 @@ public class Experiment {
 
         int loadErrors = 0;
         for (File file : directory.listFiles()) {
-            if (file.getName().equals("server")
-                    || file.getName().endsWith(".old")) {
+            if (file.getName().equals("server") || file.getName().endsWith(".old")) {
                 continue;
             }
             try {
                 clientStatistics.add(new Statistics(file));
             } catch (IOException e) {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("cannot load statistics file: " + file
-        		    + " (trying .old version)", e);
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug("cannot load statistics file: " + file + " (trying .old version)", e);
+                }
                 loadErrors++;
                 try {
                     File oldFile = new File(file.getPath() + ".old");
@@ -129,9 +127,9 @@ public class Experiment {
     }
 
     long duration() {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("duration = " + (endTime - startTime));
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("duration = " + (endTime - startTime));
+        }
 
         return endTime - startTime;
     }
@@ -143,8 +141,7 @@ public class Experiment {
             double result = serverStatistics.poolSizeAt(realtime);
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("SERVER statistics: value at " + time + " ("
-        		+ realtime + ") = " + result);
+                logger.debug("SERVER statistics: value at " + time + " (" + realtime + ") = " + result);
             }
 
             if (result == -1) {
@@ -167,8 +164,7 @@ public class Experiment {
             double value = statistics.poolSizeAt(realtime);
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("statistics: " + statistics + " value at " + time
-        		+ " (" + realtime + ") = " + value);
+                logger.debug("statistics: " + statistics + " value at " + time + " (" + realtime + ") = " + value);
             }
 
             if (value != -1) {
@@ -180,7 +176,7 @@ public class Experiment {
         if (active == 0) {
             return 0;
         }
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("total = " + total + ", active = " + active + ", value = " + (total / active));
         }
@@ -201,12 +197,12 @@ public class Experiment {
 
         return total / clientStatistics.size();
     }
-    
+
     double serverTraffic() {
         if (serverStatistics == null) {
             return 0;
         }
-        
+
         return serverStatistics.totalTraffic();
     }
 
@@ -214,7 +210,7 @@ public class Experiment {
         if (serverStatistics == null) {
             return;
         }
-        
+
         serverStatistics.printCommStats(out);
     }
 

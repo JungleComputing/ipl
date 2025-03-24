@@ -17,7 +17,6 @@ package ibis.ipl.benchmarks.masterWorker;
 
 /* $Id$ */
 
-
 import java.io.Serializable;
 
 public final class Data implements Serializable {
@@ -39,15 +38,16 @@ public final class Data implements Serializable {
 
     double d = 3.454334783478437834;
 
-    //    int[] array = new int[32000];
+    // int[] array = new int[32000];
 
     Data() {
-        //	Random random = new Random();
-        //	for (int i = 0; i < array.length; i++) {
-        //	    array[i] = random.nextInt();
-        //	}
+        // Random random = new Random();
+        // for (int i = 0; i < array.length; i++) {
+        // array[i] = random.nextInt();
+        // }
     }
 
+    @Override
     public boolean equals(Object other) {
         if (!(other instanceof Data)) {
             return false;
@@ -57,16 +57,13 @@ public final class Data implements Serializable {
     }
 
     public boolean equals(Data other) {
-        //	for (int i = 0; i < array.length; i++) {
-        //	    if (array[i] != other.array[i]) {
-        //		return false;
-        //	    }
-        //	}
+        // for (int i = 0; i < array.length; i++) {
+        // if (array[i] != other.array[i]) {
+        // return false;
+        // }
+        // }
         //
 
-        return (other.bool = bool && other.b == b && other.c == c
-                && other.s == s && other.i == i && other.l == l && other.f == f
-                && other.d == d);
+        return (other.bool = bool && other.b == b && other.c == c && other.s == s && other.i == i && other.l == l && other.f == f && other.d == d);
     }
 }
-

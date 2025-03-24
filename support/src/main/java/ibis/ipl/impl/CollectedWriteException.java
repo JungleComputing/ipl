@@ -29,22 +29,22 @@ public class CollectedWriteException extends IOException {
 
     /** Added. */
     private static final long serialVersionUID = 5494793976122105110L;
-    
-    private ArrayList<IOException> exceptions = new ArrayList<IOException>();
+
+    private ArrayList<IOException> exceptions = new ArrayList<>();
 
     /**
-     * Constructs a <code>CollectedWriteException</code> with
-     * the specified detail message.
+     * Constructs a <code>CollectedWriteException</code> with the specified detail
+     * message.
      *
-     * @param s         the detail message
+     * @param s the detail message
      */
     public CollectedWriteException(String s) {
         super(s);
     }
 
     /**
-     * Constructs a <code>CollectedWriteException</code> with
-     * <code>null</code> as its error detail message.
+     * Constructs a <code>CollectedWriteException</code> with <code>null</code> as
+     * its error detail message.
      */
     public CollectedWriteException() {
         super();
@@ -52,6 +52,7 @@ public class CollectedWriteException extends IOException {
 
     /**
      * Adds an exception.
+     * 
      * @param e the exception to be added.
      */
     public void add(IOException e) {
@@ -60,12 +61,14 @@ public class CollectedWriteException extends IOException {
 
     /**
      * Returns the exceptions.
+     * 
      * @return an array with one element for each exception.
      */
     public IOException[] getExceptions() {
         return exceptions.toArray(new IOException[exceptions.size()]);
     }
 
+    @Override
     public String toString() {
         String res = "";
 
@@ -74,8 +77,7 @@ public class CollectedWriteException extends IOException {
         }
 
         res = "\n--- START OF COLLECTED EXCEPTIONS ---\n";
-        for (int i = 0; i < exceptions.size(); i++) {
-            IOException f = exceptions.get(i);
+        for (IOException f : exceptions) {
             String msg = f.getMessage();
             if (msg == null) {
                 msg = f.toString();
@@ -87,10 +89,12 @@ public class CollectedWriteException extends IOException {
         return res;
     }
 
+    @Override
     public void printStackTrace() {
         printStackTrace(System.err);
     }
 
+    @Override
     public void printStackTrace(PrintStream s) {
         if (exceptions.size() == 0) {
             super.printStackTrace(s);
@@ -98,13 +102,13 @@ public class CollectedWriteException extends IOException {
         }
 
         s.println("--- START OF COLLECTED EXCEPTIONS STACK TRACE ---");
-        for (int i = 0; i < exceptions.size(); i++) {
-            IOException f = exceptions.get(i);
+        for (IOException f : exceptions) {
             f.printStackTrace(s);
         }
         s.println("--- END OF COLLECTED EXCEPTIONS STACK TRACE ---");
     }
 
+    @Override
     public void printStackTrace(PrintWriter s) {
         if (exceptions.size() == 0) {
             super.printStackTrace(s);
@@ -112,8 +116,7 @@ public class CollectedWriteException extends IOException {
         }
 
         s.println("--- START OF COLLECTED EXCEPTIONS STACK TRACE ---");
-        for (int i = 0; i < exceptions.size(); i++) {
-            IOException f = exceptions.get(i);
+        for (IOException f : exceptions) {
             f.printStackTrace(s);
         }
         s.println("--- END OF COLLECTED EXCEPTIONS STACK TRACE ---");

@@ -15,17 +15,18 @@
  */
 package ibis.ipl.registry.central;
 
-import ibis.ipl.impl.IbisIdentifier;
-
 import java.util.Comparator;
+
+import ibis.ipl.impl.IbisIdentifier;
 
 /**
  * Compares two IbisIdentifiers made by this registry by numerically sorting
  * ID's
- * 
+ *
  */
 public class IbisComparator implements Comparator<IbisIdentifier> {
 
+    @Override
     public int compare(IbisIdentifier one, IbisIdentifier other) {
         try {
 

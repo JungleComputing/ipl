@@ -29,72 +29,63 @@ public interface ServerInterface {
 
     /**
      * Returns the address of this server as a string.
-     * 
+     *
      * @return the address
-     * @exception IOException
-     *                in case of an IO error
+     * @exception IOException in case of an IO error
      */
     public String getAddress() throws IOException;
 
     /**
      * Returns the names of all user services currently in this server.
-     * 
+     *
      * @return the names of all user services in this server
-     * @exception IOException
-     *                in case of an IO error
+     * @exception IOException in case of an IO error
      */
     public String[] getServiceNames() throws IOException;
 
     /**
      * Returns the addresses of all hubs known to this server.
-     * 
+     *
      * @return the addresses of all hubs known to this server
-     * @exception IOException
-     *                in case of an IO error
+     * @exception IOException in case of an IO error
      */
     public String[] getHubs() throws IOException;
 
     /**
      * Tell the server about some hubs.
-     * 
-     * @param hubAddresses
-     *            addresses of hubs to add
-     * @exception IOException
-     *                in case of an IO error
+     *
+     * @param hubAddresses addresses of hubs to add
+     * @exception IOException in case of an IO error
      */
     public void addHubs(DirectSocketAddress... hubAddresses) throws IOException;
 
     /**
      * Tell the server about some hubs.
-     * 
-     * @param hubAddresses
-     *            addresses of hubs to add
-     * @exception IOException
-     *                in case of an IO error
+     *
+     * @param hubAddresses addresses of hubs to add
+     * @exception IOException in case of an IO error
      */
     public void addHubs(String... hubAddresses) throws IOException;
 
     /**
      * Stops all services. May wait until the services are idle.
      *
-     * @param timeout
-     *            timeout for ending all services in milliseconds. 0 == wait
-     *            forever, -1 == not wait.
-     * @exception IOException
-     *                in case of an IO error
+     * @param timeout timeout for ending all services in milliseconds. 0 == wait
+     *                forever, -1 == not wait.
+     * @exception IOException in case of an IO error
      */
     public void end(long timeout) throws IOException;
 
     /**
      * Obtains the registry service interface from this Server.
-     * 
+     *
      * @return the registry service interface.
      */
     public RegistryServiceInterface getRegistryService();
 
     /**
      * Obtains the management service interface from this Server.
-     * 
+     *
      * @return the management service interface.
      */
     public ManagementServiceInterface getManagementService();

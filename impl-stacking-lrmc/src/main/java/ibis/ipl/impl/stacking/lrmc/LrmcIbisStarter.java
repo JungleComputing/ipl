@@ -30,31 +30,31 @@ import ibis.ipl.RegistryEventHandler;
 
 public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
 
-    public LrmcIbisStarter(String nickName, String iplVersion,
-            String implementationVersion) {
+    public LrmcIbisStarter(String nickName, String iplVersion, String implementationVersion) {
         super(nickName, iplVersion, implementationVersion);
     }
 
+    @Override
     public boolean matches(IbisCapabilities capabilities, PortType[] types) {
-        //pretend we can do everything
+        // pretend we can do everything
         return true;
     }
 
-    public CapabilitySet unmatchedIbisCapabilities(
-            IbisCapabilities capabilities, PortType[] types) {
+    @Override
+    public CapabilitySet unmatchedIbisCapabilities(IbisCapabilities capabilities, PortType[] types) {
         return new CapabilitySet();
     }
 
-    public PortType[] unmatchedPortTypes(IbisCapabilities capabilities,
-            PortType[] types) {
+    @Override
+    public PortType[] unmatchedPortTypes(IbisCapabilities capabilities, PortType[] types) {
         return new PortType[0];
     }
 
-    public Ibis startIbis(IbisFactory factory,
-            RegistryEventHandler registryEventHandler,
-            Properties userProperties, IbisCapabilities capabilities, Credentials credentials,
-            byte[] applicationTag, PortType[] portTypes, String specifiedSubImplementation) throws IbisCreationFailedException {
-        return new LrmcIbis(factory, registryEventHandler,
-                userProperties, capabilities, credentials, applicationTag, portTypes, specifiedSubImplementation, this);
+    @Override
+    public Ibis startIbis(IbisFactory factory, RegistryEventHandler registryEventHandler, Properties userProperties, IbisCapabilities capabilities,
+            Credentials credentials, byte[] applicationTag, PortType[] portTypes, String specifiedSubImplementation)
+            throws IbisCreationFailedException {
+        return new LrmcIbis(factory, registryEventHandler, userProperties, capabilities, credentials, applicationTag, portTypes,
+                specifiedSubImplementation, this);
     }
 }

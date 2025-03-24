@@ -15,6 +15,8 @@
  */
 package ibis.ipl.examples;
 
+import java.io.IOException;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -26,8 +28,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
-
 /**
  * Example of a many-to-one application. The server just waits until messages
  * are received and prints them, clients send a single message to the server and
@@ -36,21 +36,18 @@ import java.io.IOException;
 
 public class ManyToOne implements MessageUpcall {
 
-    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
             PortType.CONNECTION_MANY_TO_ONE);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
     /**
      * Function called by Ibis to give us a newly arrived message
-     * 
-     * @param message
-     *            the message
-     * @throws IOException
-     *             when the message cannot be read
+     *
+     * @param message the message
+     * @throws IOException when the message cannot be read
      */
+    @Override
     public void upcall(ReadMessage message) throws IOException {
         String s = message.readString();
         System.out.println(message.origin() + " says: " + s);
@@ -60,8 +57,7 @@ public class ManyToOne implements MessageUpcall {
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
-        ReceivePort receiver = myIbis.createReceivePort(portType, "server",
-                this);
+        ReceivePort receiver = myIbis.createReceivePort(portType, "server", this);
         // enable connections
         receiver.enableConnections();
         // enable upcalls

@@ -15,6 +15,11 @@
  */
 package ibis.ipl.registry.gossip;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.IbisIdentifier;
@@ -27,11 +32,6 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 class CommunicationHandler implements Runnable {
 
     private static final int CONNECTION_BACKLOG = 25;
@@ -42,8 +42,7 @@ class CommunicationHandler implements Runnable {
 
     private static final int CONNECTION_TIMEOUT = 5000;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(CommunicationHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommunicationHandler.class);
 
     private final Registry registry;
 
@@ -67,16 +66,14 @@ class CommunicationHandler implements Runnable {
 
     private int maxNrOfThreads = 0;
 
-    CommunicationHandler(TypedProperties properties, Registry registry,
-            MemberSet members, ElectionSet elections, Statistics statistics)
+    CommunicationHandler(TypedProperties properties, Registry registry, MemberSet members, ElectionSet elections, Statistics statistics)
             throws IbisConfigurationException, IOException {
         this.registry = registry;
         this.pool = members;
         this.elections = elections;
         this.statistics = statistics;
 
-        nrOfLeavesSend = properties
-                .getIntProperty(RegistryProperties.LEAVES_SEND);
+        nrOfLeavesSend = properties.getIntProperty(RegistryProperties.LEAVES_SEND);
 
         gossipSize = properties.getIntProperty(RegistryProperties.GOSSIP_COUNT);
 
@@ -84,14 +81,11 @@ class CommunicationHandler implements Runnable {
         Client client = Client.getOrCreateClient(clientID, properties, 0);
         socketFactory = client.getFactory();
 
-        serverSocket = socketFactory.createServerSocket(0, CONNECTION_BACKLOG,
-                null);
+        serverSocket = socketFactory.createServerSocket(0, CONNECTION_BACKLOG, null);
 
-        VirtualSocketAddress serverAddress = client
-                .getServiceAddress(Protocol.VIRTUAL_PORT);
+        VirtualSocketAddress serverAddress = client.getServiceAddress(Protocol.VIRTUAL_PORT);
 
-        String[] bootstrapStringList = properties
-                .getStringList(RegistryProperties.BOOTSTRAP_LIST);
+        String[] bootstrapStringList = properties.getStringList(RegistryProperties.BOOTSTRAP_LIST);
         VirtualSocketAddress[] bootstrapList = new VirtualSocketAddress[bootstrapStringList.length];
 
         for (int i = 0; i < bootstrapList.length; i++) {
@@ -103,9 +97,7 @@ class CommunicationHandler implements Runnable {
             logger.debug("server address = " + serverAddress);
         }
 
-        arrg = new ARRG(serverSocket.getLocalSocketAddress(), false,
-                bootstrapList, serverAddress, registry.getPoolName(),
-                socketFactory, statistics);
+        arrg = new ARRG(serverSocket.getLocalSocketAddress(), false, bootstrapList, serverAddress, registry.getPoolName(), socketFactory, statistics);
 
     }
 
@@ -114,15 +106,13 @@ class CommunicationHandler implements Runnable {
         createThread();
     }
 
-    public void sendSignals(String signal, IbisIdentifier[] ibises)
-            throws IOException {
+    public void sendSignals(String signal, IbisIdentifier[] ibises) throws IOException {
         String errorMessage = null;
 
         for (IbisIdentifier ibis : ibises) {
             try {
                 long start = System.currentTimeMillis();
-                Connection connection = new Connection(ibis,
-                        CONNECTION_TIMEOUT, true, socketFactory, Protocol.VIRTUAL_PORT);
+                Connection connection = new Connection(ibis, CONNECTION_TIMEOUT, true, socketFactory, Protocol.VIRTUAL_PORT);
 
                 connection.out().writeByte(Protocol.MAGIC_BYTE);
                 connection.out().writeByte(Protocol.OPCODE_SIGNAL);
@@ -133,10 +123,7 @@ class CommunicationHandler implements Runnable {
 
                 connection.close();
                 if (statistics != null) {
-                    statistics.add(Protocol.OPCODE_SIGNAL, System
-                            .currentTimeMillis()
-                            - start, connection.read(), connection.written(),
-                            false);
+                    statistics.add(Protocol.OPCODE_SIGNAL, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
                 }
             } catch (IOException e) {
                 logger.error("could not send signal to " + ibis);
@@ -166,18 +153,16 @@ class CommunicationHandler implements Runnable {
     public void gossip() {
         VirtualSocketAddress address = arrg.getRandomMember();
 
-        if (address == null
-                || address.equals(serverSocket.getLocalSocketAddress())) {
+        if (address == null || address.equals(serverSocket.getLocalSocketAddress())) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("noone to gossip with, or (not) gossiping with self");
+                logger.debug("noone to gossip with, or (not) gossiping with self");
             }
             return;
         }
 
         try {
             long start = System.currentTimeMillis();
-            Connection connection = new Connection(address, CONNECTION_TIMEOUT,
-                    true, socketFactory);
+            Connection connection = new Connection(address, CONNECTION_TIMEOUT, true, socketFactory);
 
             connection.out().writeByte(Protocol.MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_GOSSIP);
@@ -193,14 +178,11 @@ class CommunicationHandler implements Runnable {
 
             connection.close();
             if (statistics != null) {
-                statistics
-                        .add(Protocol.OPCODE_GOSSIP, System.currentTimeMillis()
-                                - start, connection.read(), connection
-                                .written(), false);
+                statistics.add(Protocol.OPCODE_GOSSIP, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("could not gossip with " + address, e);
+                logger.debug("could not gossip with " + address, e);
             }
         }
     }
@@ -232,8 +214,7 @@ class CommunicationHandler implements Runnable {
      * Sends leave message to everyone ARRG knows :)
      */
     public void broadcastLeave() {
-        VirtualSocketAddress[] addresses = arrg
-                .getRandomMembers(nrOfLeavesSend);
+        VirtualSocketAddress[] addresses = arrg.getRandomMembers(nrOfLeavesSend);
 
         Broadcaster broadcaster = new Broadcaster(this, addresses);
 
@@ -249,8 +230,7 @@ class CommunicationHandler implements Runnable {
 
         try {
             long start = System.currentTimeMillis();
-            Connection connection = new Connection(address,
-                    LEAVE_CONNECTION_TIMEOUT, true, socketFactory);
+            Connection connection = new Connection(address, LEAVE_CONNECTION_TIMEOUT, true, socketFactory);
 
             connection.out().writeByte(Protocol.MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_LEAVE);
@@ -260,14 +240,10 @@ class CommunicationHandler implements Runnable {
 
             connection.close();
             if (statistics != null) {
-                statistics
-                        .add(Protocol.OPCODE_LEAVE, System.currentTimeMillis()
-                                - start, connection.read(), connection
-                                .written(), false);
+                statistics.add(Protocol.OPCODE_LEAVE, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
-            logger.debug(serverSocket.getLocalSocketAddress()
-                    + " could not send leave to " + address);
+            logger.debug(serverSocket.getLocalSocketAddress() + " could not send leave to " + address);
         }
     }
 
@@ -283,8 +259,7 @@ class CommunicationHandler implements Runnable {
 
     public void ping(IbisIdentifier ibis) throws IOException {
         long start = System.currentTimeMillis();
-        Connection connection = new Connection(ibis, CONNECTION_TIMEOUT, true,
-                socketFactory, Protocol.VIRTUAL_PORT);
+        Connection connection = new Connection(ibis, CONNECTION_TIMEOUT, true, socketFactory, Protocol.VIRTUAL_PORT);
 
         connection.out().writeByte(Protocol.MAGIC_BYTE);
         connection.out().writeByte(Protocol.OPCODE_PING);
@@ -295,12 +270,10 @@ class CommunicationHandler implements Runnable {
         connection.close();
 
         if (!result.equals(ibis)) {
-            throw new IOException("tried to ping " + ibis + ", reached "
-                    + result + " instead");
+            throw new IOException("tried to ping " + ibis + ", reached " + result + " instead");
         }
         if (statistics != null) {
-            statistics.add(Protocol.OPCODE_PING, System.currentTimeMillis()
-                    - start, connection.read(), connection.written(), false);
+            statistics.add(Protocol.OPCODE_PING, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
         }
     }
 
@@ -345,15 +318,16 @@ class CommunicationHandler implements Runnable {
         notifyAll();
     }
 
+    @Override
     public void run() {
         Connection connection = null;
         try {
             if (logger.isDebugEnabled()) {
-        	logger.debug("accepting connection");
+                logger.debug("accepting connection");
             }
             connection = new Connection(serverSocket);
             if (logger.isDebugEnabled()) {
-        	logger.debug("connection accepted");
+                logger.debug("connection accepted");
             }
         } catch (IOException e) {
             if (registry.isStopped()) {
@@ -384,15 +358,13 @@ class CommunicationHandler implements Runnable {
             byte magic = connection.in().readByte();
 
             if (magic != Protocol.MAGIC_BYTE) {
-                throw new IOException(
-                        "Invalid header byte in accepting connection");
+                throw new IOException("Invalid header byte in accepting connection");
             }
 
             opcode = connection.in().readByte();
 
             if (logger.isDebugEnabled()) {
-                logger.debug("got request, opcode = "
-                        + Protocol.opcodeString(opcode));
+                logger.debug("got request, opcode = " + Protocol.opcodeString(opcode));
             }
 
             switch (opcode) {
@@ -425,8 +397,7 @@ class CommunicationHandler implements Runnable {
         }
 
         if (statistics != null) {
-            statistics.add(opcode, System.currentTimeMillis() - start,
-                    connection.read(), connection.written(), true);
+            statistics.add(opcode, System.currentTimeMillis() - start, connection.read(), connection.written(), true);
         }
         threadEnded();
     }

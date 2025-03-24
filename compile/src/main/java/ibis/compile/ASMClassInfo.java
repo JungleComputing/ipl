@@ -25,13 +25,13 @@ import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 public class ASMClassInfo implements ClassInfo {
-    
+
     private ClassNode n;
-    
+
     public ASMClassInfo(ClassNode n) {
         this.n = n;
     }
-    
+
     @Override
     public String getClassName() {
         return n.name.replaceAll("/", ".");
@@ -41,7 +41,6 @@ public class ASMClassInfo implements ClassInfo {
     public Object getClassObject() {
         return n;
     }
-    
 
     void setClassObject(ClassNode n) {
         this.n = n;

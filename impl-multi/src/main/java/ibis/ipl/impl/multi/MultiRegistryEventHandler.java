@@ -15,10 +15,10 @@
  */
 package ibis.ipl.impl.multi;
 
+import java.io.IOException;
+
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.RegistryEventHandler;
-
-import java.io.IOException;
 
 public class MultiRegistryEventHandler implements RegistryEventHandler {
 
@@ -30,12 +30,12 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
 
     private String ibisName;
 
-    public MultiRegistryEventHandler(MultiIbis ibis,
-            RegistryEventHandler subHandler) {
+    public MultiRegistryEventHandler(MultiIbis ibis, RegistryEventHandler subHandler) {
         this.ibis = ibis;
         this.subHandler = subHandler;
     }
 
+    @Override
     public synchronized void died(IbisIdentifier corpse) {
         while (registry == null) {
             try {
@@ -55,8 +55,8 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
         }
     }
 
-    public synchronized void electionResult(String electionName,
-            IbisIdentifier winner) {
+    @Override
+    public synchronized void electionResult(String electionName, IbisIdentifier winner) {
         while (registry == null) {
             try {
                 wait();
@@ -70,8 +70,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
                 registry.elected.put(electionName, id);
                 subHandler.electionResult(electionName, id);
             } else {
-                MultiIbisIdentifier oldWinner = registry.elected
-                        .get(electionName);
+                MultiIbisIdentifier oldWinner = registry.elected.get(electionName);
                 if (!oldWinner.equals(id)) {
                     registry.elected.put(electionName, id);
                     subHandler.electionResult(electionName, id);
@@ -82,10 +81,12 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
         }
     }
 
+    @Override
     public void gotSignal(String signal, IbisIdentifier source) {
         subHandler.gotSignal(signal, source);
     }
 
+    @Override
     public synchronized void joined(IbisIdentifier joinedIbis) {
         while (registry == null) {
             try {
@@ -105,6 +106,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
         }
     }
 
+    @Override
     public synchronized void left(IbisIdentifier leftIbis) {
         while (registry == null) {
             try {
@@ -133,10 +135,12 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
         notifyAll();
     }
 
+    @Override
     public void poolClosed() {
         // FIXME: implement
     }
 
+    @Override
     public void poolTerminated(IbisIdentifier source) {
         // FIXME: implement
     }

@@ -27,20 +27,19 @@ import java.nio.channels.SelectableChannel;
  */
 final class BlockingChannelNioDissipator extends NioDissipator {
 
-    BlockingChannelNioDissipator(ReadableByteChannel channel)
-            throws IOException {
+    BlockingChannelNioDissipator(ReadableByteChannel channel) throws IOException {
         super(channel);
 
         if (!(channel instanceof SelectableChannel)) {
-            throw new IOException("wrong type of channel given on creation of"
-                    + " BlockingChannelNioDissipator");
+            throw new IOException("wrong type of channel given on creation of" + " BlockingChannelNioDissipator");
         }
     }
 
     /**
      * fills the buffer upto at least "minimum" bytes.
-     * 
+     *
      */
+    @Override
     protected void fillBuffer(int minimum) throws IOException {
         while (unUsedLength() < minimum) {
             readFromChannel();

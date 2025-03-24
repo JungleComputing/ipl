@@ -29,11 +29,10 @@ import java.util.zip.ZipOutputStream;
  */
 public class JarEntryInfo {
 
-    private JarEntry       jarEntry;
-    private byte[]         content;
-    private JarInfo        jarInfo;
-    private IbiscEntry     ibiscEntry;
-
+    private JarEntry jarEntry;
+    private byte[] content;
+    private JarInfo jarInfo;
+    private IbiscEntry ibiscEntry;
 
     JarEntryInfo(JarEntry jarEntry, JarInfo jarInfo) throws IOException {
         this.jarEntry = jarEntry;
@@ -55,25 +54,22 @@ public class JarEntryInfo {
         this.content = content;
         this.ibiscEntry = ibiscEntry;
     }
-   
+
     private IbiscEntry getIbiscEntry() {
         String iname = jarEntry.getName();
         if (iname.endsWith(".class")) {
             try {
-                ClassInfo cl = Ibisc.w.parseInputStream(getInputStream(),
-                            iname);
+                ClassInfo cl = Ibisc.w.parseInputStream(getInputStream(), iname);
                 IbiscEntry entry = new IbiscEntry(cl, iname, jarInfo);
                 Ibisc.allClasses.put(cl.getClassName(), entry);
                 return entry;
-            } catch(IOException e) {
-                System.err.println("Ibisc: warning: could not read "
-                        + "class " + iname + " from jar file "
-                        + jarInfo.getName());
+            } catch (IOException e) {
+                System.err.println("Ibisc: warning: could not read " + "class " + iname + " from jar file " + jarInfo.getName());
             }
         }
         return null;
     }
-    
+
     private byte[] getContent() throws IOException {
         ByteArrayOutputStream Bos = new ByteArrayOutputStream();
         byte[] buf = new byte[16384];
@@ -109,10 +105,9 @@ public class JarEntryInfo {
         return new ByteArrayInputStream(content);
     }
 
-
-
     /**
      * Returns the {@link JarEntry} of this entry.
+     * 
      * @return the jarEntry
      */
     public JarEntry getJarEntry() {
@@ -121,6 +116,7 @@ public class JarEntryInfo {
 
     /**
      * Returns the {@link JarInfo} of this entry.
+     * 
      * @return the jarInfo
      */
     public JarInfo getJarInfo() {

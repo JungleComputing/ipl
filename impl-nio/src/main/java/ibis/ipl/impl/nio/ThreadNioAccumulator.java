@@ -17,14 +17,14 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.impl.ReceivePortIdentifier;
-
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.impl.ReceivePortIdentifier;
 
 final class ThreadNioAccumulator extends NioAccumulator {
 
@@ -39,8 +39,8 @@ final class ThreadNioAccumulator extends NioAccumulator {
         this.thread = thread;
     }
 
-    NioAccumulatorConnection newConnection(GatheringByteChannel channel,
-            ReceivePortIdentifier peer) throws IOException {
+    @Override
+    NioAccumulatorConnection newConnection(GatheringByteChannel channel, ReceivePortIdentifier peer) throws IOException {
         SelectableChannel sChannel = (SelectableChannel) channel;
 
         sChannel.configureBlocking(false);
@@ -52,6 +52,7 @@ final class ThreadNioAccumulator extends NioAccumulator {
         return new ThreadNioAccumulatorConnection(port, thread, channel, peer);
     }
 
+    @Override
     boolean doSend(SendBuffer buffer) throws IOException {
 
         if (logger.isDebugEnabled()) {
@@ -110,13 +111,13 @@ final class ThreadNioAccumulator extends NioAccumulator {
         return false;
     }
 
+    @Override
     void doFlush() throws IOException {
         /*
-         * if (logger.isDebugEnabled()) { logger.info("buffers", this, "doing
-         * flush"); } for (int i = 0; i < nrOfConnections; i++) {
-         * ((ThreadNioAccumulatorConnection) connections[i]).waitUntilEmpty(); }
-         * if (logger.isDebugEnabled()) { logger.info("buffers", this, "done
-         * flush"); }
+         * if (logger.isDebugEnabled()) { logger.info("buffers", this, "doing flush"); }
+         * for (int i = 0; i < nrOfConnections; i++) { ((ThreadNioAccumulatorConnection)
+         * connections[i]).waitUntilEmpty(); } if (logger.isDebugEnabled()) {
+         * logger.info("buffers", this, "done flush"); }
          */
     }
 }

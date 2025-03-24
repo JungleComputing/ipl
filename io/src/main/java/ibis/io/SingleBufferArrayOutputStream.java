@@ -23,8 +23,7 @@ import org.slf4j.LoggerFactory;
 
 public class SingleBufferArrayOutputStream extends DataOutputStream {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(BufferedArrayOutputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(BufferedArrayOutputStream.class);
 
     private static final boolean DEBUG = IOProperties.DEBUG;
 
@@ -44,9 +43,8 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
 
     /**
      * Constructor.
-     * 
-     * @param buffer
-     *                the underlying byte buffer
+     *
+     * @param buffer the underlying byte buffer
      */
     public SingleBufferArrayOutputStream(byte[] buffer) {
         this.buffer = buffer;
@@ -58,99 +56,108 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index = 0;
     }
 
+    @Override
     public long bytesWritten() {
         return index - offset;
     }
 
+    @Override
     public void resetBytesWritten() {
         offset = index;
     }
 
     /**
-     * Checks if there is space for <code>incr</code> more bytes and if not,
-     * the buffer is written to the underlying <code>OutputStream</code>.
-     * 
-     * @param incr
-     *                the space requested
-     * @exception IOException
-     *                    in case of trouble.
+     * Checks if there is space for <code>incr</code> more bytes and if not, the
+     * buffer is written to the underlying <code>OutputStream</code>.
+     *
+     * @param incr the space requested
+     * @exception IOException in case of trouble.
      */
     private void checkFreeSpace(int bytes) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("checkFreeSpace(" + bytes + ") : " + " "
-                    + (index + bytes >= BUF_SIZE) + " " + (index) + ")");
+            logger.debug("checkFreeSpace(" + bytes + ") : " + " " + (index + bytes >= BUF_SIZE) + " " + (index) + ")");
         }
 
         if (index + bytes > BUF_SIZE) {
-            throw new IOException("End of buffer reached (" + index + "+"
-                    + bytes + " > " + BUF_SIZE + ")");
+            throw new IOException("End of buffer reached (" + index + "+" + bytes + " > " + BUF_SIZE + ")");
         }
     }
 
+    @Override
     public void write(int b) throws IOException {
         writeByte((byte) b);
     }
 
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         byte b = conversion.boolean2byte(value);
         checkFreeSpace(1);
         buffer[index++] = b;
     }
 
+    @Override
     public void writeByte(byte value) throws IOException {
         checkFreeSpace(1);
         buffer[index++] = value;
     }
 
+    @Override
     public void writeChar(char value) throws IOException {
         checkFreeSpace(Constants.SIZEOF_CHAR);
         conversion.char2byte(value, buffer, index);
         index += Constants.SIZEOF_CHAR;
     }
 
+    @Override
     public void writeShort(short value) throws IOException {
         checkFreeSpace(Constants.SIZEOF_SHORT);
         conversion.short2byte(value, buffer, index);
         index += Constants.SIZEOF_SHORT;
     }
 
+    @Override
     public void writeInt(int value) throws IOException {
         checkFreeSpace(Constants.SIZEOF_INT);
         conversion.int2byte(value, buffer, index);
         index += Constants.SIZEOF_INT;
     }
 
+    @Override
     public void writeLong(long value) throws IOException {
         checkFreeSpace(Constants.SIZEOF_LONG);
         conversion.long2byte(value, buffer, index);
         index += Constants.SIZEOF_LONG;
     }
 
+    @Override
     public void writeFloat(float value) throws IOException {
         checkFreeSpace(Constants.SIZEOF_FLOAT);
         conversion.float2byte(value, buffer, index);
         index += Constants.SIZEOF_FLOAT;
     }
 
+    @Override
     public void writeDouble(double value) throws IOException {
         checkFreeSpace(Constants.SIZEOF_DOUBLE);
         conversion.double2byte(value, buffer, index);
         index += Constants.SIZEOF_DOUBLE;
     }
 
+    @Override
     public void write(byte[] b) throws IOException {
         writeArray(b);
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException {
         writeArray(b, off, len);
     }
 
+    @Override
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArray(boolean[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("writeArray(boolean[" + off + " ... " + (off + len) + "])");
         }
 
         final int toWrite = len * Constants.SIZEOF_BOOLEAN;
@@ -160,11 +167,11 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += toWrite;
     }
 
+    @Override
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArray(byte[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("writeArray(byte[" + off + " ... " + (off + len) + "])");
         }
 
         checkFreeSpace(len);
@@ -172,11 +179,11 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += len;
     }
 
+    @Override
     public void writeArray(char[] ref, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArray(char[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("writeArray(char[" + off + " ... " + (off + len) + "])");
         }
 
         final int toWrite = len * Constants.SIZEOF_CHAR;
@@ -185,11 +192,11 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += toWrite;
     }
 
+    @Override
     public void writeArray(short[] ref, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArray(short[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("writeArray(short[" + off + " ... " + (off + len) + "])");
         }
 
         final int toWrite = len * Constants.SIZEOF_SHORT;
@@ -198,12 +205,11 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += toWrite;
     }
 
+    @Override
     public void writeArray(int[] ref, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger
-                    .debug("writeArray(int[" + off + " ... " + (off + len)
-                            + "])");
+            logger.debug("writeArray(int[" + off + " ... " + (off + len) + "])");
         }
 
         final int toWrite = len * Conversion.INT_SIZE;
@@ -212,11 +218,11 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += toWrite;
     }
 
+    @Override
     public void writeArray(long[] ref, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArray(long[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("writeArray(long[" + off + " ... " + (off + len) + "])");
         }
 
         final int toWrite = len * Conversion.INT_SIZE;
@@ -225,11 +231,11 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += toWrite;
     }
 
+    @Override
     public void writeArray(float[] ref, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArray(float[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("writeArray(float[" + off + " ... " + (off + len) + "])");
         }
 
         final int toWrite = len * Conversion.FLOAT_SIZE;
@@ -238,11 +244,11 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += toWrite;
     }
 
+    @Override
     public void writeArray(double[] ref, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("writeArray(double[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("writeArray(double[" + off + " ... " + (off + len) + "])");
         }
 
         final int toWrite = len * Conversion.FLOAT_SIZE;
@@ -251,33 +257,39 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
         index += toWrite;
     }
 
+    @Override
     public void flush() throws IOException {
         // empty
     }
 
+    @Override
     public void finish() {
         // empty
     }
 
+    @Override
     public boolean finished() {
         return true;
     }
 
+    @Override
     public void close() throws IOException {
         // empty
     }
 
+    @Override
     public int bufferSize() {
         return BUF_SIZE;
     }
 
+    @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
-	
-	int len = value.limit() - value.position();
-	
+
+        int len = value.limit() - value.position();
+
         checkFreeSpace(len);
-        
+
         value.get(buffer, index, len);
-        index += len;	
+        index += len;
     }
 }

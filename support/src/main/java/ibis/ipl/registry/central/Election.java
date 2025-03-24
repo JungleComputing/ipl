@@ -18,7 +18,7 @@ package ibis.ipl.registry.central;
 import ibis.ipl.impl.IbisIdentifier;
 
 public class Election {
-    
+
     private final Event event;
 
     public Election(Event event) {
@@ -32,11 +32,12 @@ public class Election {
     public IbisIdentifier getWinner() {
         return event.getIbis();
     }
-    
+
     public Event getEvent() {
         return event;
     }
-    
+
+    @Override
     public String toString() {
         return getName() + " won by " + getWinner();
     }

@@ -25,30 +25,26 @@ import ibis.util.Timer;
  */
 public final class HandleHash {
 
-    private static final boolean STATS = IOProperties.properties.getBooleanProperty(
-            IOProperties.s_hash_stats);
+    private static final boolean STATS = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_stats);
 
-    private static final boolean TIMINGS = IOProperties.properties.getBooleanProperty(
-            IOProperties.s_hash_timings);
+    private static final boolean TIMINGS = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 
     private static final boolean CACHE_HASH = false;
 
     /*
-     * Choose this value between 50 and 200.
-     * It determines the amount of chaining
-     * before the hashmap is resized. Lower value means less chaining, but
-     * larger hashtable.
+     * Choose this value between 50 and 200. It determines the amount of chaining
+     * before the hashmap is resized. Lower value means less chaining, but larger
+     * hashtable.
      */
-    private static final int RESIZE_PERCENTAGE = IOProperties.properties.getIntProperty(
-            IOProperties.s_hash_resize, 100);
+    private static final int RESIZE_PERCENTAGE = IOProperties.properties.getIntProperty(IOProperties.s_hash_resize, 100);
 
     /** Maps handle to object. */
     private Object[] dataBucket;
 
     /** Maps handle to hashcode. */
-    private int[] hashBucket;   // if (CACHE_HASH)
+    private int[] hashBucket; // if (CACHE_HASH)
 
     /** Maps handle to next with same hash value. */
     private int[] nextBucket;
@@ -101,8 +97,7 @@ public final class HandleHash {
             x <<= 1;
         }
         if (x != sz) {
-            System.err.println("Warning: Hash table size (" + sz
-                    + ") must be a power of two. Increment to " + x);
+            System.err.println("Warning: Hash table size (" + sz + ") must be a power of two. Increment to " + x);
             sz = x;
         }
 
@@ -119,12 +114,12 @@ public final class HandleHash {
             t_growbucket = Timer.createTimer();
         }
         if (STATS || TIMINGS) {
-            Runtime.getRuntime().addShutdownHook(
-                    new Thread("HandleHash ShutdownHook") {
-                        public void run() {
-                            statistics();
-                        }
-                    });
+            Runtime.getRuntime().addShutdownHook(new Thread("HandleHash ShutdownHook") {
+                @Override
+                public void run() {
+                    statistics();
+                }
+            });
         }
     }
 
@@ -152,9 +147,9 @@ public final class HandleHash {
         int h = System.identityHashCode(ref);
 
         h += ~(h << 9);
-        h ^=  (h >>> 14);
-        h +=  (h << 4);
-        h ^=  (h >>> 10);
+        h ^= (h >>> 14);
+        h += (h << 4);
+        h ^= (h >>> 10);
 
         return h;
     }
@@ -178,7 +173,7 @@ public final class HandleHash {
                 if (TIMINGS) {
                     t_find.stop();
                 }
-                
+
                 return i;
             }
         }
@@ -261,14 +256,11 @@ public final class HandleHash {
 
     /**
      * Insert (ref, handle) into the hash table.
-     * 
-     * @param ref
-     *            the object that is inserted
-     * @param handle
-     *            the (int valued) key
-     * @param hashcode
-     *            the hashcode of ref that may be kept over calls to the hash
-     *            table
+     *
+     * @param ref      the object that is inserted
+     * @param handle   the (int valued) key
+     * @param hashcode the hashcode of ref that may be kept over calls to the hash
+     *                 table
      * @return the handle.
      */
     public int put(Object ref, int handle, int hashcode) {
@@ -310,14 +302,11 @@ public final class HandleHash {
     /**
      * Insert (ref, handle) into the hash table lazily. If already present, the
      * present handle is returned instead.
-     * 
-     * @param ref
-     *            the object that is inserted
-     * @param handle
-     *            the (int valued) key
-     * @param hashcode
-     *            the hashcode of ref that may be kept over calls to the hash
-     *            table
+     *
+     * @param ref      the object that is inserted
+     * @param handle   the (int valued) key
+     * @param hashcode the hashcode of ref that may be kept over calls to the hash
+     *                 table
      * @return the handle found.
      */
     public final int lazyPut(Object ref, int handle, int hashcode) {
@@ -366,20 +355,13 @@ public final class HandleHash {
         if (STATS) {
             System.err.println(this + ": " +
             // "buckets = " + size +
-                    " mapsize " + mapsize + " maxsize " + maxsize + " finds "
-                    + finds + " rebuilds " + rebuilds + " collisions "
-                    + collisions + " (rebuild " + rebuild_collisions + ")");
+                    " mapsize " + mapsize + " maxsize " + maxsize + " finds " + finds + " rebuilds " + rebuilds + " collisions " + collisions
+                    + " (rebuild " + rebuild_collisions + ")");
         }
         if (TIMINGS) {
-            System.err.println(this +
-                    " insert(" + t_insert.nrTimes() + ") "
-                    + Timer.format(t_insert.totalTimeVal())
-                    + " find(" + t_find.nrTimes() + ") "
-                    + Timer.format(t_find.totalTimeVal())
-                    + " rebuild(" + t_rebuild.nrTimes() + ") "
-                    + Timer.format(t_rebuild.totalTimeVal())
-                    + " growBucket(" + t_growbucket.nrTimes() + ") "
-                    + Timer.format(t_growbucket.totalTimeVal()));
+            System.err.println(this + " insert(" + t_insert.nrTimes() + ") " + Timer.format(t_insert.totalTimeVal()) + " find(" + t_find.nrTimes()
+                    + ") " + Timer.format(t_find.totalTimeVal()) + " rebuild(" + t_rebuild.nrTimes() + ") " + Timer.format(t_rebuild.totalTimeVal())
+                    + " growBucket(" + t_growbucket.nrTimes() + ") " + Timer.format(t_growbucket.totalTimeVal()));
         }
     }
 }

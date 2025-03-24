@@ -36,9 +36,8 @@ public class ByteSerializationInputStream implements SerializationInput {
 
     /**
      * Constructor, may be used when this class is sub-classed.
-     * 
-     * @throws IOException
-     *             on I/O error
+     *
+     * @throws IOException on I/O error
      */
     protected ByteSerializationInputStream() throws IOException {
         in = null;
@@ -47,35 +46,39 @@ public class ByteSerializationInputStream implements SerializationInput {
     /**
      * Constructor.
      *
-     * @param s
-     *            the underlying <code>InputStream</code>
-     * @exception IOException
-     *                is thrown on an IO error.
+     * @param s the underlying <code>InputStream</code>
+     * @exception IOException is thrown on an IO error.
      */
     public ByteSerializationInputStream(DataInputStream s) throws IOException {
         in = s;
     }
 
+    @Override
     public int available() throws IOException {
         return in.available();
     }
 
+    @Override
     public String serializationImplName() {
         return "byte";
     }
 
+    @Override
     public boolean reInitOnNewConnection() {
         return false;
     }
 
+    @Override
     public void clear() {
         // Nothing for byte serialization.
     }
 
+    @Override
     public void statistics() {
         // no statistics for byte serialization.
     }
 
+    @Override
     public byte readByte() throws IOException {
         int b = in.read();
 
@@ -85,50 +88,62 @@ public class ByteSerializationInputStream implements SerializationInput {
         return (byte) b;
     }
 
+    @Override
     public int readUnsignedByte() throws IOException {
         return readByte() & 0377;
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public char readChar() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public short readShort() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public int readUnsignedShort() throws IOException {
         return readShort() & 0177777;
     }
 
+    @Override
     public int readInt() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public long readLong() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public float readFloat() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public double readDouble() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public String readString() throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public Object readObject() throws IOException, ClassNotFoundException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(byte[] ref, int off, int len) throws IOException {
         /*
          * Call read() and read() here. It is supported. RFHH
@@ -143,84 +158,102 @@ public class ByteSerializationInputStream implements SerializationInput {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readByteBuffer(ByteBuffer b) throws IOException {
         in.readByteBuffer(b);
     }
 
+    @Override
     public void readArray(boolean[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(char[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(short[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(int[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(long[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(float[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(double[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type read");
     }
 
-    public void readArray(Object[] ref, int off, int len)
-            throws IOException, ClassNotFoundException {
+    @Override
+    public void readArray(Object[] ref, int off, int len) throws IOException, ClassNotFoundException {
         throw new IOException("Illegal data type read");
     }
 
+    @Override
     public void readArray(boolean[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void readArray(byte[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void readArray(short[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void readArray(char[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void readArray(int[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void readArray(long[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void readArray(float[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void readArray(double[] ref) throws IOException {
         readArray(ref, 0, ref.length);
     }
 
-    public void readArray(Object[] ref)
-            throws IOException, ClassNotFoundException {
+    @Override
+    public void readArray(Object[] ref) throws IOException, ClassNotFoundException {
         readArray(ref, 0, ref.length);
     }
 
+    @Override
     public void close() throws IOException {
         // nothing
     }
 
+    @Override
     public void realClose() throws IOException {
         close();
         in.close();

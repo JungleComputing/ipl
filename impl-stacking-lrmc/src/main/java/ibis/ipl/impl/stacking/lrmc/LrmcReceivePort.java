@@ -15,6 +15,12 @@
  */
 package ibis.ipl.impl.stacking.lrmc;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
@@ -25,12 +31,6 @@ import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     private final LrmcReceivePortIdentifier identifier;
@@ -40,71 +40,81 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
     private boolean closed = false;
     private boolean messageIsAvailable = false;
     private boolean upcallsEnabled = false;
-    
-    public LrmcReceivePort(Multicaster om, LrmcIbis ibis, MessageUpcall upcall,
-            Properties properties) throws IOException {
+
+    public LrmcReceivePort(Multicaster om, LrmcIbis ibis, MessageUpcall upcall, Properties properties) throws IOException {
         this.om = om;
         identifier = new LrmcReceivePortIdentifier(ibis.identifier(), om.name);
         this.upcall = upcall;
-        if (upcall != null
-                && !om.portType.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)) {
-            throw new IbisConfigurationException(
-                    "no connection upcalls requested for this port type");
+        if (upcall != null && !om.portType.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)) {
+            throw new IbisConfigurationException("no connection upcalls requested for this port type");
         }
         ThreadPool.createNew(this, "ReceivePort");
     }
 
+    @Override
     public synchronized void close() throws IOException {
         closed = true;
         om.removeReceivePort();
         notifyAll();
     }
 
+    @Override
     public void close(long timeoutMillis) throws IOException {
         close();
     }
 
+    @Override
     public SendPortIdentifier[] connectedTo() {
         throw new IbisConfigurationException("connection downcalls not supported");
     }
 
+    @Override
     public void disableConnections() {
         // throw new IbisConfigurationException("connection upcalls not supported");
     }
 
+    @Override
     public synchronized void disableMessageUpcalls() {
         upcallsEnabled = false;
     }
 
+    @Override
     public void enableConnections() {
         // throw new IbisConfigurationException("connection upcalls not supported");
     }
 
+    @Override
     public synchronized void enableMessageUpcalls() {
         upcallsEnabled = true;
         notifyAll();
     }
 
+    @Override
     public PortType getPortType() {
         return om.portType;
     }
 
+    @Override
     public ReceivePortIdentifier identifier() {
         return identifier;
     }
 
+    @Override
     public SendPortIdentifier[] lostConnections() {
         throw new IbisConfigurationException("connection downcalls not supported");
     }
 
+    @Override
     public String name() {
         return identifier.name;
     }
 
+    @Override
     public SendPortIdentifier[] newConnections() {
         throw new IbisConfigurationException("connection downcalls not supported");
     }
 
+    @Override
     public synchronized ReadMessage poll() throws IOException {
         if (closed) {
             throw new IOException("port is closed");
@@ -116,26 +126,26 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
         return null;
     }
 
+    @Override
     public ReadMessage receive() throws IOException {
         return receive(0);
     }
 
+    @Override
     public ReadMessage receive(long timeout) throws IOException {
         if (upcall != null) {
-            throw new IbisConfigurationException(
-                    "Configured Receiveport for upcalls, downcall not allowed");
+            throw new IbisConfigurationException("Configured Receiveport for upcalls, downcall not allowed");
         }
         boolean hasTimeout = false;
         if (timeout < 0) {
             throw new IOException("timeout must be a non-negative number");
         }
         if (timeout > 0 && !om.portType.hasCapability(PortType.RECEIVE_TIMEOUT)) {
-            throw new IbisConfigurationException(
-                    "This port is not configured for receive() with timeout");
+            throw new IbisConfigurationException("This port is not configured for receive() with timeout");
         }
-        
-        synchronized(this) {
-            while (! messageIsAvailable ) {
+
+        synchronized (this) {
+            while (!messageIsAvailable) {
                 if (closed) {
                     throw new IOException("port is closed");
                 }
@@ -144,7 +154,7 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
                     long tm = System.currentTimeMillis();
                     try {
                         wait(timeout);
-                    } catch(Throwable e) {
+                    } catch (Throwable e) {
                         // ignored
                     }
                     long tm1 = System.currentTimeMillis();
@@ -155,7 +165,7 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
                 } else {
                     try {
                         wait();
-                    } catch(Throwable e) {
+                    } catch (Throwable e) {
                         // ignored
                     }
                 }
@@ -165,25 +175,27 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
         }
     }
 
-    public String getManagementProperty(String key)
-            throws NoSuchPropertyException {
+    @Override
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("No properties in LRMCReceivePort");
     }
 
+    @Override
     public Map<String, String> managementProperties() {
-        return new HashMap<String, String>();
+        return new HashMap<>();
     }
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
     }
 
-    public void setManagementProperties(Map<String, String> properties)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("No properties in LRMCReceivePort");
     }
 
-    public void setManagementProperty(String key, String value)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("No properties in LRMCReceivePort");
     }
 
@@ -191,14 +203,14 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
         message = null;
         notifyAll();
     }
-    
+
     private boolean doUpcall(LrmcReadMessage msg) {
-        synchronized(this) {
+        synchronized (this) {
             // Wait until upcalls are enabled.
-            while (! upcallsEnabled) {
+            while (!upcallsEnabled) {
                 try {
                     wait();
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
                     // ignored
                 }
             }
@@ -206,38 +218,37 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
         try {
             msg.setInUpcall(true);
             upcall.upcall(msg);
-        } catch(IOException e) {
-            if (! msg.isFinished) {
+        } catch (IOException e) {
+            if (!msg.isFinished) {
                 msg.finish(e);
                 return false;
             }
-        } catch(ClassNotFoundException e) {
-            if (! msg.isFinished) {
-                IOException ioex =
-                    new IOException("Got ClassNotFoundException: "
-                        + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            if (!msg.isFinished) {
+                IOException ioex = new IOException("Got ClassNotFoundException: " + e.getMessage());
                 ioex.initCause(e);
                 msg.finish(ioex);
                 return false;
             }
             return true;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             System.exit(1);
         } finally {
             msg.setInUpcall(false);
         }
 
-        if (! msg.isFinished) {
+        if (!msg.isFinished) {
             try {
                 msg.finish();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 msg.finish(e);
             }
             return false;
         }
         return true;
     }
-    
+
+    @Override
     public void run() {
         while (true) {
             if (closed) {
@@ -247,11 +258,11 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
             if (m == null) {
                 return;
             }
-            synchronized(this) {
+            synchronized (this) {
                 while (message != null) {
                     try {
                         wait();
-                    } catch(Throwable e) {
+                    } catch (Throwable e) {
                         // ignored
                     }
                 }

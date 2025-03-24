@@ -17,8 +17,6 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.impl.ReceivePortIdentifier;
-
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
@@ -26,24 +24,24 @@ import java.nio.channels.SelectableChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.impl.ReceivePortIdentifier;
+
 final class BlockingChannelNioAccumulator extends NioAccumulator {
 
-    private static Logger logger = LoggerFactory.getLogger(
-            BlockingChannelNioAccumulator.class);
+    private static Logger logger = LoggerFactory.getLogger(BlockingChannelNioAccumulator.class);
 
     public BlockingChannelNioAccumulator(NioSendPort port) {
         super(port);
     }
 
-    NioAccumulatorConnection newConnection(GatheringByteChannel channel,
-            ReceivePortIdentifier peer) throws IOException {
+    @Override
+    NioAccumulatorConnection newConnection(GatheringByteChannel channel, ReceivePortIdentifier peer) throws IOException {
         NioAccumulatorConnection result;
 
         logger.debug("registering new connection");
 
         if (nrOfConnections != 0) {
-            logger.warn("" + (nrOfConnections + 1)
-                    + " connections from a blocking send port");
+            logger.warn("" + (nrOfConnections + 1) + " connections from a blocking send port");
         }
 
         SelectableChannel sChannel = (SelectableChannel) channel;
@@ -60,6 +58,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
     /**
      * Sends out a buffer to multiple channels. Doesn't buffer anything
      */
+    @Override
     boolean doSend(SendBuffer buffer) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("sending a buffer");
@@ -92,6 +91,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
         return true; // signal we are done with the buffer now
     }
 
+    @Override
     void doFlush() throws IOException {
         // NOTHING
     }

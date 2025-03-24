@@ -39,8 +39,7 @@ final class ServerConnectionHandler implements Runnable {
 
     static final int MAX_THREADS = 50;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(ServerConnectionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerConnectionHandler.class);
 
     private final CentralRegistryService server;
 
@@ -54,14 +53,11 @@ final class ServerConnectionHandler implements Runnable {
 
     private ControlPolicy policy;
 
-    ServerConnectionHandler(CentralRegistryService server,
-            VirtualSocketFactory connectionFactory, ControlPolicy policy)
-                    throws IOException {
+    ServerConnectionHandler(CentralRegistryService server, VirtualSocketFactory connectionFactory, ControlPolicy policy) throws IOException {
         this.server = server;
         this.socketFactory = connectionFactory;
 
-        serverSocket = socketFactory.createServerSocket(Protocol.VIRTUAL_PORT,
-                CONNECTION_BACKLOG, null);
+        serverSocket = socketFactory.createServerSocket(Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
         this.policy = policy;
 
         createThread();
@@ -78,8 +74,7 @@ final class ServerConnectionHandler implements Runnable {
         String peerVersion = connection.in().readUTF();
 
         if (peerVersion == null || !peerVersion.equals(version)) {
-            throw new IOException("Wrong ipl server version in join: "
-                    + peerVersion + ", should be " + version);
+            throw new IOException("Wrong ipl server version in join: " + peerVersion + ", should be " + version);
         }
 
         int length = connection.in().readInt();
@@ -124,8 +119,7 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.in().readFully(credentialBytes);
 
-        Credentials credentials = (Credentials) Conversion
-                .byte2object(credentialBytes);
+        Credentials credentials = (Credentials) Conversion.byte2object(credentialBytes);
 
         length = connection.in().readInt();
         byte[] applicationTag = null;
@@ -145,17 +139,13 @@ final class ServerConnectionHandler implements Runnable {
 
         // long dataRead = System.currentTimeMillis();
 
-        pool = server.getOrCreatePool(poolName, peerBootstrap,
-                heartbeatInterval, eventPushInterval, gossip, gossipInterval,
-                adaptGossipInterval, tree, closedWorld, poolSize,
-                keepStatistics, statisticsInterval, purgeHistory,
-                implementationVersion);
+        pool = server.getOrCreatePool(poolName, peerBootstrap, heartbeatInterval, eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
+                tree, closedWorld, poolSize, keepStatistics, statisticsInterval, purgeHistory, implementationVersion);
 
         // long poolRetrieved = System.currentTimeMillis();
 
         try {
-            member = pool.join(implementationData, clientAddress, location,
-                    implementationVersion, applicationTag);
+            member = pool.join(implementationData, clientAddress, location, implementationVersion, applicationTag);
         } catch (IOException e) {
             connection.closeWithError(e.getMessage());
             throw e;
@@ -231,8 +221,7 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private Pool handleGetSequenceNumber(Connection connection)
-            throws Exception {
+    private Pool handleGetSequenceNumber(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         String name = connection.in().readUTF();
 
@@ -305,8 +294,7 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         try {
-            pool.dead(corpse,
-                    new Exception("ibis declared dead by " + identifier));
+            pool.dead(corpse, new Exception("ibis declared dead by " + identifier));
         } catch (Exception e) {
             connection.closeWithError(e.getMessage());
             throw e;
@@ -342,8 +330,7 @@ final class ServerConnectionHandler implements Runnable {
 
         String signal = connection.in().readUTF();
 
-        IbisIdentifier[] receivers = new IbisIdentifier[connection.in()
-                .readInt()];
+        IbisIdentifier[] receivers = new IbisIdentifier[connection.in().readInt()];
         for (int i = 0; i < receivers.length; i++) {
             receivers[i] = new IbisIdentifier(connection.in());
         }
@@ -443,6 +430,7 @@ final class ServerConnectionHandler implements Runnable {
         notifyAll();
     }
 
+    @Override
     public void run() {
         Connection connection = null;
         try {
@@ -482,15 +470,13 @@ final class ServerConnectionHandler implements Runnable {
             byte magic = connection.in().readByte();
 
             if (magic != Protocol.MAGIC_BYTE) {
-                throw new IOException(
-                        "Invalid header byte in accepting connection");
+                throw new IOException("Invalid header byte in accepting connection");
             }
 
             opcode = connection.in().readByte();
 
             if (logger.isDebugEnabled() && opcode < Protocol.NR_OF_OPCODES) {
-                logger.debug("got request, opcode = "
-                        + Protocol.OPCODE_NAMES[opcode]);
+                logger.debug("got request, opcode = " + Protocol.OPCODE_NAMES[opcode]);
             }
 
             switch (opcode) {
@@ -543,9 +529,7 @@ final class ServerConnectionHandler implements Runnable {
 
         if (pool != null) {
             if (pool.getStatistics() != null) {
-                pool.getStatistics().add(opcode,
-                        System.currentTimeMillis() - start, connection.read(),
-                        connection.written(), true);
+                pool.getStatistics().add(opcode, System.currentTimeMillis() - start, connection.read(), connection.written(), true);
                 if (logger.isDebugEnabled()) {
                     logger.debug("done handling request");
                 }
@@ -566,8 +550,7 @@ final class ServerConnectionHandler implements Runnable {
         }
         if (logger.isInfoEnabled()) {
             synchronized (this) {
-                logger.debug(
-                        "max simultanious connections was: " + maxNrOfThreads);
+                logger.debug("max simultanious connections was: " + maxNrOfThreads);
             }
         }
     }

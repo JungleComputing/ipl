@@ -15,12 +15,12 @@
  */
 package ibis.ipl.impl.stacking.lrmc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.impl.stacking.lrmc.io.LrmcInputStream;
 import ibis.ipl.impl.stacking.lrmc.util.Message;
 import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class InputStreams {
 
@@ -104,14 +104,12 @@ public class InputStreams {
         busy[is.getSource()] = false;
         if (is.haveData()) {
             if (logger.isDebugEnabled()) {
-                logger.debug("return stream " + is.getSource()
-                        + ", still has data");
+                logger.debug("return stream " + is.getSource() + ", still has data");
             }
             hasData(is);
         } else {
             if (logger.isDebugEnabled()) {
-                logger.debug("return stream " + is.getSource()
-                        + ", no data left");
+                logger.debug("return stream " + is.getSource() + ", no data left");
             }
         }
     }
@@ -169,9 +167,8 @@ public class InputStreams {
         }
 
         if (logger.isDebugEnabled() && !hasData[index]) {
-            logger.debug("GetNextFilledStream returns !hasData stream"
-                    + ", streamsWithData = " + streamsWithData + ", index = "
-                    + index, new Throwable());
+            logger.debug("GetNextFilledStream returns !hasData stream" + ", streamsWithData = " + streamsWithData + ", index = " + index,
+                    new Throwable());
         }
 
         hasData[index] = false;
@@ -182,9 +179,8 @@ public class InputStreams {
         busy[index] = true;
 
         if (logger.isDebugEnabled() && !inputStreams[index].haveData()) {
-            logger.debug("GetNextFilledStream returns empty stream"
-                    + ", streamsWithData = " + streamsWithData + ", index = "
-                    + index, new Throwable());
+            logger.debug("GetNextFilledStream returns empty stream" + ", streamsWithData = " + streamsWithData + ", index = " + index,
+                    new Throwable());
         }
 
         streamsWithData--;

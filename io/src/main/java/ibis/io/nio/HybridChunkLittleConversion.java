@@ -17,9 +17,6 @@
 
 package ibis.io.nio;
 
-import ibis.io.IOProperties;
-import ibis.io.SimpleLittleConversion;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -28,6 +25,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+
+import ibis.io.IOProperties;
+import ibis.io.SimpleLittleConversion;
 
 public final class HybridChunkLittleConversion extends SimpleLittleConversion {
 
@@ -69,6 +69,7 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         doubleBuffer = byteBuffer.asDoubleBuffer();
     }
 
+    @Override
     public void char2byte(char[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < (THRESHOLD / CHAR_SIZE)) {
@@ -91,8 +92,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst, int len) {
 
         if (len < (THRESHOLD / CHAR_SIZE)) {
             super.byte2char(src, index_src, dst, index_dst, len);
@@ -114,8 +115,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void short2byte(short[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < (THRESHOLD / SHORT_SIZE)) {
             super.short2byte(src, off, len, dst, off2);
@@ -137,8 +138,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2short(byte[] src, int index_src, short[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2short(byte[] src, int index_src, short[] dst, int index_dst, int len) {
 
         if (len < (THRESHOLD / SHORT_SIZE)) {
             super.byte2short(src, index_src, dst, index_dst, len);
@@ -160,6 +161,7 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
+    @Override
     public void int2byte(int[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < (THRESHOLD / INT_SIZE)) {
@@ -182,8 +184,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst, int len) {
 
         if (len < (THRESHOLD / INT_SIZE)) {
             super.byte2int(src, index_src, dst, index_dst, len);
@@ -206,6 +208,7 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
 
     }
 
+    @Override
     public void long2byte(long[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < (THRESHOLD / LONG_SIZE)) {
@@ -229,8 +232,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
 
     }
 
-    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len) {
 
         if (len < (THRESHOLD / LONG_SIZE)) {
             super.byte2long(src, index_src, dst, index_dst, len);
@@ -252,8 +255,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void float2byte(float[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < (FP_THRESHOLD / FLOAT_SIZE)) {
             super.float2byte(src, off, len, dst, off2);
@@ -276,8 +279,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
 
     }
 
-    public void byte2float(byte[] src, int index_src, float[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2float(byte[] src, int index_src, float[] dst, int index_dst, int len) {
 
         if (len < (FP_THRESHOLD / FLOAT_SIZE)) {
             super.byte2float(src, index_src, dst, index_dst, len);
@@ -299,8 +302,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < (FP_THRESHOLD / DOUBLE_SIZE)) {
             super.double2byte(src, off, len, dst, off2);
@@ -322,8 +325,8 @@ public final class HybridChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2double(byte[] src, int index_src, double[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2double(byte[] src, int index_src, double[] dst, int index_dst, int len) {
 
         if (len < (FP_THRESHOLD / DOUBLE_SIZE)) {
             super.byte2double(src, index_src, dst, index_dst, len);

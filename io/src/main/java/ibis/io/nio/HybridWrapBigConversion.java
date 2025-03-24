@@ -17,9 +17,6 @@
 
 package ibis.io.nio;
 
-import ibis.io.IOProperties;
-import ibis.io.SimpleBigConversion;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -29,13 +26,16 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
+import ibis.io.IOProperties;
+import ibis.io.SimpleBigConversion;
+
 public final class HybridWrapBigConversion extends SimpleBigConversion {
 
     public static final int BUFFER_SIZE = IOProperties.CONVERSION_BUFFER_SIZE;
 
-    public static final int THRESHOLD = 512; //bytes
+    public static final int THRESHOLD = 512; // bytes
 
-    public static final int FP_THRESHOLD = 64; //bytes
+    public static final int FP_THRESHOLD = 64; // bytes
 
     private final ByteOrder order;
 
@@ -80,6 +80,7 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         bufBuffer.position(position);
     }
 
+    @Override
     public void char2byte(char[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < THRESHOLD / CHAR_SIZE) {
@@ -97,8 +98,8 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst, int len) {
 
         if (len < THRESHOLD / CHAR_SIZE) {
             super.byte2char(src, index_src, dst, index_dst, len);
@@ -115,14 +116,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void short2byte(short[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < THRESHOLD / SHORT_SIZE) {
             super.short2byte(src, off, len, dst, off2);
         } else if (len > (BUFFER_SIZE / SHORT_SIZE)) {
-            ShortBuffer buffer = ByteBuffer.wrap(dst, off2, len * SHORT_SIZE).order(
-                    order).asShortBuffer();
+            ShortBuffer buffer = ByteBuffer.wrap(dst, off2, len * SHORT_SIZE).order(order).asShortBuffer();
             buffer.put(src, off, len);
         } else {
             shortBuffer.clear();
@@ -133,14 +133,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void byte2short(byte[] src, int index_src, short[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2short(byte[] src, int index_src, short[] dst, int index_dst, int len) {
 
         if (len < THRESHOLD / SHORT_SIZE) {
             super.byte2short(src, index_src, dst, index_dst, len);
         } else if (len > (BUFFER_SIZE / SHORT_SIZE)) {
-            ShortBuffer buffer = ByteBuffer.wrap(src, index_src, len * SHORT_SIZE)
-                    .order(order).asShortBuffer();
+            ShortBuffer buffer = ByteBuffer.wrap(src, index_src, len * SHORT_SIZE).order(order).asShortBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -152,13 +151,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
 
     }
 
+    @Override
     public void int2byte(int[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < THRESHOLD / INT_SIZE) {
             super.int2byte(src, off, len, dst, off2);
         } else if (len > (BUFFER_SIZE / INT_SIZE)) {
-            IntBuffer buffer = ByteBuffer.wrap(dst, off2, len * INT_SIZE).order(order)
-                    .asIntBuffer();
+            IntBuffer buffer = ByteBuffer.wrap(dst, off2, len * INT_SIZE).order(order).asIntBuffer();
             buffer.put(src, off, len);
         } else {
             intBuffer.clear();
@@ -169,14 +168,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst, int len) {
 
         if (len < THRESHOLD / INT_SIZE) {
             super.byte2int(src, index_src, dst, index_dst, len);
         } else if (len > (BUFFER_SIZE / INT_SIZE)) {
-            IntBuffer buffer = ByteBuffer.wrap(src, index_src, len * INT_SIZE).order(
-                    order).asIntBuffer();
+            IntBuffer buffer = ByteBuffer.wrap(src, index_src, len * INT_SIZE).order(order).asIntBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -187,13 +185,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
+    @Override
     public void long2byte(long[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < THRESHOLD / LONG_SIZE) {
             super.long2byte(src, off, len, dst, off2);
         } else if (len > (BUFFER_SIZE / LONG_SIZE)) {
-            LongBuffer buffer = ByteBuffer.wrap(dst, off2, len * LONG_SIZE)
-                    .order(order).asLongBuffer();
+            LongBuffer buffer = ByteBuffer.wrap(dst, off2, len * LONG_SIZE).order(order).asLongBuffer();
             buffer.put(src, off, len);
         } else {
             longBuffer.clear();
@@ -204,14 +202,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len) {
 
         if (len < THRESHOLD / LONG_SIZE) {
             super.byte2long(src, index_src, dst, index_dst, len);
         } else if (len > (BUFFER_SIZE / LONG_SIZE)) {
-            LongBuffer buffer = ByteBuffer.wrap(src, index_src, len * LONG_SIZE).order(
-                    order).asLongBuffer();
+            LongBuffer buffer = ByteBuffer.wrap(src, index_src, len * LONG_SIZE).order(order).asLongBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -222,8 +219,8 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void float2byte(float[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < FP_THRESHOLD / FLOAT_SIZE) {
             super.float2byte(src, off, len, dst, off2);
@@ -240,8 +237,8 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void byte2float(byte[] src, int index_src, float[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2float(byte[] src, int index_src, float[] dst, int index_dst, int len) {
 
         if (len < FP_THRESHOLD / FLOAT_SIZE) {
             super.byte2float(src, index_src, dst, index_dst, len);
@@ -258,14 +255,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
 
         if (len < FP_THRESHOLD / DOUBLE_SIZE) {
             super.double2byte(src, off, len, dst, off2);
         } else if (len > (BUFFER_SIZE / DOUBLE_SIZE)) {
-            DoubleBuffer buffer = ByteBuffer.wrap(dst, off2, len * DOUBLE_SIZE).order(
-                    order).asDoubleBuffer();
+            DoubleBuffer buffer = ByteBuffer.wrap(dst, off2, len * DOUBLE_SIZE).order(order).asDoubleBuffer();
             buffer.put(src, off, len);
         } else {
             doubleBuffer.clear();
@@ -276,14 +272,13 @@ public final class HybridWrapBigConversion extends SimpleBigConversion {
         }
     }
 
-    public void byte2double(byte[] src, int index_src, double[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2double(byte[] src, int index_src, double[] dst, int index_dst, int len) {
 
         if (len < FP_THRESHOLD / DOUBLE_SIZE) {
             super.byte2double(src, index_src, dst, index_dst, len);
         } else if (len > (BUFFER_SIZE / DOUBLE_SIZE)) {
-            DoubleBuffer buffer = ByteBuffer.wrap(src, index_src, len * DOUBLE_SIZE)
-                    .order(order).asDoubleBuffer();
+            DoubleBuffer buffer = ByteBuffer.wrap(src, index_src, len * DOUBLE_SIZE).order(order).asDoubleBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();

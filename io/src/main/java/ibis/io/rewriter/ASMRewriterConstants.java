@@ -20,11 +20,12 @@ package ibis.io.rewriter;
 import org.objectweb.asm.Type;
 
 /**
- * The RewriterConstants contains constants for various TYPE, METHOD and VARIABLE 
- * as well as other constants used by the CodeGenerator to generate the code.
+ * The RewriterConstants contains constants for various TYPE, METHOD and
+ * VARIABLE as well as other constants used by the CodeGenerator to generate the
+ * code.
  */
 interface ASMRewriterConstants {
-    
+
     static final char CASE_BOOLEAN = 'B';
 
     static final char CASE_CHAR = 'C';
@@ -40,7 +41,7 @@ interface ASMRewriterConstants {
     static final char CASE_OBJECT = 'Z';
 
     static final char CASE_SHORT = 'S';
-    
+
     static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM = "ibis/io/IbisSerializationInputStream";
 
     static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM = "ibis/io/IbisSerializationOutputStream";
@@ -258,30 +259,30 @@ interface ASMRewriterConstants {
     static final String JAVA_LANG_STRING = "java/lang/String";
 
     static final String JAVA_LANG_STRINGBUFFER = "java/lang/StringBuffer";
-    
+
     static final String JAVA_LANG_THROWABLE = "java/lang/Throwable";
 
     static final String SIGNATURE_LJAVA_IO_OBJECTSTREAMFIELD = "[Ljava/io/ObjectStreamField;";
-    
+
     static final Type TYPE_JAVA_IO_OBJECTINPUTSTREAM = Type.getObjectType(JAVA_IO_OBJECTINPUTSTREAM);
-    
+
     static final Type TYPE_JAVA_IO_OBJECTOUTPUTSTREAM = Type.getObjectType(JAVA_IO_OBJECTOUTPUTSTREAM);
-    
+
     static final Type TYPE_JAVA_IO_OBJECTINPUT = Type.getObjectType(JAVA_IO_OBJECTINPUT);
-    
+
     static final Type TYPE_JAVA_IO_OBJECTOUTPUT = Type.getObjectType(JAVA_IO_OBJECTOUTPUT);
-    
+
     static final Type TYPE_IBIS_IO_INPUT = Type.getObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM);
-    
+
     static final Type TYPE_IBIS_IO_OUTPUT = Type.getObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM);
-    
+
     static final Type TYPE_OBJECT = Type.getType(Object.class);
-    
+
     static final Type TYPE_CLASS = Type.getType(Class.class);
-    
+
     static final Type TYPE_STRING = Type.getType(String.class);
-    
+
     static final Type TYPE_STRINGBUFFER = Type.getType(StringBuffer.class);
-    
+
     static final Type TYPE_THROWABLE = Type.getType(Throwable.class);
 }

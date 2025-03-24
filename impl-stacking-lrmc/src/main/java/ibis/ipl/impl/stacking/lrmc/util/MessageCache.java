@@ -34,8 +34,8 @@ public class MessageCache {
         this.MESSAGE_SIZE = messageSize;
 
         /*
-         * // fill the cache for (int i=0; i<MAX_SIZE; i++) { Message m =
-         * get(); put(m); }
+         * // fill the cache for (int i=0; i<MAX_SIZE; i++) { Message m = get(); put(m);
+         * }
          */
     }
 
@@ -53,8 +53,7 @@ public class MessageCache {
     public synchronized void put(Message m) {
         m.refcount--;
         if (m.refcount == 0) {
-            if (size < MAX_SIZE && m.buffer != null
-                    && m.buffer.length == MESSAGE_SIZE) {
+            if (size < MAX_SIZE && m.buffer != null && m.buffer.length == MESSAGE_SIZE) {
 
                 m.next = cache;
                 cache = m;

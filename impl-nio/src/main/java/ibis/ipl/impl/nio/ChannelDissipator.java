@@ -17,8 +17,6 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.io.DataInputStream;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
@@ -26,6 +24,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.ReadableByteChannel;
+
+import ibis.io.DataInputStream;
 
 /**
  * Reads data from a channel.
@@ -60,22 +60,27 @@ public final class ChannelDissipator extends DataInputStream {
         this.channel = channel;
     }
 
+    @Override
     public int bufferSize() {
         return BUFFER_SIZE;
     }
-    
+
+    @Override
     public int available() throws IOException {
         return buffer.remaining();
     }
 
+    @Override
     public void close() throws IOException {
         channel.close();
     }
 
+    @Override
     public long bytesRead() {
         return count;
     }
 
+    @Override
     public void resetBytesRead() {
         count = 0;
     }
@@ -94,10 +99,12 @@ public final class ChannelDissipator extends DataInputStream {
         buffer.flip();
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         return (readByte() == ((byte) 1));
     }
 
+    @Override
     public byte readByte() throws IOException {
         try {
             return buffer.get();
@@ -107,6 +114,7 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
+    @Override
     public int read() throws IOException {
         try {
             return readByte() & 0377;
@@ -115,6 +123,7 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
+    @Override
     public char readChar() throws IOException {
         try {
             return buffer.getChar();
@@ -124,6 +133,7 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
+    @Override
     public short readShort() throws IOException {
         try {
             return buffer.getShort();
@@ -133,6 +143,7 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
+    @Override
     public int readInt() throws IOException {
         try {
             return buffer.getInt();
@@ -142,6 +153,7 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
+    @Override
     public long readLong() throws IOException {
         try {
             return buffer.getLong();
@@ -151,6 +163,7 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
+    @Override
     public float readFloat() throws IOException {
         try {
             return buffer.getFloat();
@@ -160,6 +173,7 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
+    @Override
     public double readDouble() throws IOException {
         try {
             return buffer.getDouble();
@@ -169,66 +183,66 @@ public final class ChannelDissipator extends DataInputStream {
         }
     }
 
-    public void readArray(boolean[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(boolean[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readBoolean();
         }
     }
 
-    public void readArray(byte[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(byte[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readByte();
         }
     }
 
-    public void readArray(char[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(char[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readChar();
         }
     }
 
-    public void readArray(short[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(short[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readShort();
         }
     }
 
-    public void readArray(int[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(int[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readInt();
         }
     }
 
-    public void readArray(long[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(long[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readLong();
         }
     }
 
-    public void readArray(float[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(float[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readFloat();
         }
     }
 
-    public void readArray(double[] destination, int offset, int length)
-            throws IOException {
+    @Override
+    public void readArray(double[] destination, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             destination[i] = readDouble();
         }
     }
 
-    public void readByteBuffer(ByteBuffer value) throws IOException,
-	    ReadOnlyBufferException {
-	for (int i = value.position(); i < value.limit(); i++) {
-	    value.put(readByte());
-	}
+    @Override
+    public void readByteBuffer(ByteBuffer value) throws IOException, ReadOnlyBufferException {
+        for (int i = value.position(); i < value.limit(); i++) {
+            value.put(readByte());
+        }
     }
 }

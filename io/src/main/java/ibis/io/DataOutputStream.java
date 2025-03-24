@@ -30,14 +30,13 @@ import java.io.OutputStream;
  * extra demands are required when regarding a <code>DataOutputStream</code> as
  * a <code>java.io.OutputStream</code>.
  */
-public abstract class DataOutputStream extends OutputStream
-        implements DataOutput {
+public abstract class DataOutputStream extends OutputStream implements DataOutput {
 
     /**
      * Returns the number of bytes that was written to the stream, in the stream
      * dependent format. This is the number of bytes that will be sent over the
      * network.
-     * 
+     *
      * @return the number of bytes
      */
     public abstract long bytesWritten();
@@ -49,10 +48,9 @@ public abstract class DataOutputStream extends OutputStream
 
     /**
      * Checks whether all data has been written after a flush.
-     * 
+     *
      * @return true if all data has been written after a flush.
-     * @throws IOException
-     *             on I/O error
+     * @throws IOException on I/O error
      */
     public boolean finished() throws IOException {
         // Default implementation returns true.
@@ -67,42 +65,49 @@ public abstract class DataOutputStream extends OutputStream
 
     /**
      * Blocks until the data is written.
-     * 
-     * @exception IOException
-     *                on IO error.
+     *
+     * @exception IOException on IO error.
      */
     public void finish() throws IOException {
         // Default implementation does nothing.
     }
 
+    @Override
     public void writeArray(boolean[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
 
+    @Override
     public void writeArray(byte[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
 
+    @Override
     public void writeArray(char[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
 
+    @Override
     public void writeArray(short[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
 
+    @Override
     public void writeArray(int[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
 
+    @Override
     public void writeArray(long[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
 
+    @Override
     public void writeArray(float[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
 
+    @Override
     public void writeArray(double[] source) throws IOException {
         writeArray(source, 0, source.length);
     }

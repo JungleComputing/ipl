@@ -17,14 +17,6 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.ConnectionClosedException;
-import ibis.ipl.MessageUpcall;
-import ibis.ipl.PortType;
-import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.impl.Ibis;
-import ibis.ipl.impl.SendPortIdentifier;
-
 import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
@@ -36,34 +28,38 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.ReceiveTimedOutException;
+import ibis.ipl.impl.Ibis;
+import ibis.ipl.impl.SendPortIdentifier;
+
 final class BlockingChannelNioReceivePort extends NioReceivePort {
     static final int INITIAL_DISSIPATOR_SIZE = 8;
 
-    private static Logger logger
-            = LoggerFactory.getLogger(BlockingChannelNioReceivePort.class);
+    private static Logger logger = LoggerFactory.getLogger(BlockingChannelNioReceivePort.class);
 
     private boolean closing = false;
 
-    private BlockingChannelNioDissipator[] connections
-        = new BlockingChannelNioDissipator[INITIAL_DISSIPATOR_SIZE];
+    private BlockingChannelNioDissipator[] connections = new BlockingChannelNioDissipator[INITIAL_DISSIPATOR_SIZE];
 
     private int nrOfConnections = 0;
 
-    BlockingChannelNioReceivePort(Ibis ibis, PortType type, String name,
-            MessageUpcall upcall, ReceivePortConnectUpcall connUpcall,
+    BlockingChannelNioReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall, ReceivePortConnectUpcall connUpcall,
             Properties properties) throws IOException {
         super(ibis, type, name, upcall, connUpcall, properties);
     }
 
-    synchronized void newConnection(SendPortIdentifier spi, Channel channel)
-            throws IOException {
+    @Override
+    synchronized void newConnection(SendPortIdentifier spi, Channel channel) throws IOException {
 
         if (!(channel instanceof ReadableByteChannel)) {
             throw new IOException("wrong channel type  on creating connection");
         }
 
-        BlockingChannelNioDissipator dissipator
-            = new BlockingChannelNioDissipator((ReadableByteChannel) channel);
+        BlockingChannelNioDissipator dissipator = new BlockingChannelNioDissipator((ReadableByteChannel) channel);
 
         addConnection(spi, dissipator);
 
@@ -79,12 +75,11 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
         nrOfConnections++;
 
         if (nrOfConnections > 1) {
-            logger.warn("" + nrOfConnections + " connections to a "
-                    + "blocking receiveport, added connection from " + spi
-                    + " to " + ident);
+            logger.warn("" + nrOfConnections + " connections to a " + "blocking receiveport, added connection from " + spi + " to " + ident);
         }
     }
 
+    @Override
     synchronized void errorOnRead(NioDissipator dissipator, Exception cause) {
         dissipator.info.close(cause);
         for (int i = 0; i < nrOfConnections; i++) {
@@ -98,6 +93,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
         }
     }
 
+    @Override
     NioDissipator getReadyDissipator(long deadline) throws IOException {
 
         Selector selector;
@@ -121,9 +117,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
                     i--;
                 }
             }
-            if (nrOfConnections == 1
-                    && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
-                    && deadline == 0) {
+            if (nrOfConnections == 1 && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE) && deadline == 0) {
                 dissipator = connections[0];
             }
         }
@@ -159,27 +153,27 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
                         throw new ConnectionClosedException();
                     }
                     if (deadline == -1) {
-                    	deadlinePassed = true;
-                    	continue;
+                        deadlinePassed = true;
+                        continue;
                     } else if (deadline == 0) {
-                    	try {
-                    		wait();
-                    	} catch (InterruptedException e) {
-                    		// IGNORE
-                    	}
-                    	continue;
+                        try {
+                            wait();
+                        } catch (InterruptedException e) {
+                            // IGNORE
+                        }
+                        continue;
                     } else {
-                    	time = System.currentTimeMillis();
-                    	if (time >= deadline) {
-                    		deadlinePassed = true;
-                    	} else {
-                    		try {
-                    			wait();
-                    		} catch (InterruptedException e) {
-                    			// IGNORE
-                    		}
-                    		continue;
-                    	}
+                        time = System.currentTimeMillis();
+                        if (time >= deadline) {
+                            deadlinePassed = true;
+                        } else {
+                            try {
+                                wait();
+                            } catch (InterruptedException e) {
+                                // IGNORE
+                            }
+                            continue;
+                        }
                     }
                 }
 
@@ -188,8 +182,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
                     SelectableChannel sh;
                     sh = (SelectableChannel) connections[i].channel;
                     sh.configureBlocking(false);
-                    sh.register(selector, SelectionKey.OP_READ,
-                            connections[i]);
+                    sh.register(selector, SelectionKey.OP_READ, connections[i]);
                 }
             }
 
@@ -220,14 +213,13 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
             synchronized (this) {
                 for (int i = 0; i < nrOfConnections; i++) {
                     SelectableChannel sh;
-                    sh = (SelectableChannel)connections[i].channel;
+                    sh = (SelectableChannel) connections[i].channel;
                     sh.configureBlocking(true);
                 }
             }
 
-            for (int i = 0; i < keys.length; i++) {
-                dissipator = (BlockingChannelNioDissipator) keys[i]
-                        .attachment();
+            for (SelectionKey key : keys) {
+                dissipator = (BlockingChannelNioDissipator) key.attachment();
                 SelectableChannel sh;
                 sh = (SelectableChannel) dissipator.channel;
                 sh.configureBlocking(true);
@@ -254,10 +246,10 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
                 }
             }
         }
-        throw new ReceiveTimedOutException("timeout while selecting"
-                + " dissipator");
+        throw new ReceiveTimedOutException("timeout while selecting" + " dissipator");
     }
 
+    @Override
     synchronized void closing() {
         closing = true;
     }

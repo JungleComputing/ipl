@@ -23,7 +23,7 @@ public final class DList implements Serializable {
 
     private static final long serialVersionUID = -1747815590000713983L;
 
-    public static final int PAYLOAD = 4*4;
+    public static final int PAYLOAD = 4 * 4;
 
     DList next, prev;
 
@@ -32,20 +32,15 @@ public final class DList implements Serializable {
     int i2;
     int i3;
 
-    private DList(int size, DList prev) { 
-	if (size > 0) {
-	    this.prev = prev;
-	    this.next = new DList(size-1);
-	}
-    } 
+    private DList(int size, DList prev) {
+        if (size > 0) {
+            this.prev = prev;
+            this.next = new DList(size - 1);
+        }
+    }
 
     public DList(int size) {
-	this.prev = null;
-	this.next = new DList(size-1, this);
+        this.prev = null;
+        this.next = new DList(size - 1, this);
     }
 }
-
-
-
-
-

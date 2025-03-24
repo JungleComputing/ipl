@@ -15,20 +15,19 @@
  */
 package ibis.ipl.registry.central.client;
 
-import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.registry.central.Event;
-import ibis.util.ThreadPool;
-
 import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.registry.central.Event;
+import ibis.util.ThreadPool;
+
 final class Upcaller implements Runnable {
 
-    private static final Logger logger = LoggerFactory
-	    .getLogger(Upcaller.class);
+    private static final Logger logger = LoggerFactory.getLogger(Upcaller.class);
 
     private RegistryEventHandler handler;
 
@@ -41,117 +40,117 @@ final class Upcaller implements Runnable {
     private boolean busyUpcaller = false;
 
     Upcaller(RegistryEventHandler handler) {
-	this.handler = handler;
+        this.handler = handler;
 
-	pendingEvents = new LinkedList<Event>();
+        pendingEvents = new LinkedList<>();
 
-	ThreadPool.createNew(this, "upcaller");
+        ThreadPool.createNew(this, "upcaller");
     }
 
     synchronized void enableEvents() {
-	registryUpcallerEnabled = true;
-	notifyAll();
+        registryUpcallerEnabled = true;
+        notifyAll();
     }
 
     synchronized void disableEvents() {
-	registryUpcallerEnabled = false;
-	while (busyUpcaller) {
-	    try {
-		wait();
-	    } catch (Exception e) {
-		// nothing
-	    }
-	}
+        registryUpcallerEnabled = false;
+        while (busyUpcaller) {
+            try {
+                wait();
+            } catch (Exception e) {
+                // nothing
+            }
+        }
     }
 
     private synchronized void setBusyUpcaller() {
-	busyUpcaller = true;
+        busyUpcaller = true;
     }
 
     private synchronized void clearBusyUpcaller() {
-	busyUpcaller = false;
-	notifyAll();
+        busyUpcaller = false;
+        notifyAll();
     }
 
     private synchronized Event waitForEvent() {
-	while (!(registryUpcallerEnabled && !pendingEvents.isEmpty())) {
-	    try {
-		wait();
-	    } catch (Exception e) {
-		// nothing
-	    }
-	}
-	return pendingEvents.remove(0);
+        while (!(registryUpcallerEnabled && !pendingEvents.isEmpty())) {
+            try {
+                wait();
+            } catch (Exception e) {
+                // nothing
+            }
+        }
+        return pendingEvents.remove(0);
     }
 
     synchronized void newEvent(Event event) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("newEvent: " + event);
-	}
-	pendingEvents.add(event);
-	notifyAll();
+        if (logger.isDebugEnabled()) {
+            logger.debug("newEvent: " + event);
+        }
+        pendingEvents.add(event);
+        notifyAll();
     }
 
     synchronized void stop() {
-	pendingEvents.add(null);
-	notifyAll();
+        pendingEvents.add(null);
+        notifyAll();
     }
 
+    @Override
     public void run() {
-	while (true) {
+        while (true) {
 
-	    Event event = waitForEvent();
+            Event event = waitForEvent();
 
-	    if (event == null) {
-		// registry stopped
-		return;
-	    }
-	    if (logger.isDebugEnabled()) {
-		logger.debug("doing upcall for event: " + event);
-	    }
+            if (event == null) {
+                // registry stopped
+                return;
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("doing upcall for event: " + event);
+            }
 
-	    setBusyUpcaller();
+            setBusyUpcaller();
 
-	    try {
-		switch (event.getType()) {
-		case Event.JOIN:
-		    handler.joined(event.getIbis());
-		    break;
-		case Event.LEAVE:
-		    handler.left(event.getIbis());
-		    break;
-		case Event.DIED:
-		    handler.died(event.getIbis());
-		    break;
-		case Event.SIGNAL:
-		    handler.gotSignal(event.getDescription(), event.getIbis());
-		    break;
-		case Event.ELECT:
-		    handler.electionResult(event.getDescription(),
-			    event.getIbis());
-		    break;
-		case Event.UN_ELECT:
-		    handler.electionResult(event.getDescription(), null);
-		    break;
-		case Event.POOL_CLOSED:
-		    handler.poolClosed();
-		    break;
-		case Event.POOL_TERMINATED:
-		    handler.poolTerminated(event.getIbis());
-		    break;
-		default:
-		    logger.error("unknown event type: " + event.getType());
-		}
-	    } catch (Throwable t) {
-		logger.error("error on handling event", t);
-	    }
-	    
-	    if (logger.isDebugEnabled()) {
-		logger.debug("upcall for event " + event + " done");
-	    }
+            try {
+                switch (event.getType()) {
+                case Event.JOIN:
+                    handler.joined(event.getIbis());
+                    break;
+                case Event.LEAVE:
+                    handler.left(event.getIbis());
+                    break;
+                case Event.DIED:
+                    handler.died(event.getIbis());
+                    break;
+                case Event.SIGNAL:
+                    handler.gotSignal(event.getDescription(), event.getIbis());
+                    break;
+                case Event.ELECT:
+                    handler.electionResult(event.getDescription(), event.getIbis());
+                    break;
+                case Event.UN_ELECT:
+                    handler.electionResult(event.getDescription(), null);
+                    break;
+                case Event.POOL_CLOSED:
+                    handler.poolClosed();
+                    break;
+                case Event.POOL_TERMINATED:
+                    handler.poolTerminated(event.getIbis());
+                    break;
+                default:
+                    logger.error("unknown event type: " + event.getType());
+                }
+            } catch (Throwable t) {
+                logger.error("error on handling event", t);
+            }
 
-	    clearBusyUpcaller();
-	}
+            if (logger.isDebugEnabled()) {
+                logger.debug("upcall for event " + event + " done");
+            }
+
+            clearBusyUpcaller();
+        }
     }
 
 }

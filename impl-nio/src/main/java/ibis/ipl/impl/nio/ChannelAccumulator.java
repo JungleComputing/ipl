@@ -17,13 +17,13 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.io.DataOutputStream;
-
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
+
+import ibis.io.DataOutputStream;
 
 /**
  * Writes data to a channel (using big endian byte order)
@@ -57,10 +57,12 @@ public final class ChannelAccumulator extends DataOutputStream {
         this.channel = channel;
     }
 
+    @Override
     public int bufferSize() {
         return BUFFER_SIZE;
     }
-    
+
+    @Override
     public void flush() throws IOException {
         buffer.flip();
         while (buffer.hasRemaining()) {
@@ -69,6 +71,7 @@ public final class ChannelAccumulator extends DataOutputStream {
         buffer.clear();
     }
 
+    @Override
     public void close() throws IOException {
         flush();
     }
@@ -78,22 +81,26 @@ public final class ChannelAccumulator extends DataOutputStream {
         channel.close();
     }
 
+    @Override
     public long bytesWritten() {
         return count;
     }
 
+    @Override
     public void resetBytesWritten() {
         count = 0;
     }
 
+    @Override
     public void writeBoolean(boolean value) throws IOException {
-        if (value == true) {
+        if (value) {
             writeByte((byte) 1);
         } else {
             writeByte((byte) 0);
         }
     }
 
+    @Override
     public void writeByte(byte value) throws IOException {
         try {
             buffer.put(value);
@@ -103,10 +110,12 @@ public final class ChannelAccumulator extends DataOutputStream {
         }
     }
 
+    @Override
     public void write(int b) throws IOException {
         writeByte((byte) b);
     }
 
+    @Override
     public void writeChar(char value) throws IOException {
         try {
             buffer.putChar(value);
@@ -116,6 +125,7 @@ public final class ChannelAccumulator extends DataOutputStream {
         }
     }
 
+    @Override
     public void writeShort(short value) throws IOException {
         try {
             buffer.putShort(value);
@@ -125,6 +135,7 @@ public final class ChannelAccumulator extends DataOutputStream {
         }
     }
 
+    @Override
     public void writeInt(int value) throws IOException {
         try {
             buffer.putInt(value);
@@ -134,6 +145,7 @@ public final class ChannelAccumulator extends DataOutputStream {
         }
     }
 
+    @Override
     public void writeLong(long value) throws IOException {
         try {
             buffer.putLong(value);
@@ -143,6 +155,7 @@ public final class ChannelAccumulator extends DataOutputStream {
         }
     }
 
+    @Override
     public void writeFloat(float value) throws IOException {
         try {
             buffer.putFloat(value);
@@ -152,6 +165,7 @@ public final class ChannelAccumulator extends DataOutputStream {
         }
     }
 
+    @Override
     public void writeDouble(double value) throws IOException {
         try {
             buffer.putDouble(value);
@@ -161,65 +175,66 @@ public final class ChannelAccumulator extends DataOutputStream {
         }
     }
 
-    public void writeArray(boolean[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(boolean[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeBoolean(source[i]);
         }
     }
 
-    public void writeArray(byte[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(byte[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeByte(source[i]);
         }
     }
 
-    public void writeArray(char[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(char[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeChar(source[i]);
         }
     }
 
-    public void writeArray(short[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(short[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeShort(source[i]);
         }
     }
 
-    public void writeArray(int[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(int[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeInt(source[i]);
         }
     }
 
-    public void writeArray(long[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(long[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeLong(source[i]);
         }
     }
 
-    public void writeArray(float[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(float[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeFloat(source[i]);
         }
     }
 
-    public void writeArray(double[] source, int offset, int length)
-            throws IOException {
+    @Override
+    public void writeArray(double[] source, int offset, int length) throws IOException {
         for (int i = offset; i < (offset + length); i++) {
             writeDouble(source[i]);
         }
     }
 
+    @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
         for (int i = value.position(); i < value.limit(); i++) {
             writeByte(value.get());
-        }	
+        }
     }
 }

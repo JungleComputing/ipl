@@ -41,8 +41,7 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
  */
 public final class Connection {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(Connection.class);
+    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
 
     private final VirtualSocket socket;
 
@@ -55,46 +54,35 @@ public final class Connection {
 
     static final byte REPLY_OK = 1;
 
-    private static VirtualSocketAddress addressFromIdentifier(
-            IbisIdentifier ibis, int virtualPort) throws IOException {
-        VirtualSocketAddress registryAddress = VirtualSocketAddress
-                .fromBytes(ibis.getRegistryData(), 0);
+    private static VirtualSocketAddress addressFromIdentifier(IbisIdentifier ibis, int virtualPort) throws IOException {
+        VirtualSocketAddress registryAddress = VirtualSocketAddress.fromBytes(ibis.getRegistryData(), 0);
 
         if (registryAddress.port() == virtualPort) {
             return registryAddress;
         }
 
         // wrong port, create new address with correct port
-        return new VirtualSocketAddress(registryAddress.machine(), virtualPort,
-                registryAddress.hub(), registryAddress.cluster());
+        return new VirtualSocketAddress(registryAddress.machine(), virtualPort, registryAddress.hub(), registryAddress.cluster());
     }
 
-    public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
-            VirtualSocketFactory factory, int virtualPort) throws IOException {
-        this(addressFromIdentifier(ibis, virtualPort), timeout, fillTimeout,
-                factory);
+    public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout, VirtualSocketFactory factory, int virtualPort) throws IOException {
+        this(addressFromIdentifier(ibis, virtualPort), timeout, fillTimeout, factory);
     }
 
-    public Connection(VirtualSocketAddress address, int timeout,
-            boolean fillTimeout, VirtualSocketFactory factory)
-            throws IOException {
+    public Connection(VirtualSocketAddress address, int timeout, boolean fillTimeout, VirtualSocketFactory factory) throws IOException {
         if (logger.isDebugEnabled()) {
-            logger.debug("connecting to " + address + ", timeout = " + timeout
-                    + " , filltimeout = " + fillTimeout);
+            logger.debug("connecting to " + address + ", timeout = " + timeout + " , filltimeout = " + fillTimeout);
         }
 
-        final HashMap<String, Object> lightConnection = new HashMap<String, Object>();
+        final HashMap<String, Object> lightConnection = new HashMap<>();
         // lightConnection.put("connect.module.allow",
         // "ConnectModule(HubRouted)");
 
-        socket = factory.createClientSocket(address, timeout, fillTimeout,
-                lightConnection);
+        socket = factory.createClientSocket(address, timeout, fillTimeout, lightConnection);
         socket.setTcpNoDelay(true);
 
-        out = new DataOutputStream(new BufferedOutputStream(
-                socket.getOutputStream(), IOProperties.BUFFER_SIZE));
-        counter = new CountInputStream(new BufferedInputStream(
-                socket.getInputStream(), IOProperties.BUFFER_SIZE));
+        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), IOProperties.BUFFER_SIZE));
+        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream(), IOProperties.BUFFER_SIZE));
         in = new DataInputStream(counter);
 
         if (logger.isDebugEnabled()) {
@@ -105,11 +93,9 @@ public final class Connection {
 
     /**
      * Accept incoming connection on given serverSocket.
-     * 
-     * @param serverSocket
-     *            the server socket
-     * @throws IOException
-     *             when an IO error occurs
+     *
+     * @param serverSocket the server socket
+     * @throws IOException when an IO error occurs
      */
     public Connection(VirtualServerSocket serverSocket) throws IOException {
         if (logger.isDebugEnabled()) {
@@ -118,14 +104,11 @@ public final class Connection {
         socket = serverSocket.accept();
         socket.setTcpNoDelay(true);
 
-        counter = new CountInputStream(new BufferedInputStream(
-                socket.getInputStream(), IOProperties.BUFFER_SIZE));
+        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream(), IOProperties.BUFFER_SIZE));
         in = new DataInputStream(counter);
-        out = new DataOutputStream(new BufferedOutputStream(
-                socket.getOutputStream(), IOProperties.BUFFER_SIZE));
+        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), IOProperties.BUFFER_SIZE));
         if (logger.isDebugEnabled()) {
-            logger.debug("new connection from "
-                    + socket.getRemoteSocketAddress() + " accepted");
+            logger.debug("new connection from " + socket.getRemoteSocketAddress() + " accepted");
         }
     }
 

@@ -30,21 +30,19 @@ class RegistryServiceConnection implements RegistryServiceInterface {
     private final VirtualSocketAddress address;
     private final VirtualSocketFactory socketFactory;
 
-    RegistryServiceConnection(VirtualSocketAddress address,
-            VirtualSocketFactory socketFactory) {
+    RegistryServiceConnection(VirtualSocketAddress address, VirtualSocketFactory socketFactory) {
         this.address = address;
         this.socketFactory = socketFactory;
     }
 
     // 1.5 Does not allow @Override for interface methods
-    //    @Override
+    // @Override
+    @Override
     public String[] getPools() throws IOException {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out().writeByte(
-                    ServerConnectionProtocol.OPCODE_REGISTRY_GET_POOLS);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_REGISTRY_GET_POOLS);
             connection.getAndCheckReply();
             int nrOfHubs = connection.in().readInt();
             if (nrOfHubs < 0) {
@@ -60,16 +58,14 @@ class RegistryServiceConnection implements RegistryServiceInterface {
         }
     }
 
-    //    @Override
-    public ibis.ipl.IbisIdentifier[] getMembers(String poolName)
-            throws IOException {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+    // @Override
+    @Override
+    public ibis.ipl.IbisIdentifier[] getMembers(String poolName) throws IOException {
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
 
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out().writeByte(
-                    ServerConnectionProtocol.OPCODE_REGISTRY_GET_MEMBERS);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_REGISTRY_GET_MEMBERS);
             connection.out().writeUTF(poolName);
             connection.getAndCheckReply();
 
@@ -90,14 +86,13 @@ class RegistryServiceConnection implements RegistryServiceInterface {
         }
     }
 
-    //    @Override
+    // @Override
+    @Override
     public String[] getLocations(String poolName) throws IOException {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out().writeByte(
-                    ServerConnectionProtocol.OPCODE_REGISTRY_GET_LOCATIONS);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_REGISTRY_GET_LOCATIONS);
             connection.out().writeUTF(poolName);
             connection.getAndCheckReply();
             int nrOfLocations = connection.in().readInt();
@@ -114,20 +109,19 @@ class RegistryServiceConnection implements RegistryServiceInterface {
         }
     }
 
-    //    @Override
+    // @Override
+    @Override
     public Map<String, Integer> getPoolSizes() throws IOException {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out().writeByte(
-                    ServerConnectionProtocol.OPCODE_REGISTRY_GET_POOL_SIZES);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_REGISTRY_GET_POOL_SIZES);
             connection.getAndCheckReply();
             int nrOfPoolSizes = connection.in().readInt();
             if (nrOfPoolSizes < 0) {
                 throw new IOException("Negative number of pool sizes");
             }
-            Map<String, Integer> result = new HashMap<String, Integer>();
+            Map<String, Integer> result = new HashMap<>();
             for (int i = 0; i < nrOfPoolSizes; i++) {
                 result.put(connection.in().readUTF(), connection.in().readInt());
             }

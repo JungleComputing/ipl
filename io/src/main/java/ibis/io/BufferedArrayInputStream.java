@@ -27,15 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is a complete implementation of <code>DataInputStream</code>.
- * It is built on top of an <code>InputStream</code>.
- * There is no need to put any buffering inbetween. This implementation
- * does all the buffering needed.
+ * This is a complete implementation of <code>DataInputStream</code>. It is
+ * built on top of an <code>InputStream</code>. There is no need to put any
+ * buffering inbetween. This implementation does all the buffering needed.
  */
 public final class BufferedArrayInputStream extends DataInputStream {
-    
+
     private static final boolean DEBUG = IOProperties.DEBUG;
-    
+
     private static final Logger logger = LoggerFactory.getLogger(BufferedArrayInputStream.class);
 
     /** The buffer size. */
@@ -46,7 +45,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
 
     /** The buffer. */
     private final byte[] buffer;
-    
+
     private int index, buffered_bytes;
 
     /** Number of bytes read so far from the underlying layer. */
@@ -57,8 +56,9 @@ public final class BufferedArrayInputStream extends DataInputStream {
 
     /**
      * Constructor.
-     * @param in        the underlying <code>InStream</code>
-     * @param bufSize   the size of the input buffer in bytes
+     * 
+     * @param in      the underlying <code>InStream</code>
+     * @param bufSize the size of the input buffer in bytes
      */
     public BufferedArrayInputStream(InputStream in, int bufSize) {
         this.in = in;
@@ -69,16 +69,19 @@ public final class BufferedArrayInputStream extends DataInputStream {
 
     /**
      * Constructor.
-     * @param in        the underlying <code>InStream</code>
-     */    
+     * 
+     * @param in the underlying <code>InStream</code>
+     */
     public BufferedArrayInputStream(InputStream in) {
         this(in, IOProperties.BUFFER_SIZE);
     }
-    
+
+    @Override
     public long bytesRead() {
         return bytes - buffered_bytes;
     }
 
+    @Override
     public void resetBytesRead() {
         bytes = buffered_bytes;
     }
@@ -87,11 +90,12 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return (a > b) ? b : a;
     }
 
+    @Override
     public final int read() throws IOException {
         try {
             int b = readByte();
             return (b & 0377);
-        } catch(EOFException e) {
+        } catch (EOFException e) {
             return -1;
         }
     }
@@ -113,8 +117,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
             index = 0;
         }
         while (buffered_bytes < len) {
-            int n = in.read(buffer, index + buffered_bytes, BUF_SIZE
-                    - (index + buffered_bytes));
+            int n = in.read(buffer, index + buffered_bytes, BUF_SIZE - (index + buffered_bytes));
             if (n < 0) {
                 throw new java.io.EOFException("EOF encountered");
             }
@@ -123,15 +126,16 @@ public final class BufferedArrayInputStream extends DataInputStream {
         }
     }
 
+    @Override
     public final int available() throws IOException {
         return (buffered_bytes + in.available());
     }
 
+    @Override
     public void readArray(boolean[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(boolean[" + off + " ... "
-                    + (off + len) + "])");
+            logger.debug("readArray(boolean[" + off + " ... " + (off + len) + "])");
         }
 
         int useable, converted;
@@ -173,10 +177,10 @@ public final class BufferedArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(byte[] a, int off, int len) throws IOException {
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(byte[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(byte[" + off + " ... " + (off + len) + "])");
         }
 
         if (buffered_bytes >= len) {
@@ -208,11 +212,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
     // static int R = 0;
     // static int W = 0;
 
+    @Override
     public void readArray(short[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(char[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(char[" + off + " ... " + (off + len) + "])");
         }
 
         int useable, converted;
@@ -254,11 +258,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(char[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(char[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(char[" + off + " ... " + (off + len) + "])");
         }
 
         int useable, converted;
@@ -300,11 +304,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(int[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(int[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(int[" + off + " ... " + (off + len) + "])");
         }
 
         int useable, converted;
@@ -348,11 +352,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(long[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(long[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(long[" + off + " ... " + (off + len) + "])");
         }
 
         int useable, converted;
@@ -394,11 +398,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(float[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(float[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(float[" + off + " ... " + (off + len) + "])");
         }
 
         int useable, converted;
@@ -440,11 +444,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(double[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(double[" + off + " ... "
-                    + (off + len) + "])");
+            logger.debug("readArray(double[" + off + " ... " + (off + len) + "])");
         }
 
         int useable, converted;
@@ -486,18 +490,21 @@ public final class BufferedArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public byte readByte() throws IOException {
         fillBuffer(1);
         buffered_bytes--;
         return buffer[index++];
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         fillBuffer(1);
         buffered_bytes--;
         return conversion.byte2boolean(buffer[index++]);
     }
 
+    @Override
     public char readChar() throws IOException {
         char v;
         fillBuffer(Constants.SIZEOF_CHAR);
@@ -507,6 +514,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public short readShort() throws IOException {
         short v;
         fillBuffer(Constants.SIZEOF_SHORT);
@@ -516,6 +524,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public int readInt() throws IOException {
         int v;
         fillBuffer(Constants.SIZEOF_INT);
@@ -525,6 +534,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public long readLong() throws IOException {
         long v;
         fillBuffer(Constants.SIZEOF_LONG);
@@ -534,6 +544,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public float readFloat() throws IOException {
         float v;
         fillBuffer(Constants.SIZEOF_FLOAT);
@@ -543,6 +554,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public double readDouble() throws IOException {
         double v;
         fillBuffer(Constants.SIZEOF_DOUBLE);
@@ -552,14 +564,15 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
+    @Override
     public int read(byte[] a, int off, int len) throws IOException {
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("read(byte[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("read(byte[" + off + " ... " + (off + len) + "])");
         }
 
         if (buffered_bytes >= len) {
@@ -579,8 +592,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
                 int n = in.read(a, off + rd, len - rd);
                 if (n < 0) {
                     len = rd;
-                }
-                else {
+                } else {
                     rd += n;
                     bytes += n;
                 }
@@ -592,23 +604,25 @@ public final class BufferedArrayInputStream extends DataInputStream {
         return len;
     }
 
+    @Override
     public void close() throws IOException {
         in.close();
     }
-    
+
+    @Override
     public int bufferSize() {
         return BUF_SIZE;
     }
 
-    public void readByteBuffer(ByteBuffer value) throws IOException,
-	    ReadOnlyBufferException {
+    @Override
+    public void readByteBuffer(ByteBuffer value) throws IOException, ReadOnlyBufferException {
 
-	int len = value.limit() - value.position();
+        int len = value.limit() - value.position();
 
         if (DEBUG && logger.isDebugEnabled()) {
             logger.debug("BufferedArrayInputStream: reading ByteBuffer of size " + len);
         }
-	
+
         if (buffered_bytes >= len) {
             // data is already in the buffer.
             value.put(buffer, index, len);
@@ -617,34 +631,34 @@ public final class BufferedArrayInputStream extends DataInputStream {
         } else {
             if (buffered_bytes != 0) {
                 // first, copy the data we do have to 'a' .
-        	value.put(buffer, index, buffered_bytes);
-        	len -= buffered_bytes;
-        	buffered_bytes = 0;
+                value.put(buffer, index, buffered_bytes);
+                len -= buffered_bytes;
+                buffered_bytes = 0;
             }
             index = 0;
             if (value.hasArray()) {
                 do {
-        	    int cnt = in.read(value.array(), value.position() + value.arrayOffset(), len);
+                    int cnt = in.read(value.array(), value.position() + value.arrayOffset(), len);
                     len -= cnt;
-                    value.position(value.position()+cnt);
+                    value.position(value.position() + cnt);
                     bytes += cnt;
                 } while (len > 0);
-        	value.position(value.limit());
+                value.position(value.limit());
             } else {
-        	do {
-        	    int toread = Math.min(len, BUF_SIZE);
-        	    fillBuffer(toread);
-        	    if (len < buffered_bytes) {
-        		toread = len;
-        	    } else {
-        		toread = buffered_bytes;
-        	    }
-        	    value.put(buffer, index, toread);
-        	    len -= toread;
-        	    index += toread;
-        	    buffered_bytes -= toread;
-        	} while (len > 0);
+                do {
+                    int toread = Math.min(len, BUF_SIZE);
+                    fillBuffer(toread);
+                    if (len < buffered_bytes) {
+                        toread = len;
+                    } else {
+                        toread = buffered_bytes;
+                    }
+                    value.put(buffer, index, toread);
+                    len -= toread;
+                    index += toread;
+                    buffered_bytes -= toread;
+                } while (len > 0);
             }
-        }	
+        }
     }
 }

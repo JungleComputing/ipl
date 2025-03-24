@@ -15,14 +15,14 @@
  */
 package ibis.ipl.support.management;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.server.Server;
-
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
+
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.server.Server;
 
 public class Example {
 
@@ -33,6 +33,7 @@ public class Example {
             this.server = server;
         }
 
+        @Override
         public void run() {
             server.end(-1);
         }
@@ -60,99 +61,74 @@ public class Example {
             System.err.println("warning: could not registry shutdown hook");
         }
 
-        AttributeDescription load = new AttributeDescription(
-                "java.lang:type=OperatingSystem", "SystemLoadAverage");
+        AttributeDescription load = new AttributeDescription("java.lang:type=OperatingSystem", "SystemLoadAverage");
 
-        AttributeDescription cpu = new AttributeDescription(
-                "java.lang:type=OperatingSystem", "ProcessCpuTime");
+        AttributeDescription cpu = new AttributeDescription("java.lang:type=OperatingSystem", "ProcessCpuTime");
 
-        AttributeDescription vivaldi = new AttributeDescription("ibis",
-                "vivaldi");
+        AttributeDescription vivaldi = new AttributeDescription("ibis", "vivaldi");
 
-        AttributeDescription connections = new AttributeDescription("ibis",
-                "connections");
-        
-        AttributeDescription sentBytesPerIbis = new AttributeDescription("ibis",
-                "sentBytesPerIbis");
-        
-        AttributeDescription receivedBytesPerIbis = new AttributeDescription("ibis",
-                "receivedBytesPerIbis");
-        
-        AttributeDescription wonElections = new AttributeDescription("ibis",
-                "wonElections");
-        
-        AttributeDescription senderConnectionTypes = new AttributeDescription("ibis",
-                "senderConnectionTypes");
-        
-        AttributeDescription receiverConnectionTypes = new AttributeDescription("ibis",
-                "receiverConnectionTypes");
-        
-        
+        AttributeDescription connections = new AttributeDescription("ibis", "connections");
+
+        AttributeDescription sentBytesPerIbis = new AttributeDescription("ibis", "sentBytesPerIbis");
+
+        AttributeDescription receivedBytesPerIbis = new AttributeDescription("ibis", "receivedBytesPerIbis");
+
+        AttributeDescription wonElections = new AttributeDescription("ibis", "wonElections");
+
+        AttributeDescription senderConnectionTypes = new AttributeDescription("ibis", "senderConnectionTypes");
+
+        AttributeDescription receiverConnectionTypes = new AttributeDescription("ibis", "receiverConnectionTypes");
+
         while (true) {
 
             // get list of ibises in the pool named "test"
-            IbisIdentifier[] ibises = server.getRegistryService().getMembers(
-                    "test");
+            IbisIdentifier[] ibises = server.getRegistryService().getMembers("test");
 
             // for each ibis, print these attributes
             if (ibises != null) {
                 for (IbisIdentifier ibis : ibises) {
                     try {
-                        System.err
-                                .println(ibis
-                                        + " [load, total cpu time, vivaldi coordinates] = "
-                                        + Arrays.toString(server
-                                                .getManagementService()
-                                                .getAttributes(ibis, load, cpu,
-                                                        vivaldi)));
-                        System.err
-                                .println(ibis
-                                        + " connected to = "
-                                        + Arrays
-                                                .toString((IbisIdentifier[]) server
-                                                        .getManagementService()
-                                                        .getAttributes(ibis,
-                                                                connections)[0]));
-                        
-                        Map<IbisIdentifier, Long> sent = (Map<IbisIdentifier, Long>)
-                                (server.getManagementService().getAttributes(ibis, sentBytesPerIbis)[0]);
-                        
+                        System.err.println(ibis + " [load, total cpu time, vivaldi coordinates] = "
+                                + Arrays.toString(server.getManagementService().getAttributes(ibis, load, cpu, vivaldi)));
+                        System.err.println(ibis + " connected to = "
+                                + Arrays.toString((IbisIdentifier[]) server.getManagementService().getAttributes(ibis, connections)[0]));
+
+                        Map<IbisIdentifier, Long> sent = (Map<IbisIdentifier, Long>) (server.getManagementService().getAttributes(ibis,
+                                sentBytesPerIbis)[0]);
+
                         if (sent != null) {
                             for (Entry<IbisIdentifier, Long> e : sent.entrySet()) {
                                 System.err.println(ibis + " wrote " + e.getValue() + " bytes to " + e.getKey());
                             }
                         }
-                        
-                        Map<IbisIdentifier, Long> received = (Map<IbisIdentifier, Long>)
-                                (server.getManagementService().getAttributes(ibis, receivedBytesPerIbis)[0]);
-                        
+
+                        Map<IbisIdentifier, Long> received = (Map<IbisIdentifier, Long>) (server.getManagementService().getAttributes(ibis,
+                                receivedBytesPerIbis)[0]);
+
                         if (received != null) {
                             for (Entry<IbisIdentifier, Long> e : received.entrySet()) {
                                 System.err.println(ibis + " read " + e.getValue() + " bytes from " + e.getKey());
                             }
                         }
-                        
-                        String[] won = (String[])
-                            (server.getManagementService().getAttributes(ibis, wonElections)[0]);
-                
+
+                        String[] won = (String[]) (server.getManagementService().getAttributes(ibis, wonElections)[0]);
+
                         if (won != null) {
                             for (String s : won) {
                                 System.err.println(ibis + " won election " + s);
                             }
                         }
-                        
-                        Map<IbisIdentifier, Set<String>> senderConnections =
-                            (Map<IbisIdentifier, Set<String>>) (server.getManagementService().getAttributes(ibis, 
-                                    senderConnectionTypes))[0];
-                        
+
+                        Map<IbisIdentifier, Set<String>> senderConnections = (Map<IbisIdentifier, Set<String>>) (server.getManagementService()
+                                .getAttributes(ibis, senderConnectionTypes))[0];
+
                         if (senderConnections != null) {
                             System.err.println("senderConnections: " + senderConnections.toString());
                         }
-                        
-                        Map<IbisIdentifier, Set<String>> receiverConnections =
-                            (Map<IbisIdentifier, Set<String>>) (server.getManagementService().getAttributes(ibis, 
-                                    receiverConnectionTypes))[0];
-                        
+
+                        Map<IbisIdentifier, Set<String>> receiverConnections = (Map<IbisIdentifier, Set<String>>) (server.getManagementService()
+                                .getAttributes(ibis, receiverConnectionTypes))[0];
+
                         if (receiverConnections != null) {
                             System.err.println("receiverConnections: " + receiverConnections.toString());
                         }

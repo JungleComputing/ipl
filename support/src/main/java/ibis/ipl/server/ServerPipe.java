@@ -15,8 +15,6 @@
  */
 package ibis.ipl.server;
 
-import ibis.util.ThreadPool;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,16 +25,17 @@ import java.io.PrintStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.util.ThreadPool;
+
 /**
  * Connection to the stdin/stdout of a server running with the --remote option.
- * 
+ *
  * @author Niels Drost
- * 
+ *
  */
 class ServerPipe implements Runnable {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(ServerConnection.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerConnection.class);
 
     // standard out of server process. Turns into an input stream on this side
     private final BufferedReader stdout;
@@ -53,8 +52,7 @@ class ServerPipe implements Runnable {
 
     private IOException exception = null;
 
-    ServerPipe(InputStream stdout, OutputStream stdin, PrintStream output,
-            String outputPrefix) {
+    ServerPipe(InputStream stdout, OutputStream stdin, PrintStream output, String outputPrefix) {
 
         this.stdout = new BufferedReader(new InputStreamReader(stdout));
         this.stdin = stdin;
@@ -68,15 +66,13 @@ class ServerPipe implements Runnable {
 
     /**
      * Returns the address of the server as a string.
-     * 
-     * @param timeout
-     *            time to wait until address is available
-     * 
+     *
+     * @param timeout time to wait until address is available
+     *
      * @return the address of the server.
-     * 
-     * @throws IOException
-     *             if server fails to start, or address is not available within
-     *             the specified time.
+     *
+     * @throws IOException if server fails to start, or address is not available
+     *                     within the specified time.
      */
     synchronized String getAddress(long timeout) throws IOException {
         long deadline = System.currentTimeMillis() + timeout;
@@ -119,17 +115,16 @@ class ServerPipe implements Runnable {
     }
 
     private synchronized void parseAddress(String line) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("Parsing address from line: \"" + line + "\"");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Parsing address from line: \"" + line + "\"");
+        }
 
         int prefixIndex = line.lastIndexOf(Server.ADDRESS_LINE_PREFIX);
         int postfixIndex = line.indexOf(Server.ADDRESS_LINE_POSTFIX);
 
         if (prefixIndex == -1 || postfixIndex == -1) {
             // address not in this line after all, print line to output
-            logger.warn("Address prefix+postfix not found in line \"" + line
-                    + "\"");
+            logger.warn("Address prefix+postfix not found in line \"" + line + "\"");
             output.println(line);
             return;
         }
@@ -139,8 +134,7 @@ class ServerPipe implements Runnable {
         }
 
         try {
-            this.address = line.substring(prefixIndex
-                    + Server.ADDRESS_LINE_PREFIX.length(), postfixIndex);
+            this.address = line.substring(prefixIndex + Server.ADDRESS_LINE_PREFIX.length(), postfixIndex);
         } catch (IndexOutOfBoundsException e) {
             logger.warn("Invalid address in line \"" + line + "\"");
             return;
@@ -153,6 +147,7 @@ class ServerPipe implements Runnable {
      * Forwards standard out of server to given output stream. Filters out line
      * containing server address.
      */
+    @Override
     public void run() {
         String address = null;
         while (true) {
@@ -164,8 +159,7 @@ class ServerPipe implements Runnable {
                     return;
                 }
 
-                if (address == null
-                        && line.contains(Server.ADDRESS_LINE_PREFIX)) {
+                if (address == null && line.contains(Server.ADDRESS_LINE_PREFIX)) {
                     parseAddress(line);
                 } else {
                     output.println(outputPrefix + line);

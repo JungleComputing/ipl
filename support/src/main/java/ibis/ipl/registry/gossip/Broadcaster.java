@@ -15,15 +15,15 @@
  */
 package ibis.ipl.registry.gossip;
 
-import ibis.smartsockets.virtual.VirtualSocketAddress;
-import ibis.util.ThreadPool;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.util.ThreadPool;
 
 /**
  * Broadcasts the leave of an ibis
@@ -40,12 +40,11 @@ final class Broadcaster implements Runnable {
 
     private int count;
 
-    Broadcaster(CommunicationHandler commHandler,
-            VirtualSocketAddress[] addresses) {
+    Broadcaster(CommunicationHandler commHandler, VirtualSocketAddress[] addresses) {
         this.commHandler = commHandler;
-        
+
         // Arrays.asList list does not support remove, so do this "trick"
-        q = new LinkedList<VirtualSocketAddress>();
+        q = new LinkedList<>();
         q.addAll(Arrays.asList(addresses));
 
         // number of jobs remaining
@@ -74,9 +73,9 @@ final class Broadcaster implements Runnable {
     }
 
     synchronized void waitUntilDone() {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("waiting until done, " + count + " remaining");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("waiting until done, " + count + " remaining");
+        }
         while (count > 0) {
             try {
                 wait();
@@ -89,6 +88,7 @@ final class Broadcaster implements Runnable {
         }
     }
 
+    @Override
     public void run() {
         while (true) {
             VirtualSocketAddress address = next();
@@ -99,7 +99,7 @@ final class Broadcaster implements Runnable {
             }
 
             if (logger.isTraceEnabled()) {
-        	logger.trace("sending leave to " + address);
+                logger.trace("sending leave to " + address);
             }
 
             commHandler.sendLeave(address);

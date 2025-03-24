@@ -15,6 +15,11 @@
  */
 package ibis.ipl.impl.stacking.dummy;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Map;
+import java.util.Properties;
+
 import ibis.ipl.Credentials;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
@@ -31,107 +36,106 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Map;
-import java.util.Properties;
-
 public class StackingIbis implements Ibis {
 
     Ibis base;
 
-    public StackingIbis(IbisFactory factory,
-            RegistryEventHandler registryEventHandler,
-            Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, byte[] applicationTag, PortType[] portTypes,
-            String specifiedSubImplementation,
-            StackingIbisStarter stackingIbisStarter)
-            throws IbisCreationFailedException {
-        base = factory.createIbis(registryEventHandler, capabilities,
-                userProperties, credentials, applicationTag, portTypes,
+    public StackingIbis(IbisFactory factory, RegistryEventHandler registryEventHandler, Properties userProperties, IbisCapabilities capabilities,
+            Credentials credentials, byte[] applicationTag, PortType[] portTypes, String specifiedSubImplementation,
+            StackingIbisStarter stackingIbisStarter) throws IbisCreationFailedException {
+        base = factory.createIbis(registryEventHandler, capabilities, userProperties, credentials, applicationTag, portTypes,
                 specifiedSubImplementation);
     }
 
+    @Override
     public void end() throws IOException {
         base.end();
     }
 
+    @Override
     public Registry registry() {
         // return new
         // ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
         return base.registry();
     }
 
+    @Override
     public Map<String, String> managementProperties() {
         return base.managementProperties();
     }
 
-    public String getManagementProperty(String key)
-            throws NoSuchPropertyException {
+    @Override
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         return base.getManagementProperty(key);
     }
 
-    public void setManagementProperties(Map<String, String> properties)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         base.setManagementProperties(properties);
     }
 
-    public void setManagementProperty(String key, String val)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperty(String key, String val) throws NoSuchPropertyException {
         base.setManagementProperty(key, val);
     }
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
         base.printManagementProperties(stream);
     }
 
+    @Override
     public void poll() throws IOException {
         base.poll();
     }
 
+    @Override
     public IbisIdentifier identifier() {
         return base.identifier();
     }
 
+    @Override
     public String getVersion() {
         return "StackingIbis on top of " + base.getVersion();
     }
 
+    @Override
     public Properties properties() {
         return base.properties();
     }
 
+    @Override
     public SendPort createSendPort(PortType portType) throws IOException {
         return createSendPort(portType, null, null, null);
     }
 
-    public SendPort createSendPort(PortType portType, String name)
-            throws IOException {
+    @Override
+    public SendPort createSendPort(PortType portType, String name) throws IOException {
         return createSendPort(portType, name, null, null);
     }
 
-    public SendPort createSendPort(PortType portType, String name,
-            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+    @Override
+    public SendPort createSendPort(PortType portType, String name, SendPortDisconnectUpcall cU, Properties props) throws IOException {
         return new StackingSendPort(portType, this, name, cU, props);
     }
 
-    public ReceivePort createReceivePort(PortType portType, String name)
-            throws IOException {
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String name) throws IOException {
         return createReceivePort(portType, name, null, null, null);
     }
 
-    public ReceivePort createReceivePort(PortType portType, String name,
-            MessageUpcall u) throws IOException {
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String name, MessageUpcall u) throws IOException {
         return createReceivePort(portType, name, u, null, null);
     }
 
-    public ReceivePort createReceivePort(PortType portType, String name,
-            ReceivePortConnectUpcall cU) throws IOException {
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String name, ReceivePortConnectUpcall cU) throws IOException {
         return createReceivePort(portType, name, null, cU, null);
     }
 
-    public ReceivePort createReceivePort(PortType portType, String name,
-            MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
+    @Override
+    public ReceivePort createReceivePort(PortType portType, String name, MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
         return new StackingReceivePort(portType, this, name, u, cU, props);
     }

@@ -19,23 +19,28 @@ package ibis.io;
 
 public class SimpleLittleConversion extends Conversion {
 
+    @Override
     public final boolean bigEndian() {
         return false;
     }
 
+    @Override
     public final byte boolean2byte(boolean src) {
         return (src ? (byte) 1 : (byte) 0);
     }
 
+    @Override
     public final boolean byte2boolean(byte src) {
         return (src == (byte) 1);
     }
 
+    @Override
     public final void char2byte(char src, byte[] dst, int off) {
         dst[off + 0] = (byte) (src & 0xff);
         dst[off + 1] = (byte) ((src >>> 8) & 0xff);
     }
 
+    @Override
     public final char byte2char(byte[] src, int off) {
         int temp;
 
@@ -46,16 +51,19 @@ public class SimpleLittleConversion extends Conversion {
         return (char) temp;
     }
 
+    @Override
     public final void short2byte(short src, byte[] dst, int off) {
         dst[off + 0] = (byte) (0xff & src);
         dst[off + 1] = (byte) (0xff & (src >> 8));
     }
 
+    @Override
     public final short byte2short(byte[] src, int off) {
         return (short) ((src[off + 1] << 8) | (src[off] & 0xff));
 
     }
 
+    @Override
     public final void int2byte(int src, byte[] dst, int off) {
         dst[off + 0] = (byte) (0xff & src);
         dst[off + 1] = (byte) (0xff & (src >> 8));
@@ -63,12 +71,12 @@ public class SimpleLittleConversion extends Conversion {
         dst[off + 3] = (byte) (0xff & (src >> 24));
     }
 
+    @Override
     public final int byte2int(byte[] src, int off) {
-        return (((src[off + 0] & 0xff) << 0) | ((src[off + 1] & 0xff) << 8)
-                | ((src[off + 2] & 0xff) << 16)
-                | ((src[off + 3] & 0xff) << 24));
+        return (((src[off + 0] & 0xff) << 0) | ((src[off + 1] & 0xff) << 8) | ((src[off + 2] & 0xff) << 16) | ((src[off + 3] & 0xff) << 24));
     }
 
+    @Override
     public final void long2byte(long src, byte[] dst, int off) {
         int v1 = (int) (src >> 32);
         int v2 = (int) (src);
@@ -77,6 +85,7 @@ public class SimpleLittleConversion extends Conversion {
         int2byte(v2, dst, off);
     }
 
+    @Override
     public final long byte2long(byte[] src, int off) {
         int t1, t2;
         t1 = byte2int(src, off + 4);
@@ -85,32 +94,36 @@ public class SimpleLittleConversion extends Conversion {
         return ((((long) t1) << 32) | (t2 & 0xffffffffL));
     }
 
+    @Override
     public final void float2byte(float src, byte[] dst, int off) {
         int2byte(Float.floatToIntBits(src), dst, off);
     }
 
+    @Override
     public final float byte2float(byte[] src, int off) {
         return Float.intBitsToFloat(byte2int(src, off));
     }
 
+    @Override
     public final void double2byte(double src, byte[] dst, int off) {
         long2byte(Double.doubleToLongBits(src), dst, off);
     }
 
+    @Override
     public final double byte2double(byte[] src, int off) {
         return Double.longBitsToDouble(byte2long(src, off));
     }
 
-    public final void boolean2byte(boolean[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public final void boolean2byte(boolean[] src, int off, int len, byte[] dst, int off2) {
 
         for (int i = 0; i < len; i++) {
             dst[off2 + i] = (src[off + i] ? (byte) 1 : (byte) 0);
         }
     }
 
-    public final void byte2boolean(byte[] src, int index_src, boolean[] dst,
-            int index_dst, int len) {
+    @Override
+    public final void byte2boolean(byte[] src, int index_src, boolean[] dst, int index_dst, int len) {
 
         for (int i = 0; i < len; i++) {
             dst[index_dst + i] = (src[index_src + i] == (byte) 1);
@@ -120,6 +133,7 @@ public class SimpleLittleConversion extends Conversion {
     // functions from here to EOF not final so Nio*Conversion can override
     // them
 
+    @Override
     public void char2byte(char[] src, int off, int len, byte[] dst, int off2) {
         int count = off2;
         int end = off + len;
@@ -133,8 +147,8 @@ public class SimpleLittleConversion extends Conversion {
 
     }
 
-    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst, int len) {
         int count = index_src;
         int end = index_dst + len;
 
@@ -147,6 +161,7 @@ public class SimpleLittleConversion extends Conversion {
         }
     }
 
+    @Override
     public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
         int count = off2;
         int end = off + len;
@@ -159,8 +174,8 @@ public class SimpleLittleConversion extends Conversion {
         }
     }
 
-    public void byte2short(byte[] src, int index_src, short[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2short(byte[] src, int index_src, short[] dst, int index_dst, int len) {
         int count = index_src;
         int end = index_dst + len;
 
@@ -170,6 +185,7 @@ public class SimpleLittleConversion extends Conversion {
         }
     }
 
+    @Override
     public void int2byte(int[] src, int off, int len, byte[] dst, int off2) {
         int count = off2;
         int end = off + len;
@@ -185,20 +201,19 @@ public class SimpleLittleConversion extends Conversion {
         }
     }
 
-    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst, int len) {
         int count = index_src;
         int end = index_dst + len;
 
         for (int i = index_dst; i < end; i++) {
-            dst[i] = (((src[count + 0] & 0xff) << 0)
-                    | ((src[count + 1] & 0xff) << 8)
-                    | ((src[count + 2] & 0xff) << 16)
+            dst[i] = (((src[count + 0] & 0xff) << 0) | ((src[count + 1] & 0xff) << 8) | ((src[count + 2] & 0xff) << 16)
                     | ((src[count + 3] & 0xff) << 24));
             count += 4;
         }
     }
 
+    @Override
     public void long2byte(long[] src, int off, int len, byte[] dst, int off2) {
         int count = off2;
         int end = off + len;
@@ -221,25 +236,22 @@ public class SimpleLittleConversion extends Conversion {
         }
     }
 
-    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len) {
         int count = index_src;
         int end = index_dst + len;
 
         for (int i = index_dst; i < end; i++) {
-            int t1 = (((src[count + 7] & 0xff) << 24)
-                    | ((src[count + 6] & 0xff) << 16)
-                    | ((src[count + 5] & 0xff) << 8)
+            int t1 = (((src[count + 7] & 0xff) << 24) | ((src[count + 6] & 0xff) << 16) | ((src[count + 5] & 0xff) << 8)
                     | ((src[count + 4] & 0xff) << 0));
-            int t2 = (((src[count + 3] & 0xff) << 24)
-                    | ((src[count + 2] & 0xff) << 16)
-                    | ((src[count + 1] & 0xff) << 8)
+            int t2 = (((src[count + 3] & 0xff) << 24) | ((src[count + 2] & 0xff) << 16) | ((src[count + 1] & 0xff) << 8)
                     | ((src[count + 0] & 0xff) << 0));
             dst[i] = ((((long) t1) << 32) | (t2 & 0xffffffffL));
             count += 8;
         }
     }
 
+    @Override
     public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
         int count = off2;
         int end = off + len;
@@ -254,23 +266,21 @@ public class SimpleLittleConversion extends Conversion {
         }
     }
 
-    public void byte2float(byte[] src, int index_src, float[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2float(byte[] src, int index_src, float[] dst, int index_dst, int len) {
         int count = index_src;
         int end = index_dst + len;
 
         for (int i = index_dst; i < end; i++) {
-            int temp = (((src[count + 3] & 0xff) << 24)
-                    | ((src[count + 2] & 0xff) << 16)
-                    | ((src[count + 1] & 0xff) << 8)
+            int temp = (((src[count + 3] & 0xff) << 24) | ((src[count + 2] & 0xff) << 16) | ((src[count + 1] & 0xff) << 8)
                     | ((src[count + 0] & 0xff) << 0));
             dst[i] = Float.intBitsToFloat(temp);
             count += 4;
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
         int count = off2;
         int end = off + len;
 
@@ -291,23 +301,18 @@ public class SimpleLittleConversion extends Conversion {
         }
     }
 
-    public void byte2double(byte[] src, int index_src, double[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2double(byte[] src, int index_src, double[] dst, int index_dst, int len) {
         int count = index_src;
         int end = index_dst + len;
 
         for (int i = index_dst; i < end; i++) {
-            int t1 = (((src[count + 7] & 0xff) << 24)
-                    | ((src[count + 6] & 0xff) << 16)
-                    | ((src[count + 5] & 0xff) << 8)
+            int t1 = (((src[count + 7] & 0xff) << 24) | ((src[count + 6] & 0xff) << 16) | ((src[count + 5] & 0xff) << 8)
                     | ((src[count + 4] & 0xff) << 0));
-            int t2 = (((src[count + 3] & 0xff) << 24)
-                    | ((src[count + 2] & 0xff) << 16)
-                    | ((src[count + 1] & 0xff) << 8)
+            int t2 = (((src[count + 3] & 0xff) << 24) | ((src[count + 2] & 0xff) << 16) | ((src[count + 1] & 0xff) << 8)
                     | ((src[count + 0] & 0xff) << 0));
 
-            dst[i] = Double.longBitsToDouble((((long) t1) << 32)
-                    | (t2 & 0xffffffffL));
+            dst[i] = Double.longBitsToDouble((((long) t1) << 32) | (t2 & 0xffffffffL));
             count += 8;
         }
     }

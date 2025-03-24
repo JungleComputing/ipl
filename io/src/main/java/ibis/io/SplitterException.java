@@ -25,16 +25,16 @@ import java.util.ArrayList;
 
 public class SplitterException extends IOException {
 
-    /** 
+    /**
      * Generated
      */
     private static final long serialVersionUID = 9005051418523286737L;
 
     // Transient, because OutputStream is not Serializable. (Thanks, Selmar Smit!)
     // Note that some of the methods here are meaningless after serialization.
-    private transient ArrayList<OutputStream> streams = new ArrayList<OutputStream>();
+    private transient ArrayList<OutputStream> streams = new ArrayList<>();
 
-    private ArrayList<Exception> exceptions = new ArrayList<Exception>();
+    private ArrayList<Exception> exceptions = new ArrayList<>();
 
     public SplitterException() {
         // empty constructor
@@ -69,29 +69,33 @@ public class SplitterException extends IOException {
         return exceptions.get(pos);
     }
 
+    @Override
     public String toString() {
         String res = "got " + exceptions.size() + " exceptions: ";
-        for (int i = 0; i < exceptions.size(); i++) {
-            res += "   " + exceptions.get(i) + "\n";
+        for (Exception exception : exceptions) {
+            res += "   " + exception + "\n";
         }
 
         return res;
     }
 
+    @Override
     public void printStackTrace(PrintStream s) {
-        for (int i = 0; i < exceptions.size(); i++) {
-            s.println("Exception: " + exceptions.get(i));
-            (exceptions.get(i)).printStackTrace(s);
+        for (Exception exception : exceptions) {
+            s.println("Exception: " + exception);
+            (exception).printStackTrace(s);
         }
     }
 
+    @Override
     public void printStackTrace(PrintWriter s) {
-        for (int i = 0; i < exceptions.size(); i++) {
-            s.println("Exception: " + exceptions.get(i));
-            (exceptions.get(i)).printStackTrace(s);
+        for (Exception exception : exceptions) {
+            s.println("Exception: " + exception);
+            (exception).printStackTrace(s);
         }
     }
 
+    @Override
     public String getMessage() {
         return toString();
     }

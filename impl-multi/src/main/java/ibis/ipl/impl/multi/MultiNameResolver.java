@@ -15,6 +15,12 @@
  */
 package ibis.ipl.impl.multi;
 
+import java.io.IOException;
+import java.util.HashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
@@ -23,13 +29,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.util.HashMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public  class MultiNameResolver {
+public class MultiNameResolver {
     private static final Logger logger = LoggerFactory.getLogger(MultiNameResolver.class);
 
     private final MultiIbis ibis;
@@ -39,7 +39,7 @@ public  class MultiNameResolver {
     private SendPort replyPort;
     private SendPort requestPort;
 
-    private HashMap<Integer, IbisIdentifier> resolveQueue = new HashMap<Integer, IbisIdentifier>();
+    private HashMap<Integer, IbisIdentifier> resolveQueue = new HashMap<>();
 
     private boolean quit = false;
     private static final String resolvePortName = "ibis.multi.name.resolve";
@@ -87,6 +87,7 @@ public  class MultiNameResolver {
     }
 
     private class ReplyHandler implements Runnable {
+        @Override
         public void run() {
             waitForId();
             do {
@@ -117,7 +118,7 @@ public  class MultiNameResolver {
                         }
                         synchronized (resolveQueue) {
                             IbisIdentifier toResolve = resolveQueue.remove(Integer.valueOf(hashCode));
-                            synchronized(toResolve) {
+                            synchronized (toResolve) {
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Notifying for resolution: " + ibisName + " on: " + this);
                                 }
@@ -139,11 +140,10 @@ public  class MultiNameResolver {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Unknown request for: " + ibisName);
                         }
-                    readMessage.finish();
-                    break;
+                        readMessage.finish();
+                        break;
                     }
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     // TODO What do we do here now?
                     logger.error("Got IOException while resolving: " + e);
                     e.printStackTrace();
@@ -152,11 +152,12 @@ public  class MultiNameResolver {
                     logger.error("Got ClassNotFoundException while resolving: " + e);
                     e.printStackTrace();
                 }
-            } while(!quit);
+            } while (!quit);
         }
     }
 
     private class RequestHandler implements Runnable {
+        @Override
         public void run() {
             waitForId();
             do {
@@ -209,13 +210,12 @@ public  class MultiNameResolver {
                         readMessage.finish();
                         break;
                     }
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     // TODO What do we do here now?
                     logger.error("Got IOException while resolving: " + e);
                     e.printStackTrace();
                 }
-            } while(!quit);
+            } while (!quit);
         }
     }
 

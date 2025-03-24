@@ -15,6 +15,11 @@
  */
 package ibis.ipl.benchmarks.latency;
 
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /* $Id$ */
 
 import ibis.ipl.Ibis;
@@ -28,11 +33,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class Computer extends Thread {
 
@@ -72,6 +72,7 @@ class Computer extends Thread {
         }
     }
 
+    @Override
     public void run() {
 
         double[] a = new double[4096];
@@ -97,9 +98,9 @@ class Sender {
     SendPort sport;
 
     ReceivePort rport;
-    
+
     int size;
-    
+
     byte[] buffer;
 
     boolean objects;
@@ -146,11 +147,10 @@ class Sender {
             time = System.currentTimeMillis() - time;
 
             double speed = (time * 1000.0) / count;
-            System.err.println("Latency: " + count + " calls took "
-                    + (time / 1000.0) + " seconds, time/call = " + speed
-                    + " micros");
-            if (c != null)
+            System.err.println("Latency: " + count + " calls took " + (time / 1000.0) + " seconds, time/call = " + speed + " micros");
+            if (c != null) {
                 c.printCycles("Sender");
+            }
         }
     }
 }
@@ -162,7 +162,7 @@ class ExplicitReceiver {
     ReceivePort rport;
 
     Computer c;
-    
+
     byte[] buffer = null;
 
     boolean objects;
@@ -204,8 +204,9 @@ class ExplicitReceiver {
                 }
                 writeMessage.finish();
             }
-            if (c != null)
+            if (c != null) {
                 c.printCycles("Server");
+            }
         }
     }
 }
@@ -220,7 +221,7 @@ class UpcallReceiver implements MessageUpcall {
     int max;
 
     int repeat;
-    
+
     byte[] buffer = null;
 
     boolean objects;
@@ -236,9 +237,10 @@ class UpcallReceiver implements MessageUpcall {
         }
     }
 
+    @Override
     public void upcall(ReadMessage readMessage) {
 
-        //		System.err.println("Got readMessage!!");
+        // System.err.println("Got readMessage!!");
 
         try {
             if (buffer != null) {
@@ -260,15 +262,16 @@ class UpcallReceiver implements MessageUpcall {
             }
             writeMessage.finish();
 
-            synchronized(this) {
-        	count++;
-        	if (count == max * repeat) {
-        	    notifyAll();
-        	}
+            synchronized (this) {
+                count++;
+                if (count == max * repeat) {
+                    notifyAll();
+                }
             }
 
-            if (c != null && (count % max == 0))
+            if (c != null && (count % max == 0)) {
                 c.printCycles("Server");
+            }
 
         } catch (Exception e) {
             System.err.println("EEEEEK " + e);
@@ -279,7 +282,7 @@ class UpcallReceiver implements MessageUpcall {
     synchronized void finish() {
         while (count < max * repeat) {
             try {
-                //				System.err.println("Jikes");
+                // System.err.println("Jikes");
                 wait();
             } catch (Exception e) {
             }
@@ -299,7 +302,7 @@ class UpcallSender implements MessageUpcall {
     int repeat;
 
     Computer c;
-    
+
     byte[] buffer = null;
 
     boolean objects;
@@ -334,6 +337,7 @@ class UpcallSender implements MessageUpcall {
         }
     }
 
+    @Override
     public void upcall(ReadMessage readMessage) {
         try {
             if (buffer != null) {
@@ -343,15 +347,15 @@ class UpcallSender implements MessageUpcall {
                     readMessage.readArray(buffer);
                 }
             }
-            
+
             readMessage.finish();
 
-            //			System.err.println("Sending " + count);
+            // System.err.println("Sending " + count);
 
             boolean done;
 
             if (count == 0) {
-        	time = System.currentTimeMillis();
+                time = System.currentTimeMillis();
             }
 
             count++;
@@ -361,10 +365,8 @@ class UpcallSender implements MessageUpcall {
                 long temp = time;
                 time = System.currentTimeMillis();
                 double speed = ((time - temp) * 1000.0) / max;
-                System.err.println("Latency: " + max + " calls took "
-                        + ((time - temp) / 1000.0) + " seconds, time/call = "
-                        + speed + " micros");
-                synchronized(this) {
+                System.err.println("Latency: " + max + " calls took " + ((time - temp) / 1000.0) + " seconds, time/call = " + speed + " micros");
+                synchronized (this) {
                     count = 0;
                     repeat--;
                     if (repeat == 0) {
@@ -373,7 +375,7 @@ class UpcallSender implements MessageUpcall {
                     }
                 }
             }
-            
+
             Latency.logger.debug("SEND pre new");
             WriteMessage writeMessage = sport.newMessage();
             if (buffer != null) {
@@ -397,7 +399,7 @@ class UpcallSender implements MessageUpcall {
     synchronized void finish() {
         while (repeat != 0) {
             try {
-                //				System.err.println("EEK");
+                // System.err.println("EEK");
                 wait();
             } catch (Exception e) {
             }
@@ -414,7 +416,6 @@ class Latency {
     static Ibis ibis;
 
     static Registry registry;
-
 
     static void usage() {
         System.out.println("Usage: Latency [-u] [-uu] [-ibis] [count]");
@@ -447,7 +448,7 @@ class Latency {
                 repeat = Integer.parseInt(args[i]);
             } else if (args[i].equals("-size")) {
                 i++;
-                size = Integer.parseInt(args[i]);   
+                size = Integer.parseInt(args[i]);
             } else if (args[i].equals("-ibis")) {
                 ibisSer = true;
             } else if (args[i].equals("-objects")) {
@@ -478,14 +479,9 @@ class Latency {
 
         try {
 
-            IbisCapabilities s = new IbisCapabilities(
-                    IbisCapabilities.ELECTIONS_STRICT
-            );
-            PortType t = new PortType(
-                    noneSer ? PortType.SERIALIZATION_BYTE : PortType.SERIALIZATION_OBJECT,
-                    PortType.COMMUNICATION_RELIABLE,
-                    PortType.CONNECTION_ONE_TO_ONE,
-                    PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT);
+            IbisCapabilities s = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
+            PortType t = new PortType(noneSer ? PortType.SERIALIZATION_BYTE : PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
+                    PortType.CONNECTION_ONE_TO_ONE, PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT);
             Properties p = new Properties();
             if (ibisSer) {
                 p.setProperty("ibis.serialization", "ibis");
@@ -497,7 +493,6 @@ class Latency {
             ibis = IbisFactory.createIbis(s, p, true, null, t);
 
             registry = ibis.registry();
-
 
             SendPort sport = ibis.createSendPort(t, "send port");
             ReceivePort rport;
@@ -533,8 +528,7 @@ class Latency {
                     logger.debug("LAT: starting send test");
                     sender.send(count, repeat, c);
                 } else {
-                    UpcallSender sender = new UpcallSender(sport, count,
-                            repeat, c, size, objects);
+                    UpcallSender sender = new UpcallSender(sport, count, repeat, c, size, objects);
                     rport = ibis.createReceivePort(t, "test port", sender);
                     rport.enableConnections();
                     sport.connect(remote, "test port");
@@ -552,8 +546,7 @@ class Latency {
                 }
 
                 if (upcalls) {
-                    UpcallReceiver receiver = new UpcallReceiver(sport, count,
-                            repeat, c, size, objects);
+                    UpcallReceiver receiver = new UpcallReceiver(sport, count, repeat, c, size, objects);
                     rport = ibis.createReceivePort(t, "test port", receiver);
                     rport.enableConnections();
                     rport.enableMessageUpcalls();
@@ -562,8 +555,7 @@ class Latency {
                     rport = ibis.createReceivePort(t, "test port");
                     rport.enableConnections();
 
-                    ExplicitReceiver receiver = new ExplicitReceiver(rport,
-                            sport, c, size, objects);
+                    ExplicitReceiver receiver = new ExplicitReceiver(rport, sport, c, size, objects);
                     logger.debug("LAT: starting test receiver");
                     receiver.receive(count, repeat);
                 }

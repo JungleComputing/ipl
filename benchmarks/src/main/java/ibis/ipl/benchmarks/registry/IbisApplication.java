@@ -15,6 +15,14 @@
  */
 package ibis.ipl.benchmarks.registry;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisCreationFailedException;
@@ -24,18 +32,9 @@ import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 final class IbisApplication implements Runnable, RegistryEventHandler {
 
-    private static final Logger logger =
-        LoggerFactory.getLogger(IbisApplication.class);
+    private static final Logger logger = LoggerFactory.getLogger(IbisApplication.class);
 
     private final boolean generateEvents;
 
@@ -49,16 +48,13 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
 
     private final PortType portType;
 
-    IbisApplication(boolean generateEvents, boolean fail)
-            throws IbisCreationFailedException, IOException {
+    IbisApplication(boolean generateEvents, boolean fail) throws IbisCreationFailedException, IOException {
         this.generateEvents = generateEvents;
 
-        ibisses = new HashSet<IbisIdentifier>();
+        ibisses = new HashSet<>();
         random = new Random();
 
-        portType =
-            new PortType(PortType.CONNECTION_ONE_TO_ONE,
-                    PortType.SERIALIZATION_OBJECT);
+        portType = new PortType(PortType.CONNECTION_ONE_TO_ONE, PortType.SERIALIZATION_OBJECT);
 
         if (!fail) {
             // register shutdown hook
@@ -89,38 +85,43 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         }
     }
 
+    @Override
     public synchronized void joined(IbisIdentifier ident) {
         ibisses.add(ident);
         logger.info("upcall for join of: " + ident);
     }
 
+    @Override
     public synchronized void left(IbisIdentifier ident) {
         ibisses.remove(ident);
         logger.info("upcall for leave of: " + ident);
     }
 
+    @Override
     public synchronized void died(IbisIdentifier corpse) {
         ibisses.remove(corpse);
         logger.info("upcall for died of: " + corpse);
     }
 
+    @Override
     public synchronized void gotSignal(String signal, IbisIdentifier source) {
         logger.info("got string: " + signal + " from " + source);
     }
 
-    public synchronized void electionResult(String electionName,
-            IbisIdentifier winner) {
-        logger.info("got election result for :\"" + electionName + "\" : "
-                + winner);
+    @Override
+    public synchronized void electionResult(String electionName, IbisIdentifier winner) {
+        logger.info("got election result for :\"" + electionName + "\" : " + winner);
     }
-    
-	public void poolClosed() {
-        logger.info("pool now closed");
-	}
 
-	public void poolTerminated(IbisIdentifier source) {
+    @Override
+    public void poolClosed() {
+        logger.info("pool now closed");
+    }
+
+    @Override
+    public void poolTerminated(IbisIdentifier source) {
         logger.info("pool terminated by " + source);
-	}
+    }
 
     private static class Shutdown extends Thread {
         private final IbisApplication app;
@@ -129,6 +130,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
             this.app = app;
         }
 
+        @Override
         public void run() {
             // System.err.println("shutdown hook triggered");
 
@@ -163,8 +165,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
             return new IbisIdentifier[0];
         }
 
-        IbisIdentifier[] result =
-            new IbisIdentifier[random.nextInt(nrOfIbisses())];
+        IbisIdentifier[] result = new IbisIdentifier[random.nextInt(nrOfIbisses())];
 
         for (int i = 0; i < result.length; i++) {
             result[i] = getRandomIbis();
@@ -181,16 +182,14 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         ibis.registry().getElectionResult(id);
     }
 
+    @Override
     public void run() {
         logger.debug("creating ibis");
         try {
             synchronized (this) {
 
-                IbisCapabilities s =
-                    new IbisCapabilities(
-                            IbisCapabilities.MEMBERSHIP_UNRELIABLE,
-                            IbisCapabilities.ELECTIONS_UNRELIABLE,
-                            IbisCapabilities.SIGNALS);
+                IbisCapabilities s = new IbisCapabilities(IbisCapabilities.MEMBERSHIP_UNRELIABLE, IbisCapabilities.ELECTIONS_UNRELIABLE,
+                        IbisCapabilities.SIGNALS);
 
                 ibis = IbisFactory.createIbis(s, this, portType);
 
@@ -221,8 +220,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
                             logger.debug("signalling random member(s)");
                             IbisIdentifier[] signalList = getRandomIbisses();
 
-                            ibis.registry().signal("ARRG to you all!",
-                                signalList);
+                            ibis.registry().signal("ARRG to you all!", signalList);
                             break;
                         case 1:
                             logger.debug("doing elect");
@@ -275,7 +273,5 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         }
 
     }
-
-
 
 }

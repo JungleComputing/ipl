@@ -15,10 +15,6 @@
  */
 package ibis.ipl.registry.gossip;
 
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.registry.statistics.Statistics;
-import ibis.util.TypedProperties;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -31,10 +27,13 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.registry.statistics.Statistics;
+import ibis.util.TypedProperties;
+
 class MemberSet extends Thread {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(MemberSet.class);
+    private static final Logger logger = LoggerFactory.getLogger(MemberSet.class);
 
     private final TypedProperties properties;
 
@@ -57,15 +56,14 @@ class MemberSet extends Thread {
      */
     private int liveMembers;
 
-    MemberSet(TypedProperties properties, Registry registry,
-            Statistics statistics) {
+    MemberSet(TypedProperties properties, Registry registry, Statistics statistics) {
         this.properties = properties;
         this.registry = registry;
         this.statistics = statistics;
 
-        deceased = new HashSet<UUID>();
-        left = new HashSet<UUID>();
-        members = new HashMap<UUID, Member>();
+        deceased = new HashSet<>();
+        left = new HashSet<>();
+        members = new HashMap<>();
 
         random = new Random();
     }
@@ -143,8 +141,7 @@ class MemberSet extends Thread {
         }
     }
 
-    public synchronized IbisIdentifier getFirstLiving(
-            IbisIdentifier[] candidates) {
+    public synchronized IbisIdentifier getFirstLiving(IbisIdentifier[] candidates) {
         if (candidates == null || candidates.length == 0) {
             return null;
         }
@@ -201,7 +198,7 @@ class MemberSet extends Thread {
             throw new IOException("negative deceased list value");
         }
 
-        ArrayList<UUID> newDeceased = new ArrayList<UUID>();
+        ArrayList<UUID> newDeceased = new ArrayList<>();
         for (int i = 0; i < nrOfDeceased; i++) {
             UUID id = new UUID(in.readLong(), in.readLong());
             newDeceased.add(id);
@@ -213,7 +210,7 @@ class MemberSet extends Thread {
             throw new IOException("negative left list value");
         }
 
-        ArrayList<UUID> newLeft = new ArrayList<UUID>();
+        ArrayList<UUID> newLeft = new ArrayList<>();
         for (int i = 0; i < nrOfLeft; i++) {
             UUID id = new UUID(in.readLong(), in.readLong());
             newLeft.add(id);
@@ -225,7 +222,7 @@ class MemberSet extends Thread {
             throw new IOException("negative member list value");
         }
 
-        ArrayList<Member> newMembers = new ArrayList<Member>();
+        ArrayList<Member> newMembers = new ArrayList<>();
         for (int i = 0; i < nrOfMembers; i++) {
             Member member = new Member(in, properties);
             newMembers.add(member);
@@ -284,10 +281,8 @@ class MemberSet extends Thread {
         // minimum needed to otherwise declare a member dead, do it now
         if (member.isSuspect() && member.nrOfWitnesses() >= liveMembers) {
             if (logger.isWarnEnabled()) {
-        	logger.warn("declared " + member + " with "
-        		+ member.nrOfWitnesses()
-        		+ " witnesses dead due to a low number of live members ("
-        		+ liveMembers + ").");
+                logger.warn("declared " + member + " with " + member.nrOfWitnesses() + " witnesses dead due to a low number of live members ("
+                        + liveMembers + ").");
             }
             member.declareDead();
         }
@@ -300,7 +295,7 @@ class MemberSet extends Thread {
             }
             registry.ibisLeft(member.getIdentifier());
             if (logger.isDebugEnabled()) {
-        	logger.debug("purged " + member + " from list");
+                logger.debug("purged " + member + " from list");
             }
         } else if (member.isDead()) {
             deceased.add(member.getUUID());
@@ -310,7 +305,7 @@ class MemberSet extends Thread {
             }
             registry.ibisDied(member.getIdentifier());
             if (logger.isDebugEnabled()) {
-        	logger.debug("purged " + member + " from list");
+                logger.debug("purged " + member + " from list");
             }
         }
     }
@@ -346,14 +341,12 @@ class MemberSet extends Thread {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug(self.getIdentifier() + ": members = " + members.size()
-                    + ", left = " + left.size() + " deceased = "
-                    + deceased.size());
+            logger.debug(self.getIdentifier() + ": members = " + members.size() + ", left = " + left.size() + " deceased = " + deceased.size());
         }
     }
 
     private synchronized Member[] getRandomSuspects(int count) {
-        ArrayList<Member> suspects = new ArrayList<Member>();
+        ArrayList<Member> suspects = new ArrayList<>();
 
         for (Member member : members.values()) {
             if (member.isSuspect()) {
@@ -367,16 +360,16 @@ class MemberSet extends Thread {
 
         return suspects.toArray(new Member[0]);
     }
-    
-    synchronized Member[] getRandomMembers(int count) {
-	if (count < 0) {
-	    return new Member[0];
-	}
 
-        ArrayList<Member> result = new ArrayList<Member>(members.values());
+    synchronized Member[] getRandomMembers(int count) {
+        if (count < 0) {
+            return new Member[0];
+        }
+
+        ArrayList<Member> result = new ArrayList<>(members.values());
 
         while (result.size() > count) {
-	    result.remove(random.nextInt(result.size()));
+            result.remove(random.nextInt(result.size()));
         }
 
         return result.toArray(new Member[0]);
@@ -399,6 +392,7 @@ class MemberSet extends Thread {
     }
 
     // ping suspect members once a second
+    @Override
     public void run() {
         Member self;
         synchronized (this) {
@@ -412,8 +406,7 @@ class MemberSet extends Thread {
             registry.ibisJoined(self.getIdentifier());
         }
 
-        long interval = properties
-                .getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
+        long interval = properties.getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
         int count = properties.getIntProperty(RegistryProperties.PING_COUNT);
 
         while (!registry.isStopped()) {
@@ -422,8 +415,7 @@ class MemberSet extends Thread {
             Member[] suspects = getRandomSuspects(count);
 
             if (logger.isDebugEnabled()) {
-        	logger.debug(self.getIdentifier() + ": checking " + suspects.length
-        		+ " suspects");
+                logger.debug(self.getIdentifier() + ": checking " + suspects.length + " suspects");
             }
 
             for (Member suspect : suspects) {
@@ -432,29 +424,26 @@ class MemberSet extends Thread {
                     suspect.seen();
                 } else {
                     if (logger.isDebugEnabled()) {
-                	logger.debug("suspecting " + suspect
-                		+ " is dead, checking");
+                        logger.debug("suspecting " + suspect + " is dead, checking");
                     }
                     try {
                         registry.getCommHandler().ping(suspect.getIdentifier());
                         suspect.seen();
                     } catch (Exception e) {
-                	if (logger.isDebugEnabled()) {
-                	    logger.debug("could not reach " + suspect
-                		    + ", adding ourselves as witness");
-                	}
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("could not reach " + suspect + ", adding ourselves as witness");
+                        }
                         suspect.suspectDead(registry.getIbisIdentifier());
                     }
                     if (logger.isDebugEnabled()) {
-                	logger.debug("done checking " + suspect);
+                        logger.debug("done checking " + suspect);
                     }
 
                 }
             }
 
             if (logger.isDebugEnabled()) {
-        	logger.debug(self.getIdentifier() + ": done checking "
-        		+ suspects.length + " suspects");
+                logger.debug(self.getIdentifier() + ": done checking " + suspects.length + " suspects");
             }
 
             int timeout = (int) (Math.random() * interval);

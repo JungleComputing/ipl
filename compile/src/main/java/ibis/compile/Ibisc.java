@@ -39,10 +39,10 @@ import ibis.util.ClassLister;
 public class Ibisc {
 
     /** Contains the (classname, <code>IbiscEntry</code>) pairs. */
-    public static HashMap<String, IbiscEntry> allClasses = new HashMap<String, IbiscEntry>();
+    public static HashMap<String, IbiscEntry> allClasses = new HashMap<>();
 
     /** The list of jarfiles. */
-    private static ArrayList<JarInfo> jarFiles = new ArrayList<JarInfo>();
+    private static ArrayList<JarInfo> jarFiles = new ArrayList<>();
 
     /** Verbose flag. */
     private static boolean verbose = false;
@@ -58,7 +58,7 @@ public class Ibisc {
 
     static ByteCodeWrapper asmWrapper;
 
-    private static ArrayList<IbiscComponent> ibiscComponents = new ArrayList<IbiscComponent>();
+    private static ArrayList<IbiscComponent> ibiscComponents = new ArrayList<>();
 
     private Ibisc() {
         // prevent construction.
@@ -73,14 +73,14 @@ public class Ibisc {
             prefix = f.getName() + File.separator;
         }
 
-        for (int i = 0; i < list.length; i++) {
-            String fname = list[i].getName();
-            if (list[i].isDirectory()) {
-                getClassesFromDirectory(list[i], prefix);
+        for (File element : list) {
+            String fname = element.getName();
+            if (element.isDirectory()) {
+                getClassesFromDirectory(element, prefix);
             } else if (fname.endsWith(".class")) {
                 getClassFromClassFile(prefix + fname);
             } else if (fname.endsWith(".jar")) {
-                getClassesFromJarFile(list[i], prefix + fname);
+                getClassesFromJarFile(element, prefix + fname);
             }
         }
     }
@@ -90,8 +90,7 @@ public class Ibisc {
         try {
             cl = w.parseClassFile(fileName);
         } catch (IOException e) {
-            System.err.println(
-                    "Ibisc: warning: could not read class " + fileName);
+            System.err.println("Ibisc: warning: could not read class " + fileName);
         }
         if (cl != null) {
             allClasses.put(cl.getClassName(), new IbiscEntry(cl, fileName));
@@ -105,8 +104,7 @@ public class Ibisc {
             jf = new JarFile(f, true);
             jarInfo = new JarInfo(jf);
         } catch (IOException e) {
-            System.err.println(
-                    "Ibisc: warning: could not read jarfile " + fileName);
+            System.err.println("Ibisc: warning: could not read jarfile " + fileName);
             return;
         } finally {
             if (jf != null) {
@@ -123,17 +121,15 @@ public class Ibisc {
 
     /**
      * Verifies all modified classes.
-     * 
-     * @param ic
-     *            the <code>IbiscComponent</code> after which this verification
-     *            is run.
+     *
+     * @param ic the <code>IbiscComponent</code> after which this verification is
+     *           run.
      */
     private static void verifyClasses(IbiscComponent ic) {
         for (IbiscEntry e : allClasses.values()) {
             if (e.getModified()) {
                 if (!e.getClassInfo().doVerify()) {
-                    System.out.println("Ibisc: verification failed after "
-                            + "component " + ic.getClass().getName());
+                    System.out.println("Ibisc: verification failed after " + "component " + ic.getClass().getName());
                     System.exit(1);
                 }
             }
@@ -154,8 +150,7 @@ public class Ibisc {
                     e.getClassInfo().dump(temp.getCanonicalPath());
                     rename(file, temp, canonicalDir);
                 } catch (Exception ex) {
-                    System.err.println("Ibisc: got exception while writing "
-                            + e.fileName + ": " + ex);
+                    System.err.println("Ibisc: got exception while writing " + e.fileName + ": " + ex);
                     ex.printStackTrace(System.err);
                     if (temp != null) {
                         temp.delete();
@@ -168,25 +163,21 @@ public class Ibisc {
     }
 
     /**
-     * Safe(?) rename. Problem is that File.rename may not work if the
-     * destination exists.
+     * Safe(?) rename. Problem is that File.rename may not work if the destination
+     * exists.
      */
-    private static void rename(File dest, File src, File dir)
-            throws IOException {
+    private static void rename(File dest, File src, File dir) throws IOException {
         File temp = File.createTempFile("Ibc_", null, dir);
         if (dest.exists()) {
-            Files.move(dest.toPath(), temp.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
+            Files.move(dest.toPath(), temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
         try {
-            Files.move(src.toPath(), dest.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
+            Files.move(src.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             if (temp.exists()) {
                 // try to restore dest.
                 try {
-                    Files.move(temp.toPath(), dest.toPath(),
-                            StandardCopyOption.REPLACE_EXISTING);
+                    Files.move(temp.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 } catch (Throwable ex) {
                     // ignore
                 }
@@ -212,8 +203,7 @@ public class Ibisc {
         }
 
         // Then, write ...
-        for (int i = 0; i < jarFiles.size(); i++) {
-            JarInfo ji = jarFiles.get(i);
+        for (JarInfo ji : jarFiles) {
             if (ji.getModified()) {
                 String name = ji.getName();
                 File temp = null;
@@ -222,23 +212,20 @@ public class Ibisc {
                     File canonicalDir = file.getCanonicalFile().getParentFile();
                     temp = File.createTempFile("Ibisc_", null, canonicalDir);
                     FileOutputStream out = new FileOutputStream(temp);
-                    BufferedOutputStream bo = new BufferedOutputStream(out,
-                            16384);
+                    BufferedOutputStream bo = new BufferedOutputStream(out, 16384);
                     ZipOutputStream zo = new ZipOutputStream(bo);
                     zo.setMethod(ZipOutputStream.DEFLATED);
                     if (!compress) {
                         zo.setLevel(0);
                     }
-                    for (Enumeration<JarEntryInfo> iitems = ji.entries(); iitems
-                            .hasMoreElements();) {
+                    for (Enumeration<JarEntryInfo> iitems = ji.entries(); iitems.hasMoreElements();) {
                         JarEntryInfo ient = iitems.nextElement();
                         ient.write(zo);
                     }
                     zo.close();
                     rename(file, temp, canonicalDir);
                 } catch (Exception e) {
-                    System.err.println("Ibisc: got exception while writing "
-                            + name + ": " + e);
+                    System.err.println("Ibisc: got exception while writing " + name + ": " + e);
                     e.printStackTrace();
                     if (temp != null) {
                         temp.delete();
@@ -260,9 +247,8 @@ public class Ibisc {
 
     /**
      * Reads all classes and jars from the specified arguments.
-     * 
-     * @param leftArgs
-     *            the arguments.
+     *
+     * @param leftArgs the arguments.
      */
     static void readAll(ArrayList<String> leftArgs) {
         // Convert the rest of the arguments to classes
@@ -275,8 +261,7 @@ public class Ibisc {
             } else if (arg.endsWith(".jar")) {
                 getClassesFromJarFile(f, arg);
             } else {
-                System.err.println("Ibisc: illegal argument: " + arg
-                        + " is not a jar or class file.");
+                System.err.println("Ibisc: illegal argument: " + arg + " is not a jar or class file.");
                 System.exit(1);
 
             }
@@ -285,8 +270,7 @@ public class Ibisc {
 
     private static String usage() {
         String rval = "Usage: java ibis.compile.Ibisc [-verbose] [-verify] [-keep] [-help] ";
-        for (int i = 0; i < ibiscComponents.size(); i++) {
-            IbiscComponent ic = ibiscComponents.get(i);
+        for (IbiscComponent ic : ibiscComponents) {
             String s = ic.getUsageString();
             if (!s.equals("")) {
                 rval = rval + s + " ";
@@ -297,45 +281,41 @@ public class Ibisc {
 
     /**
      * Main entry point for Ibisc
-     * 
-     * @param args
-     *            arguments from the command line
+     *
+     * @param args arguments from the command line
      */
     public static void main(String[] args) {
         boolean keep = false;
         boolean verify = false;
         boolean help = false;
-        ArrayList<String> leftArgs = new ArrayList<String>();
+        ArrayList<String> leftArgs = new ArrayList<>();
 
         // Process own arguments.
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-v") || args[i].equals("-verbose")) {
+        for (String arg : args) {
+            if (arg.equals("-v") || arg.equals("-verbose")) {
                 verbose = true;
-            } else if (args[i].equals("-no-verbose")) {
+            } else if (arg.equals("-no-verbose")) {
                 verbose = false;
-            } else if (args[i].equals("-d") || args[i].equals("-debug")) {
+            } else if (arg.equals("-d") || arg.equals("-debug")) {
                 debug = true;
-            } else if (args[i].equals("-no-debug")) {
+            } else if (arg.equals("-no-debug")) {
                 debug = false;
-            } else if (args[i].equals("-verify")) {
+            } else if (arg.equals("-verify")) {
                 verify = true;
-            } else if (args[i].equals("-no-verify")) {
+            } else if (arg.equals("-no-verify")) {
                 verify = false;
-            } else if (args[i].equals("-keep")) {
+            } else if (arg.equals("-keep")) {
                 keep = true;
-            } else if (args[i].equals("-no-keep")) {
+            } else if (arg.equals("-no-keep")) {
                 keep = false;
-            } else if (args[i].equals("-compress")) {
+            } else if (arg.equals("-compress")) {
                 compress = true;
-            } else if (args[i].equals("-no-compress")) {
+            } else if (arg.equals("-no-compress")) {
                 compress = false;
-            } else if (args[i].equalsIgnoreCase("--help")
-                    || args[i].equalsIgnoreCase("-h")
-                    || args[i].equalsIgnoreCase("-help")
-                    || args[i].equalsIgnoreCase("/?")) {
+            } else if (arg.equalsIgnoreCase("--help") || arg.equalsIgnoreCase("-h") || arg.equalsIgnoreCase("-help") || arg.equalsIgnoreCase("/?")) {
                 help = true;
             } else {
-                leftArgs.add(args[i]);
+                leftArgs.add(arg);
             }
         }
 
@@ -344,9 +324,8 @@ public class Ibisc {
 
         // Obtain a list of Ibisc components.
         ClassLister clstr = ClassLister.getClassLister(null);
-        List<Class<?>> clcomponents = clstr.getClassList("Ibisc-Component",
-                IbiscComponent.class);
-        ArrayList<IbiscComponent> components = new ArrayList<IbiscComponent>();
+        List<Class<?>> clcomponents = clstr.getClassList("Ibisc-Component", IbiscComponent.class);
+        ArrayList<IbiscComponent> components = new ArrayList<>();
 
         // Instantiate Ibisc components.
         for (Class<?> cl : clcomponents) {
@@ -361,8 +340,7 @@ public class Ibisc {
                 }
                 ibiscComponents.add(ic);
             } catch (Exception e) {
-                System.err.println("Ibisc: warning: could not instantiate "
-                        + cl.getName());
+                System.err.println("Ibisc: warning: could not instantiate " + cl.getName());
             }
         }
 
@@ -391,8 +369,7 @@ public class Ibisc {
         for (int i = 0; i < szm1; i++) {
             IbiscComponent ic = components.get(i);
             String cn = ic.getClass().getName();
-            if (cn.equals("ibis.io.rewriter.IOGenerator")
-                    || cn.equals("ibis.io.rewriter.ASMIOGenerator")) {
+            if (cn.equals("ibis.io.rewriter.IOGenerator") || cn.equals("ibis.io.rewriter.ASMIOGenerator")) {
                 components.set(i, components.get(szm1));
                 components.set(szm1, ic);
                 break;
@@ -405,8 +382,7 @@ public class Ibisc {
 
         String wrapperKind = null;
         // Make all components process all classes.
-        for (int i = 0; i < components.size(); i++) {
-            IbiscComponent ic = components.get(i);
+        for (IbiscComponent ic : components) {
             String knd = ic.rewriterImpl();
             if (wrapperKind == null || !knd.equals(wrapperKind)) {
                 if (wrapperKind != null) {
@@ -419,21 +395,16 @@ public class Ibisc {
                 } else if (knd.equals("ASM")) {
                     w = asmWrapper;
                 } else {
-                    System.err.println("Ibisc: component "
-                            + ic.getClass().getName()
-                            + ": unsupported bytecode rewriter: " + knd);
+                    System.err.println("Ibisc: component " + ic.getClass().getName() + ": unsupported bytecode rewriter: " + knd);
                 }
                 readAll(leftArgs);
             }
             ic.setWrapper(w);
-            System.out.println(
-                    "Ibisc: applying rewriter " + ic.getClass().getName()
-                            + " to " + allClasses.size() + " classes.");
-/*
-            for(String s : allClasses.keySet()) {
-                System.out.println("rewriting class: " + s);
-            }
-*/          
+            System.out.println("Ibisc: applying rewriter " + ic.getClass().getName() + " to " + allClasses.size() + " classes.");
+            /*
+             * for(String s : allClasses.keySet()) { System.out.println("rewriting class: "
+             * + s); }
+             */
             ic.processClasses(allClasses);
             if (verify) {
                 // Verify after each component.

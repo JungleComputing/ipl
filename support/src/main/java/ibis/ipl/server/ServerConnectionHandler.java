@@ -15,6 +15,12 @@
  */
 package ibis.ipl.server;
 
+import java.io.IOException;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.support.Connection;
 import ibis.ipl.support.management.AttributeDescription;
@@ -22,20 +28,13 @@ import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 class ServerConnectionHandler implements Runnable {
 
     private static final int CONNECTION_BACKLOG = 50;
 
     static final int MAX_THREADS = 10;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(ServerConnectionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerConnectionHandler.class);
 
     private final Server server;
 
@@ -45,13 +44,11 @@ class ServerConnectionHandler implements Runnable {
 
     private boolean ended = false;
 
-    public ServerConnectionHandler(Server server,
-            VirtualSocketFactory socketFactory) throws IOException {
+    public ServerConnectionHandler(Server server, VirtualSocketFactory socketFactory) throws IOException {
         this.server = server;
 
-        serverSocket = socketFactory.createServerSocket(ServerConnectionProtocol.VIRTUAL_PORT,
-                CONNECTION_BACKLOG, null);
-        
+        serverSocket = socketFactory.createServerSocket(ServerConnectionProtocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
+
         createThread();
     }
 
@@ -92,8 +89,7 @@ class ServerConnectionHandler implements Runnable {
         connection.out().writeUTF(server.getAddress());
     }
 
-    private void handleGetServiceNames(Connection connection)
-            throws IOException {
+    private void handleGetServiceNames(Connection connection) throws IOException {
         String[] result = server.getServiceNames();
 
         connection.sendOKReply();
@@ -143,8 +139,7 @@ class ServerConnectionHandler implements Runnable {
         server.end(timeout);
     }
 
-    private void handleRegistryGetPools(Connection connection)
-            throws IOException {
+    private void handleRegistryGetPools(Connection connection) throws IOException {
         String[] result = server.getRegistryService().getPools();
 
         connection.sendOKReply();
@@ -155,23 +150,21 @@ class ServerConnectionHandler implements Runnable {
         }
     }
 
-    private void handleRegistryGetPoolSizes(Connection connection)
-            throws IOException {
+    private void handleRegistryGetPoolSizes(Connection connection) throws IOException {
         Map<String, Integer> result = server.getRegistryService().getPoolSizes();
 
         connection.sendOKReply();
 
         connection.out().writeInt(result.size());
-        for (Map.Entry<String, Integer> entry: result.entrySet()) {
+        for (Map.Entry<String, Integer> entry : result.entrySet()) {
             connection.out().writeUTF(entry.getKey());
             connection.out().writeInt(entry.getValue());
         }
     }
 
-    private void handleRegistryGetLocations(Connection connection)
-            throws IOException {
+    private void handleRegistryGetLocations(Connection connection) throws IOException {
         String poolName = connection.in().readUTF();
-        
+
         String[] result = server.getRegistryService().getLocations(poolName);
 
         connection.sendOKReply();
@@ -182,8 +175,7 @@ class ServerConnectionHandler implements Runnable {
         }
     }
 
-    private void handleRegistryGetMembers(Connection connection)
-            throws IOException {
+    private void handleRegistryGetMembers(Connection connection) throws IOException {
         String pool = connection.in().readUTF();
 
         IbisIdentifier[] result = server.getRegistryService().getMembers(pool);
@@ -197,30 +189,28 @@ class ServerConnectionHandler implements Runnable {
         }
     }
 
-    private void handleManagementGetAttributes(Connection connection)
-            throws IOException, ClassNotFoundException {
+    private void handleManagementGetAttributes(Connection connection) throws IOException, ClassNotFoundException {
 
         IbisIdentifier ibis = (IbisIdentifier) connection.readObject();
-        AttributeDescription[] attributes = (AttributeDescription[]) connection
-                .readObject();
+        AttributeDescription[] attributes = (AttributeDescription[]) connection.readObject();
 
-        Object[] result = server.getManagementService().getAttributes(ibis,
-                attributes);
+        Object[] result = server.getManagementService().getAttributes(ibis, attributes);
 
         connection.sendOKReply();
 
         connection.writeObject(result);
     }
 
+    @Override
     public void run() {
         Connection connection = null;
         try {
             if (logger.isDebugEnabled()) {
-        	logger.debug("accepting connection");
+                logger.debug("accepting connection");
             }
             connection = new Connection(serverSocket);
             if (logger.isDebugEnabled()) {
-        	logger.debug("connection accepted");
+                logger.debug("connection accepted");
             }
         } catch (IOException e) {
             if (hasEnded()) {
@@ -249,14 +239,13 @@ class ServerConnectionHandler implements Runnable {
             byte magic = connection.in().readByte();
 
             if (magic != ServerConnectionProtocol.MAGIC_BYTE) {
-                throw new IOException(
-                        "Invalid header byte in accepting connection");
+                throw new IOException("Invalid header byte in accepting connection");
             }
 
             opcode = connection.in().readByte();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("got request, opcode = " + opcode);
+                logger.debug("got request, opcode = " + opcode);
             }
 
             // public static final byte OPCODE_GET_ADDRESS = 0;

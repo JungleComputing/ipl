@@ -15,8 +15,6 @@
  */
 package ibis.ipl.registry.central;
 
-import ibis.ipl.impl.IbisIdentifier;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -25,8 +23,10 @@ import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.impl.IbisIdentifier;
+
 public final class Member implements Serializable {
-	
+
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = LoggerFactory.getLogger(Member.class);
@@ -38,7 +38,7 @@ public final class Member implements Serializable {
     private int currentEventTime;
 
     // field used to keep track of when this member was last seen (server),
-    // or when it was last reported to be dead (client) 
+    // or when it was last reported to be dead (client)
     private long time;
 
     public Member(IbisIdentifier ibis, Event event) {
@@ -70,10 +70,8 @@ public final class Member implements Serializable {
 
     public synchronized void setCurrentTime(int currentTime) {
         if (currentTime < this.currentEventTime) {
-            logger.error(
-                "tried to set time backwards on member. Current time = "
-                        + this.currentEventTime + " new time = " + currentTime,
-                new Exception());
+            logger.error("tried to set time backwards on member. Current time = " + this.currentEventTime + " new time = " + currentTime,
+                    new Exception());
             return;
         }
         this.currentEventTime = currentTime;
@@ -84,7 +82,7 @@ public final class Member implements Serializable {
     }
 
     public synchronized void clearTime() {
-    	time = 0;
+        time = 0;
     }
 
     public synchronized long getTime() {

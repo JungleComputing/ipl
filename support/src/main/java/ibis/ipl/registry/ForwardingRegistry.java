@@ -40,35 +40,38 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         target.leave();
     }
 
+    @Override
     public void assumeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         target.assumeDead(ibis);
     }
 
-    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis)
-            throws IOException {
+    @Override
+    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis) throws IOException {
         return target.elect(election, timeoutMillis);
     }
 
+    @Override
     public ibis.ipl.IbisIdentifier elect(String election) throws IOException {
         return target.elect(election);
     }
 
-    public ibis.ipl.IbisIdentifier getElectionResult(String election)
-            throws IOException {
+    @Override
+    public ibis.ipl.IbisIdentifier getElectionResult(String election) throws IOException {
         return target.getElectionResult(election);
     }
 
-    public ibis.ipl.IbisIdentifier getElectionResult(String election,
-            long timeoutMillis) throws IOException {
+    @Override
+    public ibis.ipl.IbisIdentifier getElectionResult(String election, long timeoutMillis) throws IOException {
         return target.getElectionResult(election, timeoutMillis);
     }
 
+    @Override
     public void maybeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         target.maybeDead(ibis);
     }
 
-    public void signal(String string, ibis.ipl.IbisIdentifier... ibisses)
-            throws IOException {
+    @Override
+    public void signal(String string, ibis.ipl.IbisIdentifier... ibisses) throws IOException {
         target.signal(string, ibisses);
     }
 
@@ -77,77 +80,92 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         return target.getIbisIdentifier();
     }
 
+    @Override
     public IbisIdentifier[] diedIbises() {
         return target.diedIbises();
     }
 
+    @Override
     public IbisIdentifier[] joinedIbises() {
         return target.joinedIbises();
     }
 
+    @Override
     public IbisIdentifier[] leftIbises() {
         return target.leftIbises();
     }
 
+    @Override
     public String[] receivedSignals() {
         return target.receivedSignals();
     }
 
+    @Override
     public void disableEvents() {
         target.disableEvents();
     }
 
+    @Override
     public void enableEvents() {
         target.enableEvents();
     }
 
+    @Override
     public int getPoolSize() {
         return target.getPoolSize();
     }
 
+    @Override
     public String getPoolName() {
         return target.getPoolName();
     }
 
+    @Override
     public boolean isClosed() {
         return target.isClosed();
     }
 
+    @Override
     public void waitUntilPoolClosed() {
         target.waitUntilPoolClosed();
     }
 
+    @Override
     public Map<String, String> managementProperties() {
         return target.managementProperties();
     }
 
-    public String getManagementProperty(String key)
-            throws NoSuchPropertyException {
+    @Override
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         return target.getManagementProperty(key);
     }
 
-    public void setManagementProperties(Map<String, String> properties)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         target.setManagementProperties(properties);
     }
 
-    public void setManagementProperty(String key, String value)
-            throws NoSuchPropertyException {
+    @Override
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
         target.setManagementProperty(key, value);
     }
 
+    @Override
     public void printManagementProperties(PrintStream stream) {
         target.printManagementProperties(stream);
     }
 
+    @Override
     public boolean hasTerminated() {
         return target.hasTerminated();
     }
 
+    @Override
     public void terminate() throws IOException {
         target.terminate();
     }
 
+    @Override
     public IbisIdentifier waitUntilTerminated() {
         return target.waitUntilTerminated();
     }

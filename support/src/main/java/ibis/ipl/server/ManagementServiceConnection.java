@@ -28,23 +28,20 @@ class ManagementServiceConnection implements ManagementServiceInterface {
     private VirtualSocketAddress address;
     private VirtualSocketFactory socketFactory;
 
-    ManagementServiceConnection(VirtualSocketAddress address,
-            VirtualSocketFactory socketFactory) {
+    ManagementServiceConnection(VirtualSocketAddress address, VirtualSocketFactory socketFactory) {
         this.address = address;
         this.socketFactory = socketFactory;
     }
 
     // Java 1.5 Does not allow @Override for interface methods
-    //    @Override
-    public Object[] getAttributes(IbisIdentifier ibis,
-            AttributeDescription... descriptions) throws Exception {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+    // @Override
+    @Override
+    public Object[] getAttributes(IbisIdentifier ibis, AttributeDescription... descriptions) throws Exception {
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
 
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out().writeByte(
-                    ServerConnectionProtocol.OPCODE_MANAGEMENT_GET_ATTRIBUTES);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_MANAGEMENT_GET_ATTRIBUTES);
             connection.writeObject(ibis);
             connection.writeObject(descriptions);
             connection.getAndCheckReply();

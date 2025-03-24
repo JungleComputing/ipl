@@ -41,13 +41,11 @@ import ibis.util.TypedProperties;
  * Server for the centralized registry implementation.
  *
  */
-public final class CentralRegistryService extends Thread
-        implements Service, RegistryServiceInterface {
+public final class CentralRegistryService extends Thread implements Service, RegistryServiceInterface {
 
     // public static final int VIRTUAL_PORT = 302;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(CentralRegistryService.class);
+    private static final Logger logger = LoggerFactory.getLogger(CentralRegistryService.class);
 
     // do we remove old, terminated pools or not?
     // we shouldn't, but the ipl used to, so we keep this for backwards
@@ -75,37 +73,26 @@ public final class CentralRegistryService extends Thread
     /**
      * Constructor to create a registry server which is part of a IbisServer
      *
-     * @param properties
-     *            the properties
-     * @param socketFactory
-     *            the socket factory to use
-     * @param policy
-     *            the policy
-     * @throws IOException
-     *             when an IO error occurs
+     * @param properties    the properties
+     * @param socketFactory the socket factory to use
+     * @param policy        the policy
+     * @throws IOException when an IO error occurs
      */
-    public CentralRegistryService(TypedProperties properties,
-            VirtualSocketFactory socketFactory, ControlPolicy policy)
-            throws IOException {
+    public CentralRegistryService(TypedProperties properties, VirtualSocketFactory socketFactory, ControlPolicy policy) throws IOException {
         this.socketFactory = socketFactory;
 
-        TypedProperties typedProperties = RegistryProperties
-                .getHardcodedProperties();
+        TypedProperties typedProperties = RegistryProperties.getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        printStats = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_STATS);
+        printStats = typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        printEvents = typedProperties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors = typedProperties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
-        connectTimeout = typedProperties.getIntProperty(
-                RegistryProperties.SERVER_CONNECT_TIMEOUT) * 1000;
+        connectTimeout = typedProperties.getIntProperty(RegistryProperties.SERVER_CONNECT_TIMEOUT) * 1000;
 
-        pools = new TreeMap<String, Pool>();
+        pools = new TreeMap<>();
 
         // start handling connections
         handler = new ServerConnectionHandler(this, socketFactory, policy);
@@ -113,8 +100,7 @@ public final class CentralRegistryService extends Thread
         ThreadPool.createNew(this, "Central Registry Service");
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Started Central Registry service on virtual port "
-                    + Protocol.VIRTUAL_PORT);
+            logger.debug("Started Central Registry service on virtual port " + Protocol.VIRTUAL_PORT);
         }
     }
 
@@ -127,27 +113,22 @@ public final class CentralRegistryService extends Thread
      *
      * @see ibis.ipl.registry.central.server.RegistryService#getServiceName()
      */
+    @Override
     public String getServiceName() {
         return "registry";
     }
 
     // atomic get/create pool
-    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap,
-            long heartbeatInterval, long eventPushInterval, boolean gossip,
-            long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize, boolean keepStatistics,
-            long statisticsInterval, boolean purgeHistory,
-            String implementationVersion) throws IOException {
+    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap, long heartbeatInterval, long eventPushInterval, boolean gossip,
+            long gossipInterval, boolean adaptGossipInterval, boolean tree, boolean closedWorld, int poolSize, boolean keepStatistics,
+            long statisticsInterval, boolean purgeHistory, String implementationVersion) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || (result.hasEnded() && REMOVE_ENDED_POOLS)) {
 
-            result = new Pool(poolName, socketFactory, peerBootstrap,
-                    heartbeatInterval, eventPushInterval, gossip,
-                    gossipInterval, adaptGossipInterval, tree, closedWorld,
-                    poolSize, keepStatistics, statisticsInterval,
-                    connectTimeout, implementationVersion, printEvents,
-                    printErrors, purgeHistory);
+            result = new Pool(poolName, socketFactory, peerBootstrap, heartbeatInterval, eventPushInterval, gossip, gossipInterval,
+                    adaptGossipInterval, tree, closedWorld, poolSize, keepStatistics, statisticsInterval, connectTimeout, implementationVersion,
+                    printEvents, printErrors, purgeHistory);
             pools.put(poolName, result);
         }
 
@@ -161,6 +142,7 @@ public final class CentralRegistryService extends Thread
     /**
      * Stop this server.
      */
+    @Override
     public synchronized void end(long deadline) {
         if (stopped) {
             return;
@@ -184,8 +166,7 @@ public final class CentralRegistryService extends Thread
 
     @Override
     public String toString() {
-        return "Central Registry service on virtual port "
-                + Protocol.VIRTUAL_PORT;
+        return "Central Registry service on virtual port " + Protocol.VIRTUAL_PORT;
     }
 
     // pool cleanup thread
@@ -194,8 +175,7 @@ public final class CentralRegistryService extends Thread
 
         while (!stopped) {
             if (pools.size() > 0) {
-                String message = "list of pools:\n"
-                        + "     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED TERMINATED ENDED\n";
+                String message = "list of pools:\n" + "     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED TERMINATED ENDED\n";
 
                 // copy values to new array so we can do "remove" on original
                 for (Pool pool : pools.values().toArray(new Pool[0])) {
@@ -241,7 +221,7 @@ public final class CentralRegistryService extends Thread
      * @see ibis.ipl.registry.central.server.RegistryService#getStats()
      */
     public synchronized Map<String, String> getStats() {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
 
         String poolNames = null;
 
@@ -260,6 +240,7 @@ public final class CentralRegistryService extends Thread
         return result;
     }
 
+    @Override
     public synchronized String[] getPools() {
         return pools.keySet().toArray(new String[0]);
     }
@@ -267,10 +248,10 @@ public final class CentralRegistryService extends Thread
     /*
      * (non-Javadoc)
      *
-     * @see
-     * ibis.ipl.registry.central.server.RegistryService#getMembers(java.lang
+     * @see ibis.ipl.registry.central.server.RegistryService#getMembers(java.lang
      * .String)
      */
+    @Override
     public IbisIdentifier[] getMembers(String poolName) {
         Pool pool = getPool(poolName);
 
@@ -291,6 +272,7 @@ public final class CentralRegistryService extends Thread
 
     // 1.5 Does not allow @Override for interfaces
     // @Override
+    @Override
     public String[] getLocations(String poolName) throws IOException {
         Pool pool = getPool(poolName);
 
@@ -310,8 +292,9 @@ public final class CentralRegistryService extends Thread
 
     // 1.5 Does not allow @Override for interfaces
     // @Override
+    @Override
     public synchronized Map<String, Integer> getPoolSizes() throws IOException {
-        Map<String, Integer> result = new HashMap<String, Integer>();
+        Map<String, Integer> result = new HashMap<>();
 
         for (Pool pool : pools.values()) {
             result.put(pool.getName(), pool.getSize());

@@ -17,6 +17,11 @@
 
 package ibis.ipl.impl.nio;
 
+import java.io.IOException;
+import java.nio.channels.Channel;
+import java.nio.channels.ReadableByteChannel;
+import java.util.Properties;
+
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
@@ -26,11 +31,6 @@ import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.Queue;
 
-import java.io.IOException;
-import java.nio.channels.Channel;
-import java.nio.channels.ReadableByteChannel;
-import java.util.Properties;
-
 final class ThreadNioReceivePort extends NioReceivePort {
 
     private ThreadNioDissipator current = null;
@@ -39,30 +39,29 @@ final class ThreadNioReceivePort extends NioReceivePort {
 
     private boolean closing = false;
 
-    ThreadNioReceivePort(Ibis ibis, PortType type, String name,
-            MessageUpcall upcall, ReceivePortConnectUpcall connUpcall,
-            Properties props) throws IOException {
+    ThreadNioReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall, ReceivePortConnectUpcall connUpcall, Properties props)
+            throws IOException {
         super(ibis, type, name, upcall, connUpcall, props);
 
         readyDissipators = new Queue();
     }
 
-    synchronized void newConnection(SendPortIdentifier spi, Channel channel)
-            throws IOException {
+    @Override
+    synchronized void newConnection(SendPortIdentifier spi, Channel channel) throws IOException {
 
         if (!(channel instanceof ReadableByteChannel)) {
             throw new IOException("wrong channel type on creating connection");
         }
 
-        addConnection(spi, new ThreadNioDissipator(
-                ((NioIbis) ibis).sendReceiveThread(),
-                (ReadableByteChannel) channel));
+        addConnection(spi, new ThreadNioDissipator(((NioIbis) ibis).sendReceiveThread(), (ReadableByteChannel) channel));
     }
 
+    @Override
     synchronized void errorOnRead(NioDissipator dissipator, Exception cause) {
         dissipator.info.close(cause);
     }
 
+    @Override
     NioDissipator getReadyDissipator(long deadline) throws IOException {
         ThreadNioDissipator dissipator;
 
@@ -88,8 +87,7 @@ final class ThreadNioReceivePort extends NioReceivePort {
                 }
             }
 
-            dissipator = (ThreadNioDissipator)
-                    readyDissipators.dequeue(deadline);
+            dissipator = (ThreadNioDissipator) readyDissipators.dequeue(deadline);
 
             if (dissipator == null) {
                 synchronized (this) {
@@ -99,8 +97,7 @@ final class ThreadNioReceivePort extends NioReceivePort {
                         }
                     }
                 }
-                throw new ReceiveTimedOutException("deadline passed while"
-                        + " selecting dissipator");
+                throw new ReceiveTimedOutException("deadline passed while" + " selecting dissipator");
             }
 
             try {
@@ -122,6 +119,7 @@ final class ThreadNioReceivePort extends NioReceivePort {
         readyDissipators.enqueue(dissipator);
     }
 
+    @Override
     synchronized void closing() {
         closing = true;
     }

@@ -15,8 +15,6 @@
  */
 package ibis.ipl.registry.central;
 
-import ibis.ipl.impl.IbisIdentifier;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -26,12 +24,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import ibis.ipl.impl.IbisIdentifier;
+
 public class ElectionSet implements Iterable<Election> {
 
     private final Map<String, Election> elections;
 
     public ElectionSet() {
-        elections = new HashMap<String, Election>();
+        elections = new HashMap<>();
     }
 
     public void init(DataInput in) throws IOException {
@@ -73,7 +73,7 @@ public class ElectionSet implements Iterable<Election> {
     }
 
     public Election[] getElectionsWonBy(IbisIdentifier identifier) {
-        ArrayList<Election> result = new ArrayList<Election>();
+        ArrayList<Election> result = new ArrayList<>();
 
         for (Election election : elections.values()) {
             if (election.getWinner().equals(identifier)) {
@@ -84,7 +84,7 @@ public class ElectionSet implements Iterable<Election> {
     }
 
     public List<Event> getEvents() {
-        ArrayList<Event> result = new ArrayList<Event>();
+        ArrayList<Event> result = new ArrayList<>();
 
         for (Election election : elections.values()) {
             result.add(election.getEvent());
@@ -93,6 +93,7 @@ public class ElectionSet implements Iterable<Election> {
         return result;
     }
 
+    @Override
     public Iterator<Election> iterator() {
         return elections.values().iterator();
     }

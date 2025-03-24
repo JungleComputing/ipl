@@ -15,20 +15,19 @@
  */
 package ibis.ipl.impl.stacking.lrmc.io;
 
-import ibis.ipl.impl.stacking.lrmc.LabelRoutingMulticast;
-import ibis.ipl.impl.stacking.lrmc.util.Message;
-import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.impl.stacking.lrmc.LabelRoutingMulticast;
+import ibis.ipl.impl.stacking.lrmc.util.Message;
+import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
+
 public class LrmcOutputStream extends OutputStream {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(LrmcOutputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(LrmcOutputStream.class);
 
     private final LabelRoutingMulticast mcast;
     private final MessageCache cache;
@@ -51,6 +50,7 @@ public class LrmcOutputStream extends OutputStream {
         firstPacket = true;
     }
 
+    @Override
     public void close() {
         closed = true;
     }
@@ -96,6 +96,7 @@ public class LrmcOutputStream extends OutputStream {
         return message.buffer;
     }
 
+    @Override
     public void write(int b) throws IOException {
         // Ouch ... fortunately, it is never used...
         write(new byte[] { (byte) (b & 0xff) }, 0, 1);

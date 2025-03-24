@@ -15,6 +15,9 @@
  */
 package ibis.ipl.examples;
 
+import java.io.IOException;
+import java.util.Date;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -27,9 +30,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
-import java.util.Date;
-
 /**
  * Example application showing one-to-many communication. One of the Ibises in
  * the pool (determined by an election) sends out the time to all other members
@@ -38,13 +38,10 @@ import java.util.Date;
 
 public class OneToMany implements MessageUpcall {
 
-    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
             PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_DOWNCALLS);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT,
-            IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     private void server(Ibis myIbis) throws Exception {
         // create a sendport to send messages with
@@ -71,8 +68,7 @@ public class OneToMany implements MessageUpcall {
             }
 
             // poll the sendport for any connections that have been lost
-            ReceivePortIdentifier[] lostConnections = sendPort
-                    .lostConnections();
+            ReceivePortIdentifier[] lostConnections = sendPort.lostConnections();
             for (ReceivePortIdentifier receiver : lostConnections) {
                 System.err.println("lost connection to: " + receiver);
             }
@@ -94,8 +90,8 @@ public class OneToMany implements MessageUpcall {
     /**
      * Function called by ibis whenever a message is received.
      */
-    public void upcall(ReadMessage readMessage) throws IOException,
-            ClassNotFoundException {
+    @Override
+    public void upcall(ReadMessage readMessage) throws IOException, ClassNotFoundException {
         String message = readMessage.readString();
 
         System.err.println("Received message: " + message);
@@ -106,8 +102,7 @@ public class OneToMany implements MessageUpcall {
         Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null, portType);
 
         // create a receive port to receive messages with
-        ReceivePort receiver = ibis.createReceivePort(portType, "receive port",
-                this);
+        ReceivePort receiver = ibis.createReceivePort(portType, "receive port", this);
         // enable connection to our receive port
         receiver.enableConnections();
 

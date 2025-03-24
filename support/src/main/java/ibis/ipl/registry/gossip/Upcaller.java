@@ -15,15 +15,15 @@
  */
 package ibis.ipl.registry.gossip;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.RegistryEventHandler;
-import ibis.util.ThreadPool;
-
 import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.RegistryEventHandler;
+import ibis.util.ThreadPool;
 
 final class Upcaller implements Runnable {
 
@@ -33,7 +33,7 @@ final class Upcaller implements Runnable {
         static final int DIED = 3;
         static final int SIGNAL = 4;
         static final int ELECT = 5;
-        
+
         int type;
 
         IbisIdentifier ibis;
@@ -62,7 +62,7 @@ final class Upcaller implements Runnable {
     Upcaller(RegistryEventHandler handler) {
         this.handler = handler;
 
-        pendingEvents = new LinkedList<Event>();
+        pendingEvents = new LinkedList<>();
 
         ThreadPool.createNew(this, "upcaller");
     }
@@ -108,6 +108,7 @@ final class Upcaller implements Runnable {
         notifyAll();
     }
 
+    @Override
     public void run() {
         while (true) {
 
@@ -119,7 +120,7 @@ final class Upcaller implements Runnable {
             }
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("doing upcall for event: " + event);
+                logger.debug("doing upcall for event: " + event);
             }
 
             setBusyUpcaller();
@@ -127,20 +128,19 @@ final class Upcaller implements Runnable {
             try {
                 switch (event.type) {
                 case Event.JOIN:
-                        handler.joined(event.ibis);
+                    handler.joined(event.ibis);
                     break;
                 case Event.LEAVE:
-                        handler.left(event.ibis);
+                    handler.left(event.ibis);
                     break;
                 case Event.DIED:
-                        handler.died(event.ibis);
+                    handler.died(event.ibis);
                     break;
                 case Event.SIGNAL:
                     handler.gotSignal(event.string, event.ibis);
                     break;
                 case Event.ELECT:
-                    handler.electionResult(event.string, event
-                            .ibis);
+                    handler.electionResult(event.string, event.ibis);
                     break;
                 default:
                     logger.error("unknown event type: " + event.type);
@@ -150,7 +150,7 @@ final class Upcaller implements Runnable {
             }
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("upcall for event " + event + " done");
+                logger.debug("upcall for event " + event + " done");
             }
 
             clearBusyUpcaller();
@@ -172,7 +172,7 @@ final class Upcaller implements Runnable {
     synchronized void signal(String signal, IbisIdentifier source) {
         pendingEvents.add(new Event(Event.SIGNAL, source, signal));
     }
-    
+
     synchronized void electionResult(String name, IbisIdentifier winner) {
         pendingEvents.add(new Event(Event.ELECT, winner, name));
     }

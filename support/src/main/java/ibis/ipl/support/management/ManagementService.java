@@ -24,79 +24,77 @@ import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.TypedProperties;
 
-public class ManagementService implements ibis.ipl.server.Service,
-		ManagementServiceInterface {
+public class ManagementService implements ibis.ipl.server.Service, ManagementServiceInterface {
 
-	private static final int CONNECT_TIMEOUT = 10000;
-	private final VirtualSocketFactory factory;
+    private static final int CONNECT_TIMEOUT = 10000;
+    private final VirtualSocketFactory factory;
 
-	public ManagementService(TypedProperties properties,
-			VirtualSocketFactory factory) {
-		this.factory = factory;
-	}
+    public ManagementService(TypedProperties properties, VirtualSocketFactory factory) {
+        this.factory = factory;
+    }
 
-	public void end(long deadline) {
-		// NOTHING
-	}
+    @Override
+    public void end(long deadline) {
+        // NOTHING
+    }
 
-	public String getServiceName() {
-		return "management";
-	}
+    @Override
+    public String getServiceName() {
+        return "management";
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * ibis.ipl.management.ManagementServerInterface#getAttributes(ibis.ipl.
-	 * IbisIdentifier, ibis.ipl.management.AttributeDescription)
-	 */
-	public Object[] getAttributes(IbisIdentifier ibis,
-			AttributeDescription... descriptions) throws IOException {
-		ibis.ipl.impl.IbisIdentifier identifier;
-		try {
-			identifier = (ibis.ipl.impl.IbisIdentifier) ibis;
-		} catch (ClassCastException e) {
-			throw new IOException(
-					"cannot cast given identifier to implementation identifier: " + e);
-		}
+    /*
+     * (non-Javadoc)
+     *
+     * @see ibis.ipl.management.ManagementServerInterface#getAttributes(ibis.ipl.
+     * IbisIdentifier, ibis.ipl.management.AttributeDescription)
+     */
+    @Override
+    public Object[] getAttributes(IbisIdentifier ibis, AttributeDescription... descriptions) throws IOException {
+        ibis.ipl.impl.IbisIdentifier identifier;
+        try {
+            identifier = (ibis.ipl.impl.IbisIdentifier) ibis;
+        } catch (ClassCastException e) {
+            throw new IOException("cannot cast given identifier to implementation identifier: " + e);
+        }
 
-		Connection connection = new Connection(identifier, CONNECT_TIMEOUT,
-				false, factory, Protocol.VIRTUAL_PORT);
-		connection.out().writeByte(Protocol.MAGIC_BYTE);
-		connection.out().writeByte(Protocol.OPCODE_GET_MONITOR_INFO);
+        Connection connection = new Connection(identifier, CONNECT_TIMEOUT, false, factory, Protocol.VIRTUAL_PORT);
+        connection.out().writeByte(Protocol.MAGIC_BYTE);
+        connection.out().writeByte(Protocol.OPCODE_GET_MONITOR_INFO);
 
-		connection.out().writeInt(descriptions.length);
-		for (int i = 0; i < descriptions.length; i++) {
-			connection.out().writeUTF(descriptions[i].getBeanName());
-			connection.out().writeUTF(descriptions[i].getAttribute());
-		}
+        connection.out().writeInt(descriptions.length);
+        for (AttributeDescription description : descriptions) {
+            connection.out().writeUTF(description.getBeanName());
+            connection.out().writeUTF(description.getAttribute());
+        }
 
-		connection.getAndCheckReply();
+        connection.getAndCheckReply();
 
-		int length = connection.in().readInt();
-		if (length < 0) {
-			connection.close();
-			throw new IOException("End of Stream on reading from connection");
-		}
+        int length = connection.in().readInt();
+        if (length < 0) {
+            connection.close();
+            throw new IOException("End of Stream on reading from connection");
+        }
 
-		byte[] resultBytes = new byte[length];
+        byte[] resultBytes = new byte[length];
 
-		connection.in().readFully(resultBytes);
+        connection.in().readFully(resultBytes);
 
-		Object[] reply;
-		try {
-			reply = (Object[]) Conversion.byte2object(resultBytes);
-		} catch (ClassNotFoundException e) {
-			throw new IOException("Cannot cast result " + e);
-		}
+        Object[] reply;
+        try {
+            reply = (Object[]) Conversion.byte2object(resultBytes);
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Cannot cast result " + e);
+        }
 
-		connection.close();
+        connection.close();
 
-		return reply;
-	}
+        return reply;
+    }
 
-	public String toString() {
-		return "Management service on virtual port " + Protocol.VIRTUAL_PORT;
-	}
+    @Override
+    public String toString() {
+        return "Management service on virtual port " + Protocol.VIRTUAL_PORT;
+    }
 
 }

@@ -15,12 +15,12 @@
  */
 package ibis.ipl.registry.central;
 
-import ibis.ipl.impl.IbisIdentifier;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
+
+import ibis.ipl.impl.IbisIdentifier;
 
 public interface MemberSet {
 
@@ -36,9 +36,9 @@ public interface MemberSet {
 
     public Member get(IbisIdentifier identifier);
 
-    //return a member from what identifier.name() returns (!= identifier.getID())
+    // return a member from what identifier.name() returns (!= identifier.getID())
     public Member get(String name);
-    
+
     public int getMinimumTime();
 
     public Member getLeastRecentlySeen();
@@ -56,7 +56,7 @@ public interface MemberSet {
     public void writeTo(DataOutputStream out) throws IOException;
 
     public List<Event> getJoinEvents();
-    
+
     public Member[] getChildren(IbisIdentifier ibis);
 
     public Member[] getRootChildren();

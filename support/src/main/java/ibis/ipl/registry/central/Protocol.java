@@ -59,8 +59,6 @@ public final class Protocol {
 
     public static final int NR_OF_OPCODES = 17;
 
-    public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP",
-            "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING",
-            "PUSH", "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT",
-            "TERMINATE", "ADD_TOKENS", "GET_TOKEN" };
+    public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP", "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING", "PUSH",
+            "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT", "TERMINATE", "ADD_TOKENS", "GET_TOKEN" };
 }

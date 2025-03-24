@@ -50,7 +50,7 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     private static Method unsafePutByteMethod;
 
     private static Method unsafePutObjectMethod;
-    
+
     static boolean available = false;
 
     static {
@@ -59,32 +59,21 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
             // unsafe = Unsafe.getUnsafe();
             // does not work when a classloader is present, so we get it
             // from ObjectStreamClass.
-            Class<?> cl = Class
-                    .forName("sun.misc.Unsafe");
+            Class<?> cl = Class.forName("sun.misc.Unsafe");
             Field uf = cl.getDeclaredField("theUnsafe");
             uf.setAccessible(true);
             unsafe = uf.get(null);
             cl = unsafe.getClass();
-            unsafeObjectFieldOffsetMethod = cl.getMethod("objectFieldOffset",
-                    new Class[] { Field.class });
-            unsafePutDoubleMethod = cl.getMethod("putDouble", new Class[] {
-                    Object.class, Long.TYPE, Double.TYPE });
-            unsafePutLongMethod = cl.getMethod("putLong", new Class[] {
-                    Object.class, Long.TYPE, Long.TYPE });
-            unsafePutFloatMethod = cl.getMethod("putFloat", new Class[] {
-                    Object.class, Long.TYPE, Float.TYPE });
-            unsafePutIntMethod = cl.getMethod("putInt", new Class[] {
-                    Object.class, Long.TYPE, Integer.TYPE });
-            unsafePutShortMethod = cl.getMethod("putShort", new Class[] {
-                    Object.class, Long.TYPE, Short.TYPE });
-            unsafePutCharMethod = cl.getMethod("putChar", new Class[] {
-                    Object.class, Long.TYPE, Character.TYPE });
-            unsafePutByteMethod = cl.getMethod("putByte", new Class[] {
-                    Object.class, Long.TYPE, Byte.TYPE });
-            unsafePutBooleanMethod = cl.getMethod("putBoolean", new Class[] {
-                    Object.class, Long.TYPE, Boolean.TYPE });
-            unsafePutObjectMethod = cl.getMethod("putObject", new Class[] {
-                    Object.class, Long.TYPE, Object.class });
+            unsafeObjectFieldOffsetMethod = cl.getMethod("objectFieldOffset", new Class[] { Field.class });
+            unsafePutDoubleMethod = cl.getMethod("putDouble", new Class[] { Object.class, Long.TYPE, Double.TYPE });
+            unsafePutLongMethod = cl.getMethod("putLong", new Class[] { Object.class, Long.TYPE, Long.TYPE });
+            unsafePutFloatMethod = cl.getMethod("putFloat", new Class[] { Object.class, Long.TYPE, Float.TYPE });
+            unsafePutIntMethod = cl.getMethod("putInt", new Class[] { Object.class, Long.TYPE, Integer.TYPE });
+            unsafePutShortMethod = cl.getMethod("putShort", new Class[] { Object.class, Long.TYPE, Short.TYPE });
+            unsafePutCharMethod = cl.getMethod("putChar", new Class[] { Object.class, Long.TYPE, Character.TYPE });
+            unsafePutByteMethod = cl.getMethod("putByte", new Class[] { Object.class, Long.TYPE, Byte.TYPE });
+            unsafePutBooleanMethod = cl.getMethod("putBoolean", new Class[] { Object.class, Long.TYPE, Boolean.TYPE });
+            unsafePutObjectMethod = cl.getMethod("putObject", new Class[] { Object.class, Long.TYPE, Object.class });
             available = true;
         } catch (Throwable e) {
             logger.info("Objenesis Java Stuff not available", e);
@@ -93,27 +82,23 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
 
     ObjenesisJavaStuff(Class<?> clazz) {
         super(clazz);
-        if (! available) {
+        if (!available) {
             throw new Error("ObjenesisJavaStuff not available");
         }
 
-	ins = new ObjenesisSerializer().getInstantiatorOf(clazz);
+        ins = new ObjenesisSerializer().getInstantiatorOf(clazz);
     }
 
     /**
      * This method assigns the specified value to a final field.
-     * 
-     * @param ref
-     *                object with a final field
-     * @param fieldname
-     *                name of the field
-     * @param d
-     *                value to be assigned
-     * @exception IOException
-     *                    is thrown when an IO error occurs.
+     *
+     * @param ref       object with a final field
+     * @param fieldname name of the field
+     * @param d         value to be assigned
+     * @exception IOException is thrown when an IO error occurs.
      */
-    public void setFieldDouble(Object ref, String fieldname, double d)
-            throws IOException {
+    @Override
+    public void setFieldDouble(Object ref, String fieldname, double d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -126,8 +111,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldLong(Object ref, String fieldname, long d)
-            throws IOException {
+    @Override
+    public void setFieldLong(Object ref, String fieldname, long d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -141,8 +126,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldFloat(Object ref, String fieldname, float d)
-            throws IOException {
+    @Override
+    public void setFieldFloat(Object ref, String fieldname, float d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -155,8 +140,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldInt(Object ref, String fieldname, int d)
-            throws IOException {
+    @Override
+    public void setFieldInt(Object ref, String fieldname, int d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -169,8 +154,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldShort(Object ref, String fieldname, short d)
-            throws IOException {
+    @Override
+    public void setFieldShort(Object ref, String fieldname, short d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -183,8 +168,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldChar(Object ref, String fieldname, char d)
-            throws IOException {
+    @Override
+    public void setFieldChar(Object ref, String fieldname, char d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -197,8 +182,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldByte(Object ref, String fieldname, byte d)
-            throws IOException {
+    @Override
+    public void setFieldByte(Object ref, String fieldname, byte d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -211,8 +196,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldBoolean(Object ref, String fieldname, boolean d)
-            throws IOException {
+    @Override
+    public void setFieldBoolean(Object ref, String fieldname, boolean d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -225,8 +210,8 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      */
-    public void setFieldString(Object ref, String fieldname, String d)
-            throws IOException {
+    @Override
+    public void setFieldString(Object ref, String fieldname, String d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -238,10 +223,10 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
 
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
-     * 
+     *
      */
-    public void setFieldClass(Object ref, String fieldname, Class<?> d)
-            throws IOException {
+    @Override
+    public void setFieldClass(Object ref, String fieldname, Class<?> d) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
@@ -253,12 +238,11 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
 
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
-     * 
-     * @param fieldsig
-     *                signature of the field
+     *
+     * @param fieldsig signature of the field
      */
-    public void setFieldObject(Object ref, String fieldname, Object d,
-            String fieldsig) throws IOException {
+    @Override
+    public void setFieldObject(Object ref, String fieldname, Object d, String fieldsig) throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);
             if (d != null && !f.getType().isInstance(d)) {
@@ -272,11 +256,12 @@ final class ObjenesisJavaStuff extends JavaDependentStuff {
     }
 
     /**
-     * Try to create an object through the newInstance method of
-     * ObjectStreamClass. Return null if it fails for some reason.
+     * Try to create an object through the newInstance method of ObjectStreamClass.
+     * Return null if it fails for some reason.
      */
+    @Override
     Object newInstance() {
 //	System.err.println("calling newInstance on " + clazz.getCanonicalName());
-	return ins.newInstance();
+        return ins.newInstance();
     }
 }

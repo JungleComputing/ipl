@@ -15,15 +15,15 @@
  */
 package ibis.ipl.registry.central.client;
 
-import ibis.ipl.registry.central.Member;
-import ibis.util.ThreadPool;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.registry.central.Member;
+import ibis.util.ThreadPool;
 
 /**
  * Sends events to clients from the server.
@@ -38,7 +38,7 @@ final class IterativeEventPusher extends Thread {
 
         WorkQ(Member[] work) {
             // Arrays.asList list does not support remove, so do this "trick"
-            q = new LinkedList<Member>();
+            q = new LinkedList<>();
             q.addAll(Arrays.asList(work));
 
             count = this.q.size();
@@ -81,6 +81,7 @@ final class IterativeEventPusher extends Thread {
             ThreadPool.createNew(this, "event pusher thread");
         }
 
+        @Override
         public void run() {
             while (true) {
                 Member work = workQ.next();
@@ -110,14 +111,14 @@ final class IterativeEventPusher extends Thread {
         this.commHandler = commHandler;
     }
 
+    @Override
     public void run() {
         while (!pool.isStopped()) {
             int eventTime = pool.getTime();
 
             Member[] children = pool.getChildren();
 
-            logger.debug("updating " + children.length +
-                    " children in pool to event-time " + eventTime);
+            logger.debug("updating " + children.length + " children in pool to event-time " + eventTime);
 
             WorkQ workQ = new WorkQ(children);
 
@@ -128,8 +129,7 @@ final class IterativeEventPusher extends Thread {
 
             workQ.waitUntilDone();
 
-            logger.debug("DONE updating nodes in pool to event-time "
-                    + eventTime);
+            logger.debug("DONE updating nodes in pool to event-time " + eventTime);
 
             pool.waitForEventTime(eventTime + 1, 1000);
         }

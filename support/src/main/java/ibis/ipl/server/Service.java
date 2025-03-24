@@ -25,7 +25,7 @@ public interface Service {
 
     /**
      * Returns the name of this service.
-     * 
+     *
      * @return name of this service
      */
     String getServiceName();
@@ -33,9 +33,8 @@ public interface Service {
     /**
      * Called when the server stops.
      *
-     * @param deadline
-     *            a service is allowed to block in this function for a while if
-     *            it is busy. However, it may not block beyond the deadline.
+     * @param deadline a service is allowed to block in this function for a while if
+     *                 it is busy. However, it may not block beyond the deadline.
      */
     void end(long deadline);
 }

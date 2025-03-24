@@ -38,8 +38,7 @@ public final class Monitor {
 
     final private static String[] props = { asserts, stats };
 
-    final private static UtilProperties myprops = new UtilProperties(
-            System.getProperties(), PROPERTY_PREFIX, props);
+    final private static UtilProperties myprops = new UtilProperties(System.getProperties(), PROPERTY_PREFIX, props);
 
     final static boolean ASSERTS = myprops.getBooleanProperty(asserts);
 
@@ -71,23 +70,21 @@ public final class Monitor {
             System.err.println("Turn on Monitor.ASSERTS");
         }
         if (STATISTICS) {
-            Runtime.getRuntime()
-                    .addShutdownHook(new Thread("Ibis Monitor ShutdownHook") {
-                        @Override
-                        public void run() {
-                            Monitor.report(System.err);
-                            ConditionVariable.report(System.err);
-                        }
-                    });
+            Runtime.getRuntime().addShutdownHook(new Thread("Ibis Monitor ShutdownHook") {
+                @Override
+                public void run() {
+                    Monitor.report(System.err);
+                    ConditionVariable.report(System.err);
+                }
+            });
         }
     }
 
     /**
      * Constructs a <code>Monitor</code>. The parameter indicates wether it must
      * have support for priority locking.
-     * 
-     * @param priority
-     *            when <code>true</code>, priority locking will be supported.
+     *
+     * @param priority when <code>true</code>, priority locking will be supported.
      */
     public Monitor(boolean priority) {
         PRIORITY = priority;
@@ -108,13 +105,12 @@ public final class Monitor {
     }
 
     /**
-     * Enters the Monitor. The parameter indicates wether this thread has
-     * priority over nonpriority lockers. This means that when the lock is
-     * released, this thread will get the lock before nonpriority lockers.
-     * 
-     * @param priority
-     *            when <code>true</code>, this thread has priority over
-     *            nonpriority lockers.
+     * Enters the Monitor. The parameter indicates wether this thread has priority
+     * over nonpriority lockers. This means that when the lock is released, this
+     * thread will get the lock before nonpriority lockers.
+     *
+     * @param priority when <code>true</code>, this thread has priority over
+     *                 nonpriority lockers.
      */
     public synchronized void lock(boolean priority) {
         if (!PRIORITY && priority) {
@@ -158,11 +154,11 @@ public final class Monitor {
 
     /**
      * Tries to enter the Monitor, without priority over other threads. If the
-     * Monitor is locked by someone else, <code>false</code> is returned.
-     * Otherwise, the lock is taken and <code>true</code> is returned.
-     * 
-     * @return <code>true</code> if the attempt was succesful,
-     *         <code>false</code> otherwise.
+     * Monitor is locked by someone else, <code>false</code> is returned. Otherwise,
+     * the lock is taken and <code>true</code> is returned.
+     *
+     * @return <code>true</code> if the attempt was succesful, <code>false</code>
+     *         otherwise.
      */
     public synchronized boolean tryLock() {
         if (locked || (PRIORITY && prio_waiters > 0)) {
@@ -214,7 +210,7 @@ public final class Monitor {
 
     /**
      * Creates a {@link ConditionVariable} associated with this Monitor.
-     * 
+     *
      * @return the ConditionVariable created.
      */
     public ConditionVariable createCV() {
@@ -223,13 +219,12 @@ public final class Monitor {
 
     /**
      * Creates a {@link ConditionVariable} associated with this Monitor.
-     * 
-     * @param interruptible
-     *            when <code>true</code>, {@link Thread#interrupt()}ing the
-     *            {@link Thread} that is waiting on this Condition Variable
-     *            causes the waiting thread to return with an
-     *            {@link InterruptedException}. Non-interruptible Condition
-     *            Variables ignore {@link Thread#interrupt()}.
+     *
+     * @param interruptible when <code>true</code>, {@link Thread#interrupt()}ing
+     *                      the {@link Thread} that is waiting on this Condition
+     *                      Variable causes the waiting thread to return with an
+     *                      {@link InterruptedException}. Non-interruptible
+     *                      Condition Variables ignore {@link Thread#interrupt()}.
      * @return the condition variable.
      */
     public ConditionVariable createCV(boolean interruptible) {
@@ -237,12 +232,11 @@ public final class Monitor {
     }
 
     /**
-     * When debugging is enabled, throws an exception when the current thread
-     * does not own the Monitor.
-     * 
-     * @exception IllegalLockStateException
-     *                is thrown when the current thread does not own the
-     *                Monitor.
+     * When debugging is enabled, throws an exception when the current thread does
+     * not own the Monitor.
+     *
+     * @exception IllegalLockStateException is thrown when the current thread does
+     *                                      not own the Monitor.
      */
     final public void checkImOwner() {
         if (ASSERTS) {
@@ -255,11 +249,11 @@ public final class Monitor {
     }
 
     /**
-     * When debugging is enabled, throws an exception when the current thread
-     * owns the Monitor.
-     * 
-     * @exception IllegalLockStateException
-     *                is thrown when the current thread owns the Monitor.
+     * When debugging is enabled, throws an exception when the current thread owns
+     * the Monitor.
+     *
+     * @exception IllegalLockStateException is thrown when the current thread owns
+     *                                      the Monitor.
      */
     final public void checkImNotOwner() {
         if (ASSERTS) {
@@ -273,22 +267,19 @@ public final class Monitor {
 
     /**
      * When statistics are enabled, this method prints some on the stream given.
-     * 
-     * @param out
-     *            the stream to print on.
+     *
+     * @param out the stream to print on.
      */
     static public void report(java.io.PrintStream out) {
         if (Monitor.STATISTICS) {
-            out.println("Monitor: lock occupied " + lock_occupied
-                    + " unlock for waiter " + unlock_waiting + " prio-bcast "
-                    + unlock_bcast + " <waiters> "
-                    + ((double) unlock_waiters) / unlock_waiting);
+            out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " prio-bcast " + unlock_bcast
+                    + " <waiters> " + ((double) unlock_waiters) / unlock_waiting);
         }
     }
 
     /**
      * Returns the thread that owns this Monitor.
-     * 
+     *
      * @return the owner thread.
      */
     public Thread getOwner() {

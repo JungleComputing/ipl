@@ -15,15 +15,14 @@
  */
 package ibis.ipl.registry.central.client;
 
-import ibis.util.ThreadPool;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.util.ThreadPool;
+
 public class Heartbeat implements Runnable {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(Heartbeat.class);
+    private static final Logger logger = LoggerFactory.getLogger(Heartbeat.class);
 
     private final Pool pool;
     private final CommunicationHandler commHandler;
@@ -33,11 +32,10 @@ public class Heartbeat implements Runnable {
     private final boolean exitOnServerFailure;
 
     private long heartbeatDeadline;
-    
+
     private long serverFailureDeadline;
 
-    Heartbeat(CommunicationHandler commHandler, Pool pool,
-            long heartbeatInterval, boolean exitOnServerFailure) {
+    Heartbeat(CommunicationHandler commHandler, Pool pool, long heartbeatInterval, boolean exitOnServerFailure) {
         this.commHandler = commHandler;
         this.pool = pool;
         this.heartbeatInterval = heartbeatInterval;
@@ -47,13 +45,11 @@ public class Heartbeat implements Runnable {
     }
 
     synchronized void resetServerDeadline() {
-        serverFailureDeadline = System.currentTimeMillis()
-                + (heartbeatInterval * 5);
+        serverFailureDeadline = System.currentTimeMillis() + (heartbeatInterval * 5);
     }
 
     synchronized void resetHeartbeatDeadline() {
-        heartbeatDeadline = System.currentTimeMillis()
-                + (long) (heartbeatInterval * (0.3 + Math.random()/2.0));
+        heartbeatDeadline = System.currentTimeMillis() + (long) (heartbeatInterval * (0.3 + Math.random() / 2.0));
     }
 
     synchronized void resetDeadlines() {
@@ -66,7 +62,7 @@ public class Heartbeat implements Runnable {
 
         // no need to wake up heartbeat thread, deadline will only be later
     }
-    
+
     synchronized boolean serverDeadlineExpired() {
         return System.currentTimeMillis() > serverFailureDeadline;
     }
@@ -84,9 +80,9 @@ public class Heartbeat implements Runnable {
             }
 
             try {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("waiting " + timeout + " for heartbeat");
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug("waiting " + timeout + " for heartbeat");
+                }
                 wait(timeout);
             } catch (InterruptedException e) {
                 // IGNORE
@@ -94,6 +90,7 @@ public class Heartbeat implements Runnable {
         }
     }
 
+    @Override
     public void run() {
         resetDeadlines();
         while (!pool.isStopped()) {

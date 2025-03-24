@@ -38,21 +38,20 @@ final class ThreadNioDissipator extends NioDissipator {
 
     IOException error = null; // used to notify user of exceptions
 
-    ThreadNioDissipator(SendReceiveThread sendReceiveThread,
-            ReadableByteChannel channel) throws IOException {
+    ThreadNioDissipator(SendReceiveThread sendReceiveThread, ReadableByteChannel channel) throws IOException {
         super(channel);
 
         this.sendReceiveThread = sendReceiveThread;
 
         if (!(channel instanceof SelectableChannel)) {
-            throw new IOException("wrong type of channel given on creation of"
-                    + " ThreadNioDissipator");
+            throw new IOException("wrong type of channel given on creation of" + " ThreadNioDissipator");
         }
         key = sendReceiveThread.register((SelectableChannel) channel, this);
         sendReceiveThread.enableReading(key);
         reading = true;
     }
 
+    @Override
     synchronized void receive() throws IOException {
         super.receive();
 
@@ -62,6 +61,7 @@ final class ThreadNioDissipator extends NioDissipator {
         }
     }
 
+    @Override
     synchronized boolean messageWaiting() throws IOException {
         if (key == null) {
             // this dissipator is already closed
@@ -71,8 +71,8 @@ final class ThreadNioDissipator extends NioDissipator {
     }
 
     /**
-     * Called by the send/receive thread to indicate we may read from the
-     * channel now.
+     * Called by the send/receive thread to indicate we may read from the channel
+     * now.
      */
     synchronized void doRead() {
         boolean bufferWasEmpty;
@@ -114,8 +114,9 @@ final class ThreadNioDissipator extends NioDissipator {
 
     /*
      * fills the buffer upto at least "minimum" bytes.
-     * 
+     *
      */
+    @Override
     synchronized protected void fillBuffer(int minimum) throws IOException {
         // since the send/receive thread actually receives,
         // we can only wait for it to put the data in the buffer
@@ -144,6 +145,7 @@ final class ThreadNioDissipator extends NioDissipator {
         }
     }
 
+    @Override
     public void close() throws IOException {
         reading = false;
         super.close();

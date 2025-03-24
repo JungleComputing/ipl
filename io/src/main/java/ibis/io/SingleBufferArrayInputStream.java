@@ -27,8 +27,7 @@ public class SingleBufferArrayInputStream extends DataInputStream {
 
     private static final boolean DEBUG = IOProperties.DEBUG;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(BufferedArrayInputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(BufferedArrayInputStream.class);
 
     /** The buffer size. */
     private final int BUF_SIZE;
@@ -49,14 +48,17 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         conversion = Conversion.loadConversion(false);
     }
 
+    @Override
     public long bytesRead() {
         return index - offset;
     }
 
+    @Override
     public void resetBytesRead() {
         offset = index;
     }
 
+    @Override
     public final int read() throws IOException {
         try {
             int b = readByte();
@@ -69,7 +71,8 @@ public class SingleBufferArrayInputStream extends DataInputStream {
     public final int size() throws IOException {
         return BUF_SIZE;
     }
-    
+
+    @Override
     public final int available() throws IOException {
         return BUF_SIZE - index;
     }
@@ -80,11 +83,11 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         }
     }
 
+    @Override
     public void readArray(boolean[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(boolean[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(boolean[" + off + " ... " + (off + len) + "])");
         }
 
         final int to_convert = len * Constants.SIZEOF_BOOLEAN;
@@ -96,12 +99,11 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(byte[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger
-                    .debug("readArray(byte[" + off + " ... " + (off + len)
-                            + "])");
+            logger.debug("readArray(byte[" + off + " ... " + (off + len) + "])");
         }
 
         checkAvailable(len);
@@ -111,12 +113,11 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += len;
     }
 
+    @Override
     public void readArray(short[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger
-                    .debug("readArray(char[" + off + " ... " + (off + len)
-                            + "])");
+            logger.debug("readArray(char[" + off + " ... " + (off + len) + "])");
         }
 
         final int to_convert = len * Constants.SIZEOF_SHORT;
@@ -128,12 +129,11 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(char[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger
-                    .debug("readArray(char[" + off + " ... " + (off + len)
-                            + "])");
+            logger.debug("readArray(char[" + off + " ... " + (off + len) + "])");
         }
 
         final int to_convert = len * Constants.SIZEOF_CHAR;
@@ -145,6 +145,7 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(int[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
@@ -160,12 +161,11 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(long[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger
-                    .debug("readArray(long[" + off + " ... " + (off + len)
-                            + "])");
+            logger.debug("readArray(long[" + off + " ... " + (off + len) + "])");
         }
 
         final int to_convert = len * Constants.SIZEOF_LONG;
@@ -177,11 +177,11 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(float[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(float[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(float[" + off + " ... " + (off + len) + "])");
         }
 
         final int to_convert = len * Constants.SIZEOF_FLOAT;
@@ -193,11 +193,11 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public void readArray(double[] a, int off, int len) throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("readArray(double[" + off + " ... " + (off + len)
-                    + "])");
+            logger.debug("readArray(double[" + off + " ... " + (off + len) + "])");
         }
 
         final int to_convert = len * Constants.SIZEOF_DOUBLE;
@@ -209,16 +209,19 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         index += to_convert;
     }
 
+    @Override
     public byte readByte() throws IOException {
         checkAvailable(1);
         return buffer[index++];
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         checkAvailable(1);
         return conversion.byte2boolean(buffer[index++]);
     }
 
+    @Override
     public char readChar() throws IOException {
         char v;
         checkAvailable(Constants.SIZEOF_CHAR);
@@ -227,6 +230,7 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public short readShort() throws IOException {
         short v;
         checkAvailable(Constants.SIZEOF_SHORT);
@@ -235,6 +239,7 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public int readInt() throws IOException {
         int v;
         checkAvailable(Constants.SIZEOF_INT);
@@ -243,6 +248,7 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public long readLong() throws IOException {
         long v;
         checkAvailable(Constants.SIZEOF_LONG);
@@ -251,6 +257,7 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public float readFloat() throws IOException {
         float v;
         checkAvailable(Constants.SIZEOF_FLOAT);
@@ -259,6 +266,7 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public double readDouble() throws IOException {
         double v;
         checkAvailable(Constants.SIZEOF_DOUBLE);
@@ -267,10 +275,12 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         return v;
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
+    @Override
     public int read(byte[] a, int off, int len) throws IOException {
         if (DEBUG && logger.isDebugEnabled()) {
             logger.debug("read(byte[" + off + " ... " + (off + len) + "])");
@@ -283,23 +293,25 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         return len;
     }
 
+    @Override
     public void close() throws IOException {
         // empty
     }
 
+    @Override
     public int bufferSize() {
         return BUF_SIZE;
     }
 
-    public void readByteBuffer(ByteBuffer value) throws IOException,
-	    ReadOnlyBufferException {
-	
-	int len = value.limit() - value.position();
-	
+    @Override
+    public void readByteBuffer(ByteBuffer value) throws IOException, ReadOnlyBufferException {
+
+        int len = value.limit() - value.position();
+
         checkAvailable(len);
-        
+
         // enough data in the buffer
         value.put(buffer, index, len);
-        index += len;	
+        index += len;
     }
 }

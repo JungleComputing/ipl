@@ -15,6 +15,11 @@
  */
 package ibis.ipl.impl.stacking.lrmc;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
@@ -30,17 +35,11 @@ import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
 import ibis.ipl.impl.stacking.lrmc.util.MessageQueue;
 import ibis.util.TypedProperties;
 
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class LabelRoutingMulticast extends Thread implements MessageUpcall {
 
     private final static int ZOMBIE_THRESHOLD = 100000;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(LabelRoutingMulticast.class);
+    private static final Logger logger = LoggerFactory.getLogger(LabelRoutingMulticast.class);
 
     final LrmcIbis ibis;
 
@@ -52,8 +51,8 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
 
     private final MessageCache cache;
 
-    private final DynamicObjectArray<SendPort> sendports = new DynamicObjectArray<SendPort>();
-    private final DynamicObjectArray<Long> diedmachines = new DynamicObjectArray<Long>();
+    private final DynamicObjectArray<SendPort> sendports = new DynamicObjectArray<>();
+    private final DynamicObjectArray<Long> diedmachines = new DynamicObjectArray<>();
 
     private boolean finish = false;
 
@@ -63,17 +62,13 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
 
     private MessageQueue sendQueue;
 
-    public LabelRoutingMulticast(LrmcIbis ibis, MessageReceiver m,
-            MessageCache c, String name) throws IOException {
+    public LabelRoutingMulticast(LrmcIbis ibis, MessageReceiver m, MessageCache c, String name) throws IOException {
         this.ibis = ibis;
         this.receiver = m;
         this.name = name;
         this.cache = c;
-        this.sendQueue = new MessageQueue(
-                new TypedProperties(ibis.properties()).getIntProperty(
-                        "lrmc.queueSize", 256));
-        receive = ibis.base.createReceivePort(LrmcIbis.additionalPortType, "LRMCRing-"
-                + name, this);
+        this.sendQueue = new MessageQueue(new TypedProperties(ibis.properties()).getIntProperty("lrmc.queueSize", 256));
+        receive = ibis.base.createReceivePort(LrmcIbis.additionalPortType, "LRMCRing-" + name, this);
         receive.enableConnections();
         receive.enableMessageUpcalls();
 
@@ -82,9 +77,8 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
     }
 
     public static PortType getPortType() {
-        return new PortType(PortType.SERIALIZATION_DATA,
-                PortType.COMMUNICATION_RELIABLE,
-                PortType.CONNECTION_MANY_TO_ONE, PortType.RECEIVE_AUTO_UPCALLS);
+        return new PortType(PortType.SERIALIZATION_DATA, PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_MANY_TO_ONE,
+                PortType.RECEIVE_AUTO_UPCALLS);
     }
 
     private synchronized SendPort getSendPort(int id) {
@@ -116,8 +110,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
                     // happens.
                     diedmachines.remove(id);
 
-                    logger.info("Sender insists that " + id
-                            + " is still allive, so I'll try again!");
+                    logger.info("Sender insists that " + id + " is still allive, so I'll try again!");
                 } else {
                     logger.info("Ignoring " + id + " since it's dead!");
                     return null;
@@ -144,8 +137,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
             }
 
             if (failed) {
-                logger.info("Failed to connect to " + id
-                        + " - informing nameserver!");
+                logger.info("Failed to connect to " + id + " - informing nameserver!");
 
                 // notify the nameserver that this machine may be dead...
                 try {
@@ -173,8 +165,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
                 sp = getSendPort(m.sender);
                 if (sp != null) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Writing DONE message " + m.id
-                                + " to sender " + m.sender);
+                        logger.debug("Writing DONE message " + m.id + " to sender " + m.sender);
                     }
                     try {
                         WriteMessage wm = sp.newMessage();
@@ -182,8 +173,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
                         wm.writeInt(m.id);
                         wm.finish();
                     } catch (IOException e) {
-                        logger.debug("Writing DONE message to " + m.sender
-                                + " failed");
+                        logger.debug("Writing DONE message to " + m.sender + " failed");
                     }
                 } else if (logger.isDebugEnabled()) {
                     logger.debug("No sendport for sender " + m.sender);
@@ -217,9 +207,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("Writing message " + m.id + "/" + m.num + " to "
-                        + id + ", sender " + m.sender
-                        + ", destinations left = "
+                logger.debug("Writing message " + m.id + "/" + m.num + " to " + id + ", sender " + m.sender + ", destinations left = "
                         + (m.destinationsUsed - index));
             }
 
@@ -235,8 +223,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
 
     public void setDestination(IbisIdentifier[] destinations) {
 
-        logger.debug("setDestination called, destinations.length = "
-                + destinations.length, new Throwable());
+        logger.debug("setDestination called, destinations.length = " + destinations.length, new Throwable());
 
         // We are allowed to change the order of machines in the destination
         // array. This can be used to make the mcast 'cluster aware'.
@@ -246,9 +233,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
 
         for (int i = 0; i < destinations.length; i++) {
             this.destinations[i] = ibis.getIbisID(destinations[i]);
-            logger.debug("  " + i + " (" + destinations[i] + " at "
-                    + destinations[i].location().getParent() + ") -> "
-                    + this.destinations[i]);
+            logger.debug("  " + i + " (" + destinations[i] + " at " + destinations[i].location().getParent() + ") -> " + this.destinations[i]);
         }
     }
 
@@ -278,6 +263,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
         return true;
     }
 
+    @Override
     public void run() {
 
         while (true) {
@@ -327,6 +313,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
         }
     }
 
+    @Override
     public void upcall(ReadMessage rm) throws IOException {
 
         Message message = null;
@@ -349,8 +336,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
             message.read(rm, len, dst);
 
             if (logger.isDebugEnabled()) {
-                logger.debug("Reading message " + message.id + "/"
-                        + message.num + " from " + message.sender);
+                logger.debug("Reading message " + message.id + "/" + message.num + " from " + message.sender);
             }
 
             if (!message.local) {

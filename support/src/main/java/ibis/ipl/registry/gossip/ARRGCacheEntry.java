@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 /**
- * 
+ *
  */
 package ibis.ipl.registry.gossip;
-
-import ibis.smartsockets.virtual.VirtualSocketAddress;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
+import ibis.smartsockets.virtual.VirtualSocketAddress;
 
 class ARRGCacheEntry {
     private final VirtualSocketAddress address;
@@ -41,7 +41,7 @@ class ARRGCacheEntry {
         } catch (IOException e) {
             throw e;
         } catch (Throwable e) {
-            IOException exception = new IOException("could not read entry"); 
+            IOException exception = new IOException("could not read entry");
             exception.initCause(e);
             throw exception;
         }
@@ -71,6 +71,7 @@ class ARRGCacheEntry {
         return address.equals(entry.address);
     }
 
+    @Override
     public String toString() {
         return "address: " + address + ", arrg only: " + arrgOnly;
     }

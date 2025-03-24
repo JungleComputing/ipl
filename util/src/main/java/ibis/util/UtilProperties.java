@@ -25,7 +25,7 @@ class UtilProperties extends TypedProperties {
     private static final long serialVersionUID = 1L;
 
     private static String[] prefs = { "ibis.util.ip.", "ibis.util.monitor." };
- 
+
     /** Constructs an empty typed properties object. */
     public UtilProperties() {
         super();
@@ -33,6 +33,7 @@ class UtilProperties extends TypedProperties {
 
     /**
      * Constructs a typed properties object with the specified defaults.
+     * 
      * @param defaults the defaults.
      */
     public UtilProperties(Properties defaults, String prefix, String[] props) {

@@ -15,8 +15,9 @@
  */
 package ibis.ipl.benchmarks.masterWorker;
 
-/* $Id$ */
+import java.util.HashMap;
 
+/* $Id$ */
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
@@ -29,8 +30,6 @@ import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-
-import java.util.HashMap;
 
 /**
  * Simulates master worker communication model. Workers request work/return
@@ -55,19 +54,12 @@ final class MasterWorker {
 
         try {
 
-            IbisCapabilities s = new IbisCapabilities(
-                    IbisCapabilities.ELECTIONS_STRICT
-                    );
-            
-            manyToOneType = new PortType(
-                    PortType.SERIALIZATION_OBJECT,
-                    PortType.COMMUNICATION_RELIABLE,
-                    PortType.RECEIVE_EXPLICIT,
+            IbisCapabilities s = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
+
+            manyToOneType = new PortType(PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT,
                     PortType.CONNECTION_MANY_TO_ONE);
-            
-            oneToOneType = new PortType(PortType.SERIALIZATION_OBJECT,
-                    PortType.CONNECTION_ONE_TO_ONE,
-                    PortType.COMMUNICATION_RELIABLE,
+
+            oneToOneType = new PortType(PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_ONE_TO_ONE, PortType.COMMUNICATION_RELIABLE,
                     PortType.RECEIVE_EXPLICIT);
 
             ibis = IbisFactory.createIbis(s, null, manyToOneType, oneToOneType);
@@ -78,7 +70,6 @@ final class MasterWorker {
 
             boolean master = masterID.equals(ibis.identifier());
 
- 
             if (master) {
                 master();
             } else {
@@ -91,10 +82,9 @@ final class MasterWorker {
     }
 
     void master() throws Exception {
-        //map of sendports to workers, indexed on sendportidentifiers of the
-        //worker's sendports
-        HashMap<SendPortIdentifier, SendPort> workers
-                = new HashMap<SendPortIdentifier, SendPort>();
+        // map of sendports to workers, indexed on sendportidentifiers of the
+        // worker's sendports
+        HashMap<SendPortIdentifier, SendPort> workers = new HashMap<>();
 
         ReadMessage readMessage;
         WriteMessage writeMessage;
@@ -105,8 +95,7 @@ final class MasterWorker {
         long end;
         int max = 0;
 
-        ReceivePort rport = ibis.createReceivePort(manyToOneType,
-                "master receive port");
+        ReceivePort rport = ibis.createReceivePort(manyToOneType, "master receive port");
         rport.enableConnections();
 
         while (true) {
@@ -127,8 +116,7 @@ final class MasterWorker {
 
                     workers.put(origin, sendPort);
 
-                    System.err.println("MASTER: new worker detected,"
-                            + " total now: " + workers.size());
+                    System.err.println("MASTER: new worker detected," + " total now: " + workers.size());
                 }
 
                 writeMessage = sendPort.newMessage();
@@ -144,9 +132,7 @@ final class MasterWorker {
                 max = speed;
             }
 
-            System.err.println("MASTER: " + COUNT + " requests / "
-                    + (end - start) + " ms (" + speed + " requests/s), max: "
-                    + max);
+            System.err.println("MASTER: " + COUNT + " requests / " + (end - start) + " ms (" + speed + " requests/s), max: " + max);
 
         }
     }
@@ -184,4 +170,3 @@ final class MasterWorker {
         new MasterWorker();
     }
 }
-

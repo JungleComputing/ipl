@@ -30,120 +30,113 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 
 public class ASMRepository implements Opcodes {
-    public static HashMap<String, ClassNode> classes = new HashMap<String, ClassNode>();
+    public static HashMap<String, ClassNode> classes = new HashMap<>();
 
     public static void addClass(ClassNode cl) {
-	classes.put(cl.name, cl);
+        classes.put(cl.name, cl);
     }
 
     public static ClassNode findClass(String name) throws ClassNotFoundException {
-	ClassNode clazz = classes.get(name);
-	if (clazz == null) {
-	    String externalName = name;
-	    if (name.contains("/")) {
-		externalName = name.replaceAll("/", ".");
-	    }
-	    ClassReader cr;
-	    try {
-		cr = new ClassReader(externalName);
-	    } catch (IOException e) {
-		throw new ClassNotFoundException("Class not found: " + externalName, e);
-	    }
-	    clazz = new ClassNode(ASM4);
-	    cr.accept(clazz, 0);
-	    classes.put(name, clazz);
-	}
-	return clazz;
+        ClassNode clazz = classes.get(name);
+        if (clazz == null) {
+            String externalName = name;
+            if (name.contains("/")) {
+                externalName = name.replaceAll("/", ".");
+            }
+            ClassReader cr;
+            try {
+                cr = new ClassReader(externalName);
+            } catch (IOException e) {
+                throw new ClassNotFoundException("Class not found: " + externalName, e);
+            }
+            clazz = new ClassNode(ASM4);
+            cr.accept(clazz, 0);
+            classes.put(name, clazz);
+        }
+        return clazz;
     }
 
     public static void dump(String fileName, ClassNode clazz) throws IOException {
-	ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-	clazz.accept(w);
-	byte[] b = w.toByteArray();
-	FileOutputStream o = new FileOutputStream(fileName);
-	o.write(b);
-	o.close();
+        ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        clazz.accept(w);
+        byte[] b = w.toByteArray();
+        FileOutputStream o = new FileOutputStream(fileName);
+        o.write(b);
+        o.close();
     }
 
     public static void removeClass(String name) {
-	if (name.contains(".")) {
-	    name = name.replaceAll(".", "/");
-	}
-	classes.remove(name);
+        if (name.contains(".")) {
+            name = name.replaceAll(".", "/");
+        }
+        classes.remove(name);
     }
 
     public static ClassNode parseClassFile(String fileName) throws IOException {
-	return parseInputStream(new BufferedInputStream(new FileInputStream(fileName)), fileName);
+        return parseInputStream(new BufferedInputStream(new FileInputStream(fileName)), fileName);
     }
 
     public static ClassNode parseInputStream(InputStream in, String fileName) throws IOException {
-	ClassNode n = new ClassNode(Opcodes.ASM4);
-	ClassReader r = new ClassReader(in);
-	r.accept(n, 0);
-	classes.put(n.name, n);
-	return n;
+        ClassNode n = new ClassNode(Opcodes.ASM4);
+        ClassReader r = new ClassReader(in);
+        r.accept(n, 0);
+        classes.put(n.name, n);
+        return n;
     }
 
     public static boolean instanceOf(ClassNode clazz, String type) throws ClassNotFoundException {
-	ClassNode n = clazz;
-	for (;;) {
-	    if (n.name.equals(type)) {
-		return true;
-	    }
-	    if (n.name.equals("java/lang/Object")) {
-		break;
-	    }
-	    if (n.superName == null) {
-		break;
-	    }
-	    n = findClass(n.superName);
-	}
-	return implementationOf(clazz, type);
+        ClassNode n = clazz;
+        for (;;) {
+            if (n.name.equals(type)) {
+                return true;
+            }
+            if (n.name.equals("java/lang/Object") || (n.superName == null)) {
+                break;
+            }
+            n = findClass(n.superName);
+        }
+        return implementationOf(clazz, type);
     }
 
     public static ClassNode[] getSuperClasses(ClassNode clazz) throws ClassNotFoundException {
-	ArrayList<ClassNode> supers = new ArrayList<ClassNode>();
-	while (!clazz.name.equals("java/lang/Object") && clazz.superName != null) {
-	    ClassReader r;
-	    try {
-		r = new ClassReader(clazz.superName);
-	    } catch (IOException e) {
-		throw new ClassNotFoundException("Could not find class " + clazz.superName, e);
-	    }
-	    clazz = new ClassNode(Opcodes.ASM4);
-	    r.accept(clazz, 0);
-	    classes.put(clazz.name, clazz);
-	    supers.add(clazz);
-	}
-	return supers.toArray(new ClassNode[supers.size()]);
+        ArrayList<ClassNode> supers = new ArrayList<>();
+        while (!clazz.name.equals("java/lang/Object") && clazz.superName != null) {
+            ClassReader r;
+            try {
+                r = new ClassReader(clazz.superName);
+            } catch (IOException e) {
+                throw new ClassNotFoundException("Could not find class " + clazz.superName, e);
+            }
+            clazz = new ClassNode(Opcodes.ASM4);
+            r.accept(clazz, 0);
+            classes.put(clazz.name, clazz);
+            supers.add(clazz);
+        }
+        return supers.toArray(new ClassNode[supers.size()]);
     }
 
-    public static boolean implementationOf(ClassNode clazz,
-            String type) throws ClassNotFoundException {
+    public static boolean implementationOf(ClassNode clazz, String type) throws ClassNotFoundException {
 //    	System.out.println("implementationOf class: " + clazz.name + " type: " + type);
         List<String> interfaces = clazz.interfaces;
-        for (String i : interfaces) { 
+        for (String i : interfaces) {
             if (i.equals(type)) {
                 return true;
             } else {
                 // the interface might extend the interface we are looking for
-        	ClassNode inter = findClass(i);
-        	if(inter != null) {
+                ClassNode inter = findClass(i);
+                if (inter != null) {
 //        	    System.out.println("FOUND interface: " + i);
-        	    if(implementationOf(inter, type)) {
+                    if (implementationOf(inter, type)) {
 //        		System.out.println("FOUND interface: " + i + ", IT IMPLEMENTS " + type);
-        		return true;
-        	    }
-        	} else {
-        	    System.err.println("interface NOT FOUND: " + i);
-        	    return false;
-        	}
+                        return true;
+                    }
+                } else {
+                    System.err.println("interface NOT FOUND: " + i);
+                    return false;
+                }
             }
         }
-        if (clazz.name.equals("java/lang/Object")) {
-            return false;
-        }
-        if (clazz.superName == null) {
+        if (clazz.name.equals("java/lang/Object") || (clazz.superName == null)) {
             return false;
         }
         ClassNode superClass = findClass(clazz.superName);
@@ -151,6 +144,6 @@ public class ASMRepository implements Opcodes {
     }
 
     public static void clearCache() {
-	classes.clear();
+        classes.clear();
     }
 }

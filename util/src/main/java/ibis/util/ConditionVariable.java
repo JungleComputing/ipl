@@ -21,10 +21,9 @@ package ibis.util;
  * Condition variable synchronization construct.
  *
  * Condition variables are part of thread synchronization primitives of the
- * {@link Monitor} construct. Threads can wait on a condition variable,
- * and condition variables can be signalled by other threads to wake up one
- * waiting thread. A bcast call wakes up all waiting threads on a
- * ConditionVariable.
+ * {@link Monitor} construct. Threads can wait on a condition variable, and
+ * condition variables can be signalled by other threads to wake up one waiting
+ * thread. A bcast call wakes up all waiting threads on a ConditionVariable.
  *
  * A thread that calls <code>cv_wait</code>, <code>cv_signal</code> or
  * <code>cv_bcast</code> must have locked the {@link Monitor} that owns this
@@ -36,8 +35,8 @@ package ibis.util;
  * with an {@link InterruptedException}. Non-interruptible Condition Variables
  * ignore <code>Thread.interrupt</code>.
  *
- * A Condition variable is created by means of the {@link Monitor#createCV()}
- * or the {@link Monitor#createCV(boolean)} method.
+ * A Condition variable is created by means of the {@link Monitor#createCV()} or
+ * the {@link Monitor#createCV(boolean)} method.
  */
 final public class ConditionVariable {
 
@@ -63,11 +62,13 @@ final public class ConditionVariable {
     }
 
     /**
-     * Waits until the thread is signalled (by means of {@link #cv_signal()}
-     * or {@link #cv_bcast}).
-     * @exception InterruptedException is thrown when the condition variable
-     * was created with interrupts enabled, and {@link Thread#interrupt()}
-     * was invoked on the current thread.
+     * Waits until the thread is signalled (by means of {@link #cv_signal()} or
+     * {@link #cv_bcast}).
+     * 
+     * @exception InterruptedException is thrown when the condition variable was
+     *                                 created with interrupts enabled, and
+     *                                 {@link Thread#interrupt()} was invoked on the
+     *                                 current thread.
      */
     final public void cv_wait() throws InterruptedException {
         lock.checkImOwner();
@@ -94,14 +95,16 @@ final public class ConditionVariable {
     }
 
     /**
-     * Waits until the thread is signalled (by means of {@link #cv_signal()}
-     * or {@link #cv_bcast}), or the specified timeout expires.
+     * Waits until the thread is signalled (by means of {@link #cv_signal()} or
+     * {@link #cv_bcast}), or the specified timeout expires.
+     * 
      * @param timeout the specified timeout.
-     * @exception InterruptedException is thrown when the condition variable
-     * was created with interrupts enabled, and {@link Thread#interrupt()}
-     * was invoked on the current thread.
-     * @return <code>true</code> when this method returns because the
-     * timeout expired.
+     * @exception InterruptedException is thrown when the condition variable was
+     *                                 created with interrupts enabled, and
+     *                                 {@link Thread#interrupt()} was invoked on the
+     *                                 current thread.
+     * @return <code>true</code> when this method returns because the timeout
+     *         expired.
      */
     final public boolean cv_wait(long timeout) throws InterruptedException {
         lock.checkImOwner();
@@ -163,12 +166,12 @@ final public class ConditionVariable {
 
     /**
      * When statistics are enabled, prints them on the specified stream.
+     * 
      * @param out the stream to print on.
      */
     static public void report(java.io.PrintStream out) {
         if (Monitor.STATISTICS) {
-            out.println("Condition variables: wait " + waits + " timed wait "
-                    + timed_waits + " signal " + signals + " bcast " + bcasts);
+            out.println("Condition variables: wait " + waits + " timed wait " + timed_waits + " signal " + signals + " bcast " + bcasts);
         }
     }
 }

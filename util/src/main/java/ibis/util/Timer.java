@@ -55,7 +55,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns implementation name of this timer ("e.g., "javaTimer").
-     * 
+     *
      * @return the implementation name.
      */
     public String implementationName() {
@@ -64,6 +64,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Adds the contents of the parameter to this timer.
+     * 
      * @param t the timer to be added.
      */
     public synchronized void add(Timer t) {
@@ -73,7 +74,8 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Adds the contents of the parameters to this timer.
-     * @param t the time in microseconds to be added.
+     * 
+     * @param t   the time in microseconds to be added.
      * @param cnt the number of start/stop sequences.
      */
     public synchronized void add(long t, int cnt) {
@@ -82,9 +84,9 @@ public class Timer implements java.io.Serializable {
     }
 
     /**
-     * Returns accuracy of this timer in seconds.
-     * Note that this only gives an upperbound for the precision of this timer.
-     * 
+     * Returns accuracy of this timer in seconds. Note that this only gives an
+     * upperbound for the precision of this timer.
+     *
      * @return the accuracy.
      */
     public double accuracy() {
@@ -93,7 +95,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the current time stamp in nano seconds.
-     * 
+     *
      * @return the current time stamp.
      */
     public long currentTimeNanos() {
@@ -110,7 +112,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the total measured time in microseconds.
-     * 
+     *
      * @return total measured time.
      */
     public double totalTimeVal() {
@@ -119,12 +121,12 @@ public class Timer implements java.io.Serializable {
         if (started) {
             cur_time = System.nanoTime() - t_start;
         }
-        return (time+cur_time)/1000.0;
+        return (time + cur_time) / 1000.0;
     }
 
     /**
      * Returns the total measured time in microseconds, nicely formatted.
-     * 
+     *
      * @return total measured time.
      */
     public String totalTime() {
@@ -133,7 +135,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the average measured time in microseconds.
-     * 
+     *
      * @return the average measured time.
      */
     public double averageTimeVal() {
@@ -145,7 +147,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the average measured time in microseconds, nicely formatted.
-     * 
+     *
      * @return the average measured time.
      */
     public String averageTime() {
@@ -154,7 +156,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the last measured time in microseconds.
-     * 
+     *
      * @return the last measured time.
      */
     public double lastTimeVal() {
@@ -163,7 +165,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the maximum measured time in microseconds.
-     * 
+     *
      * @return the maximum measured time.
      */
     public double maxTimeVal() {
@@ -172,7 +174,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the minimum measured time in microseconds.
-     * 
+     *
      * @return the minimum measured time.
      */
     public double minTimeVal() {
@@ -181,7 +183,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the last measured time in microseconds, nicely formatted.
-     * 
+     *
      * @return the last measured time.
      */
     public String lastTime() {
@@ -190,7 +192,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the maximum measured time in microseconds, nicely formatted.
-     * 
+     *
      * @return the maximum measured time.
      */
     public String maxTime() {
@@ -199,7 +201,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the minimum measured time in microseconds, nicely formatted.
-     * 
+     *
      * @return the minimum measured time.
      */
     public String minTime() {
@@ -208,7 +210,7 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns the number of measurements.
-     * 
+     *
      * @return the number of measurements.
      */
     public int nrTimes() {
@@ -216,9 +218,8 @@ public class Timer implements java.io.Serializable {
     }
 
     /**
-     * Starts the timer. If the timer is already started, this is a no-op. The
-     * next {@link #stop()}call will stop the timer and add the result to the
-     * total.
+     * Starts the timer. If the timer is already started, this is a no-op. The next
+     * {@link #stop()}call will stop the timer and add the result to the total.
      */
     public void start() {
         if (started) {
@@ -229,9 +230,9 @@ public class Timer implements java.io.Serializable {
     }
 
     /**
-     * Stops the timer. If the timer is not started, this is a no-op. The timer
-     * is stopped, and the time between the last {@link #start()}and "now" is
-     * added to the total.
+     * Stops the timer. If the timer is not started, this is a no-op. The timer is
+     * stopped, and the time between the last {@link #start()}and "now" is added to
+     * the total.
      */
     public void stop() {
         if (!started) {
@@ -252,9 +253,8 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Formats a time in microseconds
-     * 
-     * @param micros
-     *            the time to be formatted.
+     *
+     * @param micros the time to be formatted.
      * @return the result of the format.
      */
     public static String format(double micros) {
@@ -310,13 +310,11 @@ public class Timer implements java.io.Serializable {
 
     /**
      * Returns a Timer instance indicated by the implementation name provided.
-     * Returns the default timer when the implementation could not be loaded.
-     * This default could use a native timer or System.nanoTime().
-     * The accuracy of the timer can be obtained through the
-     * {@link #accuracy()} method.
-     * 
-     * @param impl
-     *            the name of the Timer implementation.
+     * Returns the default timer when the implementation could not be loaded. This
+     * default could use a native timer or System.nanoTime(). The accuracy of the
+     * timer can be obtained through the {@link #accuracy()} method.
+     *
+     * @param impl the name of the Timer implementation.
      * @return the new Timer instance.
      */
     public static Timer createTimer(String impl) {
@@ -324,15 +322,14 @@ public class Timer implements java.io.Serializable {
             Class<?> c = Class.forName(impl);
             return (Timer) c.getDeclaredConstructor().newInstance();
         } catch (Throwable t) {
-            System.err.println("Warning could not create timer " + impl
-                    + ", falling back to default");
+            System.err.println("Warning could not create timer " + impl + ", falling back to default");
             return createTimer();
         }
     }
 
     /**
      * Returns a Timer instance suitable for the system at hand.
-     * 
+     *
      * @return the new Timer instance.
      */
     public static Timer createTimer() {
@@ -340,13 +337,14 @@ public class Timer implements java.io.Serializable {
             Class<?> c = null;
             c = Class.forName("ibis.util.nativeCode.Rdtsc");
             return (Timer) c.getDeclaredConstructor().newInstance();
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             return new Timer();
         }
     }
 
     /**
      * Times the timer itself.
+     * 
      * @param args the first argument, if given, indicates the number of start/stop
      *             sequences to time. Default is 1000000.
      */

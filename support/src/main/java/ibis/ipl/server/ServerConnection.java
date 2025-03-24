@@ -15,6 +15,12 @@
  */
 package ibis.ipl.server;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.Properties;
+
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.support.Connection;
 import ibis.smartsockets.SmartSocketsProperties;
@@ -25,19 +31,13 @@ import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.Properties;
-
 /**
  * Connection to a server in another JVM (possibly on another machine).
  * Connection can be established either by connecting stdin/stdout to a server
  * started with the "--remote" option, or by passing the address of the server.
- * 
+ *
  * @author Niels Drost
- * 
+ *
  */
 public class ServerConnection implements ServerInterface {
 
@@ -53,8 +53,7 @@ public class ServerConnection implements ServerInterface {
 
     private final VirtualSocketFactory socketFactory;
 
-    private static VirtualSocketAddress createServerAddress(
-            String serverString, int defaultPort) throws IOException {
+    private static VirtualSocketAddress createServerAddress(String serverString, int defaultPort) throws IOException {
 
         if (serverString == null) {
             throw new IbisConfigurationException("serverString undefined");
@@ -73,22 +72,17 @@ public class ServerConnection implements ServerInterface {
 
             // or only a host address
             try {
-                address = DirectSocketAddress.getByAddress(serverString,
-                        defaultPort);
+                address = DirectSocketAddress.getByAddress(serverString, defaultPort);
             } catch (Throwable e) {
-                throw new IOException(
-                        "could not create server address from given string: "
-                                + serverString);
+                throw new IOException("could not create server address from given string: " + serverString);
             }
         }
 
-        return new VirtualSocketAddress(address,
-                ServerConnectionProtocol.VIRTUAL_PORT, address, null);
+        return new VirtualSocketAddress(address, ServerConnectionProtocol.VIRTUAL_PORT, address, null);
 
     }
 
-    private static VirtualSocketFactory createSocketFactory(String hubs)
-            throws IOException {
+    private static VirtualSocketFactory createSocketFactory(String hubs) throws IOException {
         final VirtualSocketFactory result;
 
         Properties properties = new Properties();
@@ -103,9 +97,11 @@ public class ServerConnection implements ServerInterface {
             throw new IOException(e.getMessage());
         }
 
-        // Make this node disappear from the smartsockets viz, but avoid a roundtrip for this in the
+        // Make this node disappear from the smartsockets viz, but avoid a roundtrip for
+        // this in the
         // Ibis creation thread.
         Runnable r = new Runnable() {
+            @Override
             public void run() {
                 try {
                     ServiceLink sl = result.getServiceLink();
@@ -123,37 +119,28 @@ public class ServerConnection implements ServerInterface {
     }
 
     /**
-     * Creates a connection to the server with the given in and output stream.
-     * Will parse the address of the server from the standard out of the server process.
+     * Creates a connection to the server with the given in and output stream. Will
+     * parse the address of the server from the standard out of the server process.
      * Also forwards the output to the given stream (with an optional prefix to each
-     * line). When this connection is terminated, the (remote) server terminates
-     * as well.
-     * 
-     * @param stdout
-     *            Standard out of server process
-     * @param stdin
-     *            Standard in of server process
-     * @param output
-     *            Stream to forward output to
-     * @param outputPrefix
-     *            Prefix to add to all lines of output
-     * @param timeout
-     *            Number of milliseconds to wait for the server to become
-     *            available
-     * @param socketFactory
-     *            Socket factory to use for making connections. if null, a new
-     *            factory will be created
-     * 
-     * @throws IOException
-     *             if the socket factory cannot be created
+     * line). When this connection is terminated, the (remote) server terminates as
+     * well.
+     *
+     * @param stdout        Standard out of server process
+     * @param stdin         Standard in of server process
+     * @param output        Stream to forward output to
+     * @param outputPrefix  Prefix to add to all lines of output
+     * @param timeout       Number of milliseconds to wait for the server to become
+     *                      available
+     * @param socketFactory Socket factory to use for making connections. if null, a
+     *                      new factory will be created
+     *
+     * @throws IOException if the socket factory cannot be created
      */
-    public ServerConnection(InputStream stdout, OutputStream stdin,
-            PrintStream output, String outputPrefix, long timeout,
+    public ServerConnection(InputStream stdout, OutputStream stdin, PrintStream output, String outputPrefix, long timeout,
             VirtualSocketFactory socketFactory) throws IOException {
 
         pipe = new ServerPipe(stdout, stdin, output, outputPrefix);
-        address = createServerAddress(pipe.getAddress(timeout),
-                ServerProperties.DEFAULT_PORT);
+        address = createServerAddress(pipe.getAddress(timeout), ServerProperties.DEFAULT_PORT);
 
         if (socketFactory == null) {
             this.socketFactory = createSocketFactory(null);
@@ -162,28 +149,21 @@ public class ServerConnection implements ServerInterface {
             this.socketFactory = socketFactory;
         }
 
-        managementConnection = new ManagementServiceConnection(this.address,
-                this.socketFactory);
-        registryConnection = new RegistryServiceConnection(this.address,
-                this.socketFactory);
+        managementConnection = new ManagementServiceConnection(this.address, this.socketFactory);
+        registryConnection = new RegistryServiceConnection(this.address, this.socketFactory);
     }
 
     /**
      * Creates a connection to the server at the given address.
-     * 
-     * @param address
-     *            address of the server
-     * @param socketFactory
-     *            Socket factory to use for making connections. if null, a new
-     *            factory will be created
-     * @throws IOException
-     *             in case the socket factory cannot be created
+     *
+     * @param address       address of the server
+     * @param socketFactory Socket factory to use for making connections. if null, a
+     *                      new factory will be created
+     * @throws IOException in case the socket factory cannot be created
      */
-    public ServerConnection(String address, VirtualSocketFactory socketFactory)
-            throws IOException {
+    public ServerConnection(String address, VirtualSocketFactory socketFactory) throws IOException {
         pipe = null;
-        this.address = createServerAddress(address,
-                ServerProperties.DEFAULT_PORT);
+        this.address = createServerAddress(address, ServerProperties.DEFAULT_PORT);
 
         if (socketFactory == null) {
             this.socketFactory = createSocketFactory(null);
@@ -191,23 +171,18 @@ public class ServerConnection implements ServerInterface {
             this.socketFactory = socketFactory;
         }
 
-        managementConnection = new ManagementServiceConnection(this.address,
-                this.socketFactory);
-        registryConnection = new RegistryServiceConnection(this.address,
-                this.socketFactory);
+        managementConnection = new ManagementServiceConnection(this.address, this.socketFactory);
+        registryConnection = new RegistryServiceConnection(this.address, this.socketFactory);
     }
 
     /**
      * Connections to the server at the given address. A list of hubs to use to
      * connect to the server must also be provided.
-     * 
-     * @param address
-     *            address of the server
-     * @param hubs
-     *            list of hubs to use.
-     * @throws IOException
-     *             in case the SocketFactory could not be created
-     * 
+     *
+     * @param address address of the server
+     * @param hubs    list of hubs to use.
+     * @throws IOException in case the SocketFactory could not be created
+     *
      */
     public ServerConnection(String address, String hubs) throws IOException {
         pipe = null;
@@ -217,30 +192,27 @@ public class ServerConnection implements ServerInterface {
 
         this.socketFactory = createSocketFactory(hubs);
 
-        this.address = createServerAddress(getAddress(),
-                ServerProperties.DEFAULT_PORT);
+        this.address = createServerAddress(getAddress(), ServerProperties.DEFAULT_PORT);
 
-        managementConnection = new ManagementServiceConnection(this.address,
-                this.socketFactory);
-        registryConnection = new RegistryServiceConnection(this.address,
-                this.socketFactory);
+        managementConnection = new ManagementServiceConnection(this.address, this.socketFactory);
+        registryConnection = new RegistryServiceConnection(this.address, this.socketFactory);
 
     }
 
     // Java 1.5 Does not allow @Override for interface methods
-    //    @Override
+    // @Override
+    @Override
     public String getAddress() throws IOException {
         return address.machine().toString();
     }
 
-    //    @Override
+    // @Override
+    @Override
     public String[] getServiceNames() throws IOException {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out().writeByte(
-                    ServerConnectionProtocol.OPCODE_GET_SERVICE_NAMES);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_GET_SERVICE_NAMES);
             connection.getAndCheckReply();
             int nrOfServices = connection.in().readInt();
             if (nrOfServices < 0) {
@@ -257,14 +229,13 @@ public class ServerConnection implements ServerInterface {
 
     }
 
-    //    @Override
+    // @Override
+    @Override
     public String[] getHubs() throws IOException {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out()
-                    .writeByte(ServerConnectionProtocol.OPCODE_GET_HUBS);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_GET_HUBS);
             connection.getAndCheckReply();
             int nrOfHubs = connection.in().readInt();
             if (nrOfHubs < 0) {
@@ -281,7 +252,8 @@ public class ServerConnection implements ServerInterface {
 
     }
 
-    //    @Override
+    // @Override
+    @Override
     public void addHubs(DirectSocketAddress... hubAddresses) throws IOException {
         String[] strings = new String[hubAddresses.length];
         for (int i = 0; i < strings.length; i++) {
@@ -290,14 +262,13 @@ public class ServerConnection implements ServerInterface {
         addHubs(strings);
     }
 
-    //    @Override
+    // @Override
+    @Override
     public void addHubs(String... hubAddresses) throws IOException {
-        Connection connection = new Connection(address, TIMEOUT, true,
-                socketFactory);
+        Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
         try {
             connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
-            connection.out()
-                    .writeByte(ServerConnectionProtocol.OPCODE_ADD_HUBS);
+            connection.out().writeByte(ServerConnectionProtocol.OPCODE_ADD_HUBS);
             connection.out().writeInt(hubAddresses.length);
             for (String hub : hubAddresses) {
                 connection.out().writeUTF(hub);
@@ -308,13 +279,13 @@ public class ServerConnection implements ServerInterface {
         }
     }
 
-    //    @Override
+    // @Override
+    @Override
     public void end(long timeout) throws IOException {
         if (pipe != null) {
             pipe.end();
         } else {
-            Connection connection = new Connection(address, TIMEOUT, true,
-                    socketFactory);
+            Connection connection = new Connection(address, TIMEOUT, true, socketFactory);
             try {
 
                 connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
@@ -328,19 +299,21 @@ public class ServerConnection implements ServerInterface {
 
     }
 
-    //    @Override
+    // @Override
+    @Override
     public RegistryServiceInterface getRegistryService() {
         return registryConnection;
     }
 
-    //    @Override
+    // @Override
+    @Override
     public ManagementServiceInterface getManagementService() {
         return managementConnection;
     }
 
     /**
-     * Closes connection to the server. Will also terminate server if
-     * stdin/stdout connection is used
+     * Closes connection to the server. Will also terminate server if stdin/stdout
+     * connection is used
      */
     public void closeConnection() {
         if (pipe != null) {

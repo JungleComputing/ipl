@@ -34,7 +34,7 @@ class IbisSocketAddress {
         ObjectInputStream is = new ObjectInputStream(in);
         try {
             address = (SocketAddress) is.readObject();
-        } catch(ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             throw new IOException("Could not read address" + e);
         }
         is.close();
@@ -48,6 +48,7 @@ class IbisSocketAddress {
         return out.toByteArray();
     }
 
+    @Override
     public String toString() {
         return address.toString();
     }

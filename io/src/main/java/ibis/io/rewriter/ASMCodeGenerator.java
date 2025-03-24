@@ -104,22 +104,18 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         versionUID();
 
         /*
-         * getFields() does not specify or guarantee a specific order.
-         * Therefore, we sort the fields alphabetically, and the serialization
-         * code in ibis.io should do the same.
+         * getFields() does not specify or guarantee a specific order. Therefore, we
+         * sort the fields alphabetically, and the serialization code in ibis.io should
+         * do the same.
          */
         Collections.sort(fields, ASMSerializationInfo.fieldComparator);
 
-        super_is_serializable = ASMSerializationInfo
-                .isSerializable(super_class);
+        super_is_serializable = ASMSerializationInfo.isSerializable(super_class);
         is_externalizable = ASMSerializationInfo.isExternalizable(cl);
         is_abstract = (cl.access & ACC_ABSTRACT) == ACC_ABSTRACT;
-        super_is_ibis_serializable = ASMSerializationInfo
-                .isIbisSerializable(super_class);
-        super_has_ibis_constructor = ASMSerializationInfo
-                .hasIbisConstructor(super_class);
-        has_serial_persistent_fields = ASMSerializationInfo
-                .hasSerialPersistentFields(fields);
+        super_is_ibis_serializable = ASMSerializationInfo.isIbisSerializable(super_class);
+        super_has_ibis_constructor = ASMSerializationInfo.hasIbisConstructor(super_class);
+        has_serial_persistent_fields = ASMSerializationInfo.hasSerialPersistentFields(fields);
         has_final_fields = ASMSerializationInfo.hasFinalFields(fields);
     }
 
@@ -129,8 +125,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
      */
     private void versionUID() {
         for (FieldNode f : fields) {
-            if (f.name.equals(FIELD_SERIAL_VERSION_UID) && (f.access
-                    & (ACC_FINAL | ACC_STATIC)) == (ACC_FINAL | ACC_STATIC)) {
+            if (f.name.equals(FIELD_SERIAL_VERSION_UID) && (f.access & (ACC_FINAL | ACC_STATIC)) == (ACC_FINAL | ACC_STATIC)) {
                 /* Already present. Just return. */
                 return;
             }
@@ -140,41 +135,31 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         uid = ASMSerializationInfo.getSerialVersionUID(clazz.name, clazz);
 
         if (uid != 0) {
-            fields.add(new FieldNode(ACC_PRIVATE | ACC_FINAL | ACC_STATIC,
-                    FIELD_SERIAL_VERSION_UID, "J", null, Long.valueOf(uid)));
+            fields.add(new FieldNode(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, FIELD_SERIAL_VERSION_UID, "J", null, Long.valueOf(uid)));
         }
     }
 
-    private MethodInsnNode createGeneratedWriteObjectInvocation(String name,
-            int invmode) {
-        return new MethodInsnNode(invmode, name, METHOD_GENERATED_WRITE_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V,
+    private MethodInsnNode createGeneratedWriteObjectInvocation(String name, int invmode) {
+        return new MethodInsnNode(invmode, name, METHOD_GENERATED_WRITE_OBJECT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V,
                 invmode == INVOKEINTERFACE);
     }
 
-    private MethodInsnNode createGeneratedDefaultReadObjectInvocation(String cl,
-            int invmode) {
-        return new MethodInsnNode(invmode, cl,
-                METHOD_GENERATED_DEFAULT_READ_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V,
+    private MethodInsnNode createGeneratedDefaultReadObjectInvocation(String cl, int invmode) {
+        return new MethodInsnNode(invmode, cl, METHOD_GENERATED_DEFAULT_READ_OBJECT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V,
                 invmode == INVOKEINTERFACE);
     }
 
     private MethodInsnNode createInitInvocation(ClassNode cl) {
-        return new MethodInsnNode(INVOKESPECIAL, cl.name, METHOD_INIT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V, false);
+        return new MethodInsnNode(INVOKESPECIAL, cl.name, METHOD_INIT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V, false);
     }
 
-    private MethodInsnNode createGeneratedDefaultWriteObjectInvocation(
-            String name) {
-        return new MethodInsnNode(INVOKESPECIAL, name,
-                METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V, false);
+    private MethodInsnNode createGeneratedDefaultWriteObjectInvocation(String name) {
+        return new MethodInsnNode(INVOKESPECIAL, name, METHOD_GENERATED_DEFAULT_WRITE_OBJECT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V,
+                false);
     }
 
     private MethodInsnNode createWriteObjectInvocation() {
-        return new MethodInsnNode(INVOKESPECIAL, clazz.name,
-                METHOD_WRITE_OBJECT, SIGNATURE_METHOD_WRITE_OBJECT, false);
+        return new MethodInsnNode(INVOKESPECIAL, clazz.name, METHOD_WRITE_OBJECT, SIGNATURE_METHOD_WRITE_OBJECT, false);
     }
 
     private int getClassDepth(ClassNode cl) {
@@ -188,11 +173,8 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         /* Generate the necessary (empty) methods. */
 
         if (generator.isVerbose()) {
-            System.out.println(
-                    "  Generating empty methods for class : " + clazz.name);
-            System.out.println("    " + clazz.name
-                    + " implements java.io.Serializable -> adding "
-                    + IBIS_IO_SERIALIZABLE);
+            System.out.println("  Generating empty methods for class : " + clazz.name);
+            System.out.println("    " + clazz.name + " implements java.io.Serializable -> adding " + IBIS_IO_SERIALIZABLE);
         }
 
         /* add the ibis.io.Serializable interface to the class */
@@ -201,23 +183,17 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         /* Construct a write method */
         InsnList il = new InsnList();
         il.add(new InsnNode(RETURN));
-        int flags = ACC_PUBLIC
-                | ((clazz.access & ACC_FINAL) == ACC_FINAL ? ACC_FINAL : 0);
-        MethodNode writeMethod = new MethodNode(ASM4, flags,
-                METHOD_GENERATED_WRITE_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V,
-                new String[] { JAVA_IO_IOEXCEPTION });
+        int flags = ACC_PUBLIC | ((clazz.access & ACC_FINAL) == ACC_FINAL ? ACC_FINAL : 0);
+        MethodNode writeMethod = new MethodNode(ASM4, flags, METHOD_GENERATED_WRITE_OBJECT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V,
+                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V, new String[] { JAVA_IO_IOEXCEPTION });
         writeMethod.instructions = il;
         methods.add(writeMethod);
 
         /* ... and a default_write_method */
         il = new InsnList();
         il.add(new InsnNode(RETURN));
-        MethodNode defaultWriteMethod = new MethodNode(ASM4, flags,
-                METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V,
+        MethodNode defaultWriteMethod = new MethodNode(ASM4, flags, METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
+                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V,
                 new String[] { JAVA_IO_IOEXCEPTION });
         defaultWriteMethod.instructions = il;
         methods.add(defaultWriteMethod);
@@ -225,40 +201,29 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         /* ... and a default_read_method */
         il = new InsnList();
         il.add(new InsnNode(RETURN));
-        MethodNode defaultReadMethod = new MethodNode(ASM4, flags,
-                METHOD_GENERATED_DEFAULT_READ_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V,
-                new String[] { JAVA_IO_IOEXCEPTION,
-                        JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
+        MethodNode defaultReadMethod = new MethodNode(ASM4, flags, METHOD_GENERATED_DEFAULT_READ_OBJECT,
+                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V,
+                new String[] { JAVA_IO_IOEXCEPTION, JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
         defaultReadMethod.instructions = il;
         methods.add(defaultReadMethod);
 
         /*
-         * Construct a read-of-the-stream constructor, but only when we can
-         * actually use it.
+         * Construct a read-of-the-stream constructor, but only when we can actually use
+         * it.
          */
-        if (is_externalizable || !super_is_serializable
-                || generator.forceGeneratedCalls()
-                || super_has_ibis_constructor) {
+        if (is_externalizable || !super_is_serializable || generator.forceGeneratedCalls() || super_has_ibis_constructor) {
             il = new InsnList();
             il.add(new InsnNode(RETURN));
-            MethodNode readCons = new MethodNode(ASM4, ACC_PUBLIC, METHOD_INIT,
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
-                    new String[] { JAVA_IO_IOEXCEPTION,
-                            JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
+            MethodNode readCons = new MethodNode(ASM4, ACC_PUBLIC, METHOD_INIT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V, new String[] { JAVA_IO_IOEXCEPTION, JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
             readCons.instructions = il;
             methods.add(readCons);
         } else if (ASMSerializationInfo.hasReadObject(methods)) {
             il = new InsnList();
             il.add(new InsnNode(RETURN));
-            MethodNode readObjectWrapper = new MethodNode(ASM4, ACC_PUBLIC,
-                    METHOD_$READ_OBJECT_WRAPPER$,
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
-                    new String[] { JAVA_IO_IOEXCEPTION,
-                            JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
+            MethodNode readObjectWrapper = new MethodNode(ASM4, ACC_PUBLIC, METHOD_$READ_OBJECT_WRAPPER$,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
+                    new String[] { JAVA_IO_IOEXCEPTION, JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
             readObjectWrapper.instructions = il;
             methods.add(readObjectWrapper);
         }
@@ -268,45 +233,33 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
     private InsnList writeInstructions(FieldNode field) {
         Type field_type = Type.getType(field.desc);
-        ASMSerializationInfo info = ASMSerializationInfo
-                .getSerializationInfo(field_type);
+        ASMSerializationInfo info = ASMSerializationInfo.getSerializationInfo(field_type);
 
         InsnList temp = new InsnList();
 
         temp.add(new VarInsnNode(ALOAD, 1));
         temp.add(new VarInsnNode(ALOAD, 0));
-        temp.add(new FieldInsnNode(GETFIELD, clazz.name, field.name,
-                field.desc));
-        temp.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, info.write_name,
-                Type.getMethodDescriptor(Type.VOID_TYPE,
-                        Type.getType(info.signature)),
-                false));
+        temp.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
+        temp.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, info.write_name,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(info.signature)), false));
         return temp;
     }
 
-    private InsnList readInstructions(FieldNode field,
-            boolean from_constructor) {
+    private InsnList readInstructions(FieldNode field, boolean from_constructor) {
         Type field_type = Type.getType(field.desc);
-        ASMSerializationInfo info = ASMSerializationInfo
-                .getSerializationInfo(field_type);
+        ASMSerializationInfo info = ASMSerializationInfo.getSerializationInfo(field_type);
 
         InsnList temp = new InsnList();
 
         if (from_constructor || (field.access & ACC_FINAL) == 0) {
             temp.add(new VarInsnNode(ALOAD, 0));
             temp.add(new VarInsnNode(ALOAD, 1));
-            temp.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    info.read_name,
-                    Type.getMethodDescriptor(Type.getType(info.signature)),
-                    false));
+            temp.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, info.read_name,
+                    Type.getMethodDescriptor(Type.getType(info.signature)), false));
             if (!info.primitive) {
-                temp.add(new TypeInsnNode(CHECKCAST,
-                        field_type.getInternalName()));
+                temp.add(new TypeInsnNode(CHECKCAST, field_type.getInternalName()));
             }
-            temp.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name,
-                    field.desc));
+            temp.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name, field.desc));
         } else {
             temp.add(new VarInsnNode(ALOAD, 1));
             temp.add(new VarInsnNode(ALOAD, 0));
@@ -315,23 +268,18 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             String methodDescr;
             if (!info.primitive) {
                 temp.add(new LdcInsnNode(field.desc));
-                methodDescr = Type.getMethodDescriptor(Type.VOID_TYPE,
-                        TYPE_OBJECT, TYPE_STRING, TYPE_STRING, TYPE_STRING);
+                methodDescr = Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING, TYPE_STRING, TYPE_STRING);
             } else {
-                methodDescr = Type.getMethodDescriptor(Type.VOID_TYPE,
-                        TYPE_OBJECT, TYPE_STRING, TYPE_STRING);
+                methodDescr = Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING, TYPE_STRING);
             }
-            temp.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    info.final_read_name, methodDescr, false));
+            temp.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, info.final_read_name, methodDescr, false));
         }
 
         return temp;
     }
 
     private String writeCallName(String name) {
-        return METHOD_WRITE_ARRAY + name.substring(0, 1).toUpperCase()
-                + name.substring(1);
+        return METHOD_WRITE_ARRAY + name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
     private InsnList writeReferenceField(FieldNode field) {
@@ -344,8 +292,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         String basicname = null;
 
         if (generator.isVerbose()) {
-            System.out.println("    writing reference field " + field.name
-                    + " of type " + field.desc);
+            System.out.println("    writing reference field " + field.name + " of type " + field.desc);
         }
         Type tp = field_type;
         if (tp.getSort() == Type.ARRAY) {
@@ -358,8 +305,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         }
         if (tp.getSort() == Type.OBJECT) {
             field_class = lookupClass(tp.getInternalName());
-            if (field_class != null
-                    && (field_class.access & ACC_FINAL) == ACC_FINAL) {
+            if (field_class != null && (field_class.access & ACC_FINAL) == ACC_FINAL) {
                 isfinal = true;
             }
         } else if (isarray) {
@@ -391,17 +337,13 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             }
         }
 
-        if (basicname != null || (isfinal
-                && (ASMSerializationInfo.hasIbisConstructor(field_class)
-                        || (ASMSerializationInfo.isSerializable(field_class)
-                                && generator.forceGeneratedCalls())))) {
+        if (basicname != null || (isfinal && (ASMSerializationInfo.hasIbisConstructor(field_class)
+                || (ASMSerializationInfo.isSerializable(field_class) && generator.forceGeneratedCalls())))) {
             // If there is an object replacer, we cannot do the
             // "fast" code.
             write_il.add(new InsnNode(ACONST_NULL));
             write_il.add(new VarInsnNode(ALOAD, 1));
-            write_il.add(new FieldInsnNode(GETFIELD,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, "replacer",
-                    "Libis/io/Replacer;"));
+            write_il.add(new FieldInsnNode(GETFIELD, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, "replacer", "Libis/io/Replacer;"));
             LabelNode target = new LabelNode();
             write_il.add(new JumpInsnNode(IF_ACMPEQ, target));
             write_il.add(writeInstructions(field));
@@ -410,23 +352,14 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             write_il.add(target);
             write_il.add(new VarInsnNode(ALOAD, 1));
             write_il.add(new VarInsnNode(ALOAD, 0));
-            write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name,
-                    field.desc));
+            write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
             if (basicname != null) {
-                write_il.add(new FieldInsnNode(GETSTATIC, IBIS_IO_CONSTANTS,
-                        "TYPE_" + basicname.toUpperCase(), "I"));
-                write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                        METHOD_WRITE_KNOWN_ARRAY_HEADER,
-                        Type.getMethodDescriptor(Type.INT_TYPE, TYPE_OBJECT,
-                                Type.INT_TYPE),
-                        false));
+                write_il.add(new FieldInsnNode(GETSTATIC, IBIS_IO_CONSTANTS, "TYPE_" + basicname.toUpperCase(), "I"));
+                write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_KNOWN_ARRAY_HEADER,
+                        Type.getMethodDescriptor(Type.INT_TYPE, TYPE_OBJECT, Type.INT_TYPE), false));
             } else {
-                write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                        METHOD_WRITE_KNOWN_OBJECT_HEADER,
-                        Type.getMethodDescriptor(Type.INT_TYPE, TYPE_OBJECT),
-                        false));
+                write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_KNOWN_OBJECT_HEADER,
+                        Type.getMethodDescriptor(Type.INT_TYPE, TYPE_OBJECT), false));
             }
             write_il.add(new VarInsnNode(ISTORE, 2));
             write_il.add(new VarInsnNode(ILOAD, 2));
@@ -436,29 +369,20 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             if (isarray) {
                 write_il.add(new VarInsnNode(ALOAD, 1));
                 write_il.add(new VarInsnNode(ALOAD, 0));
-                write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name,
-                        field.desc));
+                write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
                 write_il.add(new InsnNode(ARRAYLENGTH));
                 write_il.add(new InsnNode(DUP));
                 write_il.add(new VarInsnNode(ISTORE, 4));
-                write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                        METHOD_WRITE_INT,
-                        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE),
-                        false));
+                write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_INT,
+                        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE), false));
                 if (basicname != null) {
                     write_il.add(new VarInsnNode(ALOAD, 1));
                     write_il.add(new VarInsnNode(ALOAD, 0));
-                    write_il.add(new FieldInsnNode(GETFIELD, clazz.name,
-                            field.name, field.desc));
+                    write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
                     write_il.add(new LdcInsnNode(0));
                     write_il.add(new VarInsnNode(ILOAD, 4));
-                    write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                            writeCallName(basicname),
-                            Type.getMethodDescriptor(Type.VOID_TYPE, field_type,
-                                    Type.INT_TYPE, Type.INT_TYPE),
-                            false));
+                    write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, writeCallName(basicname),
+                            Type.getMethodDescriptor(Type.VOID_TYPE, field_type, Type.INT_TYPE, Type.INT_TYPE), false));
                 } else {
                     write_il.add(new LdcInsnNode(0));
                     write_il.add(new VarInsnNode(ISTORE, 3));
@@ -468,29 +392,22 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                     write_il.add(loop_body_start);
                     write_il.add(new VarInsnNode(ALOAD, 1));
                     write_il.add(new VarInsnNode(ALOAD, 0));
-                    write_il.add(new FieldInsnNode(GETFIELD, clazz.name,
-                            field.name, field.desc));
+                    write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
                     write_il.add(new VarInsnNode(ILOAD, 3));
                     write_il.add(new InsnNode(AALOAD));
-                    write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                            METHOD_WRITE_KNOWN_OBJECT_HEADER,
-                            Type.getMethodDescriptor(Type.INT_TYPE,
-                                    TYPE_OBJECT),
-                            false));
+                    write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_KNOWN_OBJECT_HEADER,
+                            Type.getMethodDescriptor(Type.INT_TYPE, TYPE_OBJECT), false));
                     write_il.add(new VarInsnNode(ISTORE, 2));
                     write_il.add(new VarInsnNode(ILOAD, 2));
                     write_il.add(new LdcInsnNode(1));
                     LabelNode ifcmp1 = new LabelNode();
                     write_il.add(new JumpInsnNode(IF_ICMPNE, ifcmp1));
                     write_il.add(new VarInsnNode(ALOAD, 0));
-                    write_il.add(new FieldInsnNode(GETFIELD, clazz.name,
-                            field.name, field.desc));
+                    write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
                     write_il.add(new VarInsnNode(ILOAD, 3));
                     write_il.add(new InsnNode(AALOAD));
                     write_il.add(new VarInsnNode(ALOAD, 1));
-                    write_il.add(createGeneratedWriteObjectInvocation(
-                            field_class.name, INVOKEVIRTUAL));
+                    write_il.add(createGeneratedWriteObjectInvocation(field_class.name, INVOKEVIRTUAL));
                     write_il.add(ifcmp1);
                     write_il.add(new IincInsnNode(3, 1));
                     write_il.add(gto);
@@ -500,11 +417,9 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                 }
             } else {
                 write_il.add(new VarInsnNode(ALOAD, 0));
-                write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name,
-                        field.desc));
+                write_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
                 write_il.add(new VarInsnNode(ALOAD, 1));
-                write_il.add(createGeneratedWriteObjectInvocation(
-                        field_class.name, INVOKEVIRTUAL));
+                write_il.add(createGeneratedWriteObjectInvocation(field_class.name, INVOKEVIRTUAL));
             }
             write_il.add(target);
             write_il.add(end);
@@ -515,11 +430,9 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
     }
 
     private InsnList serialPersistentWrites(MethodNode write_gen) {
-        String serialPersistentFieldsSig = "[L" + JAVA_IO_OBJECTSTREAMFIELD
-                + ";";
+        String serialPersistentFieldsSig = "[L" + JAVA_IO_OBJECTSTREAMFIELD + ";";
         InsnList write_il = new InsnList();
-        int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE,
-                CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT, CASE_OBJECT };
+        int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT, CASE_OBJECT };
 
         LabelNode[] case_handles = new LabelNode[case_values.length];
         for (int i = 0; i < case_handles.length; i++) {
@@ -536,163 +449,114 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         write_il.add(new JumpInsnNode(GOTO, gto));
         LabelNode loop_body_start = new LabelNode();
         write_il.add(loop_body_start);
-        write_il.add(new FieldInsnNode(GETSTATIC, clazz.name,
-                FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
+        write_il.add(new FieldInsnNode(GETSTATIC, clazz.name, FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
         write_il.add(new VarInsnNode(ILOAD, 2));
         write_il.add(new InsnNode(AALOAD));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                JAVA_IO_OBJECTSTREAMFIELD, METHOD_GET_NAME,
-                Type.getMethodDescriptor(TYPE_STRING), false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_OBJECTSTREAMFIELD, METHOD_GET_NAME, Type.getMethodDescriptor(TYPE_STRING), false));
         write_il.add(new VarInsnNode(ASTORE, 3));
         LabelNode begin_try = new LabelNode();
         write_il.add(begin_try);
         write_il.add(new LdcInsnNode(clazz.name.replaceAll("/", ".")));
-        write_il.add(new MethodInsnNode(INVOKESTATIC, JAVA_LANG_CLASS,
-                METHOD_FOR_NAME,
-                Type.getMethodDescriptor(TYPE_CLASS, TYPE_STRING), false));
+        write_il.add(new MethodInsnNode(INVOKESTATIC, JAVA_LANG_CLASS, METHOD_FOR_NAME, Type.getMethodDescriptor(TYPE_CLASS, TYPE_STRING), false));
         write_il.add(new VarInsnNode(ALOAD, 3));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_CLASS,
-                METHOD_GET_DECLAREDFIELD,
-                Type.getMethodDescriptor(
-                        Type.getObjectType("java/lang/reflect/Field"),
-                        TYPE_STRING),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_CLASS, METHOD_GET_DECLAREDFIELD,
+                Type.getMethodDescriptor(Type.getObjectType("java/lang/reflect/Field"), TYPE_STRING), false));
         write_il.add(new VarInsnNode(ASTORE, 4));
 
-        write_il.add(new FieldInsnNode(GETSTATIC, clazz.name,
-                FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
+        write_il.add(new FieldInsnNode(GETSTATIC, clazz.name, FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
         write_il.add(new VarInsnNode(ILOAD, 2));
         write_il.add(new InsnNode(AALOAD));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                JAVA_IO_OBJECTSTREAMFIELD, METHOD_GET_TYPE_CODE,
-                Type.getMethodDescriptor(Type.CHAR_TYPE), false));
+        write_il.add(
+                new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_OBJECTSTREAMFIELD, METHOD_GET_TYPE_CODE, Type.getMethodDescriptor(Type.CHAR_TYPE), false));
 
-        write_il.add(new LookupSwitchInsnNode(defaultHandle, case_values,
-                case_handles));
+        write_il.add(new LookupSwitchInsnNode(defaultHandle, case_values, case_handles));
         write_il.add(case_handles[0]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_BOOLEAN,
-                Type.getMethodDescriptor(Type.BOOLEAN_TYPE, TYPE_OBJECT),
-                false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_BOOLEAN,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.BOOLEAN_TYPE),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_BOOLEAN,
+                Type.getMethodDescriptor(Type.BOOLEAN_TYPE, TYPE_OBJECT), false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_BOOLEAN,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.BOOLEAN_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(case_handles[1]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_CHAR,
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_CHAR,
                 Type.getMethodDescriptor(Type.CHAR_TYPE, TYPE_OBJECT), false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_CHAR,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.CHAR_TYPE),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_CHAR,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.CHAR_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(case_handles[2]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_DOUBLE,
-                Type.getMethodDescriptor(Type.DOUBLE_TYPE, TYPE_OBJECT),
-                false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_DOUBLE,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.DOUBLE_TYPE),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_DOUBLE,
+                Type.getMethodDescriptor(Type.DOUBLE_TYPE, TYPE_OBJECT), false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_DOUBLE,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.DOUBLE_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(case_handles[3]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_FLOAT,
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_FLOAT,
                 Type.getMethodDescriptor(Type.FLOAT_TYPE, TYPE_OBJECT), false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_FLOAT,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.FLOAT_TYPE),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_FLOAT,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.FLOAT_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(case_handles[4]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_INT,
-                Type.getMethodDescriptor(Type.INT_TYPE, TYPE_OBJECT), false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_INT,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE),
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_INT, Type.getMethodDescriptor(Type.INT_TYPE, TYPE_OBJECT),
                 false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_INT,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(case_handles[5]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_LONG,
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_LONG,
                 Type.getMethodDescriptor(Type.LONG_TYPE, TYPE_OBJECT), false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_LONG,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.LONG_TYPE),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_LONG,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.LONG_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(case_handles[6]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_SHORT,
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_SHORT,
                 Type.getMethodDescriptor(Type.SHORT_TYPE, TYPE_OBJECT), false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_SHORT,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.SHORT_TYPE),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_SHORT,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.SHORT_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(case_handles[7]);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET_BOOLEAN,
-                Type.getMethodDescriptor(Type.BOOLEAN_TYPE, TYPE_OBJECT),
-                false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_BOOLEAN,
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.BOOLEAN_TYPE),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_BOOLEAN,
+                Type.getMethodDescriptor(Type.BOOLEAN_TYPE, TYPE_OBJECT), false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_BOOLEAN,
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.BOOLEAN_TYPE), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
         write_il.add(defaultHandle);
         write_il.add(new VarInsnNode(ALOAD, 1));
         write_il.add(new VarInsnNode(ALOAD, 4));
         write_il.add(new VarInsnNode(ALOAD, 0));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_GET, Type.getMethodDescriptor(TYPE_OBJECT, TYPE_OBJECT),
-                false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                METHOD_WRITE_OBJECT,
+        write_il.add(
+                new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET, Type.getMethodDescriptor(TYPE_OBJECT, TYPE_OBJECT), false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_OBJECT,
                 Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT), false));
         write_il.add(new JumpInsnNode(GOTO, gotoTarget));
 
@@ -703,42 +567,30 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         write_il.add(new InsnNode(DUP));
         write_il.add(new TypeInsnNode(NEW, JAVA_LANG_STRINGBUFFER));
         write_il.add(new InsnNode(DUP));
-        write_il.add(new MethodInsnNode(INVOKESPECIAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_INIT, "()V", false));
+        write_il.add(new MethodInsnNode(INVOKESPECIAL, JAVA_LANG_STRINGBUFFER, METHOD_INIT, "()V", false));
         write_il.add(new LdcInsnNode("Could not write field "));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_APPEND,
-                Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING),
-                false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER, METHOD_APPEND,
+                Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING), false));
         write_il.add(new VarInsnNode(ALOAD, 3));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_APPEND,
-                Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING),
-                false));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_TO_STRING, Type.getMethodDescriptor(TYPE_STRING),
-                false));
-        write_il.add(new MethodInsnNode(INVOKESPECIAL, JAVA_IO_IOEXCEPTION,
-                METHOD_INIT,
-                Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_STRING), false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER, METHOD_APPEND,
+                Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING), false));
+        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER, METHOD_TO_STRING, Type.getMethodDescriptor(TYPE_STRING), false));
+        write_il.add(
+                new MethodInsnNode(INVOKESPECIAL, JAVA_IO_IOEXCEPTION, METHOD_INIT, Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_STRING), false));
         write_il.add(new VarInsnNode(ALOAD, 5));
-        write_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_IOEXCEPTION,
-                "initCause",
-                Type.getMethodDescriptor(TYPE_THROWABLE, TYPE_THROWABLE),
-                false));
+        write_il.add(
+                new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_IOEXCEPTION, "initCause", Type.getMethodDescriptor(TYPE_THROWABLE, TYPE_THROWABLE), false));
         write_il.add(new InsnNode(ATHROW));
 
         write_il.add(gotoTarget);
         write_il.add(new IincInsnNode(2, 1));
         write_il.add(gto);
         write_il.add(new VarInsnNode(ILOAD, 2));
-        write_il.add(new FieldInsnNode(GETSTATIC, clazz.name,
-                FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
+        write_il.add(new FieldInsnNode(GETSTATIC, clazz.name, FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
         write_il.add(new InsnNode(ARRAYLENGTH));
         write_il.add(new JumpInsnNode(IF_ICMPLT, loop_body_start));
 
-        write_gen.tryCatchBlocks.add(new TryCatchBlockNode(begin_try, handler,
-                handler, JAVA_LANG_THROWABLE));
+        write_gen.tryCatchBlocks.add(new TryCatchBlockNode(begin_try, handler, handler, JAVA_LANG_THROWABLE));
         return write_il;
     }
 
@@ -754,11 +606,9 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             /* Don't send fields that are STATIC, or TRANSIENT */
             if ((field.access & (ACC_STATIC | ACC_TRANSIENT)) == 0) {
                 Type field_type = Type.getType(field.desc);
-                if (field_type.getSort() != Type.ARRAY
-                        && field_type.getSort() != Type.OBJECT) {
+                if (field_type.getSort() != Type.ARRAY && field_type.getSort() != Type.OBJECT) {
                     if (generator.isVerbose()) {
-                        System.out.println("    writing basic field "
-                                + field.name + " of type " + field.desc);
+                        System.out.println("    writing basic field " + field.name + " of type " + field.desc);
                     }
 
                     write_il.add(writeInstructions(field));
@@ -771,14 +621,11 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             /* Don't send fields that are STATIC or TRANSIENT */
             if ((field.access & (ACC_STATIC | ACC_TRANSIENT)) == 0) {
                 Type field_type = Type.getType(field.desc);
-                if (field_type.getSort() == Type.ARRAY
-                        || field_type.getSort() == Type.OBJECT) {
+                if (field_type.getSort() == Type.ARRAY || field_type.getSort() == Type.OBJECT) {
                     if (generator.isVerbose()) {
-                        System.out.println("    writing field " + field.name
-                                + " of type " + field.desc);
+                        System.out.println("    writing field " + field.name + " of type " + field.desc);
                     }
-                    if (!field.desc.equals(JAVA_LANG_STRING)
-                            && !field.desc.equals(JAVA_LANG_CLASS)) {
+                    if (!field.desc.equals(JAVA_LANG_STRING) && !field.desc.equals(JAVA_LANG_CLASS)) {
                         write_il.add(writeReferenceField(field));
                     } else {
                         write_il.add(writeInstructions(field));
@@ -791,12 +638,10 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
     }
 
     private String readCallName(String name) {
-        return METHOD_READ_ARRAY + name.substring(0, 1).toUpperCase()
-                + name.substring(1);
+        return METHOD_READ_ARRAY + name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
-    private InsnList readReferenceField(FieldNode field,
-            boolean from_constructor) {
+    private InsnList readReferenceField(FieldNode field, boolean from_constructor) {
         Type field_type = Type.getType(field.desc);
         InsnList read_il = new InsnList();
 
@@ -806,8 +651,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         String basicname = null;
 
         if (generator.isVerbose()) {
-            System.out.println("    reading reference field " + field.name
-                    + " of type " + field.desc);
+            System.out.println("    reading reference field " + field.name + " of type " + field.desc);
         }
         Type tp = field_type;
         if (tp.getSort() == Type.ARRAY) {
@@ -820,8 +664,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         }
         if (tp.getSort() == Type.OBJECT) {
             field_class = lookupClass(tp.getInternalName());
-            if (field_class != null
-                    && (field_class.access & ACC_FINAL) == ACC_FINAL) {
+            if (field_class != null && (field_class.access & ACC_FINAL) == ACC_FINAL) {
                 isfinal = true;
             }
         } else if (isarray) {
@@ -853,14 +696,10 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             }
         }
 
-        if ((basicname != null) || (isfinal
-                && (ASMSerializationInfo.hasIbisConstructor(field_class)
-                        || (ASMSerializationInfo.isSerializable(field_class)
-                                && generator.forceGeneratedCalls())))) {
+        if ((basicname != null) || (isfinal && (ASMSerializationInfo.hasIbisConstructor(field_class)
+                || (ASMSerializationInfo.isSerializable(field_class) && generator.forceGeneratedCalls())))) {
             read_il.add(new VarInsnNode(ALOAD, 1));
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    METHOD_READ_KNOWN_TYPE_HEADER,
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_KNOWN_TYPE_HEADER,
                     Type.getMethodDescriptor(Type.INT_TYPE), false));
             read_il.add(new VarInsnNode(ISTORE, 2));
             read_il.add(new VarInsnNode(ILOAD, 2));
@@ -874,36 +713,24 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
                     read_il.add(new VarInsnNode(ALOAD, 0));
                     read_il.add(new VarInsnNode(ALOAD, 1));
-                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                            callname, Type.getMethodDescriptor(field_type),
-                            false));
-                    read_il.add(new FieldInsnNode(PUTFIELD, clazz.name,
-                            field.name, field.desc));
+                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, callname,
+                            Type.getMethodDescriptor(field_type), false));
+                    read_il.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name, field.desc));
                 } else {
                     Type el_type = field_type.getElementType();
                     read_il.add(new VarInsnNode(ALOAD, 0));
                     read_il.add(new VarInsnNode(ALOAD, 1));
-                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                            METHOD_READ_INT,
+                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_INT,
                             Type.getMethodDescriptor(Type.INT_TYPE), false));
                     read_il.add(new InsnNode(DUP));
                     read_il.add(new VarInsnNode(ISTORE, 3));
-                    read_il.add(new TypeInsnNode(ANEWARRAY,
-                            el_type.getInternalName()));
-                    read_il.add(new FieldInsnNode(PUTFIELD, clazz.name,
-                            field.name, field.desc));
+                    read_il.add(new TypeInsnNode(ANEWARRAY, el_type.getInternalName()));
+                    read_il.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name, field.desc));
                     read_il.add(new VarInsnNode(ALOAD, 1));
                     read_il.add(new VarInsnNode(ALOAD, 0));
-                    read_il.add(new FieldInsnNode(GETFIELD, clazz.name,
-                            field.name, field.desc));
-                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                            METHOD_ADD_OBJECT_TO_CYCLE_CHECK,
-                            Type.getMethodDescriptor(Type.VOID_TYPE,
-                                    TYPE_OBJECT),
-                            false));
+                    read_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
+                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_ADD_OBJECT_TO_CYCLE_CHECK,
+                            Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT), false));
                     read_il.add(new LdcInsnNode(0));
                     read_il.add(new VarInsnNode(ISTORE, 4));
                     LabelNode gto1 = new LabelNode();
@@ -911,9 +738,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                     LabelNode loop_body_start = new LabelNode();
                     read_il.add(loop_body_start);
                     read_il.add(new VarInsnNode(ALOAD, 1));
-                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                            METHOD_READ_KNOWN_TYPE_HEADER,
+                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_KNOWN_TYPE_HEADER,
                             Type.getMethodDescriptor(Type.INT_TYPE), false));
                     read_il.add(new VarInsnNode(ISTORE, 2));
                     read_il.add(new VarInsnNode(ILOAD, 2));
@@ -921,16 +746,12 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                     LabelNode ifcmp1 = new LabelNode();
                     read_il.add(new JumpInsnNode(IF_ICMPNE, ifcmp1));
                     read_il.add(new VarInsnNode(ALOAD, 0));
-                    read_il.add(new FieldInsnNode(GETFIELD, clazz.name,
-                            field.name, field.desc));
+                    read_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
                     read_il.add(new VarInsnNode(ILOAD, 4));
-                    read_il.add(
-                            new TypeInsnNode(NEW, el_type.getInternalName()));
+                    read_il.add(new TypeInsnNode(NEW, el_type.getInternalName()));
                     read_il.add(new InsnNode(DUP));
                     read_il.add(new VarInsnNode(ALOAD, 1));
-                    read_il.add(new MethodInsnNode(INVOKESPECIAL,
-                            field_class.name, METHOD_INIT,
-                            SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
+                    read_il.add(new MethodInsnNode(INVOKESPECIAL, field_class.name, METHOD_INIT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
                             false));
                     read_il.add(new InsnNode(AASTORE));
                     LabelNode gto2 = new LabelNode();
@@ -941,19 +762,13 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                     LabelNode ifcmpeq2 = new LabelNode();
                     read_il.add(new JumpInsnNode(IF_ICMPEQ, ifcmpeq2));
                     read_il.add(new VarInsnNode(ALOAD, 0));
-                    read_il.add(new FieldInsnNode(GETFIELD, clazz.name,
-                            field.name, field.desc));
+                    read_il.add(new FieldInsnNode(GETFIELD, clazz.name, field.name, field.desc));
                     read_il.add(new VarInsnNode(ILOAD, 4));
                     read_il.add(new VarInsnNode(ALOAD, 1));
                     read_il.add(new VarInsnNode(ILOAD, 2));
-                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                            METHOD_GET_OBJECT_FROM_CYCLE_CHECK,
-                            Type.getMethodDescriptor(TYPE_OBJECT,
-                                    Type.INT_TYPE),
-                            false));
-                    read_il.add(new TypeInsnNode(CHECKCAST,
-                            el_type.getInternalName()));
+                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_GET_OBJECT_FROM_CYCLE_CHECK,
+                            Type.getMethodDescriptor(TYPE_OBJECT, Type.INT_TYPE), false));
+                    read_il.add(new TypeInsnNode(CHECKCAST, el_type.getInternalName()));
                     read_il.add(new InsnNode(AASTORE));
                     read_il.add(ifcmpeq2);
                     read_il.add(gto2);
@@ -965,16 +780,12 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                 }
             } else {
                 read_il.add(new VarInsnNode(ALOAD, 0));
-                read_il.add(
-                        new TypeInsnNode(NEW, field_type.getInternalName()));
+                read_il.add(new TypeInsnNode(NEW, field_type.getInternalName()));
                 read_il.add(new InsnNode(DUP));
                 read_il.add(new VarInsnNode(ALOAD, 1));
-                read_il.add(new MethodInsnNode(INVOKESPECIAL, field_class.name,
-                        METHOD_INIT,
-                        SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
+                read_il.add(new MethodInsnNode(INVOKESPECIAL, field_class.name, METHOD_INIT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
                         false));
-                read_il.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name,
-                        field.desc));
+                read_il.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name, field.desc));
             }
             LabelNode gto = new LabelNode();
             read_il.add(new JumpInsnNode(GOTO, gto));
@@ -986,15 +797,10 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             read_il.add(new VarInsnNode(ALOAD, 0));
             read_il.add(new VarInsnNode(ALOAD, 1));
             read_il.add(new VarInsnNode(ILOAD, 2));
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    METHOD_GET_OBJECT_FROM_CYCLE_CHECK,
-                    Type.getMethodDescriptor(TYPE_OBJECT, Type.INT_TYPE),
-                    false));
-            read_il.add(
-                    new TypeInsnNode(CHECKCAST, field_type.getInternalName()));
-            read_il.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name,
-                    field.desc));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_GET_OBJECT_FROM_CYCLE_CHECK,
+                    Type.getMethodDescriptor(TYPE_OBJECT, Type.INT_TYPE), false));
+            read_il.add(new TypeInsnNode(CHECKCAST, field_type.getInternalName()));
+            read_il.add(new FieldInsnNode(PUTFIELD, clazz.name, field.name, field.desc));
             read_il.add(ifcmpeq);
             read_il.add(gto);
         } else {
@@ -1004,28 +810,21 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         return read_il;
     }
 
-    private void generateReadField(String tpname, Type tp, InsnList read_il,
-            LabelNode gto, LabelNode caseLabel, boolean from_constructor) {
+    private void generateReadField(String tpname, Type tp, InsnList read_il, LabelNode gto, LabelNode caseLabel, boolean from_constructor) {
         read_il.add(caseLabel);
         if (from_constructor || !has_final_fields) {
             read_il.add(new VarInsnNode(ALOAD, 4));
             read_il.add(new VarInsnNode(ALOAD, 0));
             read_il.add(new VarInsnNode(ALOAD, 1));
             if (tpname.equals("")) {
-                read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                        METHOD_READ_OBJECT,
+                read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_OBJECT,
                         Type.getMethodDescriptor(TYPE_OBJECT), false));
             } else {
-                read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                        METHOD_READ + tpname, Type.getMethodDescriptor(tp),
-                        false));
+                read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ + tpname,
+                        Type.getMethodDescriptor(tp), false));
             }
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    JAVA_LANG_REFLECT_FIELD, METHOD_SET + tpname,
-                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, tp),
-                    false));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_SET + tpname,
+                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, tp), false));
             read_il.add(new JumpInsnNode(GOTO, gto));
             return;
         }
@@ -1040,25 +839,13 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         read_il.add(new VarInsnNode(ALOAD, 3));
         if (tpname.equals("")) {
             read_il.add(new VarInsnNode(ALOAD, 4));
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    JAVA_LANG_REFLECT_FIELD, METHOD_GET_TYPE,
-                    Type.getMethodDescriptor(TYPE_CLASS), false));
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_CLASS,
-                    METHOD_GET_NAME, Type.getMethodDescriptor(TYPE_STRING),
-                    false));
-            read_il.add(
-                    new MethodInsnNode(INVOKEVIRTUAL,
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                            METHOD_READ_FIELD_OBJECT,
-                            Type.getMethodDescriptor(Type.VOID_TYPE,
-                                    TYPE_OBJECT, TYPE_STRING, TYPE_STRING),
-                            false));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_TYPE, Type.getMethodDescriptor(TYPE_CLASS), false));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_CLASS, METHOD_GET_NAME, Type.getMethodDescriptor(TYPE_STRING), false));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_FIELD_OBJECT,
+                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING, TYPE_STRING), false));
         } else {
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    METHOD_READ_FIELD + tpname, Type.getMethodDescriptor(
-                            Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING),
-                    false));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_FIELD + tpname,
+                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING), false));
         }
         LabelNode gto2 = new LabelNode();
         read_il.add(new JumpInsnNode(GOTO, gto2));
@@ -1067,29 +854,22 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         read_il.add(new VarInsnNode(ALOAD, 0));
         read_il.add(new VarInsnNode(ALOAD, 1));
         if (tpname.equals("")) {
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    METHOD_READ_OBJECT, Type.getMethodDescriptor(tp), false));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_OBJECT,
+                    Type.getMethodDescriptor(tp), false));
         } else {
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    METHOD_READ + tpname, Type.getMethodDescriptor(tp), false));
+            read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ + tpname,
+                    Type.getMethodDescriptor(tp), false));
         }
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD,
-                METHOD_SET + tpname,
-                Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, tp),
-                false));
+        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_SET + tpname,
+                Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, tp), false));
         read_il.add(gto2);
         read_il.add(new JumpInsnNode(GOTO, gto));
     }
 
-    private InsnList serialPersistentReads(boolean from_constructor,
-            MethodNode read_gen) {
+    private InsnList serialPersistentReads(boolean from_constructor, MethodNode read_gen) {
         InsnList read_il = new InsnList();
-        int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE,
-                CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT, CASE_OBJECT };
-        String serialPersistentFieldsSig = "[L" + JAVA_IO_OBJECTSTREAMFIELD
-                + ";";
+        int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT, CASE_OBJECT };
+        String serialPersistentFieldsSig = "[L" + JAVA_IO_OBJECTSTREAMFIELD + ";";
 
         LabelNode[] case_handles = new LabelNode[case_values.length];
         for (int i = 0; i < case_handles.length; i++) {
@@ -1106,63 +886,42 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         read_il.add(new JumpInsnNode(GOTO, gto));
         LabelNode loop_body_start = new LabelNode();
         read_il.add(loop_body_start);
-        read_il.add(new FieldInsnNode(GETSTATIC, clazz.name,
-                FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
+        read_il.add(new FieldInsnNode(GETSTATIC, clazz.name, FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
         read_il.add(new VarInsnNode(ILOAD, 2));
         read_il.add(new InsnNode(AALOAD));
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_OBJECTSTREAMFIELD,
-                METHOD_GET_NAME, Type.getMethodDescriptor(TYPE_STRING), false));
+        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_OBJECTSTREAMFIELD, METHOD_GET_NAME, Type.getMethodDescriptor(TYPE_STRING), false));
         read_il.add(new VarInsnNode(ASTORE, 3));
         LabelNode begin_try = new LabelNode();
         read_il.add(begin_try);
         read_il.add(new LdcInsnNode(clazz.name.replaceAll("/", ".")));
-        read_il.add(new MethodInsnNode(INVOKESTATIC, JAVA_LANG_CLASS,
-                METHOD_FOR_NAME,
-                Type.getMethodDescriptor(TYPE_CLASS, TYPE_STRING), false));
+        read_il.add(new MethodInsnNode(INVOKESTATIC, JAVA_LANG_CLASS, METHOD_FOR_NAME, Type.getMethodDescriptor(TYPE_CLASS, TYPE_STRING), false));
         read_il.add(new VarInsnNode(ALOAD, 3));
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_CLASS,
-                METHOD_GET_DECLAREDFIELD,
-                Type.getMethodDescriptor(
-                        Type.getObjectType(JAVA_LANG_REFLECT_FIELD),
-                        TYPE_STRING),
-                false));
+        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_CLASS, METHOD_GET_DECLAREDFIELD,
+                Type.getMethodDescriptor(Type.getObjectType(JAVA_LANG_REFLECT_FIELD), TYPE_STRING), false));
         read_il.add(new VarInsnNode(ASTORE, 4));
 
         if (!from_constructor && has_final_fields) {
             read_il.add(new VarInsnNode(ALOAD, 4));
-            read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    JAVA_LANG_REFLECT_FIELD, METHOD_GET_MODIFIERS,
-                    Type.getMethodDescriptor(Type.INT_TYPE), false));
+            read_il.add(
+                    new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_REFLECT_FIELD, METHOD_GET_MODIFIERS, Type.getMethodDescriptor(Type.INT_TYPE), false));
             read_il.add(new VarInsnNode(ISTORE, 5));
         }
 
-        read_il.add(new FieldInsnNode(GETSTATIC, clazz.name,
-                FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
+        read_il.add(new FieldInsnNode(GETSTATIC, clazz.name, FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
         read_il.add(new VarInsnNode(ILOAD, 2));
         read_il.add(new InsnNode(AALOAD));
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_OBJECTSTREAMFIELD,
-                METHOD_GET_TYPE_CODE, Type.getMethodDescriptor(Type.CHAR_TYPE),
-                false));
-        read_il.add(new LookupSwitchInsnNode(defaultHandle, case_values,
-                case_handles));
-        generateReadField("Byte", Type.BYTE_TYPE, read_il, gotoTarget,
-                case_handles[0], from_constructor);
-        generateReadField("Char", Type.CHAR_TYPE, read_il, gotoTarget,
-                case_handles[1], from_constructor);
-        generateReadField("Double", Type.DOUBLE_TYPE, read_il, gotoTarget,
-                case_handles[2], from_constructor);
-        generateReadField("Float", Type.FLOAT_TYPE, read_il, gotoTarget,
-                case_handles[3], from_constructor);
-        generateReadField("Int", Type.INT_TYPE, read_il, gotoTarget,
-                case_handles[4], from_constructor);
-        generateReadField("Long", Type.LONG_TYPE, read_il, gotoTarget,
-                case_handles[5], from_constructor);
-        generateReadField("Short", Type.SHORT_TYPE, read_il, gotoTarget,
-                case_handles[6], from_constructor);
-        generateReadField("Boolean", Type.BOOLEAN_TYPE, read_il, gotoTarget,
-                case_handles[7], from_constructor);
-        generateReadField("", TYPE_OBJECT, read_il, gotoTarget, defaultHandle,
-                from_constructor);
+        read_il.add(
+                new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_OBJECTSTREAMFIELD, METHOD_GET_TYPE_CODE, Type.getMethodDescriptor(Type.CHAR_TYPE), false));
+        read_il.add(new LookupSwitchInsnNode(defaultHandle, case_values, case_handles));
+        generateReadField("Byte", Type.BYTE_TYPE, read_il, gotoTarget, case_handles[0], from_constructor);
+        generateReadField("Char", Type.CHAR_TYPE, read_il, gotoTarget, case_handles[1], from_constructor);
+        generateReadField("Double", Type.DOUBLE_TYPE, read_il, gotoTarget, case_handles[2], from_constructor);
+        generateReadField("Float", Type.FLOAT_TYPE, read_il, gotoTarget, case_handles[3], from_constructor);
+        generateReadField("Int", Type.INT_TYPE, read_il, gotoTarget, case_handles[4], from_constructor);
+        generateReadField("Long", Type.LONG_TYPE, read_il, gotoTarget, case_handles[5], from_constructor);
+        generateReadField("Short", Type.SHORT_TYPE, read_il, gotoTarget, case_handles[6], from_constructor);
+        generateReadField("Boolean", Type.BOOLEAN_TYPE, read_il, gotoTarget, case_handles[7], from_constructor);
+        generateReadField("", TYPE_OBJECT, read_il, gotoTarget, defaultHandle, from_constructor);
 
         LabelNode end_try = new LabelNode();
         read_il.add(end_try);
@@ -1173,47 +932,34 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         read_il.add(new InsnNode(DUP));
         read_il.add(new TypeInsnNode(NEW, JAVA_LANG_STRINGBUFFER));
         read_il.add(new InsnNode(DUP));
-        read_il.add(new MethodInsnNode(INVOKESPECIAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_INIT, "()V", false));
+        read_il.add(new MethodInsnNode(INVOKESPECIAL, JAVA_LANG_STRINGBUFFER, METHOD_INIT, "()V", false));
         read_il.add(new LdcInsnNode("Could not read field "));
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_APPEND,
-                Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING),
+        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER, METHOD_APPEND, Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING),
                 false));
         read_il.add(new VarInsnNode(ALOAD, 3));
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_APPEND,
-                Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING),
+        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER, METHOD_APPEND, Type.getMethodDescriptor(TYPE_STRINGBUFFER, TYPE_STRING),
                 false));
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER,
-                METHOD_TO_STRING, Type.getMethodDescriptor(TYPE_STRING),
-                false));
-        read_il.add(new MethodInsnNode(INVOKESPECIAL, JAVA_IO_IOEXCEPTION,
-                METHOD_INIT,
-                Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_STRING), false));
+        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_LANG_STRINGBUFFER, METHOD_TO_STRING, Type.getMethodDescriptor(TYPE_STRING), false));
+        read_il.add(
+                new MethodInsnNode(INVOKESPECIAL, JAVA_IO_IOEXCEPTION, METHOD_INIT, Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_STRING), false));
         read_il.add(new VarInsnNode(ALOAD, 6));
-        read_il.add(new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_IOEXCEPTION,
-                "initCause",
-                Type.getMethodDescriptor(TYPE_THROWABLE, TYPE_THROWABLE),
-                false));
+        read_il.add(
+                new MethodInsnNode(INVOKEVIRTUAL, JAVA_IO_IOEXCEPTION, "initCause", Type.getMethodDescriptor(TYPE_THROWABLE, TYPE_THROWABLE), false));
         read_il.add(new InsnNode(ATHROW));
         read_il.add(gotoTarget);
         read_il.add(new IincInsnNode(2, 1));
         read_il.add(gto);
         read_il.add(new VarInsnNode(ILOAD, 2));
-        read_il.add(new FieldInsnNode(GETSTATIC, clazz.name,
-                FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
+        read_il.add(new FieldInsnNode(GETSTATIC, clazz.name, FIELD_SERIAL_PERSISTENT_FIELDS, serialPersistentFieldsSig));
         read_il.add(new InsnNode(ARRAYLENGTH));
         read_il.add(new JumpInsnNode(IF_ICMPLT, loop_body_start));
 
-        read_gen.tryCatchBlocks.add(new TryCatchBlockNode(begin_try, end_try,
-                handler, JAVA_LANG_THROWABLE));
+        read_gen.tryCatchBlocks.add(new TryCatchBlockNode(begin_try, end_try, handler, JAVA_LANG_THROWABLE));
 
         return read_il;
     }
 
-    private InsnList generateDefaultReads(boolean from_constructor,
-            MethodNode read_gen) {
+    private InsnList generateDefaultReads(boolean from_constructor, MethodNode read_gen) {
         InsnList read_il = new InsnList();
 
         if (has_serial_persistent_fields) {
@@ -1225,11 +971,9 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             /* Don't send fields that are STATIC, or TRANSIENT */
             if ((field.access & (ACC_STATIC | ACC_TRANSIENT)) == 0) {
                 Type field_type = Type.getType(field.desc);
-                if (field_type.getSort() != Type.ARRAY
-                        && field_type.getSort() != Type.OBJECT) {
+                if (field_type.getSort() != Type.ARRAY && field_type.getSort() != Type.OBJECT) {
                     if (generator.isVerbose()) {
-                        System.out.println("    reading basic field "
-                                + field.name + " of type " + field.desc);
+                        System.out.println("    reading basic field " + field.name + " of type " + field.desc);
                     }
 
                     read_il.add(readInstructions(field, from_constructor));
@@ -1242,16 +986,12 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             /* Don't send fields that are STATIC or TRANSIENT */
             if ((field.access & (ACC_STATIC | ACC_TRANSIENT)) == 0) {
                 Type field_type = Type.getType(field.desc);
-                if (field_type.getSort() == Type.ARRAY
-                        || field_type.getSort() == Type.OBJECT) {
+                if (field_type.getSort() == Type.ARRAY || field_type.getSort() == Type.OBJECT) {
                     if (generator.isVerbose()) {
-                        System.out.println("    reading field " + field.name
-                                + " of type " + field.desc);
+                        System.out.println("    reading field " + field.name + " of type " + field.desc);
                     }
-                    if (!field.desc.equals(JAVA_LANG_STRING)
-                            && !field.desc.equals(JAVA_LANG_CLASS)) {
-                        read_il.add(
-                                readReferenceField(field, from_constructor));
+                    if (!field.desc.equals(JAVA_LANG_STRING) && !field.desc.equals(JAVA_LANG_CLASS)) {
+                        read_il.add(readReferenceField(field, from_constructor));
                     } else {
                         read_il.add(readInstructions(field, from_constructor));
                     }
@@ -1265,27 +1005,24 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
     private ClassNode generateInstanceGenerator() {
 
         /*
-         * Here we create a 'generator' object. We need this extra object for
-         * three reasons: 1) Because the object is created from the 'ibis.io'
-         * package (the Serialization code), we may not be allowed to create a
-         * new instance of the object (due to inter-package access restrictions,
-         * e.g. the object may not be public). Because the generator is in the
-         * same package as the target object, it can create a new object for us.
+         * Here we create a 'generator' object. We need this extra object for three
+         * reasons: 1) Because the object is created from the 'ibis.io' package (the
+         * Serialization code), we may not be allowed to create a new instance of the
+         * object (due to inter-package access restrictions, e.g. the object may not be
+         * public). Because the generator is in the same package as the target object,
+         * it can create a new object for us.
          *
-         * ?? How about totally private objects ?? can sun serialization handle
-         * this ??
+         * ?? How about totally private objects ?? can sun serialization handle this ??
          *
-         * 2) Using this generator object, we can do a normal 'new' of the
-         * target type. This is important, because using 'newInstance' is 6
-         * times more expensive than 'new'. 3) We do not want to invoke a
-         * default constructor, but a special constructor that immediately reads
-         * the object state from the stream. This cannot be done (efficiently)
-         * with newInstance.
+         * 2) Using this generator object, we can do a normal 'new' of the target type.
+         * This is important, because using 'newInstance' is 6 times more expensive than
+         * 'new'. 3) We do not want to invoke a default constructor, but a special
+         * constructor that immediately reads the object state from the stream. This
+         * cannot be done (efficiently) with newInstance.
          */
 
         if (generator.isVerbose()) {
-            System.out.println(
-                    "  Generating InstanceGenerator class for " + clazz.name);
+            System.out.println("  Generating InstanceGenerator class for " + clazz.name);
         }
 
         String name = clazz.name + METHOD_IBIS_IO_GENERATOR;
@@ -1299,28 +1036,22 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
         InsnList il = new InsnList();
 
-        if (!is_externalizable && super_is_serializable
-                && !super_has_ibis_constructor
-                && !generator.forceGeneratedCalls()) {
+        if (!is_externalizable && super_is_serializable && !super_has_ibis_constructor && !generator.forceGeneratedCalls()) {
             /*
-             * This is a difficult case. We cannot call a constructor, because
-             * this constructor would be obliged to call a constructor for the
-             * super-class. So, we do it differently: generate calls to
-             * IbisSerializationInputStream methods which call native methods
-             * ... I don't know another solution to this problem.
+             * This is a difficult case. We cannot call a constructor, because this
+             * constructor would be obliged to call a constructor for the super-class. So,
+             * we do it differently: generate calls to IbisSerializationInputStream methods
+             * which call native methods ... I don't know another solution to this problem.
              */
             /*
-             * First, create the object. Through a native call, because
-             * otherwise the object would be marked uninitialized, and the code
-             * would not pass bytecode verification. This native call also takes
-             * care of calling the constructor of the first non-serializable
-             * superclass.
+             * First, create the object. Through a native call, because otherwise the object
+             * would be marked uninitialized, and the code would not pass bytecode
+             * verification. This native call also takes care of calling the constructor of
+             * the first non-serializable superclass.
              */
             il.add(new VarInsnNode(ALOAD, 1));
             il.add(new LdcInsnNode(clazz.name.replaceAll("/", ".")));
-            il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    METHOD_CREATE_UNINITIALIZED_OBJECT,
+            il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_CREATE_UNINITIALIZED_OBJECT,
                     Type.getMethodDescriptor(TYPE_OBJECT, TYPE_STRING), false));
 
             il.add(new TypeInsnNode(CHECKCAST, class_type.getInternalName()));
@@ -1330,33 +1061,26 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
             il.add(new VarInsnNode(ALOAD, 1));
             il.add(new VarInsnNode(ALOAD, 2));
             il.add(new LdcInsnNode(clazz.superName.replaceAll("/", ".")));
-            il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                    METHOD_READ_SERIALIZABLE_OBJECT, Type.getMethodDescriptor(
-                            Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING),
-                    false));
+            il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_SERIALIZABLE_OBJECT,
+                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING), false));
 
             /*
-             * Now, if the class has a readObject, call it. Otherwise, read its
-             * fields, by calling generated_DefaultReadObject.
+             * Now, if the class has a readObject, call it. Otherwise, read its fields, by
+             * calling generated_DefaultReadObject.
              */
             if (ASMSerializationInfo.hasReadObject(methods)) {
                 il.add(new VarInsnNode(ALOAD, 2));
                 il.add(new VarInsnNode(ALOAD, 1));
-                il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name,
-                        METHOD_$READ_OBJECT_WRAPPER$,
-                        SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
-                        false));
+                il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name, METHOD_$READ_OBJECT_WRAPPER$,
+                        SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V, false));
             } else {
                 int dpth = getClassDepth(clazz);
 
                 il.add(new VarInsnNode(ALOAD, 2));
                 il.add(new VarInsnNode(ALOAD, 1));
                 il.add(new LdcInsnNode(dpth));
-                il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name,
-                        METHOD_GENERATED_DEFAULT_READ_OBJECT,
-                        SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V,
-                        false));
+                il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name, METHOD_GENERATED_DEFAULT_READ_OBJECT,
+                        SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V, false));
             }
             il.add(new VarInsnNode(ALOAD, 2));
         } else {
@@ -1372,11 +1096,9 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
          * DITree(ibis.io.IbisSerializationInputStream) 8 areturn
          */
 
-        MethodNode method = new MethodNode(ASM4, ACC_FINAL | ACC_PUBLIC,
-                METHOD_GENERATED_NEW_INSTANCE,
+        MethodNode method = new MethodNode(ASM4, ACC_FINAL | ACC_PUBLIC, METHOD_GENERATED_NEW_INSTANCE,
                 Type.getMethodDescriptor(TYPE_OBJECT, TYPE_IBIS_IO_INPUT), null,
-                new String[] { JAVA_IO_IOEXCEPTION,
-                        JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
+                new String[] { JAVA_IO_IOEXCEPTION, JAVA_LANG_CLASSNOTFOUNDEXCEPTION });
 
         method.instructions = il;
 
@@ -1384,12 +1106,10 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
         il = new InsnList();
         il.add(new VarInsnNode(ALOAD, 0));
-        il.add(new MethodInsnNode(INVOKESPECIAL, IBIS_IO_GENERATOR, METHOD_INIT,
-                "()V", false));
+        il.add(new MethodInsnNode(INVOKESPECIAL, IBIS_IO_GENERATOR, METHOD_INIT, "()V", false));
         il.add(new InsnNode(RETURN));
 
-        method = new MethodNode(ASM4, ACC_PUBLIC, METHOD_INIT, "()V", null,
-                new String[0]);
+        method = new MethodNode(ASM4, ACC_PUBLIC, METHOD_INIT, "()V", null, new String[0]);
         method.instructions = il;
         iogenGen.methods.add(method);
         return iogenGen;
@@ -1398,8 +1118,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
     void generateCode() {
         /* Generate code inside the methods */
         if (generator.isVerbose()) {
-            System.out.println(
-                    "  Generating method code class for class : " + clazz.name);
+            System.out.println("  Generating method code class for class : " + clazz.name);
             System.out.println("    Number of fields " + fields.size());
         }
 
@@ -1424,105 +1143,73 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
     private void fillInGeneratedReadObjectMethod(int dpth) {
         /*
-         * Now, produce the read constructor. It only exists if the superclass
-         * is not serializable, or if the superclass has an ibis constructor, or
-         * is assumed to have one (-force option).
+         * Now, produce the read constructor. It only exists if the superclass is not
+         * serializable, or if the superclass has an ibis constructor, or is assumed to
+         * have one (-force option).
          */
 
         /* Now, do the same for the reading side. */
         MethodNode mgen = null;
         InsnList read_il = null;
-        if (is_externalizable || super_has_ibis_constructor
-                || !super_is_serializable || generator.forceGeneratedCalls()) {
+        if (is_externalizable || super_has_ibis_constructor || !super_is_serializable || generator.forceGeneratedCalls()) {
             read_il = new InsnList();
             if (is_externalizable) {
                 read_il.add(new VarInsnNode(ALOAD, 0));
-                read_il.add(new MethodInsnNode(INVOKESPECIAL, clazz.name,
-                        METHOD_INIT, "()V", false));
+                read_il.add(new MethodInsnNode(INVOKESPECIAL, clazz.name, METHOD_INIT, "()V", false));
             } else if (!super_is_serializable) {
                 read_il.add(new VarInsnNode(ALOAD, 0));
-                read_il.add(new MethodInsnNode(INVOKESPECIAL, clazz.superName,
-                        METHOD_INIT, "()V", false));
+                read_il.add(new MethodInsnNode(INVOKESPECIAL, clazz.superName, METHOD_INIT, "()V", false));
             } else {
                 read_il.add(new VarInsnNode(ALOAD, 0));
                 read_il.add(new VarInsnNode(ALOAD, 1));
-                read_il.add(new MethodInsnNode(INVOKESPECIAL, clazz.superName,
-                        METHOD_INIT,
-                        SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V,
-                        false));
+                read_il.add(
+                        new MethodInsnNode(INVOKESPECIAL, clazz.superName, METHOD_INIT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V, false));
             }
 
             if (is_externalizable || !super_is_serializable) {
                 read_il.add(new VarInsnNode(ALOAD, 1));
                 read_il.add(new VarInsnNode(ALOAD, 0));
-                read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                        METHOD_ADD_OBJECT_TO_CYCLE_CHECK,
-                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT),
-                        false));
+                read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_ADD_OBJECT_TO_CYCLE_CHECK,
+                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT), false));
             }
 
-            mgen = ASMSerializationInfo.findMethod(methods, METHOD_INIT,
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
+            mgen = ASMSerializationInfo.findMethod(methods, METHOD_INIT, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
         } else if (ASMSerializationInfo.hasReadObject(methods)) {
-            mgen = ASMSerializationInfo.findMethod(methods,
-                    METHOD_$READ_OBJECT_WRAPPER$,
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
+            mgen = ASMSerializationInfo.findMethod(methods, METHOD_$READ_OBJECT_WRAPPER$, SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
             read_il = new InsnList();
         } else {
             // No readObject method generated.
         }
 
         if (read_il != null) {
-            if (is_externalizable
-                    || ASMSerializationInfo.hasReadObject(methods)) {
+            if (is_externalizable || ASMSerializationInfo.hasReadObject(methods)) {
                 /*
-                 * First, get and set IbisSerializationInputStream's idea of the
-                 * current object.
+                 * First, get and set IbisSerializationInputStream's idea of the current object.
                  */
                 read_il.add(new VarInsnNode(ALOAD, 1));
                 read_il.add(new VarInsnNode(ALOAD, 0));
                 read_il.add(new LdcInsnNode(dpth));
-                read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                        METHOD_PUSH_CURRENT_OBJECT,
-                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT,
-                                Type.INT_TYPE),
-                        false));
+                read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_PUSH_CURRENT_OBJECT,
+                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, Type.INT_TYPE), false));
                 read_il.add(new VarInsnNode(ALOAD, 0));
                 read_il.add(new VarInsnNode(ALOAD, 1));
-                read_il.add(
-                        new MethodInsnNode(INVOKEVIRTUAL,
-                                TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                                METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
-                                Type.getMethodDescriptor(
-                                        TYPE_JAVA_IO_OBJECTINPUTSTREAM),
-                                false));
+                read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
+                        Type.getMethodDescriptor(TYPE_JAVA_IO_OBJECTINPUTSTREAM), false));
                 if (is_externalizable) {
                     /* Invoke readExternal */
-                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name,
-                            METHOD_READ_EXTERNAL,
-                            Type.getMethodDescriptor(Type.VOID_TYPE,
-                                    TYPE_JAVA_IO_OBJECTINPUT),
-                            false));
+                    read_il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name, METHOD_READ_EXTERNAL,
+                            Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_JAVA_IO_OBJECTINPUT), false));
                 } else {
                     /* Invoke readObject. */
-                    read_il.add(
-                            new MethodInsnNode(INVOKESPECIAL, clazz.name,
-                                    METHOD_READ_OBJECT,
-                                    Type.getMethodDescriptor(Type.VOID_TYPE,
-                                            TYPE_JAVA_IO_OBJECTINPUTSTREAM),
-                                    false));
+                    read_il.add(new MethodInsnNode(INVOKESPECIAL, clazz.name, METHOD_READ_OBJECT,
+                            Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_JAVA_IO_OBJECTINPUTSTREAM), false));
                 }
 
                 /*
-                 * And then, restore IbisSerializationOutputStream's idea of the
-                 * current object.
+                 * And then, restore IbisSerializationOutputStream's idea of the current object.
                  */
                 read_il.add(new VarInsnNode(ALOAD, 1));
-                read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                        METHOD_POP_CURRENT_OBJECT, "()V", false));
+                read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_POP_CURRENT_OBJECT, "()V", false));
             } else {
                 read_il.add(generateDefaultReads(true, mgen));
             }
@@ -1537,78 +1224,58 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
         InsnList write_il = new InsnList();
         // int flags = ACC_PUBLIC | (gen.isFinal() ? ACC_FINAL : 0);
 
-        MethodNode write_gen = ASMSerializationInfo.findMethod(methods,
-                METHOD_GENERATED_WRITE_OBJECT,
+        MethodNode write_gen = ASMSerializationInfo.findMethod(methods, METHOD_GENERATED_WRITE_OBJECT,
                 SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V);
 
         /* write the superclass if neccecary */
         if (is_externalizable) {
             /* Nothing to be done for the superclass. */
-        } else if (super_is_ibis_serializable
-                || (generator.forceGeneratedCalls() && super_is_serializable)) {
+        } else if (super_is_ibis_serializable || (generator.forceGeneratedCalls() && super_is_serializable)) {
             write_il.add(new VarInsnNode(ALOAD, 0));
             write_il.add(new VarInsnNode(ALOAD, 1));
-            write_il.add(createGeneratedWriteObjectInvocation(clazz.superName,
-                    INVOKESPECIAL));
+            write_il.add(createGeneratedWriteObjectInvocation(clazz.superName, INVOKESPECIAL));
 
         } else if (super_is_serializable) {
             write_il.add(new VarInsnNode(ALOAD, 1));
             write_il.add(new VarInsnNode(ALOAD, 0));
             write_il.add(new LdcInsnNode(clazz.superName.replaceAll("/", ".")));
-            write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                    METHOD_WRITE_SERIALIZABLE_OBJECT, Type.getMethodDescriptor(
-                            Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING),
-                    false));
+            write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_SERIALIZABLE_OBJECT,
+                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, TYPE_STRING), false));
         }
 
         /*
-         * and now ... generated_WriteObject should either call the classes
-         * writeObject, if it has one, or call generated_DefaultWriteObject. The
-         * read constructor should either call readObject, or call
-         * generated_DefaultReadObject.
+         * and now ... generated_WriteObject should either call the classes writeObject,
+         * if it has one, or call generated_DefaultWriteObject. The read constructor
+         * should either call readObject, or call generated_DefaultReadObject.
          */
         if (is_externalizable || ASMSerializationInfo.hasWriteObject(methods)) {
             /*
-             * First, get and set IbisSerializationOutputStream's idea of the
-             * current object.
+             * First, get and set IbisSerializationOutputStream's idea of the current
+             * object.
              */
             write_il.add(new VarInsnNode(ALOAD, 1));
             write_il.add(new VarInsnNode(ALOAD, 0));
             write_il.add(new LdcInsnNode(dpth));
-            write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                    METHOD_PUSH_CURRENT_OBJECT,
-                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT,
-                            Type.INT_TYPE),
-                    false));
+            write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_PUSH_CURRENT_OBJECT,
+                    Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, Type.INT_TYPE), false));
             write_il.add(new VarInsnNode(ALOAD, 0));
             write_il.add(new VarInsnNode(ALOAD, 1));
-            write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                    METHOD_GET_JAVA_OBJECT_OUTPUT_STREAM,
-                    Type.getMethodDescriptor(TYPE_JAVA_IO_OBJECTOUTPUTSTREAM),
-                    false));
+            write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_GET_JAVA_OBJECT_OUTPUT_STREAM,
+                    Type.getMethodDescriptor(TYPE_JAVA_IO_OBJECTOUTPUTSTREAM), false));
             if (is_externalizable) {
                 /* Invoke writeExternal */
-                write_il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name,
-                        METHOD_WRITE_EXTERNAL,
-                        Type.getMethodDescriptor(Type.VOID_TYPE,
-                                TYPE_JAVA_IO_OBJECTOUTPUT),
-                        false));
+                write_il.add(new MethodInsnNode(INVOKEVIRTUAL, clazz.name, METHOD_WRITE_EXTERNAL,
+                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_JAVA_IO_OBJECTOUTPUT), false));
             } else {
                 /* Invoke writeObject. */
                 write_il.add(createWriteObjectInvocation());
             }
 
             /*
-             * And then, restore IbisSerializationOutputStream's idea of the
-             * current object.
+             * And then, restore IbisSerializationOutputStream's idea of the current object.
              */
             write_il.add(new VarInsnNode(ALOAD, 1));
-            write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                    METHOD_POP_CURRENT_OBJECT, "()V", false));
+            write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_POP_CURRENT_OBJECT, "()V", false));
         } else {
             write_il.add(generateDefaultWrites(write_gen));
         }
@@ -1619,14 +1286,13 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
     private void fillInGeneratedDefaultWriteObjectMethod(int dpth) {
         /*
-         * void generated_DefaultWriteObject( IbisSerializationOutputStream out,
-         * int level) { if (level == dpth) { ... write fields ... (the code
-         * resulting from the generateDefaultWrites() call). } else if (level <
-         * dpth) { super.generated_DefaultWriteObject(out, level); } }
+         * void generated_DefaultWriteObject( IbisSerializationOutputStream out, int
+         * level) { if (level == dpth) { ... write fields ... (the code resulting from
+         * the generateDefaultWrites() call). } else if (level < dpth) {
+         * super.generated_DefaultWriteObject(out, level); } }
          */
 
-        MethodNode write_gen = ASMSerializationInfo.findMethod(methods,
-                METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
+        MethodNode write_gen = ASMSerializationInfo.findMethod(methods, METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
                 SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V);
 
         InsnList write_il = new InsnList();
@@ -1646,8 +1312,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                 write_il.add(new VarInsnNode(ALOAD, 0));
                 write_il.add(new VarInsnNode(ALOAD, 1));
                 write_il.add(new VarInsnNode(ILOAD, 2));
-                write_il.add(createGeneratedDefaultWriteObjectInvocation(
-                        clazz.superName));
+                write_il.add(createGeneratedDefaultWriteObjectInvocation(clazz.superName));
             } else {
                 /*
                  * Superclass is not rewritten.
@@ -1655,12 +1320,8 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                 write_il.add(new VarInsnNode(ALOAD, 1));
                 write_il.add(new VarInsnNode(ALOAD, 0));
                 write_il.add(new VarInsnNode(ILOAD, 2));
-                write_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
-                        METHOD_DEFAULT_WRITE_SERIALIZABLE_OBJECT,
-                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT,
-                                Type.INT_TYPE),
-                        false));
+                write_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                        METHOD_DEFAULT_WRITE_SERIALIZABLE_OBJECT, Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, Type.INT_TYPE), false));
             }
         } else {
             write_il.add(ifcmpne);
@@ -1672,8 +1333,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
     private void fillInGeneratedDefaultReadObjectMethod(int dpth) {
 
-        MethodNode read_gen = ASMSerializationInfo.findMethod(methods,
-                METHOD_GENERATED_DEFAULT_READ_OBJECT,
+        MethodNode read_gen = ASMSerializationInfo.findMethod(methods, METHOD_GENERATED_DEFAULT_READ_OBJECT,
                 SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V);
         InsnList read_il = new InsnList();
         LabelNode end = new LabelNode();
@@ -1692,8 +1352,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                 read_il.add(new VarInsnNode(ALOAD, 0));
                 read_il.add(new VarInsnNode(ALOAD, 1));
                 read_il.add(new VarInsnNode(ILOAD, 2));
-                read_il.add(createGeneratedDefaultReadObjectInvocation(
-                        clazz.superName, INVOKESPECIAL));
+                read_il.add(createGeneratedDefaultReadObjectInvocation(clazz.superName, INVOKESPECIAL));
             } else {
                 /*
                  * Superclass is not rewritten.
@@ -1701,12 +1360,8 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
                 read_il.add(new VarInsnNode(ALOAD, 1));
                 read_il.add(new VarInsnNode(ALOAD, 0));
                 read_il.add(new VarInsnNode(ILOAD, 2));
-                read_il.add(new MethodInsnNode(INVOKEVIRTUAL,
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
-                        METHOD_DEFAULT_READ_SERIALIZABLE_OBJECT,
-                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT,
-                                Type.INT_TYPE),
-                        false));
+                read_il.add(new MethodInsnNode(INVOKEVIRTUAL, TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_DEFAULT_READ_SERIALIZABLE_OBJECT,
+                        Type.getMethodDescriptor(Type.VOID_TYPE, TYPE_OBJECT, Type.INT_TYPE), false));
             }
         }
         read_il.add(end);

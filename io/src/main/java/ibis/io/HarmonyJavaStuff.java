@@ -24,7 +24,7 @@ import java.lang.reflect.Modifier;
 class HarmonyJavaStuff extends JavaDependentStuff {
 
     private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
-    
+
     static Class<?> accessorClass = null;
     static Object accessor = null;
     static Method newInstance = null;
@@ -40,12 +40,12 @@ class HarmonyJavaStuff extends JavaDependentStuff {
     static Method getFieldID = null;
     static Method getMethodID = null;
     static boolean available = false;
-    
+
     private static class Dummy extends java.io.ObjectInputStream {
 
         protected Dummy() throws IOException, SecurityException {
             super();
-        }        
+        }
     }
 
     static {
@@ -58,50 +58,37 @@ class HarmonyJavaStuff extends JavaDependentStuff {
             accessor = f.get(dummy);
             // dummy.close(); Gives null-pointer exception
 
-            accessorClass = Class.forName(
-                    "org.apache.harmony.misc.accessors.ObjectAccessor");
+            accessorClass = Class.forName("org.apache.harmony.misc.accessors.ObjectAccessor");
 
-            newInstance = getMethod(accessorClass,
-                    "newInstance", Class.class, Long.TYPE, Object[].class);
-            setFieldBoolean = getMethod(accessorClass,
-                    "setBoolean", Object.class, Long.TYPE, Boolean.TYPE);
-            setFieldByte = getMethod(accessorClass,
-                    "setByte", Object.class, Long.TYPE,  Byte.TYPE);
-            setFieldShort = getMethod(accessorClass,
-                    "setShort", Object.class, Long.TYPE, Short.TYPE);
-            setFieldInt = getMethod(accessorClass,
-                    "setInt", Object.class, Long.TYPE, Integer.TYPE);
-            setFieldLong = getMethod(accessorClass,
-                    "setLong", Object.class, Long.TYPE, Long.TYPE);
-            setFieldChar = getMethod(accessorClass,
-                    "setChar", Object.class, Long.TYPE, Character.TYPE);
-            setFieldFloat = getMethod(accessorClass,
-                    "setFloat", Object.class, Long.TYPE, Float.TYPE);
-            setFieldDouble = getMethod(accessorClass,
-                    "setDouble", Object.class, Long.TYPE, Double.TYPE);
-            setFieldObject = getMethod(accessorClass,
-                    "setObject", Object.class, Long.TYPE, Object.class);
-            getFieldID = getMethod(accessorClass,
-                    "getFieldID", Class.class, String.class);
-            getMethodID = getMethod(accessorClass,
-                    "getMethodID", Class.class, String.class, Class[].class);
+            newInstance = getMethod(accessorClass, "newInstance", Class.class, Long.TYPE, Object[].class);
+            setFieldBoolean = getMethod(accessorClass, "setBoolean", Object.class, Long.TYPE, Boolean.TYPE);
+            setFieldByte = getMethod(accessorClass, "setByte", Object.class, Long.TYPE, Byte.TYPE);
+            setFieldShort = getMethod(accessorClass, "setShort", Object.class, Long.TYPE, Short.TYPE);
+            setFieldInt = getMethod(accessorClass, "setInt", Object.class, Long.TYPE, Integer.TYPE);
+            setFieldLong = getMethod(accessorClass, "setLong", Object.class, Long.TYPE, Long.TYPE);
+            setFieldChar = getMethod(accessorClass, "setChar", Object.class, Long.TYPE, Character.TYPE);
+            setFieldFloat = getMethod(accessorClass, "setFloat", Object.class, Long.TYPE, Float.TYPE);
+            setFieldDouble = getMethod(accessorClass, "setDouble", Object.class, Long.TYPE, Double.TYPE);
+            setFieldObject = getMethod(accessorClass, "setObject", Object.class, Long.TYPE, Object.class);
+            getFieldID = getMethod(accessorClass, "getFieldID", Class.class, String.class);
+            getMethodID = getMethod(accessorClass, "getMethodID", Class.class, String.class, Class[].class);
             available = true;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             logger.info("No Harmony Java stuff, got exception", e);
         }
     }
-    
-    private Class<?>constructorClass = null;
+
+    private Class<?> constructorClass = null;
     private long constructorID;
 
     private static Method getMethod(Class<?> cl, String name, Class<?>... params) throws SecurityException, NoSuchMethodException {
         return cl.getDeclaredMethod(name, params);
-    }    
+    }
 
     HarmonyJavaStuff(Class<?> clazz) {
-        super(clazz); 
-        
-        if (! available) {
+        super(clazz);
+
+        if (!available) {
             throw new Error("HarmonyJavaStuff not available");
         }
         // Find the class of the constructor that needs to be called
@@ -111,22 +98,20 @@ class HarmonyJavaStuff extends JavaDependentStuff {
         constructorClass = clazz;
 
         // Find the first non-serializable class in the hierarchy.
-        while (constructorClass != null
-                 && java.io.Serializable.class.isAssignableFrom(constructorClass)) {
+        while (constructorClass != null && java.io.Serializable.class.isAssignableFrom(constructorClass)) {
             constructorClass = constructorClass.getSuperclass();
         }
-        
+
         // Obtain the empty constructor.
         Constructor<?> constructor = null;
         if (constructorClass != null) {
             try {
-                constructor = constructorClass
-                        .getDeclaredConstructor(EMPTY_CLASS_ARRAY);
+                constructor = constructorClass.getDeclaredConstructor(EMPTY_CLASS_ARRAY);
             } catch (NoSuchMethodException e) {
                 // Ignored
             }
         }
-        
+
         // Check visibility of constructor
         if (constructor != null) {
             int constructorModifiers = constructor.getModifiers();
@@ -135,33 +120,32 @@ class HarmonyJavaStuff extends JavaDependentStuff {
             // instantiation class
             if (Modifier.isPrivate(constructorModifiers)) {
                 constructorClass = null;
-            } else if (!Modifier.isPublic(constructorModifiers)
-                    && !Modifier.isProtected(constructorModifiers)) {
-                if (! constructorClass.getPackage().getName().equals(clazz.getPackage().getName())) {
+            } else if (!Modifier.isPublic(constructorModifiers) && !Modifier.isProtected(constructorModifiers)) {
+                if (!constructorClass.getPackage().getName().equals(clazz.getPackage().getName())) {
                     constructorClass = null;
                 }
             }
-        
+
             if (constructorClass != null) {
                 try {
-                    constructorID = (Long) getMethodID.invoke(accessor, constructorClass,
-                            null, EMPTY_CLASS_ARRAY);
+                    constructorID = (Long) getMethodID.invoke(accessor, constructorClass, null, EMPTY_CLASS_ARRAY);
                 } catch (Throwable e) {
                     constructorClass = null;
                 }
             }
         }
     }
-    
+
     private long getFieldID(String name) throws IbisIOException {
         // TODO: cache these?
         try {
             return (Long) getFieldID.invoke(accessor, clazz, name);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
+    @Override
     Object newInstance() {
         if (constructorClass == null) {
             return null;
@@ -169,112 +153,116 @@ class HarmonyJavaStuff extends JavaDependentStuff {
         try {
             return newInstance.invoke(accessor, clazz, constructorID, null);
         } catch (Throwable e) {
-             return null;
+            return null;
         }
     }
 
-    void setFieldBoolean(Object ref, String fieldname, boolean d)
-    throws IOException {
+    @Override
+    void setFieldBoolean(Object ref, String fieldname, boolean d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldBoolean.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
+    @Override
     void setFieldByte(Object ref, String fieldname, byte d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldByte.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
+    @Override
     void setFieldChar(Object ref, String fieldname, char d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldChar.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
-    void setFieldClass(Object ref, String fieldname, Class<?> d)
-    throws IOException {
+    @Override
+    void setFieldClass(Object ref, String fieldname, Class<?> d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldObject.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
-    void setFieldDouble(Object ref, String fieldname, double d)
-    throws IOException {
+    @Override
+    void setFieldDouble(Object ref, String fieldname, double d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldDouble.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
-    void setFieldFloat(Object ref, String fieldname, float d)
-    throws IOException {
+    @Override
+    void setFieldFloat(Object ref, String fieldname, float d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldFloat.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
-   }
+    }
 
+    @Override
     void setFieldInt(Object ref, String fieldname, int d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldInt.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
+    @Override
     void setFieldLong(Object ref, String fieldname, long d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldLong.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
-    void setFieldObject(Object ref, String fieldname, Object d, String fieldsig)
-    throws IOException {
+    @Override
+    void setFieldObject(Object ref, String fieldname, Object d, String fieldsig) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldObject.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
-    void setFieldShort(Object ref, String fieldname, short d)
-    throws IOException {
+    @Override
+    void setFieldShort(Object ref, String fieldname, short d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldShort.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }
 
-    void setFieldString(Object ref, String fieldname, String d)
-    throws IOException {
+    @Override
+    void setFieldString(Object ref, String fieldname, String d) throws IOException {
         long id = getFieldID(fieldname);
         try {
             setFieldShort.invoke(accessor, ref, id, d);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new IbisIOException("Got exception", e);
         }
     }

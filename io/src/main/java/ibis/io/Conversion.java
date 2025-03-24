@@ -96,14 +96,11 @@ public abstract class Conversion {
     /**
      * Returns a conversion, given the class name of it.
      *
-     * @param className
-     *            the class name
+     * @param className the class name
      * @return the conversion object
-     * @throws Exception
-     *             when the class could not be loaded for some reason
+     * @throws Exception when the class could not be loaded for some reason
      */
-    public static final Conversion loadConversion(String className)
-            throws Exception {
+    public static final Conversion loadConversion(String className) throws Exception {
 
         return (Conversion) Class.forName(className).getDeclaredConstructor().newInstance();
 
@@ -112,8 +109,7 @@ public abstract class Conversion {
     /**
      * Load a conversion.
      *
-     * @param bigEndian
-     *            determines whether big-endian or little-endian is used
+     * @param bigEndian determines whether big-endian or little-endian is used
      * @return the conversion object
      */
     public static final Conversion loadConversion(boolean bigEndian) {
@@ -151,8 +147,7 @@ public abstract class Conversion {
             } catch (Exception e) {
                 // nio conversion loading failed
             }
-        } else if (conversion == null
-                || conversion.equalsIgnoreCase("hybrid")) {
+        } else if (conversion == null || conversion.equalsIgnoreCase("hybrid")) {
             // default conversion
             // if (conversion != null) {
             // System.err.println("hybrid conversion selected");
@@ -213,56 +208,40 @@ public abstract class Conversion {
 
     public abstract double byte2double(byte[] src, int off);
 
-    public abstract void boolean2byte(boolean[] src, int off, int len,
-            byte[] dst, int off2);
+    public abstract void boolean2byte(boolean[] src, int off, int len, byte[] dst, int off2);
 
-    public abstract void byte2boolean(byte[] src, int index_src, boolean[] dst,
-            int index_dst, int len);
+    public abstract void byte2boolean(byte[] src, int index_src, boolean[] dst, int index_dst, int len);
 
-    public abstract void char2byte(char[] src, int off, int len, byte[] dst,
-            int off2);
+    public abstract void char2byte(char[] src, int off, int len, byte[] dst, int off2);
 
-    public abstract void byte2char(byte[] src, int index_src, char[] dst,
-            int index_dst, int len);
+    public abstract void byte2char(byte[] src, int index_src, char[] dst, int index_dst, int len);
 
-    public abstract void short2byte(short[] src, int off, int len, byte[] dst,
-            int off2);
+    public abstract void short2byte(short[] src, int off, int len, byte[] dst, int off2);
 
-    public abstract void byte2short(byte[] src, int index_src, short[] dst,
-            int index_dst, int len);
+    public abstract void byte2short(byte[] src, int index_src, short[] dst, int index_dst, int len);
 
-    public abstract void int2byte(int[] src, int off, int len, byte[] dst,
-            int off2);
+    public abstract void int2byte(int[] src, int off, int len, byte[] dst, int off2);
 
-    public abstract void byte2int(byte[] src, int index_src, int[] dst,
-            int index_dst, int len);
+    public abstract void byte2int(byte[] src, int index_src, int[] dst, int index_dst, int len);
 
-    public abstract void long2byte(long[] src, int off, int len, byte[] dst,
-            int off2);
+    public abstract void long2byte(long[] src, int off, int len, byte[] dst, int off2);
 
-    public abstract void byte2long(byte[] src, int index_src, long[] dst,
-            int index_dst, int len);
+    public abstract void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len);
 
-    public abstract void float2byte(float[] src, int off, int len, byte[] dst,
-            int off2);
+    public abstract void float2byte(float[] src, int off, int len, byte[] dst, int off2);
 
-    public abstract void byte2float(byte[] src, int index_src, float[] dst,
-            int index_dst, int len);
+    public abstract void byte2float(byte[] src, int index_src, float[] dst, int index_dst, int len);
 
-    public abstract void double2byte(double[] src, int off, int len, byte[] dst,
-            int off2);
+    public abstract void double2byte(double[] src, int off, int len, byte[] dst, int off2);
 
-    public abstract void byte2double(byte[] src, int index_src, double[] dst,
-            int index_dst, int len);
+    public abstract void byte2double(byte[] src, int index_src, double[] dst, int index_dst, int len);
 
     /**
      * Writes an object to a byte[].
      *
-     * @param o
-     *            the object
+     * @param o the object
      * @return the byte array
-     * @throws IOException
-     *             on I/O error
+     * @throws IOException on I/O error
      */
     public static final byte[] object2byte(Object o) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -276,16 +255,13 @@ public abstract class Conversion {
     /**
      * Reads an object from byte[].
      *
-     * @param b
-     *            the byte array
+     * @param b the byte array
      * @return the object
-     * @throws IOException
-     *             on IO error
-     * @throws ClassNotFoundException
-     *             when the object class could not be loaded for some reason
+     * @throws IOException            on IO error
+     * @throws ClassNotFoundException when the object class could not be loaded for
+     *                                some reason
      */
-    public static final Object byte2object(byte[] b)
-            throws IOException, ClassNotFoundException {
+    public static final Object byte2object(byte[] b) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(b);
         ObjectInputStream ois = new ObjectInputStream(bis);
         Object o = ois.readObject();
@@ -294,13 +270,11 @@ public abstract class Conversion {
     }
 
     /**
-     * Upwards-round <code>a</code> to a multiple of <code>d</code>.
-     * <code>d</code> <b>MUST</b> be a power of two.
+     * Upwards-round <code>a</code> to a multiple of <code>d</code>. <code>d</code>
+     * <b>MUST</b> be a power of two.
      *
-     * @param a
-     *            the number to be rounded
-     * @param d
-     *            the power of two
+     * @param a the number to be rounded
+     * @param d the power of two
      * @return the rounded number
      */
     @SuppressWarnings("unused")

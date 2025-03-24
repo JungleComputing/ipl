@@ -32,34 +32,28 @@ public interface ChannelFactory extends Runnable {
 
     /**
      * Tries to connect the specified sendport to the given receiveport for
-     * timeoutMillis milliseconds and returns the writechannel if it succeeded.
-     * A timeout of 0 means try forever.
-     * 
-     * @param spi
-     *            the sendport
-     * @param rpi
-     *            identifies the receiveport
-     * @param timeoutMillis
-     *            the timeout in milliseconds
+     * timeoutMillis milliseconds and returns the writechannel if it succeeded. A
+     * timeout of 0 means try forever.
+     *
+     * @param spi           the sendport
+     * @param rpi           identifies the receiveport
+     * @param timeoutMillis the timeout in milliseconds
      *
      * @return a new Channel connected to "rpi".
-     * @throws IOException
-     *             on failure
+     * @throws IOException on failure
      */
-    public Channel connect(NioSendPort spi, ReceivePortIdentifier rpi,
-            long timeoutMillis) throws IOException;
+    public Channel connect(NioSendPort spi, ReceivePortIdentifier rpi, long timeoutMillis) throws IOException;
 
     /**
      * Stops the factory. It will kill off any threads it made.
-     * 
-     * @throws IOException
-     *             on failure
+     *
+     * @throws IOException on failure
      */
     public void quit() throws IOException;
 
     /**
      * Returns the socket address that this factory is listening to.
-     * 
+     *
      * @return the socket address
      */
     public InetSocketAddress getAddress();

@@ -29,42 +29,44 @@ import ibis.ipl.RegistryEventHandler;
 
 public class RegistryUpcalls implements RegistryEventHandler {
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     // Methods of the registry event handler. We only implement the
     // join/leave/died methods, as signals and elections are disabled
 
+    @Override
     public void joined(IbisIdentifier joinedIbis) {
-        System.err.println("Got event from registry: " + joinedIbis
-                + " joined pool");
+        System.err.println("Got event from registry: " + joinedIbis + " joined pool");
     }
 
+    @Override
     public void died(IbisIdentifier corpse) {
         System.err.println("Got event from registry: " + corpse + " died!");
     }
 
+    @Override
     public void left(IbisIdentifier leftIbis) {
         System.err.println("Got event from registry: " + leftIbis + " left");
     }
 
+    @Override
     public void electionResult(String electionName, IbisIdentifier winner) {
-        System.err.println("Got event from registry: " + winner
-                + " won election " + electionName);
+        System.err.println("Got event from registry: " + winner + " won election " + electionName);
     }
 
+    @Override
     public void gotSignal(String signal, IbisIdentifier source) {
-        System.err.println("Got event from registry: signal \"" + signal
-                + "\" from " + source);
+        System.err.println("Got event from registry: signal \"" + signal + "\" from " + source);
     }
 
+    @Override
     public void poolClosed() {
         System.err.println("Got event from registry: pool closed");
     }
 
+    @Override
     public void poolTerminated(IbisIdentifier source) {
-        System.err.println("Got event from registry: pool terminated by "
-                + source);
+        System.err.println("Got event from registry: pool terminated by " + source);
     }
 
     private void run() throws Exception {

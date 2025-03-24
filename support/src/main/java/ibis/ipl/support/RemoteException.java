@@ -21,19 +21,19 @@ public class RemoteException extends IOException {
 
     private static final long serialVersionUID = 1L;
 
-	public RemoteException() {
+    public RemoteException() {
     }
 
     public RemoteException(String message) {
-	super(message);
+        super(message);
     }
 
     public RemoteException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 
     public RemoteException(String message, Throwable cause) {
-	super(message, cause);
+        super(message, cause);
     }
 
 }

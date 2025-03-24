@@ -28,15 +28,17 @@ public abstract class SendPortConnectionInfo {
     public final SendPort port;
 
     /**
-     * Constructs a <code>SendPortConnectionInfo</code> with the specified parameters.
-     * @param port the sendport.
+     * Constructs a <code>SendPortConnectionInfo</code> with the specified
+     * parameters.
+     * 
+     * @param port   the sendport.
      * @param target identifies the receiveport.
      */
     protected SendPortConnectionInfo(SendPort port, ReceivePortIdentifier target) {
         this.port = port;
         this.target = target;
     }
-    
+
     public String connectionType() {
         return "unknown";
     }

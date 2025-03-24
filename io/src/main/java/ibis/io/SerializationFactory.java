@@ -28,14 +28,12 @@ import java.util.Properties;
 public class SerializationFactory {
 
     /**
-     * Returns the implementation name for the specified nickname. For now, this
-     * is hardcoded, but it could be driven by for instance a configuration or
+     * Returns the implementation name for the specified nickname. For now, this is
+     * hardcoded, but it could be driven by for instance a configuration or
      * properties file.
-     * 
-     * @param name
-     *            the nickname of the serialization type.
-     * @param props
-     *            the properties to use
+     *
+     * @param name  the nickname of the serialization type.
+     * @param props the properties to use
      * @return the implementation name.
      */
     private static String implName(String name, Properties props) {
@@ -66,42 +64,31 @@ public class SerializationFactory {
 
     /**
      * Creates a {@link SerializationInput} as specified by the name.
-     * 
-     * @param name
-     *            the nickname for this serialization type.
-     * @param in
-     *            the underlying input stream.
-     * @param props
-     *            the properties to use
+     *
+     * @param name  the nickname for this serialization type.
+     * @param in    the underlying input stream.
+     * @param props the properties to use
      * @return the serialization input stream.
-     * @exception IOException
-     *                gets thrown when an IO error occurs.
+     * @exception IOException gets thrown when an IO error occurs.
      */
-    public static SerializationInput createSerializationInput(String name,
-            DataInputStream in, Properties props) throws IOException {
+    public static SerializationInput createSerializationInput(String name, DataInputStream in, Properties props) throws IOException {
         String impl = implName(name, props) + "InputStream";
         try {
             Class<?> cl = Class.forName(impl);
-            Constructor<?> cons = cl
-                    .getConstructor(new Class[] { DataInputStream.class });
+            Constructor<?> cons = cl.getConstructor(new Class[] { DataInputStream.class });
             return (SerializationInput) cons.newInstance(new Object[] { in });
         } catch (ClassNotFoundException e) {
             throw new IbisIOException("No such class: " + impl, e);
         } catch (NoSuchMethodException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
+            throw new IbisIOException("No suitable constructor in class: " + impl, e);
         } catch (IllegalArgumentException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
+            throw new IbisIOException("No suitable constructor in class: " + impl, e);
         } catch (InstantiationException e) {
             throw new IbisIOException("class " + impl + " is abstract", e);
         } catch (InvocationTargetException e) {
-            throw new IbisIOException(
-                    "constructor of " + impl + " threw an exception",
-                    e.getCause());
+            throw new IbisIOException("constructor of " + impl + " threw an exception", e.getCause());
         } catch (IllegalAccessException e) {
-            throw new IbisIOException(
-                    "access to constructor of " + impl + " is denied", e);
+            throw new IbisIOException("access to constructor of " + impl + " is denied", e);
         } catch (Throwable e) {
             throw new IbisIOException("got unexpected error", e);
         }
@@ -109,42 +96,31 @@ public class SerializationFactory {
 
     /**
      * Creates a {@link SerializationOutput} as specified by the name.
-     * 
-     * @param name
-     *            the nickname for this serialization type.
-     * @param out
-     *            the underlying output stream.
-     * @param props
-     *            the properties to use.
+     *
+     * @param name  the nickname for this serialization type.
+     * @param out   the underlying output stream.
+     * @param props the properties to use.
      * @return the serialization output stream.
-     * @exception IOException
-     *                gets thrown when an IO error occurs.
+     * @exception IOException gets thrown when an IO error occurs.
      */
-    public static SerializationOutput createSerializationOutput(String name,
-            DataOutputStream out, Properties props) throws IOException {
+    public static SerializationOutput createSerializationOutput(String name, DataOutputStream out, Properties props) throws IOException {
         String impl = implName(name, props) + "OutputStream";
         try {
             Class<?> cl = Class.forName(impl);
-            Constructor<?> cons = cl
-                    .getConstructor(new Class[] { DataOutputStream.class });
+            Constructor<?> cons = cl.getConstructor(new Class[] { DataOutputStream.class });
             return (SerializationOutput) cons.newInstance(new Object[] { out });
         } catch (ClassNotFoundException e) {
             throw new IbisIOException("No such class: " + impl, e);
         } catch (NoSuchMethodException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
+            throw new IbisIOException("No suitable constructor in class: " + impl, e);
         } catch (IllegalArgumentException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
+            throw new IbisIOException("No suitable constructor in class: " + impl, e);
         } catch (InstantiationException e) {
             throw new IbisIOException("class " + impl + " is abstract", e);
         } catch (InvocationTargetException e) {
-            throw new IbisIOException(
-                    "constructor of " + impl + " threw an exception",
-                    e.getCause());
+            throw new IbisIOException("constructor of " + impl + " threw an exception", e.getCause());
         } catch (IllegalAccessException e) {
-            throw new IbisIOException(
-                    "access to constructor of " + impl + " is denied", e);
+            throw new IbisIOException("access to constructor of " + impl + " is denied", e);
         } catch (Throwable e) {
             throw new IbisIOException("got unexpected error", e);
         }

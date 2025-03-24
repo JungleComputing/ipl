@@ -21,20 +21,20 @@ public class RemoteException extends IbisIOException {
 
     private static final long serialVersionUID = 1L;
 
-	public RemoteException() {
-	super();
+    public RemoteException() {
+        super();
     }
 
     public RemoteException(String message) {
-	super(message);
+        super(message);
     }
 
     public RemoteException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 
     public RemoteException(String message, Throwable cause) {
-	super(message, cause);
+        super(message, cause);
     }
 
 }

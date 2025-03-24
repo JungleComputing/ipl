@@ -25,7 +25,6 @@ import org.apache.bcel.verifier.VerificationResult;
 import org.apache.bcel.verifier.Verifier;
 import org.apache.bcel.verifier.VerifierFactory;
 
-
 /**
  * BCEL implementation of the <code>ClassInfo</code> interface.
  */
@@ -35,17 +34,19 @@ public class BCELClassInfo implements ClassInfo {
 
     /**
      * Create a BCELClassInfo object for a given class.
-     * 
+     *
      * @param cl Class to create the info object for.
      */
     public BCELClassInfo(JavaClass cl) {
         this.cl = cl;
     }
 
+    @Override
     public String getClassName() {
         return cl.getClassName();
     }
 
+    @Override
     public Object getClassObject() {
         return cl;
     }
@@ -54,14 +55,17 @@ public class BCELClassInfo implements ClassInfo {
         this.cl = cl;
     }
 
+    @Override
     public void dump(String fileName) throws IOException {
         cl.dump(fileName);
     }
 
+    @Override
     public byte[] getBytes() {
         return cl.getBytes();
     }
 
+    @Override
     public boolean doVerify() {
         Verifier verf = VerifierFactory.getVerifier(cl.getClassName());
         boolean verification_failed = false;
@@ -81,19 +85,14 @@ public class BCELClassInfo implements ClassInfo {
                 Method[] cMethods = cl.getMethods();
                 for (int i = 0; i < cMethods.length; i++) {
                     res = verf.doPass3a(i);
-                    if (res.getStatus() 
-                            == VerificationResult.VERIFIED_REJECTED) {
-                        System.out.println("Ibisc: Verification pass 3a failed "
-                                + "for method " + cMethods[i].getName());
+                    if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
+                        System.out.println("Ibisc: Verification pass 3a failed " + "for method " + cMethods[i].getName());
                         System.out.println(res.getMessage());
                         verification_failed = true;
                     } else {
                         res = verf.doPass3b(i);
-                        if (res.getStatus() 
-                                == VerificationResult.VERIFIED_REJECTED) {
-                            System.out.println("Ibisc: Verification pass 3b "
-                                    + "failed for method "
-                                    + cMethods[i].getName());
+                        if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
+                            System.out.println("Ibisc: Verification pass 3b " + "failed for method " + cMethods[i].getName());
                             System.out.println(res.getMessage());
                             verification_failed = true;
                         }

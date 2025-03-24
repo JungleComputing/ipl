@@ -34,9 +34,9 @@ class ServerConnectionProtocol {
     public static final byte OPCODE_END = 4;
 
     public static final byte OPCODE_REGISTRY_GET_POOLS = 5;
-    
+
     public static final byte OPCODE_REGISTRY_GET_LOCATIONS = 6;
-    
+
     public static final byte OPCODE_REGISTRY_GET_POOL_SIZES = 7;
 
     public static final byte OPCODE_REGISTRY_GET_MEMBERS = 8;

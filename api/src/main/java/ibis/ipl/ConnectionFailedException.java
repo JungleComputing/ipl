@@ -26,40 +26,30 @@ public class ConnectionFailedException extends IbisIOException {
     private final String receivePortName;
 
     /**
-     * Constructs a <code>ConnectionFailedException</code> for a
-     * failed attempt to connect to a specific named receiveport
-     * at a specific ibis instance.
-     * @param detailMessage
-     *          the detail message.
-     * @param ibisIdentifier
-     *          the Ibis identifier of the ibis instance.
-     * @param receivePortName
-     *          the receivePortName of the receive port.
+     * Constructs a <code>ConnectionFailedException</code> for a failed attempt to
+     * connect to a specific named receiveport at a specific ibis instance.
+     *
+     * @param detailMessage   the detail message.
+     * @param ibisIdentifier  the Ibis identifier of the ibis instance.
+     * @param receivePortName the receivePortName of the receive port.
      */
-    public ConnectionFailedException(String detailMessage,
-            IbisIdentifier ibisIdentifier, String receivePortName) {
+    public ConnectionFailedException(String detailMessage, IbisIdentifier ibisIdentifier, String receivePortName) {
         super(detailMessage);
         this.ibisIdentifier = ibisIdentifier;
         this.receivePortName = receivePortName;
         this.receivePortIdentifier = null;
     }
-    
+
     /**
-     * Constructs a <code>ConnectionFailedException</code> for a
-     * failed attempt to connect to a specific named receiveport
-     * at a specific ibis instance.
-     * @param detailMessage
-     *          the detail message.
-     * @param ibisIdentifier
-     *          the Ibis identifier of the ibis instance.
-     * @param receivePortName
-     *          the receivePortName of the receive port.
-     * @param cause
-     *          the cause of the failure.
+     * Constructs a <code>ConnectionFailedException</code> for a failed attempt to
+     * connect to a specific named receiveport at a specific ibis instance.
+     *
+     * @param detailMessage   the detail message.
+     * @param ibisIdentifier  the Ibis identifier of the ibis instance.
+     * @param receivePortName the receivePortName of the receive port.
+     * @param cause           the cause of the failure.
      */
-    public ConnectionFailedException(String detailMessage,
-            IbisIdentifier ibisIdentifier, String receivePortName,
-            Throwable cause) {
+    public ConnectionFailedException(String detailMessage, IbisIdentifier ibisIdentifier, String receivePortName, Throwable cause) {
         super(detailMessage);
         initCause(cause);
         this.ibisIdentifier = ibisIdentifier;
@@ -68,32 +58,29 @@ public class ConnectionFailedException extends IbisIOException {
     }
 
     /**
-     * Constructs a <code>ConnectionFailedException</code> for a
-     * failed attempt to connect to a specific receiveport.
-     * at a specific ibis instance.
-     * @param detailMessage the detail message.
+     * Constructs a <code>ConnectionFailedException</code> for a failed attempt to
+     * connect to a specific receiveport. at a specific ibis instance.
+     *
+     * @param detailMessage         the detail message.
      * @param receivePortIdentifier the receiveport identifier.
-     * @param cause the cause of the failure.
+     * @param cause                 the cause of the failure.
      */
-    public ConnectionFailedException(String detailMessage,
-            ReceivePortIdentifier receivePortIdentifier, Throwable cause) {
+    public ConnectionFailedException(String detailMessage, ReceivePortIdentifier receivePortIdentifier, Throwable cause) {
         super(detailMessage);
         initCause(cause);
         this.receivePortIdentifier = receivePortIdentifier;
         this.ibisIdentifier = receivePortIdentifier.ibisIdentifier();
         this.receivePortName = receivePortIdentifier.name();
     }
-    
+
     /**
-     * Constructs a <code>ConnectionFailedException</code> for a
-     * failed attempt to connect to a specific receiveport.
-     * @param detailMessage
-     *          the detail message.
-     * @param receivePortIdentifier
-     *          the receiveport identifier.
+     * Constructs a <code>ConnectionFailedException</code> for a failed attempt to
+     * connect to a specific receiveport.
+     *
+     * @param detailMessage         the detail message.
+     * @param receivePortIdentifier the receiveport identifier.
      */
-    public ConnectionFailedException(String detailMessage,
-            ReceivePortIdentifier receivePortIdentifier) {
+    public ConnectionFailedException(String detailMessage, ReceivePortIdentifier receivePortIdentifier) {
         super(detailMessage);
         this.receivePortIdentifier = receivePortIdentifier;
         this.ibisIdentifier = receivePortIdentifier.ibisIdentifier();
@@ -101,10 +88,10 @@ public class ConnectionFailedException extends IbisIOException {
     }
 
     /**
-     * Returns the ibis identifier of the ibis instance running the
-     * receive port that was the target of the failed connection attempt.
-     * @return
-     *          the ibis identifier.
+     * Returns the ibis identifier of the ibis instance running the receive port
+     * that was the target of the failed connection attempt.
+     *
+     * @return the ibis identifier.
      */
     public IbisIdentifier ibisIdentifier() {
         if (ibisIdentifier == null) {
@@ -114,11 +101,11 @@ public class ConnectionFailedException extends IbisIOException {
     }
 
     /**
-     * Returns the receiveport identifier of the failed connection attempt.
-     * If the connection attempt specified ibis identifiers and names,
-     * this call may return <code>null</code>.
-     * @return
-     *          the receiveport identifier, or <code>null</code>.
+     * Returns the receiveport identifier of the failed connection attempt. If the
+     * connection attempt specified ibis identifiers and names, this call may return
+     * <code>null</code>.
+     *
+     * @return the receiveport identifier, or <code>null</code>.
      */
     public ReceivePortIdentifier receivePortIdentifier() {
         return receivePortIdentifier;
@@ -127,8 +114,8 @@ public class ConnectionFailedException extends IbisIOException {
     /**
      * Returns the name of the receive port that was the target of the failed
      * connection attempt.
-     * @return
-     *          the receivePortName.
+     *
+     * @return the receivePortName.
      */
     public String receivePortName() {
         if (receivePortName == null) {

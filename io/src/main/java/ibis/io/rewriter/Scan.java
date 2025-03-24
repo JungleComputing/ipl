@@ -17,8 +17,6 @@
 
 package ibis.io.rewriter;
 
-import ibis.util.RunProcess;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -26,6 +24,8 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
+import ibis.util.RunProcess;
 
 class Failed {
     String[] class_names;
@@ -39,9 +39,9 @@ public class Scan {
 
     public static final int BATCH_SIZE = 20;
 
-    private static Vector<String> classes = new Vector<String>();
+    private static Vector<String> classes = new Vector<>();
 
-    private static Vector<Failed> failed = new Vector<Failed>();
+    private static Vector<Failed> failed = new Vector<>();
 
     public static String[] getClassPath() {
         int i = 0;
@@ -80,7 +80,7 @@ public class Scan {
                 }
             }
 
-            //	    System.out.println("Command = " + command);
+            // System.out.println("Command = " + command);
 
             p = new RunProcess(command);
             p.run();
@@ -101,9 +101,9 @@ public class Scan {
 
             if (p != null) {
                 byte[] o = p.getStdout();
-                for (int i = 0; i < o.length; i++) {
-                    f.error.append(((char) o[i]));
-                    if (o[i] == '\n') {
+                for (byte element : o) {
+                    f.error.append(((char) element));
+                    if (element == '\n') {
                         f.error.append("      : ");
                     }
                 }
@@ -114,9 +114,9 @@ public class Scan {
 
             if (p != null) {
                 byte[] e = p.getStderr();
-                for (int i = 0; i < e.length; i++) {
-                    f.error.append(((char) e[i]));
-                    if (e[i] == '\n') {
+                for (byte element : e) {
+                    f.error.append(((char) element));
+                    if (element == '\n') {
                         f.error.append("      : ");
                     }
                 }
@@ -139,8 +139,7 @@ public class Scan {
         }
 
         jarf.close();
-        System.out.println("Jarfile " + jarfile + " contains " + classes.size()
-                + " classes.");
+        System.out.println("Jarfile " + jarfile + " contains " + classes.size() + " classes.");
 
         System.out.println("Starting rewrite");
 
@@ -152,8 +151,7 @@ public class Scan {
             for (int j = 0; j < BATCH_SIZE; j++) {
                 if (i + j < total) {
                     batch[j] = classes.get(i + j);
-                    System.out.println(batch[j] + " (" + (i + j) + " of "
-                            + total + ")");
+                    System.out.println(batch[j] + " (" + (i + j) + " of " + total + ")");
                 } else {
                     batch[j] = null;
                 }
@@ -165,19 +163,16 @@ public class Scan {
 
             long temp2 = System.currentTimeMillis();
 
-            System.out.println("Handled in " + ((temp2 - temp1) / 1000.0)
-                    + " seconds.");
+            System.out.println("Handled in " + ((temp2 - temp1) / 1000.0) + " seconds.");
         }
 
         long end = System.currentTimeMillis();
 
-        System.out.println("Done rewrite in " + ((end - start) / 1000.0)
-                + " seconds.");
+        System.out.println("Done rewrite in " + ((end - start) / 1000.0) + " seconds.");
 
         total = failed.size();
         if (total > 0) {
-            System.out.println("The following batch failed to rewrite "
-                    + "properly:");
+            System.out.println("The following batch failed to rewrite " + "properly:");
 
             for (int i = 0; i < total; i++) {
                 Failed f = failed.get(i);
@@ -186,8 +181,7 @@ public class Scan {
                     System.out.println(f.class_names[j]);
                 }
 
-                System.out.println("errorcode " + f.exit + "\n"
-                        + f.error.toString());
+                System.out.println("errorcode " + f.exit + "\n" + f.error.toString());
             }
         }
     }

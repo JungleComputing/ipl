@@ -42,14 +42,11 @@ public class IPUtils {
         private static final long serialVersionUID = 1L;
 
         /**
-         * Orders two addresses based on their length. If both addresses have
-         * the same length, the addresses are ordered based on comparing their
-         * raw bytes values.
-         * 
-         * @param i1
-         *            an InetAddress
-         * @param i2
-         *            an InetAddress
+         * Orders two addresses based on their length. If both addresses have the same
+         * length, the addresses are ordered based on comparing their raw bytes values.
+         *
+         * @param i1 an InetAddress
+         * @param i2 an InetAddress
          * @return int value indicating the order of the addresses
          */
         private int compareAddress(InetAddress i1, InetAddress i2, int score) {
@@ -68,15 +65,15 @@ public class IPUtils {
                     int t1 = tmp1[i] & 0xFF;
                     int t2 = tmp2[i] & 0xFF;
                     if (score == 4 && i == 0) {
-                	if (t1 == 192 || t2 == 192) {
-                	    // Prefer other private IP addresses ....
-                	    // 192.168.... is used for virtualization, at least
-                	    // on our system, and does not work as a contact
-                	    // address. All nodes in the system have the same
-                	    // address. This is not a good fix. TODO!
-                	    // --Ceriel
-                	    return t1 - t2;
-                	}
+                        if (t1 == 192 || t2 == 192) {
+                            // Prefer other private IP addresses ....
+                            // 192.168.... is used for virtualization, at least
+                            // on our system, and does not work as a contact
+                            // address. All nodes in the system have the same
+                            // address. This is not a good fix. TODO!
+                            // --Ceriel
+                            return t1 - t2;
+                        }
                     }
                     return t2 - t1;
                 }
@@ -86,11 +83,10 @@ public class IPUtils {
         }
 
         /**
-         * Gives the address a score based on the class it belongs to. The more
-         * general the class, the lower the score.
-         * 
-         * @param ina
-         *            the address to score
+         * Gives the address a score based on the class it belongs to. The more general
+         * the class, the lower the score.
+         *
+         * @param ina the address to score
          * @return score given to the address
          */
         private int score(InetAddress ina) {
@@ -113,18 +109,18 @@ public class IPUtils {
 
         /**
          * This compares two InetAddresses.
-         * 
-         * Both parameters should either be an InetAddress or a
-         * InetSocketAddress. It starts by putting the addresses in one of the
-         * following classes:
-         * 
+         *
+         * Both parameters should either be an InetAddress or a InetSocketAddress. It
+         * starts by putting the addresses in one of the following classes:
+         *
          * 1. Global 2. Site Local 3. Link Local 4. Loopback
-         * 
-         * When the addresses end up in the same class, they are sorted by
-         * length. (shortest first, so IPv4 is preferred over IPv6). If their
-         * length is the same, the individual bytes are compared. The address
-         * with the lowest byte values comes first.
+         *
+         * When the addresses end up in the same class, they are sorted by length.
+         * (shortest first, so IPv4 is preferred over IPv6). If their length is the
+         * same, the individual bytes are compared. The address with the lowest byte
+         * values comes first.
          */
+        @Override
         public int compare(InetAddress i1, InetAddress i2) {
 
             int score1 = score(i1);
@@ -143,7 +139,7 @@ public class IPUtils {
 
     // list of all addresses of this machine.
     private static InetAddress[] addresses;
-    
+
     private IPUtils() {
         // prevent construction.
     }
@@ -157,16 +153,14 @@ public class IPUtils {
      * <li>Link local Addresses</li>
      * <li>Loopback addresses</li>
      * </ul>
-     * 
-     * If a global, site or link local address is present the loopback address
-     * is ommited from the result.
-     * 
+     *
+     * If a global, site or link local address is present the loopback address is
+     * ommited from the result.
+     *
      * @return a sorted list of all local addresses of this machine.
-     * @throws UnknownHostException
-     *             in case no address could be found.
+     * @throws UnknownHostException in case no address could be found.
      */
-    public static synchronized InetAddress[] getLocalHostAddresses()
-            throws UnknownHostException {
+    public static synchronized InetAddress[] getLocalHostAddresses() throws UnknownHostException {
 
         if (addresses == null) {
             // Get all the local addresses, including IPv6 ones, but excluding
@@ -182,8 +176,7 @@ public class IPUtils {
             }
 
             if (addresses == null || addresses.length == 0) {
-                throw new UnknownHostException(
-                        "could not determine addresseses for localhost");
+                throw new UnknownHostException("could not determine addresseses for localhost");
             }
 
             Arrays.sort(addresses, new AddressSorter());
@@ -194,10 +187,9 @@ public class IPUtils {
 
     /**
      * Returns the "most public" InetAddress of this machine.
-     * 
+     *
      * @return the "most public" InetAddress of this machine.
-     * @throws UnknownHostException
-     *             in case no address could be found.
+     * @throws UnknownHostException in case no address could be found.
      */
     public static InetAddress getLocalHostAddress() throws UnknownHostException {
         // Trigger allocation of addresses if null, throws UnknownHostException
@@ -210,26 +202,21 @@ public class IPUtils {
     /**
      * Returns all IP addresses that could be found on this machine. If desired,
      * loopback and/or IPv6 addresses can be ignored.
-     * 
-     * @param ignoreLoopback
-     *            ignore loopback addresses
-     * @param ignoreIP6
-     *            ignore IPv6 addresses
-     * 
+     *
+     * @param ignoreLoopback ignore loopback addresses
+     * @param ignoreIP6      ignore IPv6 addresses
+     *
      * @return all IP addresses found that adhere to the restrictions.
      */
-    private static InetAddress[] getAllHostAddresses(boolean ignoreLoopback,
-            boolean ignoreIP6) {
+    private static InetAddress[] getAllHostAddresses(boolean ignoreLoopback, boolean ignoreIP6) {
 
-        ArrayList<InetAddress> list = new ArrayList<InetAddress>();
+        ArrayList<InetAddress> list = new ArrayList<>();
 
         try {
-            Enumeration<NetworkInterface> interfaces =
-                    NetworkInterface.getNetworkInterfaces();
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = interfaces.nextElement();
-                getAllHostAddresses(networkInterface, list, ignoreLoopback,
-                        ignoreIP6);
+                getAllHostAddresses(networkInterface, list, ignoreLoopback, ignoreIP6);
             }
         } catch (SocketException e) {
             // IGNORE
@@ -241,18 +228,14 @@ public class IPUtils {
     /**
      * Adds all IP addresses that are bound to a specific network interface to a
      * list. If desired, loopback and/or IPv6 addresses can be ignored.
-     * 
-     * @param nw
-     *            the network interface for which the addresses are determined
-     * @param target
-     *            the list used to store the addresses
-     * @param ignoreLoopback
-     *            ignore loopback addresses
-     * @param ignoreIP6
-     *            ignore IPv6 addresses
+     *
+     * @param nw             the network interface for which the addresses are
+     *                       determined
+     * @param target         the list used to store the addresses
+     * @param ignoreLoopback ignore loopback addresses
+     * @param ignoreIP6      ignore IPv6 addresses
      */
-    private static void getAllHostAddresses(NetworkInterface nw,
-            List<InetAddress> target, boolean ignoreLoopback, boolean ignoreIP6) {
+    private static void getAllHostAddresses(NetworkInterface nw, List<InetAddress> target, boolean ignoreLoopback, boolean ignoreIP6) {
 
         Enumeration<InetAddress> e2 = nw.getInetAddresses();
 

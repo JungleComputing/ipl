@@ -15,32 +15,33 @@
  */
 package ibis.ipl.impl.multi;
 
+import java.util.HashMap;
+
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-
-import java.util.HashMap;
 
 public class MultiReceivePortIdentifier implements ReceivePortIdentifier {
 
     /**
      * Serial Version ID - Generated
      */
-    private static final long serialVersionUID = 3918962573170503300L
-    ;
+    private static final long serialVersionUID = 3918962573170503300L;
     private final String name;
     private final IbisIdentifier id;
 
-    private final HashMap<String, ReceivePortIdentifier>subIds = new HashMap<String, ReceivePortIdentifier>();
+    private final HashMap<String, ReceivePortIdentifier> subIds = new HashMap<>();
 
     public MultiReceivePortIdentifier(IbisIdentifier id, String name) {
         this.name = name;
         this.id = id;
     }
 
+    @Override
     public IbisIdentifier ibisIdentifier() {
         return id;
     }
 
+    @Override
     public String name() {
         return name;
     }

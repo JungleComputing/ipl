@@ -15,6 +15,18 @@
  */
 package ibis.ipl.registry.central.client;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
@@ -30,18 +42,6 @@ import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.central.TreeMemberSet;
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class Pool {
 
@@ -70,17 +70,16 @@ final class Pool {
     private boolean closed;
 
     private boolean stopped;
-    
+
     private boolean terminated;
-    
+
     private Event closeEvent;
-    
+
     private Event terminateEvent;
 
     private int time;
 
-    Pool(IbisCapabilities capabilities, TypedProperties properties,
-            Registry registry, Statistics statistics) {
+    Pool(IbisCapabilities capabilities, TypedProperties properties, Registry registry, Statistics statistics) {
         this.registry = registry;
 
         this.statistics = statistics;
@@ -104,15 +103,13 @@ final class Pool {
 
         terminated = false;
         terminateEvent = null;
-        
+
         stopped = false;
-        
+
         // get the pool ....
         poolName = properties.getProperty(IbisProperties.POOL_NAME);
         if (poolName == null) {
-            throw new IbisConfigurationException(
-                    "cannot initialize registry, property "
-                            + IbisProperties.POOL_NAME + " is not specified");
+            throw new IbisConfigurationException("cannot initialize registry, property " + IbisProperties.POOL_NAME + " is not specified");
         }
 
         closedWorld = capabilities.hasCapability(IbisCapabilities.CLOSED_WORLD);
@@ -122,16 +119,13 @@ final class Pool {
                 size = properties.getIntProperty(IbisProperties.POOL_SIZE);
             } catch (final NumberFormatException e) {
                 throw new IbisConfigurationException(
-                        "could not start registry for a closed world ibis, "
-                                + "required property: "
-                                + IbisProperties.POOL_SIZE + " undefined", e);
+                        "could not start registry for a closed world ibis, " + "required property: " + IbisProperties.POOL_SIZE + " undefined", e);
             }
         } else {
             size = -1;
         }
 
-        heartbeatInterval = properties
-                .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
+        heartbeatInterval = properties.getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
 
     }
 
@@ -175,22 +169,19 @@ final class Pool {
         return members.contains(ibis);
     }
 
-    public synchronized boolean mustReportMaybeDead(
-            ibis.ipl.IbisIdentifier ibisIdentifier) {
+    public synchronized boolean mustReportMaybeDead(ibis.ipl.IbisIdentifier ibisIdentifier) {
         Member member = members.get(ibisIdentifier.name());
 
         if (member == null) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("user reporting ibis " + ibisIdentifier
-        		+ "  which is not in pool, not reporting");
+                logger.debug("user reporting ibis " + ibisIdentifier + "  which is not in pool, not reporting");
             }
             return false;
         }
 
         if (member.getTime() > (System.currentTimeMillis() - heartbeatInterval)) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("user reporting member " + ibisIdentifier
-        		+ "  recently reported already, skipping this time");
+                logger.debug("user reporting member " + ibisIdentifier + "  recently reported already, skipping this time");
             }
             return false;
         }
@@ -209,9 +200,7 @@ final class Pool {
 
     synchronized void purgeHistoryUpto(int time) {
         if (this.time != -1 && this.time < time) {
-            logger
-                    .error("EEP! we are asked to purge the history of events we still need. Our time =  "
-                            + this.time + " purge time = " + time);
+            logger.error("EEP! we are asked to purge the history of events we still need. Our time =  " + this.time + " purge time = " + time);
             return;
         }
 
@@ -224,8 +213,7 @@ final class Pool {
         byte[] bytes = new byte[stream.readInt()];
         stream.readFully(bytes);
 
-        DataInputStream in = new DataInputStream(
-                new ByteArrayInputStream(bytes));
+        DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes));
 
         long read = System.currentTimeMillis();
 
@@ -239,7 +227,7 @@ final class Pool {
             }
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("reading bootstrap state");
+                logger.debug("reading bootstrap state");
             }
 
             time = in.readInt();
@@ -254,16 +242,16 @@ final class Pool {
                 throw new IOException("negative number of signals");
             }
 
-            ArrayList<Event> signals = new ArrayList<Event>();
+            ArrayList<Event> signals = new ArrayList<>();
             for (int i = 0; i < nrOfSignals; i++) {
                 signals.add(new Event(in));
             }
 
             closed = in.readBoolean();
             if (closed) {
-            	closeEvent = new Event(in);
+                closeEvent = new Event(in);
             }
-            
+
             terminated = in.readBoolean();
             if (terminated) {
                 terminateEvent = new Event(in);
@@ -271,15 +259,15 @@ final class Pool {
 
             // Create list of "old" events
 
-            SortedSet<Event> events = new TreeSet<Event>();
+            SortedSet<Event> events = new TreeSet<>();
             events.addAll(members.getJoinEvents());
             events.addAll(elections.getEvents());
             events.addAll(signals);
             if (closed) {
-            	events.add(closeEvent);
+                events.add(closeEvent);
             }
             if (terminated) {
-            	events.add(terminateEvent);
+                events.add(terminateEvent);
             }
 
             long used = System.currentTimeMillis();
@@ -301,11 +289,8 @@ final class Pool {
             long statted = System.currentTimeMillis();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("pool init, read = " + (read - start) + ", locked = "
-        		+ (locked - read) + ", membersDone = "
-        		+ (membersDone - locked) + ", used = "
-        		+ (used - membersDone) + ", handled = " + (handled - used)
-        		+ ", statted = " + (statted - handled));
+                logger.debug("pool init, read = " + (read - start) + ", locked = " + (locked - read) + ", membersDone = " + (membersDone - locked)
+                        + ", used = " + (used - membersDone) + ", handled = " + (handled - used) + ", statted = " + (statted - handled));
             }
         }
 
@@ -338,11 +323,11 @@ final class Pool {
 
             dataOut.writeBoolean(closed);
             if (closed) {
-            	closeEvent.writeTo(out);
+                closeEvent.writeTo(out);
             }
             dataOut.writeBoolean(terminated);
             if (terminated) {
-            	terminateEvent.writeTo(out);
+                terminateEvent.writeTo(out);
             }
         }
 
@@ -355,9 +340,9 @@ final class Pool {
             logger.debug("pool state size = " + bytes.length);
         }
     }
-    
+
     synchronized String[] wonElections(IbisIdentifier id) {
-        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<String> result = new ArrayList<>();
         for (Election e : elections) {
             if (e.getWinner().equals(id)) {
                 result.add(e.getName());
@@ -366,8 +351,7 @@ final class Pool {
         return result.toArray(new String[result.size()]);
     }
 
-    synchronized IbisIdentifier getElectionResult(String election, long timeout)
-            throws IOException {
+    synchronized IbisIdentifier getElectionResult(String election, long timeout) throws IOException {
         long deadline = System.currentTimeMillis() + timeout;
 
         if (timeout == 0) {
@@ -380,9 +364,9 @@ final class Pool {
             long timeRemaining = deadline - System.currentTimeMillis();
 
             if (timeRemaining <= 0) {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("getElectionResult deadline expired");
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug("getElectionResult deadline expired");
+                }
                 return null;
             }
 
@@ -409,9 +393,9 @@ final class Pool {
     }
 
     private synchronized void handleEvent(Event event) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("handling event: " + event);
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("handling event: " + event);
+        }
 
         switch (event.getType()) {
         case Event.JOIN:
@@ -433,9 +417,9 @@ final class Pool {
                 statistics.newPoolSize(members.size());
             }
             if (died.equals(registry.getIbisIdentifier())) {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("we were declared dead");
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug("we were declared dead");
+                }
                 stop();
             }
             break;
@@ -476,8 +460,7 @@ final class Pool {
 
     synchronized boolean isClosed() {
         if (!closedWorld) {
-            throw new IbisConfigurationException("isClosed() called but not "
-                    + "closed world");
+            throw new IbisConfigurationException("isClosed() called but not " + "closed world");
         }
 
         return closed;
@@ -485,8 +468,7 @@ final class Pool {
 
     synchronized void waitUntilPoolClosed() {
         if (!closedWorld) {
-            throw new IbisConfigurationException(
-                    "waitUntilPoolClosed() called but not " + "closed world");
+            throw new IbisConfigurationException("waitUntilPoolClosed() called but not " + "closed world");
         }
 
         while (!(closed || stopped)) {
@@ -542,12 +524,12 @@ final class Pool {
      * Handles incoming events, passes events to the registry
      */
     private void handleEvents() {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("handling events");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("handling events");
+        }
         if (!isInitialized()) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("handle events: not initialized yet");
+                logger.debug("handle events: not initialized yet");
             }
             return;
         }
@@ -563,8 +545,7 @@ final class Pool {
 
                 if (event == null) {
                     if (logger.isDebugEnabled()) {
-                	logger.debug("done handling events, event time now: "
-                                    + time);
+                        logger.debug("done handling events, event time now: " + time);
                     }
                     return;
                 }
@@ -592,11 +573,11 @@ final class Pool {
                 // IGNORE
             }
         }
-        
+
         if (terminateEvent != null) {
             return terminateEvent.getIbis();
         }
-        
+
         return null;
     }
 

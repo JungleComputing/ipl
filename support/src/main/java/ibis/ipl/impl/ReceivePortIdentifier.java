@@ -25,12 +25,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Implementation of the <code>ReceivePortIdentifier</code> interface.
- * This class can be extended by Ibis implementations.
+ * Implementation of the <code>ReceivePortIdentifier</code> interface. This
+ * class can be extended by Ibis implementations.
  */
 public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
-    /** 
+    /**
      * Generated
      */
     private static final long serialVersionUID = -6757071659785922784L;
@@ -43,6 +43,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
     /**
      * Constructor, initializing the fields with the specified parameters.
+     * 
      * @param name the name of the receiveport.
      * @param ibis the Ibis instance that created the receiveport.
      */
@@ -60,6 +61,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     /**
      * Constructs a <code>ReceivePortIdentifier</code> from the specified coded
      * form.
+     * 
      * @param codedForm the coded form.
      * @exception IOException is thrown in case of trouble.
      */
@@ -70,20 +72,20 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     /**
      * Constructs a <code>ReceivePortIdentifier</code> from the specified coded
      * form, at a particular offset and size.
+     * 
      * @param codedForm the coded form.
-     * @param offset offset in the coded form.
-     * @param length length of the coded form.
+     * @param offset    offset in the coded form.
+     * @param length    length of the coded form.
      * @exception IOException is thrown in case of trouble.
      */
-    public ReceivePortIdentifier(byte[] codedForm, int offset, int length)
-            throws IOException {
-        this(new DataInputStream(
-                new ByteArrayInputStream(codedForm, offset, length)));
+    public ReceivePortIdentifier(byte[] codedForm, int offset, int length) throws IOException {
+        this(new DataInputStream(new ByteArrayInputStream(codedForm, offset, length)));
     }
 
     /**
      * Constructs a <code>ReceivePortIdentifier</code> by reading it from the
      * specified input stream.
+     * 
      * @param dis the input stream.
      * @exception IOException is thrown in case of trouble.
      */
@@ -94,6 +96,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
     /**
      * Returns the coded form of this <code>ReceivePortIdentifier</code>.
+     * 
      * @return the coded form.
      */
     public byte[] toBytes() {
@@ -104,7 +107,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
             ibis.writeTo(dos);
             dos.flush();
             return bos.toByteArray();
-        } catch(Exception e) {
+        } catch (Exception e) {
             // should not happen.
             return null;
         }
@@ -117,6 +120,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
         return name.equals(other.name) && ibis.equals(other.ibis);
     }
 
+    @Override
     public boolean equals(Object other) {
         if (other == null) {
             return false;
@@ -127,20 +131,23 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
         return false;
     }
 
+    @Override
     public int hashCode() {
         return name.hashCode() ^ ibis.hashCode();
     }
 
+    @Override
     public String name() {
         return name;
     }
 
+    @Override
     public ibis.ipl.IbisIdentifier ibisIdentifier() {
         return ibis;
     }
 
+    @Override
     public String toString() {
-        return ("(ReceivePortIdentifier: name = " + name
-                + ", ibis = " + ibis + ")");
+        return ("(ReceivePortIdentifier: name = " + name + ", ibis = " + ibis + ")");
     }
 }

@@ -17,14 +17,14 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.impl.ReceivePortIdentifier;
-
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.impl.ReceivePortIdentifier;
 
 final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection {
 
@@ -36,9 +36,7 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection {
 
     SendReceiveThread sendReceiveThread;
 
-    ThreadNioAccumulatorConnection(
-            NioSendPort port, SendReceiveThread sendReceiveThread,
-            GatheringByteChannel channel, ReceivePortIdentifier peer)
+    ThreadNioAccumulatorConnection(NioSendPort port, SendReceiveThread sendReceiveThread, GatheringByteChannel channel, ReceivePortIdentifier peer)
             throws IOException {
         super(port, channel, peer);
         this.sendReceiveThread = sendReceiveThread;
@@ -47,8 +45,8 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection {
     }
 
     /**
-     * Adds given buffer to list of buffer which will be send out. Make sure
-     * there is room!
+     * Adds given buffer to list of buffer which will be send out. Make sure there
+     * is room!
      */
     synchronized void addToThreadSendList(SendBuffer buffer) throws IOException {
         if (error != null) {
@@ -57,8 +55,7 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection {
         while (full()) {
             try {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("waiting for the sendlist"
-                            + " to have a free spot");
+                    logger.debug("waiting for the sendlist" + " to have a free spot");
                 }
                 wait();
             } catch (InterruptedException e) {
@@ -93,7 +90,8 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection {
     }
 
     // synchronized void waitUntilEmpty() throws IOException {
-    public synchronized void closeConnection(){
+    @Override
+    public synchronized void closeConnection() {
         while (!empty()) {
             if (error != null) {
                 // throw error;

@@ -15,12 +15,12 @@
  */
 package ibis.ipl.examples;
 
+import java.io.IOException;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-
-import java.io.IOException;
 
 /**
  * This program is to be run as two or more instances. The first instance is a
@@ -31,8 +31,7 @@ import java.io.IOException;
 
 public class Termination {
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT, IbisCapabilities.TERMINATION);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, IbisCapabilities.TERMINATION);
 
     private void server(Ibis myIbis) throws IOException {
 

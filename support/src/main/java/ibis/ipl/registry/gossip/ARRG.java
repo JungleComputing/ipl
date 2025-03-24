@@ -15,22 +15,22 @@
  */
 package ibis.ipl.registry.gossip;
 
-import ibis.ipl.registry.statistics.Statistics;
-import ibis.ipl.support.Connection;
-import ibis.smartsockets.virtual.VirtualSocketAddress;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
-
 import java.io.IOException;
 import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.registry.statistics.Statistics;
+import ibis.ipl.support.Connection;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
+
 /**
  * Implementation of the ARRG algorithm
- * 
+ *
  * @author ndrost
- * 
+ *
  */
 class ARRG extends Thread {
 
@@ -41,7 +41,7 @@ class ARRG extends Thread {
     private static final int CONNECT_TIMEOUT = 30000;
 
     private static final int SERVER_CONNECT_TIMEOUT = 120000;
-    
+
     private static final int CACHE_SIZE = 100;
 
     private static final int GOSSIP_SIZE = 30;
@@ -66,15 +66,11 @@ class ARRG extends Thread {
 
     private long lastGossip;
 
-    ARRG(VirtualSocketAddress address, boolean arrgOnly,
-            VirtualSocketAddress[] bootstrapList,
-            VirtualSocketAddress bootstrapAddress, String poolName,
+    ARRG(VirtualSocketAddress address, boolean arrgOnly, VirtualSocketAddress[] bootstrapList, VirtualSocketAddress bootstrapAddress, String poolName,
             VirtualSocketFactory socketFactory, Statistics statistics) {
         this.socketFactory = socketFactory;
         this.poolName = poolName;
         this.bootstrapAddress = bootstrapAddress;
-
-       
 
         this.statistics = statistics;
 
@@ -96,7 +92,7 @@ class ARRG extends Thread {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Thread#start()
      */
     @Override
@@ -124,15 +120,15 @@ class ARRG extends Thread {
     }
 
     /**
-     * If we have not had any sucessful gossip for DEAD_TIMEOUT, declare this
-     * pool dead
-     * 
+     * If we have not had any sucessful gossip for DEAD_TIMEOUT, declare this pool
+     * dead
+     *
      * @return true if this pool is dead
      */
     synchronized boolean isDead() {
         return System.currentTimeMillis() > lastGossip + DEAD_TIMEOUT;
     }
-    
+
     void handleGossip(Connection connection) throws IOException {
         ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
 
@@ -148,13 +144,12 @@ class ARRG extends Thread {
 
         self.writeTo(connection.out());
 
-        ARRGCacheEntry[] sendEntries =
-            cache.getRandomEntries(GOSSIP_SIZE, true);
+        ARRGCacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE, true);
         connection.out().writeInt(sendEntries.length);
         for (ARRGCacheEntry entry : sendEntries) {
             entry.writeTo(connection.out());
         }
-        
+
         connection.out().flush();
 
         connection.close();
@@ -165,8 +160,7 @@ class ARRG extends Thread {
         resetLastGossip();
 
         if (logger.isDebugEnabled()) {
-            logger.debug("bootstrap service for " + poolName
-        	    + " received request from " + peerEntry);
+            logger.debug("bootstrap service for " + poolName + " received request from " + peerEntry);
         }
     }
 
@@ -175,14 +169,14 @@ class ARRG extends Thread {
 
         if (victim == null) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("no victim specified");
+                logger.debug("no victim specified");
             }
             return;
         }
 
         if (victim.equals(self.getAddress())) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("not gossiping with outselves");
+                logger.debug("not gossiping with outselves");
             }
             return;
         }
@@ -191,14 +185,12 @@ class ARRG extends Thread {
             logger.debug("gossiping with " + victim);
         }
 
-        ARRGCacheEntry[] sendEntries =
-            cache.getRandomEntries(GOSSIP_SIZE, true);
+        ARRGCacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE, true);
 
         Connection connection = null;
         try {
 
-            connection =
-                new Connection(victim, timeout, fillTimeout, socketFactory);
+            connection = new Connection(victim, timeout, fillTimeout, socketFactory);
 
             // header
 
@@ -235,9 +227,7 @@ class ARRG extends Thread {
             resetLastGossip();
 
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_ARRG_GOSSIP,
-                    System.currentTimeMillis() - start, connection.read(),
-                    connection.written(), false);
+                statistics.add(Protocol.OPCODE_ARRG_GOSSIP, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
             }
         } finally {
             if (connection != null) {
@@ -255,14 +245,13 @@ class ARRG extends Thread {
 
         return result.getAddress();
     }
-    
+
     VirtualSocketAddress[] getRandomMembers(int size) {
         // use a set to get rid of duplicates
-        HashSet<VirtualSocketAddress> result =
-            new HashSet<VirtualSocketAddress>();
+        HashSet<VirtualSocketAddress> result = new HashSet<>();
 
         ARRGCacheEntry[] entries = cache.getRandomEntries(size, false);
-        
+
         for (ARRGCacheEntry entry : entries) {
             if (!entry.isArrgOnly()) {
                 result.add(entry.getAddress());
@@ -272,11 +261,9 @@ class ARRG extends Thread {
         return result.toArray(new VirtualSocketAddress[0]);
     }
 
-
     VirtualSocketAddress[] getMembers() {
         // use a set to get rid of duplicates
-        HashSet<VirtualSocketAddress> result =
-            new HashSet<VirtualSocketAddress>();
+        HashSet<VirtualSocketAddress> result = new HashSet<>();
 
         ARRGCacheEntry[] entries = cache.getEntries(false);
 
@@ -297,6 +284,7 @@ class ARRG extends Thread {
         return result.toArray(new VirtualSocketAddress[0]);
     }
 
+    @Override
     public void run() {
         while (!ended()) {
             ARRGCacheEntry victim = cache.getRandomEntry(true);
@@ -311,38 +299,35 @@ class ARRG extends Thread {
                     success = true;
                 } catch (IOException e) {
                     if (logger.isDebugEnabled()) {
-                	logger.debug("could not gossip with " + victim, e);
+                        logger.debug("could not gossip with " + victim, e);
                     }
                 }
 
             }
 
             // then try fallback cache
-            if (success == false) {
+            if (!success) {
                 victim = fallbackCache.getRandomEntry(true);
                 if (victim != null) {
                     try {
                         gossip(victim.getAddress(), CONNECT_TIMEOUT, false);
                         success = true;
                     } catch (IOException e) {
-                	if (logger.isDebugEnabled()) {
-                	    logger.debug("could not gossip with fallback entry: "
-                		    + victim, e);
-                	}
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("could not gossip with fallback entry: " + victim, e);
+                        }
                     }
                 }
             }
 
             // lastly, use bootstrap service (also wait longer on connecting)
-            if (success == false) {
+            if (!success) {
                 if (bootstrapAddress != null) {
                     try {
                         gossip(bootstrapAddress, SERVER_CONNECT_TIMEOUT, true);
                         success = true;
                     } catch (IOException e) {
-                        logger.error(
-                            "could not gossip with bootstrap server at "
-                                    + bootstrapAddress, e);
+                        logger.error("could not gossip with bootstrap server at " + bootstrapAddress, e);
                     }
                 }
             }
@@ -352,7 +337,7 @@ class ARRG extends Thread {
 
                 try {
                     if (logger.isDebugEnabled()) {
-                	logger.debug("waiting " + timeout + " ms");
+                        logger.debug("waiting " + timeout + " ms");
                     }
                     wait(timeout);
                 } catch (InterruptedException e) {

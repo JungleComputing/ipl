@@ -15,14 +15,14 @@
  */
 package ibis.ipl.registry.central.server;
 
-import ibis.ipl.registry.central.Member;
-import ibis.util.ThreadPool;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.registry.central.Member;
+import ibis.util.ThreadPool;
+
 final class RandomEventPusher implements Runnable {
-    
+
     private static final int THREADS = 25;
 
     private static final Logger logger = LoggerFactory.getLogger(RandomEventPusher.class);
@@ -45,6 +45,7 @@ final class RandomEventPusher implements Runnable {
             ThreadPool.createNew(this, "scheduler thread");
         }
 
+        @Override
         public void run() {
             while (!pool.hasEnded()) {
                 long timeout = interval;
@@ -55,8 +56,7 @@ final class RandomEventPusher implements Runnable {
                     int poolSize = pool.getSize();
                     if (poolSize > 1) {
                         // divide by log2(poolSize)
-                        timeout = (long) (timeout / ((Math.log(poolSize) / Math
-                                .log(2))));
+                        timeout = (long) (timeout / ((Math.log(poolSize) / Math.log(2))));
                     }
 
                 }
@@ -80,8 +80,7 @@ final class RandomEventPusher implements Runnable {
     /**
      * Randomly push events to registries in the pool
      */
-    RandomEventPusher(Pool pool, long interval, boolean adaptInterval
-            ) {
+    RandomEventPusher(Pool pool, long interval, boolean adaptInterval) {
         this.pool = pool;
         this.interval = interval;
         this.adaptInterval = adaptInterval;
@@ -95,7 +94,7 @@ final class RandomEventPusher implements Runnable {
     private synchronized void createNewThread() {
         if (currentThreads >= THREADS) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("not creating thread, maximum reached");
+                logger.debug("not creating thread, maximum reached");
             }
             return;
         }
@@ -107,16 +106,17 @@ final class RandomEventPusher implements Runnable {
         currentThreads--;
     }
 
+    @Override
     public void run() {
         Member member = pool.getRandomMember();
 
         if (member == null) {
             if (logger.isDebugEnabled()) {
-        	logger.debug("no member to contact");
+                logger.debug("no member to contact");
             }
         } else {
             if (logger.isDebugEnabled()) {
-        	logger.debug("gossiping/pushing to " + member);
+                logger.debug("gossiping/pushing to " + member);
             }
             pool.push(member, false, false);
         }

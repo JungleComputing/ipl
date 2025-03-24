@@ -17,8 +17,6 @@ package ibis.ipl.benchmarks.rpc;
 
 /* $Id$ */
 
-
-
 final class Data1 implements java.io.Serializable {
 
     private static final long serialVersionUID = 7366807900682527528L;

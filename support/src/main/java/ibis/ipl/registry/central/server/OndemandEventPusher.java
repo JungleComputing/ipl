@@ -15,11 +15,11 @@
  */
 package ibis.ipl.registry.central.server;
 
-import ibis.ipl.registry.central.Member;
-import ibis.util.ThreadPool;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import ibis.ipl.registry.central.Member;
+import ibis.util.ThreadPool;
 
 public class OndemandEventPusher implements Runnable {
 
@@ -29,7 +29,7 @@ public class OndemandEventPusher implements Runnable {
 
     public OndemandEventPusher(Pool pool) {
         this.pool = pool;
-        q = new LinkedHashSet<Member>();
+        q = new LinkedHashSet<>();
 
         ThreadPool.createNew(this, "Pusher");
     }
@@ -37,7 +37,7 @@ public class OndemandEventPusher implements Runnable {
     public synchronized void enqueue(Member member) {
         q.add(member);
     }
-    
+
     public synchronized Member dequeue() {
         while (q.isEmpty()) {
             try {
@@ -52,6 +52,7 @@ public class OndemandEventPusher implements Runnable {
         return result;
     }
 
+    @Override
     public void run() {
 
         while (true) {

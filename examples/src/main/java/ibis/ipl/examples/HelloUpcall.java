@@ -15,6 +15,8 @@
  */
 package ibis.ipl.examples;
 
+import java.io.IOException;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -26,8 +28,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
-
 /**
  * This program is to be run as two instances. One is a server, the other a
  * client. The client sends a hello message to the server. The server prints it.
@@ -36,24 +36,21 @@ import java.io.IOException;
 
 public class HelloUpcall implements MessageUpcall {
 
-    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
             PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
     /** Set to true when server received message. */
     boolean finished = false;
 
     /**
      * Function called by Ibis to give us a newly arrived message.
-     * 
-     * @param message
-     *            the message
-     * @throws IOException
-     *             when the message cannot be read
+     *
+     * @param message the message
+     * @throws IOException when the message cannot be read
      */
+    @Override
     public void upcall(ReadMessage message) throws IOException {
         String s = message.readString();
         System.out.println("Received string: " + s);
@@ -69,8 +66,7 @@ public class HelloUpcall implements MessageUpcall {
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
-        ReceivePort receiver = myIbis.createReceivePort(portType, "server",
-                this);
+        ReceivePort receiver = myIbis.createReceivePort(portType, "server", this);
         // enable connections
         receiver.enableConnections();
         // enable upcalls

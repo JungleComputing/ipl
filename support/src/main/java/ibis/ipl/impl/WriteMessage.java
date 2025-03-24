@@ -50,15 +50,16 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
 
     private final void checkNotFinished() throws IOException {
         if (isFinished) {
-            throw new IOException(
-                    "Operating on a message that was already finished");
+            throw new IOException("Operating on a message that was already finished");
         }
     }
 
+    @Override
     public ibis.ipl.SendPort localPort() {
         return port;
     }
 
+    @Override
     public int send() throws IOException {
         checkNotFinished();
         return 0;
@@ -74,6 +75,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         port.gotSendException(this, ex);
     }
 
+    @Override
     public void reset() throws IOException {
         try {
             out.reset();
@@ -82,6 +84,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void sync(int ticket) throws IOException {
         checkNotFinished();
         try {
@@ -91,6 +94,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void flush() throws IOException {
         checkNotFinished();
         try {
@@ -100,6 +104,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         checkNotFinished();
         try {
@@ -109,6 +114,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeByte(byte value) throws IOException {
         checkNotFinished();
         try {
@@ -118,6 +124,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeChar(char value) throws IOException {
         checkNotFinished();
         try {
@@ -127,6 +134,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeShort(short value) throws IOException {
         checkNotFinished();
         try {
@@ -136,6 +144,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeInt(int value) throws IOException {
         checkNotFinished();
         try {
@@ -145,6 +154,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeLong(long value) throws IOException {
         checkNotFinished();
         try {
@@ -154,6 +164,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeFloat(float value) throws IOException {
         checkNotFinished();
         try {
@@ -163,6 +174,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeDouble(double value) throws IOException {
         checkNotFinished();
         try {
@@ -172,6 +184,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeString(String value) throws IOException {
         checkNotFinished();
         try {
@@ -181,6 +194,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeObject(Object value) throws IOException {
         checkNotFinished();
         try {
@@ -190,6 +204,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(boolean[] value) throws IOException {
         checkNotFinished();
         try {
@@ -199,6 +214,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(byte[] value) throws IOException {
         checkNotFinished();
         try {
@@ -208,6 +224,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(char[] value) throws IOException {
         checkNotFinished();
         try {
@@ -217,6 +234,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(short[] value) throws IOException {
         checkNotFinished();
         try {
@@ -226,6 +244,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(int[] value) throws IOException {
         checkNotFinished();
         try {
@@ -235,6 +254,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(long[] value) throws IOException {
         checkNotFinished();
         try {
@@ -244,6 +264,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(float[] value) throws IOException {
         checkNotFinished();
         try {
@@ -253,6 +274,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(double[] value) throws IOException {
         checkNotFinished();
         try {
@@ -262,6 +284,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public void writeArray(Object[] value) throws IOException {
         checkNotFinished();
         try {
@@ -271,8 +294,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(boolean[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(boolean[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -281,8 +304,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(byte[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(byte[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -291,8 +314,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(char[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(char[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -301,8 +324,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(short[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(short[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -311,8 +334,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(int[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(int[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -321,8 +344,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(long[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(long[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -331,8 +354,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(float[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(float[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -341,8 +364,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(double[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(double[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -351,8 +374,8 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
-    public void writeArray(Object[] value, int offset, int size)
-            throws IOException {
+    @Override
+    public void writeArray(Object[] value, int offset, int size) throws IOException {
         checkNotFinished();
         try {
             out.writeArray(value, offset, size);
@@ -361,18 +384,22 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         }
     }
 
+    @Override
     public long bytesWritten() {
         return port.bytesWritten() - before;
     }
 
+    @Override
     public int capacity() throws IOException {
         return -1;
     }
 
+    @Override
     public int remaining() throws IOException {
         return -1;
     }
 
+    @Override
     public long finish() throws IOException {
         checkNotFinished();
         try {
@@ -391,6 +418,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         return retval;
     }
 
+    @Override
     public void finish(IOException e) {
         if (isFinished) {
             return;
@@ -412,6 +440,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         port.finishMessage(this, e);
     }
 
+    @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
         checkNotFinished();
         try {

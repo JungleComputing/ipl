@@ -17,11 +17,11 @@
 
 package ibis.ipl.impl.stacking.lrmc.io;
 
-import ibis.io.Conversion;
-import ibis.io.DataOutputStream;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import ibis.io.Conversion;
+import ibis.io.DataOutputStream;
 
 /**
  * This is a complete implementation of <code>DataOutputStream</code>. It is
@@ -64,11 +64,9 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
 
     /**
      * Constructor.
-     * 
-     * @param out
-     *            the underlying <code>OutputStream</code>
-     * @param bufsz
-     *            the buffer size.
+     *
+     * @param out   the underlying <code>OutputStream</code>
+     * @param bufsz the buffer size.
      */
     public BufferedArrayOutputStream(LrmcOutputStream out, int bufsz) {
         this.out = out;
@@ -77,35 +75,33 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         conversion = Conversion.loadConversion(false);
     }
 
+    @Override
     public int bufferSize() {
         return BUF_SIZE;
     }
 
+    @Override
     public long bytesWritten() {
         return bytes + index;
     }
 
+    @Override
     public void resetBytesWritten() {
         bytes = index;
     }
 
     /**
-     * Checks if there is space for <code>incr</code> more bytes and if not,
-     * the buffer is written to the underlying <code>OutputStream</code>.
-     * 
-     * @param incr
-     *            the space requested
-     * @param forced
-     *            always flushes when set.
-     * @exception IOException
-     *                in case of trouble.
+     * Checks if there is space for <code>incr</code> more bytes and if not, the
+     * buffer is written to the underlying <code>OutputStream</code>.
+     *
+     * @param incr   the space requested
+     * @param forced always flushes when set.
+     * @exception IOException in case of trouble.
      */
     private void flush(int incr, boolean forced) throws IOException {
 
         if (DEBUG) {
-            System.err.println("flush(" + incr + ") : " + " "
-                    + (index + incr >= BUF_SIZE) + " " + (index) + " " + forced
-                    + ")");
+            System.err.println("flush(" + incr + ") : " + " " + (index + incr >= BUF_SIZE) + " " + (index) + " " + forced + ")");
         }
 
         if (forced || index + incr > BUF_SIZE) {
@@ -120,69 +116,80 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         }
     }
 
+    @Override
     public void write(int b) throws IOException {
         writeByte((byte) b);
     }
 
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         byte b = conversion.boolean2byte(value);
         flush(1, false);
         buffer[index++] = b;
     }
 
+    @Override
     public void writeByte(byte value) throws IOException {
         flush(1, false);
         buffer[index++] = value;
     }
 
+    @Override
     public void writeChar(char value) throws IOException {
         flush(SIZEOF_CHAR, false);
         conversion.char2byte(value, buffer, index);
         index += SIZEOF_CHAR;
     }
 
+    @Override
     public void writeShort(short value) throws IOException {
         flush(SIZEOF_SHORT, false);
         conversion.short2byte(value, buffer, index);
         index += SIZEOF_SHORT;
     }
 
+    @Override
     public void writeInt(int value) throws IOException {
         flush(SIZEOF_INT, false);
         conversion.int2byte(value, buffer, index);
         index += SIZEOF_INT;
     }
 
+    @Override
     public void writeLong(long value) throws IOException {
         flush(SIZEOF_LONG, false);
         conversion.long2byte(value, buffer, index);
         index += SIZEOF_LONG;
     }
 
+    @Override
     public void writeFloat(float value) throws IOException {
         flush(SIZEOF_FLOAT, false);
         conversion.float2byte(value, buffer, index);
         index += SIZEOF_FLOAT;
     }
 
+    @Override
     public void writeDouble(double value) throws IOException {
         flush(SIZEOF_DOUBLE, false);
         conversion.double2byte(value, buffer, index);
         index += SIZEOF_DOUBLE;
     }
 
+    @Override
     public void write(byte[] b) throws IOException {
         writeArray(b);
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException {
         writeArray(b, off, len);
     }
 
+    @Override
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(boolean[" + off + " ... "
-                    + (off + len) + "])");
+            System.err.println("writeArray(boolean[" + off + " ... " + (off + len) + "])");
         }
 
         do {
@@ -199,10 +206,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         } while (len != 0);
     }
 
+    @Override
     public void writeArray(byte[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(byte[" + off + " ... " + (off + len)
-                    + "])");
+            System.err.println("writeArray(byte[" + off + " ... " + (off + len) + "])");
         }
 
         while (len > (BUF_SIZE - index)) {
@@ -230,10 +237,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         }
     }
 
+    @Override
     public void writeArray(char[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(char[" + off + " ... " + (off + len)
-                    + "])");
+            System.err.println("writeArray(char[" + off + " ... " + (off + len) + "])");
         }
 
         do {
@@ -250,10 +257,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         } while (len != 0);
     }
 
+    @Override
     public void writeArray(short[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(short[" + off + " ... "
-                    + (off + len) + "])");
+            System.err.println("writeArray(short[" + off + " ... " + (off + len) + "])");
         }
 
         do {
@@ -274,10 +281,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         } while (len != 0);
     }
 
+    @Override
     public void writeArray(int[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(int[" + off + " ... " + (off + len)
-                    + "])");
+            System.err.println("writeArray(int[" + off + " ... " + (off + len) + "])");
         }
 
         do {
@@ -298,10 +305,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         } while (len != 0);
     }
 
+    @Override
     public void writeArray(long[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(long[" + off + " ... " + (off + len)
-                    + "])");
+            System.err.println("writeArray(long[" + off + " ... " + (off + len) + "])");
         }
 
         do {
@@ -318,10 +325,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         } while (len != 0);
     }
 
+    @Override
     public void writeArray(float[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(float[" + off + " ... "
-                    + (off + len) + "])");
+            System.err.println("writeArray(float[" + off + " ... " + (off + len) + "])");
         }
         do {
             flush(SIZEOF_FLOAT, false);
@@ -337,10 +344,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         } while (len != 0);
     }
 
+    @Override
     public void writeArray(double[] ref, int off, int len) throws IOException {
         if (DEBUG) {
-            System.err.println("writeArray(double[" + off + " ... "
-                    + (off + len) + "])");
+            System.err.println("writeArray(double[" + off + " ... " + (off + len) + "])");
         }
 
         do {
@@ -357,6 +364,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         } while (len != 0);
     }
 
+    @Override
     public void flush() throws IOException {
         // System.err.println("_____ ignoring flush() ");
     }
@@ -370,23 +378,27 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
         out.flush();
     }
 
+    @Override
     public void finish() {
         // empty
     }
 
+    @Override
     public boolean finished() {
         return true;
     }
 
+    @Override
     public void close() throws IOException {
         flush();
         out.close();
     }
 
+    @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
-	
-	int len = value.limit() - value.position();
-	
+
+        int len = value.limit() - value.position();
+
         while (len > (BUF_SIZE - index)) {
 
             int space = BUF_SIZE - index;
@@ -408,6 +420,6 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
 
             value.get(buffer, index, len);
             index += len;
-        }	
+        }
     }
 }

@@ -17,8 +17,6 @@
 
 package ibis.io.rewriter;
 
-import ibis.compile.ASMRepository;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.security.MessageDigest;
@@ -33,14 +31,17 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import ibis.compile.ASMRepository;
+
 /**
- * SerializationInfo contains static methods for determining information about a particular
- * class as well as an interface to determine the proper method names for serialization of
- * a particular type.
-  */
+ * SerializationInfo contains static methods for determining information about a
+ * particular class as well as an interface to determine the proper method names
+ * for serialization of a particular type.
+ */
 class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
     private static class FieldComparator implements Comparator<FieldNode> {
+        @Override
         public int compare(FieldNode f1, FieldNode f2) {
             return f1.name.compareTo(f2.name);
         }
@@ -48,45 +49,37 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
     static FieldComparator fieldComparator = new FieldComparator();
 
-    static HashMap<String, Long> serialversionids = new HashMap<String, Long>();
+    static HashMap<String, Long> serialversionids = new HashMap<>();
 
-    static HashMap<Type, ASMSerializationInfo> primitiveSerialization = new HashMap<Type, ASMSerializationInfo> ();
+    static HashMap<Type, ASMSerializationInfo> primitiveSerialization = new HashMap<>();
 
-    static ASMSerializationInfo referenceSerialization = new ASMSerializationInfo(METHOD_WRITE_OBJECT,
-            METHOD_READ_OBJECT, METHOD_READ_FIELD_OBJECT, "Ljava/lang/Object;", false);
+    static ASMSerializationInfo referenceSerialization = new ASMSerializationInfo(METHOD_WRITE_OBJECT, METHOD_READ_OBJECT, METHOD_READ_FIELD_OBJECT,
+            "Ljava/lang/Object;", false);
 
     static {
-        primitiveSerialization.put(Type.BOOLEAN_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_BOOLEAN, METHOD_READ_BOOLEAN, METHOD_READ_FIELD_BOOLEAN,
-                "Z", true));
+        primitiveSerialization.put(Type.BOOLEAN_TYPE,
+                new ASMSerializationInfo(METHOD_WRITE_BOOLEAN, METHOD_READ_BOOLEAN, METHOD_READ_FIELD_BOOLEAN, "Z", true));
 
-        primitiveSerialization.put(Type.BYTE_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_BYTE, METHOD_READ_BYTE, METHOD_READ_FIELD_BYTE, "B", true));
+        primitiveSerialization.put(Type.BYTE_TYPE, new ASMSerializationInfo(METHOD_WRITE_BYTE, METHOD_READ_BYTE, METHOD_READ_FIELD_BYTE, "B", true));
 
-        primitiveSerialization.put(Type.SHORT_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_SHORT, METHOD_READ_SHORT, METHOD_READ_FIELD_SHORT, "S", true));
+        primitiveSerialization.put(Type.SHORT_TYPE,
+                new ASMSerializationInfo(METHOD_WRITE_SHORT, METHOD_READ_SHORT, METHOD_READ_FIELD_SHORT, "S", true));
 
-        primitiveSerialization.put(Type.CHAR_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_CHAR, METHOD_READ_CHAR, METHOD_READ_FIELD_CHAR, "C", true));
+        primitiveSerialization.put(Type.CHAR_TYPE, new ASMSerializationInfo(METHOD_WRITE_CHAR, METHOD_READ_CHAR, METHOD_READ_FIELD_CHAR, "C", true));
 
-        primitiveSerialization.put(Type.INT_TYPE, new ASMSerializationInfo(METHOD_WRITE_INT,
-                METHOD_READ_INT, METHOD_READ_FIELD_INT, "I", true));
+        primitiveSerialization.put(Type.INT_TYPE, new ASMSerializationInfo(METHOD_WRITE_INT, METHOD_READ_INT, METHOD_READ_FIELD_INT, "I", true));
 
-        primitiveSerialization.put(Type.LONG_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_LONG, METHOD_READ_LONG, METHOD_READ_FIELD_LONG, "J", true));
+        primitiveSerialization.put(Type.LONG_TYPE, new ASMSerializationInfo(METHOD_WRITE_LONG, METHOD_READ_LONG, METHOD_READ_FIELD_LONG, "J", true));
 
-        primitiveSerialization.put(Type.FLOAT_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_FLOAT, METHOD_READ_FLOAT, METHOD_READ_FIELD_FLOAT, "F", true));
+        primitiveSerialization.put(Type.FLOAT_TYPE,
+                new ASMSerializationInfo(METHOD_WRITE_FLOAT, METHOD_READ_FLOAT, METHOD_READ_FIELD_FLOAT, "F", true));
 
-        primitiveSerialization.put(Type.DOUBLE_TYPE, new ASMSerializationInfo(
-                METHOD_WRITE_DOUBLE, METHOD_READ_DOUBLE, METHOD_READ_FIELD_DOUBLE, "D",
-                true));
-        primitiveSerialization.put(TYPE_STRING, new ASMSerializationInfo(
-                METHOD_WRITE_STRING, METHOD_READ_STRING, METHOD_READ_FIELD_STRING, TYPE_STRING.getDescriptor(),
-                true));
-        primitiveSerialization.put(TYPE_CLASS, new ASMSerializationInfo(
-                METHOD_WRITE_CLASS, METHOD_READ_CLASS, METHOD_READ_FIELD_CLASS,
-                TYPE_CLASS.getDescriptor(), true));
+        primitiveSerialization.put(Type.DOUBLE_TYPE,
+                new ASMSerializationInfo(METHOD_WRITE_DOUBLE, METHOD_READ_DOUBLE, METHOD_READ_FIELD_DOUBLE, "D", true));
+        primitiveSerialization.put(TYPE_STRING,
+                new ASMSerializationInfo(METHOD_WRITE_STRING, METHOD_READ_STRING, METHOD_READ_FIELD_STRING, TYPE_STRING.getDescriptor(), true));
+        primitiveSerialization.put(TYPE_CLASS,
+                new ASMSerializationInfo(METHOD_WRITE_CLASS, METHOD_READ_CLASS, METHOD_READ_FIELD_CLASS, TYPE_CLASS.getDescriptor(), true));
     }
 
     String write_name;
@@ -99,8 +92,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
     boolean primitive;
 
-    ASMSerializationInfo(String wn, String rn, String frn, String signature,
-            boolean primitive) {
+    ASMSerializationInfo(String wn, String rn, String frn, String signature, boolean primitive) {
         this.write_name = wn;
         this.read_name = rn;
         this.final_read_name = frn;
@@ -113,8 +105,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         return (temp == null ? referenceSerialization : temp);
     }
 
-    public static boolean directImplementationOf(ClassNode clazz,
-            String name) {
+    public static boolean directImplementationOf(ClassNode clazz, String name) {
         List<String> names = clazz.interfaces;
         String supername = clazz.superName;
 
@@ -160,7 +151,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
     static boolean isIbisSerializable(ClassNode clazz) {
         return directImplementationOf(clazz, IBIS_IO_SERIALIZABLE);
     }
- 
+
     static boolean isExternalizable(ClassNode clazz) {
         try {
             return ASMRepository.implementationOf(clazz, JAVA_IO_EXTERNALIZABLE);
@@ -181,8 +172,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         for (FieldNode f : fields) {
             if (f.name.equals(FIELD_SERIAL_PERSISTENT_FIELDS)
                     && ((f.access & (ACC_FINAL | ACC_STATIC | ACC_PRIVATE)) == (ACC_FINAL | ACC_STATIC | ACC_PRIVATE))
-                     && f.desc.equals(
-                            SIGNATURE_LJAVA_IO_OBJECTSTREAMFIELD)) {
+                    && f.desc.equals(SIGNATURE_LJAVA_IO_OBJECTSTREAMFIELD)) {
                 return true;
             }
         }
@@ -202,10 +192,8 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
         List<MethodNode> methods = cl.methods;
         MethodNode[] clMethods = methods.toArray(new MethodNode[methods.size()]);
 
-        for (int i = 0; i < clMethods.length; i++) {
-            if (clMethods[i].name.equals(METHOD_INIT)
-                    && clMethods[i].desc.equals(
-                            SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V)) {
+        for (MethodNode clMethod : clMethods) {
+            if (clMethod.name.equals(METHOD_INIT) && clMethod.desc.equals(SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V)) {
                 return true;
             }
         }
@@ -228,8 +216,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             dout.writeUTF(clazz.name);
 
             // 2. The class modifiers written as a 32-bit integer.
-            int classModifiers = clazz.access
-            & (ACC_PUBLIC | ACC_FINAL | ACC_INTERFACE | ACC_ABSTRACT);
+            int classModifiers = clazz.access & (ACC_PUBLIC | ACC_FINAL | ACC_INTERFACE | ACC_ABSTRACT);
 
             // Only set ABSTRACT for an interface when it has methods.
             List<MethodNode> methods = clazz.methods;
@@ -244,53 +231,53 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             dout.writeInt(classModifiers);
 
             // 3. The name of each interface sorted by name written using
-            //    UTF encoding.
+            // UTF encoding.
             List<String> l = clazz.interfaces;
             String[] interfaceNames = l.toArray(new String[l.size()]);
             Arrays.sort(interfaceNames);
-            for (int i = 0; i < interfaceNames.length; i++) {
-                dout.writeUTF(interfaceNames[i]);
+            for (String interfaceName : interfaceNames) {
+                dout.writeUTF(interfaceName);
             }
 
             // 4. For each field of the class sorted by field name (except
-            //    private static and private transient fields).
+            // private static and private transient fields).
             List<FieldNode> fields = clazz.fields;
             FieldNode[] cFields = fields.toArray(new FieldNode[fields.size()]);
             Arrays.sort(cFields, fieldComparator);
-            for (int i = 0; i < cFields.length; i++) {
-                int mods = cFields[i].access;
-                if (((mods & ACC_PRIVATE) == 0)
-                        || ((mods & (ACC_STATIC | ACC_TRANSIENT)) == 0)) {
+            for (FieldNode cField : cFields) {
+                int mods = cField.access;
+                if (((mods & ACC_PRIVATE) == 0) || ((mods & (ACC_STATIC | ACC_TRANSIENT)) == 0)) {
                     // 4.1. The name of the field in UTF encoding.
-                    dout.writeUTF(cFields[i].name);
+                    dout.writeUTF(cField.name);
                     // 4.2. The modifiers of the field written as a
-                    //      32-bit integer.
+                    // 32-bit integer.
                     dout.writeInt(mods);
                     // 4.3. The descriptor of the field in UTF encoding
-                    dout.writeUTF(cFields[i].desc);
+                    dout.writeUTF(cField.desc);
                 }
             }
 
             // This is where the trouble starts for serialver.
 
             // 5. If a class initializer exists, write out the following:
-            for (int i = 0; i < cMethods.length; i++) {
-                if (cMethods[i].name.equals(METHOD_CLINIT)) {
+            for (MethodNode cMethod : cMethods) {
+                if (cMethod.name.equals(METHOD_CLINIT)) {
                     // 5.1. The name of the method, <clinit>, in UTF
-                    //      encoding.
+                    // encoding.
                     dout.writeUTF(METHOD_CLINIT);
                     // 5.2. The modifier of the method,
-                    //      java.lang.reflect.Modifier.STATIC, written as
-                    //      a 32-bit integer.
+                    // java.lang.reflect.Modifier.STATIC, written as
+                    // a 32-bit integer.
                     dout.writeInt(ACC_STATIC);
                     // 5.3. The descriptor of the method, ()V, in UTF
-                    //      encoding.
+                    // encoding.
                     dout.writeUTF("()V");
                     break;
                 }
             }
 
             Arrays.sort(cMethods, new Comparator<MethodNode>() {
+                @Override
                 public int compare(MethodNode o1, MethodNode o2) {
                     String name1 = o1.name;
                     String name2 = o2.name;
@@ -304,41 +291,38 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             });
 
             // 6. For each non-private constructor sorted by method name
-            //    and signature:
-            for (int i = 0; i < cMethods.length; i++) {
-                if (cMethods[i].name.equals(METHOD_INIT)) {
-                    int mods = cMethods[i].access;
+            // and signature:
+            for (MethodNode cMethod : cMethods) {
+                if (cMethod.name.equals(METHOD_INIT)) {
+                    int mods = cMethod.access;
                     if ((mods & ACC_PRIVATE) == 0) {
                         // 6.1. The name of the method, <init>, in UTF
-                        //      encoding.
+                        // encoding.
                         dout.writeUTF(METHOD_INIT);
                         // 6.2. The modifiers of the method written as a
-                        //      32-bit integer.
+                        // 32-bit integer.
                         dout.writeInt(mods);
                         // 6.3. The descriptor of the method in UTF
-                        //      encoding.
-                        dout.writeUTF(cMethods[i].desc.replace(
-                                '/', '.'));
+                        // encoding.
+                        dout.writeUTF(cMethod.desc.replace('/', '.'));
                     }
                 }
             }
 
             // 7. For each non-private method sorted by method name and
-            //    signature:
-            for (int i = 0; i < cMethods.length; i++) {
-                if (!cMethods[i].name.equals(METHOD_INIT)
-                        && !cMethods[i].name.equals(METHOD_CLINIT)) {
-                    int mods = cMethods[i].access;
+            // signature:
+            for (MethodNode cMethod : cMethods) {
+                if (!cMethod.name.equals(METHOD_INIT) && !cMethod.name.equals(METHOD_CLINIT)) {
+                    int mods = cMethod.access;
                     if ((mods & ACC_PRIVATE) == 0) {
                         // 7.1. The name of the method in UTF encoding.
-                        dout.writeUTF(cMethods[i].name);
+                        dout.writeUTF(cMethod.name);
                         // 7.2. The modifiers of the method written as a
-                        //      32-bit integer.
+                        // 32-bit integer.
                         dout.writeInt(mods);
                         // 7.3. The descriptor of the method in UTF
-                        //      encoding.
-                        dout.writeUTF(cMethods[i].desc.replace(
-                                '/', '.'));
+                        // encoding.
+                        dout.writeUTF(cMethod.desc.replace('/', '.'));
                     }
                 }
             }
@@ -346,8 +330,8 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             dout.flush();
 
             // 8. The SHA-1 algorithm is executed on the stream of bytes
-            //    produced by DataOutputStream and produces five 32-bit
-            //    values sha[0..4].
+            // produced by DataOutputStream and produces five 32-bit
+            // values sha[0..4].
             MessageDigest md = MessageDigest.getInstance("SHA");
             byte[] hashBytes = md.digest(bout.toByteArray());
 
@@ -358,8 +342,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
             }
             return hash;
         } catch (Exception ex) {
-            System.err.println("Warning: could not get serialVersionUID "
-                    + "for class " + clazz.name);
+            System.err.println("Warning: could not get serialVersionUID " + "for class " + clazz.name);
             ex.printStackTrace(System.err);
             return 0L;
         }
@@ -379,8 +362,7 @@ class ASMSerializationInfo implements ASMRewriterConstants, Opcodes {
 
     static MethodNode findMethod(List<MethodNode> methods, String name, String signature) {
         for (MethodNode m : methods) {
-            if (m.name.equals(name)
-                    && m.desc.equals(signature)) {
+            if (m.name.equals(name) && m.desc.equals(signature)) {
                 return m;
             }
         }

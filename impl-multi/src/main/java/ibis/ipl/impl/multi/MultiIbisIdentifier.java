@@ -62,23 +62,16 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
-     * 
-     * @param id
-     *            join id, allocated by the registry.
-     * @param idMap
-     *            implementation-dependent data.
-     * @param registryData
-     *            registry-dependent data.
-     * @param location
-     *            location of this Ibis instance.
-     * @param pool
-     *            identifies the run with the registry.
-     * @param applicationTag
-     *            application tag
+     *
+     * @param id             join id, allocated by the registry.
+     * @param idMap          implementation-dependent data.
+     * @param registryData   registry-dependent data.
+     * @param location       location of this Ibis instance.
+     * @param pool           identifies the run with the registry.
+     * @param applicationTag application tag
      */
-    public MultiIbisIdentifier(String id,
-            HashMap<String, ibis.ipl.IbisIdentifier> idMap, byte[] registryData,
-            Location location, String pool, byte[] applicationTag) {
+    public MultiIbisIdentifier(String id, HashMap<String, ibis.ipl.IbisIdentifier> idMap, byte[] registryData, Location location, String pool,
+            byte[] applicationTag) {
         this.id = id;
         this.idMap = idMap;
         this.registryData = registryData;
@@ -90,53 +83,42 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
 
     /**
      * Constructs an <code>IbisIdentifier</code> from the specified coded form.
-     * 
-     * @param codedForm
-     *            the coded form.
-     * @exception IOException
-     *                is thrown in case of trouble.
+     *
+     * @param codedForm the coded form.
+     * @exception IOException is thrown in case of trouble.
      */
     public MultiIbisIdentifier(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
     }
 
     /**
-     * Constructs an <code>IbisIdentifier</code> from the specified coded form,
-     * at a particular offset and size.
-     * 
-     * @param codedForm
-     *            the coded form.
-     * @param offset
-     *            offset in the coded form.
-     * @param size
-     *            size of the coded form.
-     * @exception IOException
-     *                is thrown in case of trouble.
+     * Constructs an <code>IbisIdentifier</code> from the specified coded form, at a
+     * particular offset and size.
+     *
+     * @param codedForm the coded form.
+     * @param offset    offset in the coded form.
+     * @param size      size of the coded form.
+     * @exception IOException is thrown in case of trouble.
      */
-    public MultiIbisIdentifier(byte[] codedForm, int offset, int size)
-            throws IOException {
-        this(new ObjectInputStream(
-                new ByteArrayInputStream(codedForm, offset, size)));
+    public MultiIbisIdentifier(byte[] codedForm, int offset, int size) throws IOException {
+        this(new ObjectInputStream(new ByteArrayInputStream(codedForm, offset, size)));
     }
 
     /**
      * Reads an <code>IbisIdentifier</code> from the specified input stream.
-     * 
-     * @param dis
-     *            the input stream.
-     * @exception IOException
-     *                is thrown in case of trouble.
+     *
+     * @param dis the input stream.
+     * @exception IOException is thrown in case of trouble.
      */
     public MultiIbisIdentifier(ObjectInputStream dis) throws IOException {
         location = new Location(dis);
         pool = dis.readUTF();
-        idMap = new HashMap<String, ibis.ipl.IbisIdentifier>();
+        idMap = new HashMap<>();
         int subCount = dis.readInt();
         for (int i = 0; i < subCount; i++) {
             try {
                 String impl = dis.readUTF();
-                ibis.ipl.IbisIdentifier ibisId = (ibis.ipl.IbisIdentifier) dis
-                        .readObject();
+                ibis.ipl.IbisIdentifier ibisId = (ibis.ipl.IbisIdentifier) dis.readObject();
                 idMap.put(impl, ibisId);
             } catch (ClassNotFoundException e) {
                 // TODO should we be ignoring this?
@@ -164,7 +146,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
 
     /**
      * Returns the coded form of this <code>IbisIdentifier</code>.
-     * 
+     *
      * @return the coded form.
      */
     public byte[] toBytes() {
@@ -207,13 +189,11 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
     }
 
     /**
-     * Adds coded form of this <code>IbisIdentifier</code> to the specified
-     * output stream.
-     * 
-     * @param dos
-     *            the output stream.
-     * @exception IOException
-     *                is thrown in case of trouble.
+     * Adds coded form of this <code>IbisIdentifier</code> to the specified output
+     * stream.
+     *
+     * @param dos the output stream.
+     * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
         if (codedForm == null) {
@@ -227,11 +207,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         if (o == this) {
             return true;
         }
-        if (o == null) {
-            return false;
-        }
-
-        if (!o.getClass().equals(getClass())) {
+        if ((o == null) || !o.getClass().equals(getClass())) {
             return false;
         }
 
@@ -249,21 +225,24 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         return "(Ibis " + id + ", location " + location + ")";
     }
 
+    @Override
     public String name() {
         return "(Ibis " + id + ")";
     }
 
+    @Override
     public ibis.ipl.Location location() {
         return location;
     }
 
+    @Override
     public String poolName() {
         return pool;
     }
 
     /**
      * Obtains the registry dependent data.
-     * 
+     *
      * @return the data.
      */
     public synchronized byte[] getRegistryData() {
@@ -272,10 +251,10 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
 
     /**
      * Compare to the specified Ibis identifier.
-     * 
-     * @param c
-     *            the Ibis identifier to compare to.
+     *
+     * @param c the Ibis identifier to compare to.
      */
+    @Override
     public int compareTo(ibis.ipl.IbisIdentifier c) {
         if (c instanceof MultiIbisIdentifier) {
             // If not, the specified Ibis identifier is from a completely
@@ -299,6 +278,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         return id;
     }
 
+    @Override
     public String tagAsString() {
         if (tag == null) {
             return null;
@@ -310,6 +290,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         }
     }
 
+    @Override
     public byte[] tag() {
         return tag;
     }

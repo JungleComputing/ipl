@@ -15,6 +15,8 @@
  */
 package ibis.ipl.benchmarks.pingPong;
 
+import java.io.IOException;
+
 /* $Id$ */
 
 import ibis.ipl.Ibis;
@@ -28,87 +30,81 @@ import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
-
 class ObjectPingPong {
 
-static class Aap implements java.io.Serializable {
-    /** Generated id. */
+    static class Aap implements java.io.Serializable {
+        /** Generated id. */
 
-    private static final long serialVersionUID = -7277767720469228408L;
-    byte b;
-}
-
-static class Sender {
-    SendPort sport;
-    ReceivePort rport;
-
-    Sender(ReceivePort rport, SendPort sport) {
-        this.rport = rport;
-        this.sport = sport;
+        private static final long serialVersionUID = -7277767720469228408L;
+        byte b;
     }
 
-    void send(int count, int repeat) throws Exception {
-	Aap x = new Aap();
-	for (int r = 0; r < repeat; r++) {
+    static class Sender {
+        SendPort sport;
+        ReceivePort rport;
 
-            long time = System.currentTimeMillis();
+        Sender(ReceivePort rport, SendPort sport) {
+            this.rport = rport;
+            this.sport = sport;
+        }
 
-            for (int i = 0; i < count; i++) {
-                WriteMessage writeMessage = sport.newMessage();
-		writeMessage.writeObject(x);
+        void send(int count, int repeat) throws Exception {
+            Aap x = new Aap();
+            for (int r = 0; r < repeat; r++) {
+
+                long time = System.currentTimeMillis();
+
+                for (int i = 0; i < count; i++) {
+                    WriteMessage writeMessage = sport.newMessage();
+                    writeMessage.writeObject(x);
 //		writeMessage.writeObject(y);
 
-                writeMessage.finish();
+                    writeMessage.finish();
 
+                    ReadMessage readMessage = rport.receive();
+                    readMessage.finish();
+                }
 
-                ReadMessage readMessage = rport.receive();
-                readMessage.finish();
+                time = System.currentTimeMillis() - time;
+
+                double speed = (time * 1000.0) / count;
+                System.err.println("Latency: " + count + " calls took " + (time / 1000.0) + " seconds, time/call = " + speed + " micros");
             }
-
-            time = System.currentTimeMillis() - time;
-
-            double speed = (time * 1000.0) / count;
-            System.err.println("Latency: " + count + " calls took "
-                    + (time / 1000.0) + " seconds, time/call = " + speed
-                    + " micros");
         }
     }
-}
 
-static class ExplicitReceiver {
+    static class ExplicitReceiver {
 
-    SendPort sport;
+        SendPort sport;
 
-    ReceivePort rport;
+        ReceivePort rport;
 
-    ExplicitReceiver(ReceivePort rport, SendPort sport) {
-        this.rport = rport;
-        this.sport = sport;
-    }
+        ExplicitReceiver(ReceivePort rport, SendPort sport) {
+            this.rport = rport;
+            this.sport = sport;
+        }
 
-    void receive(int count, int repeat) throws IOException {
+        void receive(int count, int repeat) throws IOException {
 
-        for (int r = 0; r < repeat; r++) {
-            for (int i = 0; i < count; i++) {
+            for (int r = 0; r < repeat; r++) {
+                for (int i = 0; i < count; i++) {
 
-                ReadMessage readMessage = rport.receive();
-		try {
-		    readMessage.readObject();
+                    ReadMessage readMessage = rport.receive();
+                    try {
+                        readMessage.readObject();
 //		    readMessage.readObject();
-		} catch (Exception e) {
-		    System.err.println("e: " + e);
-		}
+                    } catch (Exception e) {
+                        System.err.println("e: " + e);
+                    }
 
-                readMessage.finish();
+                    readMessage.finish();
 
-                WriteMessage writeMessage = sport.newMessage();
-                writeMessage.finish();
+                    WriteMessage writeMessage = sport.newMessage();
+                    writeMessage.finish();
+                }
             }
         }
     }
-}
-
 
     static Ibis ibis;
 
@@ -120,20 +116,15 @@ static class ExplicitReceiver {
         int rank = 0;
 
         try {
-            IbisCapabilities s = new IbisCapabilities(
-                    IbisCapabilities.CLOSED_WORLD,
-                    IbisCapabilities.ELECTIONS_STRICT);
-            
-            PortType t = new PortType(
-                    PortType.SERIALIZATION_OBJECT,
-                    PortType.CONNECTION_ONE_TO_ONE,
-                    PortType.COMMUNICATION_RELIABLE,
+            IbisCapabilities s = new IbisCapabilities(IbisCapabilities.CLOSED_WORLD, IbisCapabilities.ELECTIONS_STRICT);
+
+            PortType t = new PortType(PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_ONE_TO_ONE, PortType.COMMUNICATION_RELIABLE,
                     PortType.RECEIVE_EXPLICIT);
-            
+
             ibis = IbisFactory.createIbis(s, null, t);
 
             registry = ibis.registry();
- 
+
             SendPort sport = ibis.createSendPort(t, "send port");
             ReceivePort rport;
 //            Latency lat = null;
@@ -150,8 +141,8 @@ static class ExplicitReceiver {
                 remote = master;
             }
 
-	    Sender sender = null;
-	    ExplicitReceiver receiver = null;
+            Sender sender = null;
+            ExplicitReceiver receiver = null;
             if (rank == 0) {
                 rport = ibis.createReceivePort(t, "test port");
                 rport.enableConnections();

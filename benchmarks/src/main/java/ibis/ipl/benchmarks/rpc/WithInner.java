@@ -40,6 +40,7 @@ class WithInner implements java.io.Serializable {
         x = count++;
     }
 
+    @Override
     public String toString() {
         return "x=" + x + "-inner.x=" + inner.x;
     }

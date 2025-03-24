@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class StatisticsProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StatisticsProcessor.class);
-    
+
     private final Experiment[] experiments;
 
     private final long interval;
@@ -33,10 +33,10 @@ public class StatisticsProcessor {
     private final long duration;
 
     StatisticsProcessor(File[] directories, long interval) throws IOException {
-        
+
         experiments = new Experiment[directories.length];
         long duration = 0;
-        
+
         for (int i = 0; i < experiments.length; i++) {
             experiments[i] = new Experiment(directories[i]);
             if (experiments[i].duration() > duration) {
@@ -44,14 +44,13 @@ public class StatisticsProcessor {
             }
         }
         this.duration = duration;
-        
+
         if (interval == 0) {
             this.interval = calculateInterval();
         } else {
             this.interval = interval;
         }
     }
-    
 
     private long calculateInterval() {
         long result = duration / 100;
@@ -66,52 +65,51 @@ public class StatisticsProcessor {
 
         return result;
     }
-    
-    //write pool history for all experiments
+
+    // write pool history for all experiments
     private void writePoolHistory(Formatter out) {
 
         out.format("//experiments:\n");
-        //field names
+        // field names
         out.format("//%6s |", "");
-        for (Experiment experiment: experiments) {
+        for (Experiment experiment : experiments) {
             out.format("%-16s  |", experiment.getName());
         }
         out.format("\n");
 
-        for(long time = 0; time <= (duration + 2 * interval) ; time += interval) {
-            out.format("%8.2f  ", (time / 1000.0) );
-            
-            for (Experiment experiment: experiments) {
+        for (long time = 0; time <= (duration + 2 * interval); time += interval) {
+            out.format("%8.2f  ", (time / 1000.0));
+
+            for (Experiment experiment : experiments) {
                 out.format("%8.2f ", experiment.averagePoolSize(time));
                 out.format("%8.2f  ", experiment.serverPoolSize(time));
             }
-            
+
             out.format("\n");
         }
         out.flush();
     }
 
-    //write pool history for all experiments
+    // write pool history for all experiments
     private void writeDataTransferSize(Formatter out) {
 
         out.format("experiments:\n");
-        for (Experiment experiment: experiments) {
+        for (Experiment experiment : experiments) {
             out.format("%s %.2f %.2f\n", experiment.getName(), experiment.serverTraffic(), experiment.averageClientTraffic());
         }
-        
+
         out.flush();
     }
 
     private void writeServerStats(Formatter out) {
-        for (Experiment experiment: experiments) {
-            out.format("####### %s #######\n", experiment.getName()); 
-            
+        for (Experiment experiment : experiments) {
+            out.format("####### %s #######\n", experiment.getName());
+
             experiment.serverCommStats(out);
-            
+
         }
     }
-        
-    
+
 //    /**
 //     * Write statistics to a file
 //     */
@@ -175,9 +173,9 @@ public class StatisticsProcessor {
 //        }
 //
 //    }
-    
+
     public static void main(String[] args) throws IOException {
-        ArrayList<File> directories = new ArrayList<File>();
+        ArrayList<File> directories = new ArrayList<>();
         long interval = 0;
 
         for (int i = 0; i < args.length; i++) {
@@ -198,13 +196,13 @@ public class StatisticsProcessor {
             System.err.println("--interval INTERVAL Interval of datapoints in graphs (milliseconds)");
             System.exit(1);
         }
-        
+
         StatisticsProcessor processor = new StatisticsProcessor(directories.toArray(new File[0]), interval);
-        
+
         Formatter out = new Formatter("poolsize.statistics");
         processor.writePoolHistory(out);
         out.close();
-        
+
         out = new Formatter("traffic.statistics");
         processor.writeDataTransferSize(out);
         out.close();
@@ -214,6 +212,5 @@ public class StatisticsProcessor {
         out.close();
 
     }
-
 
 }

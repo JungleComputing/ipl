@@ -17,9 +17,6 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.io.DataOutputStream;
-import ibis.ipl.impl.ReceivePortIdentifier;
-
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
@@ -34,9 +31,12 @@ import java.nio.channels.GatheringByteChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.io.DataOutputStream;
+import ibis.ipl.impl.ReceivePortIdentifier;
+
 /**
  * Nio Accumulator. Writes data to java.nio.ByteBuffers.
- * 
+ *
  * A NioAccumulator may not send any stream header or trailer data.
  */
 public abstract class NioAccumulator extends DataOutputStream implements Config {
@@ -74,8 +74,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
 
     private DoubleBuffer doubles;
 
-    NioAccumulatorConnection[] connections
-            = new NioAccumulatorConnection[INITIAL_CONNECTIONS_SIZE];
+    NioAccumulatorConnection[] connections = new NioAccumulatorConnection[INITIAL_CONNECTIONS_SIZE];
 
     int nrOfConnections = 0;
 
@@ -97,14 +96,17 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         doubles = buffer.doubles;
     }
 
+    @Override
     public int bufferSize() {
         return PRIMITIVE_BUFFER_SIZE;
     }
-    
+
+    @Override
     synchronized public long bytesWritten() {
         return count;
     }
 
+    @Override
     synchronized public void resetBytesWritten() {
         count = 0;
     }
@@ -116,8 +118,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         return result;
     }
 
-    synchronized NioAccumulatorConnection add(GatheringByteChannel channel,
-            ReceivePortIdentifier receiver) throws IOException {
+    synchronized NioAccumulatorConnection add(GatheringByteChannel channel, ReceivePortIdentifier receiver) throws IOException {
         if (nrOfConnections == connections.length) {
             NioAccumulatorConnection[] newConnections = new NioAccumulatorConnection[connections.length * 2];
             for (int i = 0; i < connections.length; i++) {
@@ -133,8 +134,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         return c;
     }
 
-    synchronized void removeConnection(ReceivePortIdentifier receiver)
-            throws IOException {
+    synchronized void removeConnection(ReceivePortIdentifier receiver) throws IOException {
         for (int i = 0; i < nrOfConnections; i++) {
             if (connections[i].target == receiver) {
                 nrOfConnections--;
@@ -174,11 +174,13 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
     /*
      * makes sure all data given to the accumulator is send ,or at least copied.
      */
+    @Override
     synchronized public void flush() throws IOException {
         send();
         doFlush();
     }
 
+    @Override
     synchronized public void close() throws IOException {
         if (!buffer.isEmpty()) {
             doSend(buffer);
@@ -190,6 +192,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         buffer = null;
     }
 
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         if (value) {
             writeByte((byte) 1);
@@ -198,6 +201,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeByte(byte value) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("writeByte(" + value + ")");
@@ -212,10 +216,12 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void write(int value) throws IOException {
         writeByte((byte) value);
     }
 
+    @Override
     public void writeChar(char value) throws IOException {
         try {
             chars.put(value);
@@ -225,6 +231,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeShort(short value) throws IOException {
         try {
             shorts.put(value);
@@ -234,6 +241,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeInt(int value) throws IOException {
         try {
             ints.put(value);
@@ -243,6 +251,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeLong(long value) throws IOException {
         try {
             longs.put(value);
@@ -252,6 +261,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeFloat(float value) throws IOException {
         try {
             floats.put(value);
@@ -261,6 +271,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeDouble(double value) throws IOException {
         try {
             doubles.put(value);
@@ -270,8 +281,8 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
-    public void writeArray(boolean[] array, int off, int len)
-            throws IOException {
+    @Override
+    public void writeArray(boolean[] array, int off, int len) throws IOException {
         for (int i = off; i < (off + len); i++) {
             if (array[i]) {
                 writeByte((byte) 1);
@@ -281,10 +292,10 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeArray(byte[] array, int off, int len) throws IOException {
         if (logger.isDebugEnabled()) {
-            String message = "NioAccumulator.writeArray(byte[], off = " + off
-                    + " len = " + len + ") Contents: ";
+            String message = "NioAccumulator.writeArray(byte[], off = " + off + " len = " + len + ") Contents: ";
 
             for (int i = off; i < (off + len); i++) {
                 message = message + array[i] + " ";
@@ -312,14 +323,17 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void write(byte[] b) throws IOException {
         write(b, 0, b.length);
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException {
         writeArray(b, off, len);
     }
 
+    @Override
     public void writeArray(char[] array, int off, int len) throws IOException {
         try {
             chars.put(array, off, len);
@@ -339,6 +353,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeArray(short[] array, int off, int len) throws IOException {
         try {
             shorts.put(array, off, len);
@@ -358,6 +373,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeArray(int[] array, int off, int len) throws IOException {
         try {
             ints.put(array, off, len);
@@ -377,6 +393,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeArray(long[] array, int off, int len) throws IOException {
         try {
             longs.put(array, off, len);
@@ -396,6 +413,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeArray(float[] array, int off, int len) throws IOException {
         try {
             floats.put(array, off, len);
@@ -415,6 +433,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
+    @Override
     public void writeArray(double[] array, int off, int len) throws IOException {
         try {
             doubles.put(array, off, len);
@@ -433,7 +452,8 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
             }
         }
     }
-    
+
+    @Override
     public void writeByteBuffer(ByteBuffer b) throws IOException {
         try {
             bytes.put(b);
@@ -453,13 +473,11 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         }
     }
 
-    abstract NioAccumulatorConnection newConnection(
-            GatheringByteChannel channel, ReceivePortIdentifier peer)
-            throws IOException;
+    abstract NioAccumulatorConnection newConnection(GatheringByteChannel channel, ReceivePortIdentifier peer) throws IOException;
 
     /**
-     * @return is the buffer already send or not. If it is not, the
-     *         implementation will recycle it when it's done with it.
+     * @return is the buffer already send or not. If it is not, the implementation
+     *         will recycle it when it's done with it.
      */
     abstract boolean doSend(SendBuffer buffer) throws IOException;
 

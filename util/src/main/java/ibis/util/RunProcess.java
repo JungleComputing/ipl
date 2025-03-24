@@ -119,8 +119,7 @@ public final class RunProcess {
     /**
      * Creates a RunProcess object for the specified command.
      *
-     * @param command
-     *            the specified command and arguments.
+     * @param command the specified command and arguments.
      */
     public RunProcess(String... command) {
         builder = new ProcessBuilder(command);
@@ -129,8 +128,7 @@ public final class RunProcess {
     /**
      * Creates a RunProcess object for the specified command.
      *
-     * @param command
-     *            the specified command and arguments.
+     * @param command the specified command and arguments.
      */
     public RunProcess(List<String> command) {
         builder = new ProcessBuilder(command);
@@ -144,8 +142,7 @@ public final class RunProcess {
         try {
             p = builder.start();
         } catch (Exception e) {
-            proc_err = new buf(("Could not execute cmd: "
-                    + builder.command().toString() + " " + e).getBytes());
+            proc_err = new buf(("Could not execute cmd: " + builder.command().toString() + " " + e).getBytes());
             return;
         }
 
@@ -263,8 +260,7 @@ public final class RunProcess {
     /**
      * See {@link ProcessBuilder#command(List)}.
      *
-     * @param command
-     *            the list containing the program and its arguments
+     * @param command the list containing the program and its arguments
      *
      * @return this process
      */
@@ -276,8 +272,7 @@ public final class RunProcess {
     /**
      * See {@link ProcessBuilder#command(String...)}.
      *
-     * @param command
-     *            the strings containing the program and its arguments
+     * @param command the strings containing the program and its arguments
      *
      * @return this process
      */
@@ -298,8 +293,7 @@ public final class RunProcess {
     /**
      * See {@link ProcessBuilder#directory(File)}.
      *
-     * @param directory
-     *            the new working directory
+     * @param directory the new working directory
      *
      * @return this process's builder.
      */
@@ -328,8 +322,7 @@ public final class RunProcess {
     /**
      * See {@link ProcessBuilder#redirectErrorStream(boolean)}.
      *
-     * @param redirectErrorStream
-     *            the new property value
+     * @param redirectErrorStream the new property value
      * @return this process
      */
     public RunProcess redirectErrorStream(boolean redirectErrorStream) {
@@ -342,8 +335,7 @@ public final class RunProcess {
      *
      * @return a Process for managing the subprocess.
      *
-     * @throws IOException
-     *             if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     public Process start() throws IOException {
         return builder.start();

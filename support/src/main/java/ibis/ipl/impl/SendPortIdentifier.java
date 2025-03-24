@@ -26,12 +26,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Implementation of the {@link ibis.ipl.SendPortIdentifier} interface.
- * This class can be extended by Ibis implementations.
+ * Implementation of the {@link ibis.ipl.SendPortIdentifier} interface. This
+ * class can be extended by Ibis implementations.
  */
 public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
-    /** 
+    /**
      * Generated
      */
     private static final long serialVersionUID = 8169019358172536222L;
@@ -44,6 +44,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
     /**
      * Constructor, initializing the fields with the specified parameters.
+     * 
      * @param name the name of the sendport.
      * @param ibis the Ibis instance that created the sendport.
      */
@@ -56,11 +57,11 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
         }
         this.name = name;
         this.ibis = ibis;
-     }
+    }
 
     /**
-     * Constructs a <code>SendPortIdentifier</code> from the specified coded
-     * form.
+     * Constructs a <code>SendPortIdentifier</code> from the specified coded form.
+     * 
      * @param codedForm the coded form.
      * @exception IOException is thrown in case of trouble.
      */
@@ -69,22 +70,22 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
     }
 
     /**
-     * Constructs a <code>SendPortIdentifier</code> from the specified coded
-     * form, at a particular offset and size.
+     * Constructs a <code>SendPortIdentifier</code> from the specified coded form,
+     * at a particular offset and size.
+     * 
      * @param codedForm the coded form.
-     * @param offset offset in the coded form.
-     * @param length length of the coded form.
+     * @param offset    offset in the coded form.
+     * @param length    length of the coded form.
      * @exception IOException is thrown in case of trouble.
      */
-    public SendPortIdentifier(byte[] codedForm, int offset, int length)
-            throws IOException {
-        this(new DataInputStream(
-                new ByteArrayInputStream(codedForm, offset, length)));
+    public SendPortIdentifier(byte[] codedForm, int offset, int length) throws IOException {
+        this(new DataInputStream(new ByteArrayInputStream(codedForm, offset, length)));
     }
 
     /**
-     * Constructs a <code>SendPortIdentifier</code> by reading it from the
-     * specified input stream.
+     * Constructs a <code>SendPortIdentifier</code> by reading it from the specified
+     * input stream.
+     * 
      * @param dis the input stream.
      * @exception IOException is thrown in case of trouble.
      */
@@ -95,6 +96,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
     /**
      * Returns the coded form of this <code>SendPortIdentifier</code>.
+     * 
      * @return the coded form.
      */
     public byte[] toBytes() {
@@ -109,20 +111,20 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
             ibis.writeTo(dos);
             dos.close();
             return bos.toByteArray();
-        } catch(Exception e) {
+        } catch (Exception e) {
             // Should not happen. Ignored.
             return null;
-        } 
+        }
     }
 
     /**
-     * Writes this <code>SendPortIdentifier</code> to the specified output
-     * stream.
+     * Writes this <code>SendPortIdentifier</code> to the specified output stream.
+     * 
      * @param dos the output stream.
      * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
-         dos.write(computeCodedForm());
+        dos.write(computeCodedForm());
     }
 
     private boolean equals(SendPortIdentifier other) {
@@ -132,6 +134,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
         return name.equals(other.name) && ibis.equals(other.ibis);
     }
 
+    @Override
     public boolean equals(Object other) {
         if (other == null) {
             return false;
@@ -142,20 +145,23 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
         return false;
     }
 
+    @Override
     public int hashCode() {
         return name.hashCode() ^ ibis.hashCode();
     }
 
+    @Override
     public final String name() {
         return name;
     }
 
+    @Override
     public ibis.ipl.IbisIdentifier ibisIdentifier() {
         return ibis;
     }
 
+    @Override
     public String toString() {
-        return ("(SendPortIdentifier: name = \"" + name
-                + "\", ibis = \"" + ibis + "\")");
+        return ("(SendPortIdentifier: name = \"" + name + "\", ibis = \"" + ibis + "\")");
     }
 }

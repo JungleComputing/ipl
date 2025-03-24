@@ -17,8 +17,6 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.util.ThreadPool;
-
 import java.io.IOException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectableChannel;
@@ -29,6 +27,8 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.util.ThreadPool;
+
 /**
  * Class used as a single send/receive thread for an entire NioIbis instance.
  */
@@ -38,10 +38,9 @@ final class SendReceiveThread implements Runnable {
 
     private static Logger logger = LoggerFactory.getLogger(SendReceiveThread.class);
 
-    private ArrayList<SelectableChannel> pendingChannels
-            = new ArrayList<SelectableChannel>();
+    private ArrayList<SelectableChannel> pendingChannels = new ArrayList<>();
 
-    private ArrayList<Object> pendingAttachments = new ArrayList<Object>();
+    private ArrayList<Object> pendingAttachments = new ArrayList<>();
 
     private SelectionKey[] readyWriteKeys;
 
@@ -65,12 +64,11 @@ final class SendReceiveThread implements Runnable {
 
     /**
      * Registers the given channel with our selector.
-     * 
+     *
      * @return The SelectionKey representing the registration, with the given
      *         attachment attached to it.
      */
-    synchronized SelectionKey register(SelectableChannel channel,
-            Object attachment) throws IOException {
+    synchronized SelectionKey register(SelectableChannel channel, Object attachment) throws IOException {
         SelectionKey key = null;
 
         pendingChannels.add(channel);
@@ -166,10 +164,7 @@ final class SendReceiveThread implements Runnable {
     void handlePendingKeys() {
         if (logger.isDebugEnabled()) {
             if (nrOfReadyWriteKeys != 0 || nrOfReadyReadKeys != 0) {
-                logger
-                        .debug("enabling " + nrOfReadyWriteKeys
-                                + " write keys and " + nrOfReadyReadKeys
-                                + " read keys");
+                logger.debug("enabling " + nrOfReadyWriteKeys + " write keys and " + nrOfReadyReadKeys + " read keys");
             }
         }
 
@@ -217,6 +212,7 @@ final class SendReceiveThread implements Runnable {
         exit = true;
     }
 
+    @Override
     public void run() {
 
         Thread.currentThread().setName("send/receive thread");
@@ -247,23 +243,20 @@ final class SendReceiveThread implements Runnable {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("doing a select on " + selector.keys().size()
-                        + " channels");
+                logger.debug("doing a select on " + selector.keys().size() + " channels");
             }
 
             try {
                 selector.select();
             } catch (IOException e) {
-                logger.warn("ibis.ipl.impl.nio.SendReceiveThread.run():"
-                        + " select failed with exception: " + e);
+                logger.warn("ibis.ipl.impl.nio.SendReceiveThread.run():" + " select failed with exception: " + e);
                 // IGNORE
             } catch (CancelledKeyException e) {
                 // INGORE
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("selected " + selector.selectedKeys().size()
-                        + " channel(s)");
+                logger.debug("selected " + selector.selectedKeys().size() + " channel(s)");
             }
 
             for (SelectionKey key : selector.selectedKeys()) {

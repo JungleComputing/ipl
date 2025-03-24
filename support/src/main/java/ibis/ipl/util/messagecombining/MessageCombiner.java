@@ -38,23 +38,20 @@ public class MessageCombiner {
     /**
      * Construct a new MessageCombiner
      *
-     * @param prop
-     *            properties for the combiner (currently only the Serialization
-     *            property is used).
-     * @param sp
-     *            Sendport that will produce the messages
-     * @exception IOException
-     *                gets thrown when an IO error occurs.
+     * @param prop properties for the combiner (currently only the Serialization
+     *             property is used).
+     * @param sp   Sendport that will produce the messages
+     * @exception IOException gets thrown when an IO error occurs.
      */
-    public MessageCombiner(TypedProperties prop, SendPort sp)
-            throws IOException {
+    public MessageCombiner(TypedProperties prop, SendPort sp) throws IOException {
 
         this.sp = sp;
 
         String ser = prop.getProperty("ibis.serialization");
 
-        if (ser == null)
+        if (ser == null) {
             ser = "sun";
+        }
 
         storeOut = new StoreArrayOutputStream();
 
@@ -63,8 +60,8 @@ public class MessageCombiner {
     }
 
     /**
-     * Create a new message to write to. The data written to this message will
-     * be added to the combined message.
+     * Create a new message to write to. The data written to this message will be
+     * added to the combined message.
      *
      * @return message to write to.
      */
@@ -96,10 +93,8 @@ public class MessageCombiner {
     /**
      * Sets the replacer used by the serialization.
      *
-     * @param r
-     *            The replacer
-     * @throws IOException
-     *             serialization failed to set replacer.
+     * @param r The replacer
+     * @throws IOException serialization failed to set replacer.
      */
     public void setReplacer(Replacer r) throws IOException {
         wm.setReplacer(r);
@@ -108,8 +103,7 @@ public class MessageCombiner {
     /**
      * Sends the accumulated messages using one big message.
      *
-     * @throws IOException
-     *             a network problem occurred.
+     * @throws IOException a network problem occurred.
      */
     public void sendAccumulatedMessages() throws IOException {
         storeOut.writeToMessage(sp.newMessage());

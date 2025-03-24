@@ -15,6 +15,14 @@
  */
 package ibis.ipl.support.management;
 
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.io.Conversion;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.impl.Ibis;
@@ -24,18 +32,9 @@ import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class ManagementClient implements Runnable {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(ManagementClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(ManagementClient.class);
 
     private static final int CONNECTION_BACKLOG = 10;
 
@@ -47,15 +46,13 @@ public class ManagementClient implements Runnable {
 
     private boolean ended;
 
-    public ManagementClient(Properties properties, Ibis ibis)
-            throws IOException {
+    public ManagementClient(Properties properties, Ibis ibis) throws IOException {
         this.ibis = ibis;
         String clientID = properties.getProperty(Ibis.ID_PROPERTY);
         Client client = Client.getOrCreateClient(clientID, properties, 0);
         this.virtualSocketFactory = client.getFactory();
 
-        serverSocket = virtualSocketFactory.createServerSocket(
-                Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
+        serverSocket = virtualSocketFactory.createServerSocket(Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
 
         ThreadPool.createNew(this, "Management Client");
     }
@@ -111,46 +108,35 @@ public class ManagementClient implements Runnable {
         AttributeDescription[] descriptions = new AttributeDescription[length];
 
         for (int i = 0; i < descriptions.length; i++) {
-            descriptions[i] = new AttributeDescription(connection.in()
-                    .readUTF(), connection.in().readUTF());
+            descriptions[i] = new AttributeDescription(connection.in().readUTF(), connection.in().readUTF());
         }
 
         Object[] result = new Object[descriptions.length];
 
         try {
-            Class<?> factoryClass = Class
-                    .forName("java.lang.management.ManagementFactory");
+            Class<?> factoryClass = Class.forName("java.lang.management.ManagementFactory");
 
-            Class<?> beanServerClass = Class
-                    .forName("javax.management.MBeanServer");
+            Class<?> beanServerClass = Class.forName("javax.management.MBeanServer");
 
-            Class<?> objectNameClass = Class
-                    .forName("javax.management.ObjectName");
+            Class<?> objectNameClass = Class.forName("javax.management.ObjectName");
 
-            Constructor<?> objectNameClassConstructor = objectNameClass
-                    .getConstructor(String.class);
+            Constructor<?> objectNameClassConstructor = objectNameClass.getConstructor(String.class);
 
-            Method getAttributeMethod = beanServerClass.getMethod(
-                    "getAttribute", objectNameClass, String.class);
+            Method getAttributeMethod = beanServerClass.getMethod("getAttribute", objectNameClass, String.class);
 
-            Object beanServer = factoryClass
-                    .getMethod("getPlatformMBeanServer").invoke(null);
+            Object beanServer = factoryClass.getMethod("getPlatformMBeanServer").invoke(null);
 
             for (int i = 0; i < descriptions.length; i++) {
                 if (descriptions[i].getBeanName().equals("ibis")) {
                     result[i] = getIbisAttribute(descriptions[i].getAttribute());
                 } else {
                     try {
-                        Object objectName = objectNameClassConstructor
-                                .newInstance(descriptions[i].getBeanName());
+                        Object objectName = objectNameClassConstructor.newInstance(descriptions[i].getBeanName());
 
-                        result[i] = getAttributeMethod.invoke(beanServer,
-                                objectName, descriptions[i].getAttribute());
+                        result[i] = getAttributeMethod.invoke(beanServer, objectName, descriptions[i].getAttribute());
                     } catch (Throwable t) {
-                        logger.error("cannot get value for attribute \""
-                                        + descriptions[i].getAttribute()
-                                        + "\" of bean \""
-                                        + descriptions[i].getBeanName() + "\"");
+                        logger.error("cannot get value for attribute \"" + descriptions[i].getAttribute() + "\" of bean \""
+                                + descriptions[i].getBeanName() + "\"");
                         result[i] = null;
                     }
                 }
@@ -174,14 +160,15 @@ public class ManagementClient implements Runnable {
         return ended;
     }
 
+    @Override
     public void run() {
         Connection connection = null;
 
         while (!ended()) {
             try {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("accepting connection");
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug("accepting connection");
+                }
                 connection = new Connection(serverSocket);
                 if (logger.isDebugEnabled()) {
                     logger.debug("connection accepted");
@@ -190,8 +177,7 @@ public class ManagementClient implements Runnable {
                 if (ended) {
                     return;
                 } else {
-                    logger.error("Accept failed, waiting a second, will retry",
-                            e);
+                    logger.error("Accept failed, waiting a second, will retry", e);
 
                     try {
                         Thread.sleep(1000);
@@ -205,15 +191,13 @@ public class ManagementClient implements Runnable {
                 byte magic = connection.in().readByte();
 
                 if (magic != Protocol.MAGIC_BYTE) {
-                    throw new IOException(
-                            "Invalid header byte in accepting connection");
+                    throw new IOException("Invalid header byte in accepting connection");
                 }
 
                 byte opcode = connection.in().readByte();
 
                 if (logger.isDebugEnabled() && opcode < Protocol.NR_OF_OPCODES) {
-                    logger.debug("received request: "
-                            + Protocol.OPCODE_NAMES[opcode]);
+                    logger.debug("received request: " + Protocol.OPCODE_NAMES[opcode]);
                 }
 
                 switch (opcode) {

@@ -15,8 +15,6 @@
  */
 package ibis.ipl.registry.central;
 
-import ibis.ipl.impl.IbisIdentifier;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -34,6 +32,8 @@ import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.impl.IbisIdentifier;
 
 public final class TreeMemberSet implements MemberSet, Serializable {
 
@@ -58,11 +58,12 @@ public final class TreeMemberSet implements MemberSet, Serializable {
             member = null;
         }
 
+        @Override
         public String toString() {
-            return "node " + index + " member = " + member + " with "
-                    + children.length + " children";
+            return "node " + index + " member = " + member + " with " + children.length + " children";
         }
 
+        @Override
         public int compareTo(Node o) {
             return index - o.index;
         }
@@ -87,13 +88,14 @@ public final class TreeMemberSet implements MemberSet, Serializable {
     public TreeMemberSet() {
         nextNodeIndex = 0;
 
-        root = new ArrayList<Node>();
-        list = new ArrayList<Node>();
-        spares = new TreeSet<Node>();
+        root = new ArrayList<>();
+        list = new ArrayList<>();
+        spares = new TreeSet<>();
 
         random = new Random();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void init(DataInputStream in) throws IOException {
         long start = System.currentTimeMillis();
@@ -108,8 +110,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
         long read = System.currentTimeMillis();
 
-        ObjectInputStream objectInput =
-            new ObjectInputStream(new ByteArrayInputStream(data));
+        ObjectInputStream objectInput = new ObjectInputStream(new ByteArrayInputStream(data));
 
         long stream = System.currentTimeMillis();
 
@@ -125,9 +126,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
         long done = System.currentTimeMillis();
 
-        logger.debug("TreeMemberSet.init(): read = " + (read - start)
-                + ", stream = " + (stream - read) + ", done = "
-                + (done - stream));
+        logger.debug("TreeMemberSet.init(): read = " + (read - start) + ", stream = " + (stream - read) + ", done = " + (done - stream));
 
         if (logger.isDebugEnabled()) {
             logger.debug("initialized tree member set, content:" + toString());
@@ -135,6 +134,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
     }
 
+    @Override
     public void writeTo(DataOutputStream out) throws IOException {
         logger.debug("writing tree member set to stream");
 
@@ -186,10 +186,11 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         root.add(newTree);
     }
 
+    @Override
     public void add(Member member) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("adding " + member + " to tree");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("adding " + member + " to tree");
+        }
 
         if (spares.isEmpty()) {
             expandTree();
@@ -207,10 +208,11 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         }
     }
 
+    @Override
     public Member remove(IbisIdentifier identifier) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("removing " + identifier + " from tree");
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("removing " + identifier + " from tree");
+        }
 
         for (int i = 0; i < list.size(); i++) {
             Node node = list.get(i);
@@ -221,8 +223,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
                 spares.add(node);
 
                 if (logger.isDebugEnabled()) {
-                    logger.debug("removed " + result + " from tree, result "
-                            + this);
+                    logger.debug("removed " + result + " from tree, result " + this);
                 }
 
                 return result;
@@ -234,6 +235,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return null;
     }
 
+    @Override
     public Member[] asArray() {
         Member[] result = new Member[list.size()];
 
@@ -244,6 +246,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return result;
     }
 
+    @Override
     public boolean contains(IbisIdentifier identifier) {
         for (Node node : list) {
             if (node.member.getIbis().equals(identifier)) {
@@ -253,6 +256,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return false;
     }
 
+    @Override
     public boolean contains(Member member) {
         for (Node node : list) {
             if (node.member.getIbis().equals(member.getIbis())) {
@@ -263,6 +267,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
     }
 
+    @Override
     public Member get(IbisIdentifier identifier) {
         for (Node node : list) {
             if (node.member.getIbis().equals(identifier)) {
@@ -271,7 +276,8 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         }
         return null;
     }
-    
+
+    @Override
     public Member get(String name) {
         for (Node node : list) {
             if (node.member.getIbis().name().equals(name)) {
@@ -290,12 +296,14 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return null;
     }
 
+    @Override
     public Member get(int index) {
         return list.get(index).member;
     }
 
+    @Override
     public List<Event> getJoinEvents() {
-        List<Event> result = new ArrayList<Event>();
+        List<Event> result = new ArrayList<>();
 
         for (Node node : list) {
             result.add(node.member.getEvent());
@@ -304,6 +312,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return result;
     }
 
+    @Override
     public Member getLeastRecentlySeen() {
         if (list.isEmpty()) {
             return null;
@@ -320,6 +329,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return oldest;
     }
 
+    @Override
     public int getMinimumTime() {
         if (list.isEmpty()) {
             return -1;
@@ -327,14 +337,15 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
         int minimum = list.get(0).member.getCurrentTime();
 
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).member.getCurrentTime() < minimum) {
-                minimum = list.get(i).member.getCurrentTime();
+        for (Node element : list) {
+            if (element.member.getCurrentTime() < minimum) {
+                minimum = element.member.getCurrentTime();
             }
         }
         return minimum;
     }
 
+    @Override
     public Member getRandom() {
         if (list.isEmpty()) {
             return null;
@@ -342,8 +353,9 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return list.get(random.nextInt(size())).member;
     }
 
+    @Override
     public Member[] getRandom(int size) {
-        ArrayList<Member> result = new ArrayList<Member>();
+        ArrayList<Member> result = new ArrayList<>();
         BitSet added = new BitSet();
 
         if (size > list.size()) {
@@ -368,6 +380,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return result.toArray(new Member[0]);
     }
 
+    @Override
     public int size() {
         return list.size();
     }
@@ -391,13 +404,13 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         }
     }
 
+    @Override
     public Member[] getChildren(IbisIdentifier ibis) {
-	if (logger.isDebugEnabled()) {
-	    logger.debug("getting children of " + ibis);
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("getting children of " + ibis);
+        }
 
-        if (lastSearchResult == null || lastSearchResult.member == null
-                || !lastSearchResult.member.getIbis().equals(ibis)) {
+        if (lastSearchResult == null || lastSearchResult.member == null || !lastSearchResult.member.getIbis().equals(ibis)) {
 
             lastSearchResult = getNode(ibis);
 
@@ -406,7 +419,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
             }
         }
 
-        ArrayList<Member> result = new ArrayList<Member>();
+        ArrayList<Member> result = new ArrayList<>();
 
         // add all children (in reverse order)
         for (int i = lastSearchResult.children.length - 1; i >= 0; i--) {
@@ -425,8 +438,9 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return result.toArray(new Member[0]);
     }
 
+    @Override
     public Member[] getRootChildren() {
-        ArrayList<Member> result = new ArrayList<Member>();
+        ArrayList<Member> result = new ArrayList<>();
 
         // add all children (in reverse order)
         for (int i = root.size() - 1; i >= 0; i--) {
@@ -456,6 +470,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         return result;
     }
 
+    @Override
     public String toString() {
         String result = "\nROOT:\n";
 

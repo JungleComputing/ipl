@@ -20,18 +20,19 @@ package ibis.io;
 import java.io.IOException;
 
 /**
- * A general data input stream.
- * Provides for methods to read data from an underlying implementation.
- * Calls to read functions may block until data is available.
+ * A general data input stream. Provides for methods to read data from an
+ * underlying implementation. Calls to read functions may block until data is
+ * available.
  */
-public abstract class DataInputStream extends java.io.InputStream
-        implements DataInput {
+public abstract class DataInputStream extends java.io.InputStream implements DataInput {
 
+    @Override
     public abstract void close() throws IOException;
 
     /**
-     * Returns the number of bytes read from the stream 
-     * since the last reset of this counter.
+     * Returns the number of bytes read from the stream since the last reset of this
+     * counter.
+     * 
      * @return The number of bytes read.
      */
     public abstract long bytesRead();
@@ -43,49 +44,61 @@ public abstract class DataInputStream extends java.io.InputStream
 
     /**
      * Reads a boolean value from the stream.
-     * @return	The boolean read.
+     * 
+     * @return The boolean read.
      */
+    @Override
     public abstract boolean readBoolean() throws IOException;
 
+    @Override
     public int readUnsignedShort() throws IOException {
         return readShort() & 0177777;
     }
 
+    @Override
     public int readUnsignedByte() throws IOException {
         return readByte() & 0377;
     }
 
+    @Override
     public void readArray(boolean[] source) throws IOException {
         readArray(source, 0, source.length);
     }
 
+    @Override
     public void readArray(byte[] source) throws IOException {
         readArray(source, 0, source.length);
     }
 
+    @Override
     public void readArray(char[] source) throws IOException {
         readArray(source, 0, source.length);
     }
 
+    @Override
     public void readArray(short[] source) throws IOException {
         readArray(source, 0, source.length);
     }
 
+    @Override
     public void readArray(int[] source) throws IOException {
         readArray(source, 0, source.length);
     }
 
+    @Override
     public void readArray(long[] source) throws IOException {
         readArray(source, 0, source.length);
     }
 
+    @Override
     public void readArray(float[] source) throws IOException {
         readArray(source, 0, source.length);
     }
 
+    @Override
     public void readArray(double[] source) throws IOException {
         readArray(source, 0, source.length);
     }
-    
+
     public abstract int bufferSize();
 }

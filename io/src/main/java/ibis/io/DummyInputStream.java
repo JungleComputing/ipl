@@ -94,9 +94,8 @@ public class DummyInputStream extends InputStream {
 
     /**
      * Closes the underlying streams as well.
-     * 
-     * @exception IOException
-     *                gets thrown when an IO error occurs.
+     *
+     * @exception IOException gets thrown when an IO error occurs.
      */
     public void realClose() throws IOException {
         in.close();
@@ -127,7 +126,7 @@ public class DummyInputStream extends InputStream {
     /**
      * Returns the number of bytes read from this stream since the last call to
      * {@link #resetCount} or the beginning of its existence.
-     * 
+     *
      * @return the number of bytes read since the last reset.
      */
     public long getCount() {

@@ -31,18 +31,15 @@ import org.slf4j.LoggerFactory;
  * non-blocking mode.
  */
 final class NonBlockingChannelNioDissipator extends NioDissipator {
-    private static Logger logger
-            = LoggerFactory.getLogger(NonBlockingChannelNioDissipator.class);
+    private static Logger logger = LoggerFactory.getLogger(NonBlockingChannelNioDissipator.class);
 
     Selector selector;
 
-    NonBlockingChannelNioDissipator(ReadableByteChannel channel)
-            throws IOException {
+    NonBlockingChannelNioDissipator(ReadableByteChannel channel) throws IOException {
         super(channel);
 
         if (!(channel instanceof SelectableChannel)) {
-            throw new IOException("wrong type of channel given on creation of"
-                    + " ChannelNioDissipator");
+            throw new IOException("wrong type of channel given on creation of" + " ChannelNioDissipator");
         }
 
         selector = Selector.open();
@@ -53,8 +50,9 @@ final class NonBlockingChannelNioDissipator extends NioDissipator {
 
     /**
      * fills the buffer upto at least "minimum" bytes.
-     * 
+     *
      */
+    @Override
     protected void fillBuffer(int minimum) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("filling buffer");
@@ -78,6 +76,7 @@ final class NonBlockingChannelNioDissipator extends NioDissipator {
         }
     }
 
+    @Override
     public void close() throws IOException {
         selector.close();
         super.close();

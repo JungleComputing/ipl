@@ -15,11 +15,11 @@
  */
 package ibis.ipl.impl.stacking.lrmc.util;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.Location;
-
 import java.util.Arrays;
 import java.util.Comparator;
+
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.Location;
 
 public class IbisSorter implements Comparator<IbisIdentifier> {
 
@@ -46,15 +46,14 @@ public class IbisSorter implements Comparator<IbisIdentifier> {
         Arrays.sort(ids, from, to, sorter);
     }
 
-    public static void sort(IbisIdentifier local, IbisIdentifier[] ids,
-            int from, int to) {
+    public static void sort(IbisIdentifier local, IbisIdentifier[] ids, int from, int to) {
         /*
          * IbisSorter tmp = sorter;
-         * 
+         *
          * if (!local.equals(sorter.preferredName) ||
-         * !local.getLocation().cluster().equals(sorter.preferredCluster)) { tmp =
-         * new IbisSorter(local.getLocation().cluster(), local); }
-         * 
+         * !local.getLocation().cluster().equals(sorter.preferredCluster)) { tmp = new
+         * IbisSorter(local.getLocation().cluster(), local); }
+         *
          * Arrays.sort(ids, from, to, tmp);
          */
         IbisIdentifier[] tmp = new IbisIdentifier[(to - from) + 1];
@@ -98,6 +97,7 @@ public class IbisSorter implements Comparator<IbisIdentifier> {
         return s1.length();
     }
 
+    @Override
     public int compare(IbisIdentifier id1, IbisIdentifier id2) {
 
         Location cluster1 = id1.location().getParent();
@@ -106,19 +106,18 @@ public class IbisSorter implements Comparator<IbisIdentifier> {
         if (cluster1.equals(cluster2)) {
             // The clusters are identical, so the order depends completely
             // on the names.
-            // 
+            //
             // For SMP awareness, we assume that the identifiers of two ibises
             // on an SMP machine are 'closer' that the identifiers of two ibises
             // on different machines. This way, the identifiers will
             // automatically be sorted 'pair-wise' (or quad/oct/etc, depending
             // on the number of ibises that share the SMP machines).
-            // 
+            //
             // One aditional problem is that we want the ibises that share the
             // machine with the sender to be first (which isn't that simple!).
 
             if (preferredName == null) {
-                return id1.location().toString().compareTo(
-                        id2.location().toString());
+                return id1.location().toString().compareTo(id2.location().toString());
             } else {
                 // Figure out if one of the two strings has a longer prefix
                 // in common with 'preferredName'. Note that this will result
@@ -126,18 +125,15 @@ public class IbisSorter implements Comparator<IbisIdentifier> {
                 // actually contains the 'preferredName'. Therefore, this
                 // IbisIdentifier will end up at the first position of the
                 // array, which is exactly what we want.
-                int d1 = firstDifference(preferredName, id1.location()
-                        .toString());
-                int d2 = firstDifference(preferredName, id2.location()
-                        .toString());
+                int d1 = firstDifference(preferredName, id1.location().toString());
+                int d2 = firstDifference(preferredName, id2.location().toString());
 
                 // If both have the same distance, we sort them alphabetically.
                 // Otherwise, we prefer the one that is closest to
                 // 'preferredName', since these may actually be located on the
                 // same machine.
                 if (d1 == d2) {
-                    return id1.location().toString().compareTo(
-                            id2.location().toString());
+                    return id1.location().toString().compareTo(id2.location().toString());
                 } else if (d1 <= d2) {
                     return 1;
                 } else {

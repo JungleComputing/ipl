@@ -30,10 +30,12 @@ class LrmcSendPortIdentifier implements SendPortIdentifier {
         this.name = name;
     }
 
+    @Override
     public IbisIdentifier ibisIdentifier() {
         return ibis;
     }
 
+    @Override
     public String name() {
         return name;
     }

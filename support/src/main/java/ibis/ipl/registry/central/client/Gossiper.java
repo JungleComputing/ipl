@@ -15,13 +15,13 @@
  */
 package ibis.ipl.registry.central.client;
 
-import ibis.ipl.registry.central.Member;
-import ibis.util.ThreadPool;
-
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.registry.central.Member;
+import ibis.util.ThreadPool;
 
 public class Gossiper implements Runnable {
 
@@ -40,14 +40,15 @@ public class Gossiper implements Runnable {
         ThreadPool.createNew(this, "gossiper");
     }
 
+    @Override
     public void run() {
         while (!pool.isStopped()) {
             Member member = pool.getRandomMember();
 
             if (member != null) {
-        	if (logger.isDebugEnabled()) {
-        	    logger.debug("gossiping with " + member);
-        	}
+                if (logger.isDebugEnabled()) {
+                    logger.debug("gossiping with " + member);
+                }
 
                 try {
                     commHandler.gossip(member.getIbis());
@@ -56,9 +57,7 @@ public class Gossiper implements Runnable {
                 }
 
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Event time at "
-                            + commHandler.getIdentifier().getID() + " now "
-                            + pool.getTime());
+                    logger.debug("Event time at " + commHandler.getIdentifier().getID() + " now " + pool.getTime());
                 }
             }
 

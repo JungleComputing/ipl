@@ -21,24 +21,23 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 /**
- * The RewriterConstants contains constants for various TYPE, METHOD and VARIABLE 
- * as well as other constants used by the CodeGenerator to generate the code.
- * 
+ * The RewriterConstants contains constants for various TYPE, METHOD and
+ * VARIABLE as well as other constants used by the CodeGenerator to generate the
+ * code.
+ *
  * @author Nick Palmer (npr200@few.vu.nl)
  *
  */
 interface RewriterConstants {
     static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM = "ibis.io.IbisSerializationInputStream";
 
-    static final ObjectType ibis_input_stream = new ObjectType(
-            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM);
+    static final ObjectType ibis_input_stream = new ObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM);
 
     static final Type[] ibis_input_stream_arrtp = new Type[] { ibis_input_stream };
 
     static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM = "ibis.io.IbisSerializationOutputStream";
 
-    static final ObjectType ibis_output_stream = new ObjectType(
-            TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM);
+    static final ObjectType ibis_output_stream = new ObjectType(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM);
 
     static final Type[] ibis_output_stream_arrtp = new Type[] { ibis_output_stream };
 
@@ -46,11 +45,9 @@ interface RewriterConstants {
 
     static final String TYPE_SUN_OUTPUT_STREAM = "java.io.ObjectOutputStream";
 
-    static final ObjectType sun_output_stream = new ObjectType(
-            TYPE_SUN_OUTPUT_STREAM);
+    static final ObjectType sun_output_stream = new ObjectType(TYPE_SUN_OUTPUT_STREAM);
 
-    static final ObjectType sun_input_stream = new ObjectType(
-            TYPE_SUN_INPUT_STREAM);
+    static final ObjectType sun_input_stream = new ObjectType(TYPE_SUN_INPUT_STREAM);
 
     static final Type java_lang_class_type = Type.getType("Ljava/lang/Class;");
 

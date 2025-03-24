@@ -17,6 +17,17 @@
 
 package ibis.ipl.impl.tcp;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.SocketTimeoutException;
+import java.util.HashMap;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.ipl.AlreadyConnectedException;
@@ -39,22 +50,9 @@ import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.SocketTimeoutException;
-import java.util.HashMap;
-import java.util.Properties;
+public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable, TcpProtocol {
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
-        TcpProtocol {
-
-    static final Logger logger = LoggerFactory
-            .getLogger(TcpIbis.class);
+    static final Logger logger = LoggerFactory.getLogger(TcpIbis.class);
 
     private IbisSocketFactory factory;
 
@@ -64,17 +62,13 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
 
     private boolean quiting = false;
 
-    private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
+    private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses = new HashMap<>();
 
-    public TcpIbis(RegistryEventHandler registryEventHandler,
-            IbisCapabilities capabilities, Credentials credentials,
-            byte[] applicationTag, PortType[] types, Properties userProperties,
-            IbisStarter starter) throws IbisCreationFailedException {
-        super(registryEventHandler, capabilities, credentials, applicationTag,
-                types, userProperties, starter);
+    public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, Credentials credentials, byte[] applicationTag,
+            PortType[] types, Properties userProperties, IbisStarter starter) throws IbisCreationFailedException {
+        super(registryEventHandler, capabilities, credentials, applicationTag, types, userProperties, starter);
 
-        this.properties.checkProperties("ibis.ipl.impl.tcp.", new String[] {},
-                null, true);
+        this.properties.checkProperties("ibis.ipl.impl.tcp.", new String[] {}, null, true);
 
         factory.setIdent(ident);
 
@@ -98,19 +92,18 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
     }
 
     /*
-     * // NOTE: this is wrong ? Even though the ibis has left, the
-     * IbisIdentifier may still be floating around in the system... We should
-     * just have some timeout on the cache entries instead...
-     * 
+     * // NOTE: this is wrong ? Even though the ibis has left, the IbisIdentifier
+     * may still be floating around in the system... We should just have some
+     * timeout on the cache entries instead...
+     *
      * public void left(ibis.ipl.IbisIdentifier id) { super.left(id);
      * synchronized(addresses) { addresses.remove(id); } }
-     * 
+     *
      * public void died(ibis.ipl.IbisIdentifier id) { super.died(id);
      * synchronized(addresses) { addresses.remove(id); } }
      */
 
-    IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
-            int timeout, boolean fillTimeout) throws IOException {
+    IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip, int timeout, boolean fillTimeout) throws IOException {
 
         IbisIdentifier id = (IbisIdentifier) rip.ibisIdentifier();
         String name = rip.name();
@@ -127,8 +120,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         long startTime = System.currentTimeMillis();
 
         if (logger.isDebugEnabled()) {
-            logger.debug("--> Creating socket for connection to " + name
-                    + " at " + idAddr);
+            logger.debug("--> Creating socket for connection to " + name + " at " + idAddr);
         }
 
         PortType sendPortType = sp.getPortType();
@@ -141,11 +133,9 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
             sp.printManagementProperties(System.out);
 
             try {
-                s = factory.createClientSocket(idAddr, timeout, fillTimeout,
-                        sp.managementProperties());
+                s = factory.createClientSocket(idAddr, timeout, fillTimeout, sp.managementProperties());
                 s.setTcpNoDelay(true);
-                out = new DataOutputStream(new BufferedArrayOutputStream(
-                        s.getOutputStream()));
+                out = new DataOutputStream(new BufferedArrayOutputStream(s.getOutputStream()));
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
@@ -158,8 +148,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
                 case ReceivePort.ACCEPTED:
                     return s;
                 case ReceivePort.ALREADY_CONNECTED:
-                    throw new AlreadyConnectedException("Already connected",
-                            rip);
+                    throw new AlreadyConnectedException("Already connected", rip);
                 case ReceivePort.TYPE_MISMATCH:
                     // Read receiveport type from input, to produce a
                     // better error message.
@@ -169,32 +158,21 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
                     CapabilitySet s2 = sendPortType.unmatchedCapabilities(rtp);
                     String message = "";
                     if (s1.size() != 0) {
-                        message = message
-                                + "\nUnmatched receiveport capabilities: "
-                                + s1.toString() + ".";
+                        message = message + "\nUnmatched receiveport capabilities: " + s1.toString() + ".";
                     }
                     if (s2.size() != 0) {
-                        message = message
-                                + "\nUnmatched sendport capabilities: "
-                                + s2.toString() + ".";
+                        message = message + "\nUnmatched sendport capabilities: " + s2.toString() + ".";
                     }
-                    throw new PortMismatchException(
-                            "Cannot connect ports of different port types."
-                                    + message, rip);
+                    throw new PortMismatchException("Cannot connect ports of different port types." + message, rip);
                 case ReceivePort.DENIED:
-                    throw new ConnectionRefusedException(
-                            "Receiver denied connection", rip);
+                    throw new ConnectionRefusedException("Receiver denied connection", rip);
                 case ReceivePort.NO_MANY_TO_X:
-                    throw new ConnectionRefusedException(
-                            "Receiver already has a connection and neither ManyToOne not ManyToMany "
-                                    + "is set", rip);
+                    throw new ConnectionRefusedException("Receiver already has a connection and neither ManyToOne not ManyToMany " + "is set", rip);
                 case ReceivePort.NOT_PRESENT:
                 case ReceivePort.DISABLED:
                     // and try again if we did not reach the timeout...
-                    if (timeout > 0
-                            && System.currentTimeMillis() > startTime + timeout) {
-                        throw new ConnectionTimedOutException(
-                                "Could not connect", rip);
+                    if (timeout > 0 && System.currentTimeMillis() > startTime + timeout) {
+                        throw new ConnectionTimedOutException("Could not connect", rip);
                     }
                     break;
                 case -1:
@@ -245,8 +223,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
             logger.debug("--> TcpIbis got connection request from " + s);
         }
 
-        BufferedArrayInputStream bais = new BufferedArrayInputStream(
-                s.getInputStream());
+        BufferedArrayInputStream bais = new BufferedArrayInputStream(s.getInputStream());
 
         DataInputStream in = new DataInputStream(bais);
         OutputStream out = s.getOutputStream();
@@ -268,8 +245,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("--> S RP = " + name + ": "
-                    + ReceivePort.getString(result));
+            logger.debug("--> S RP = " + name + ": " + ReceivePort.getString(result));
         }
 
         out.write(result);
@@ -292,6 +268,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
         }
     }
 
+    @Override
     public void run() {
         // This thread handles incoming connection request from the
         // connect(TcpSendPort) call.
@@ -358,8 +335,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
                 } catch (Throwable e2) {
                     // ignored
                 }
-                logger.error("EEK: TcpIbis:run: got exception "
-                        + "(closing this socket only: ", e);
+                logger.error("EEK: TcpIbis:run: got exception " + "(closing this socket only: ", e);
             }
         }
     }
@@ -373,14 +349,12 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
     }
 
     @Override
-    protected SendPort doCreateSendPort(PortType tp, String nm,
-            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+    protected SendPort doCreateSendPort(PortType tp, String nm, SendPortDisconnectUpcall cU, Properties props) throws IOException {
         return new TcpSendPort(this, tp, nm, cU, props);
     }
 
     @Override
-    protected ReceivePort doCreateReceivePort(PortType tp, String nm,
-            MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
+    protected ReceivePort doCreateReceivePort(PortType tp, String nm, MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
         return new TcpReceivePort(this, tp, nm, u, cU, props);
     }

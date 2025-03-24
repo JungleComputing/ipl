@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * 
+ *
  */
 package ibis.ipl.registry.statistics;
 
@@ -33,14 +33,15 @@ class DataPoint {
         this.value = value;
     }
 
+    @Override
     public String toString() {
         return time + " " + value;
     }
-    
+
     public long getTime() {
         return time;
     }
-    
+
     public long getValue() {
         return value;
     }

@@ -33,10 +33,12 @@ public class MultiSendPortIdentifier implements SendPortIdentifier {
         this.name = name;
     }
 
+    @Override
     public IbisIdentifier ibisIdentifier() {
         return id;
     }
 
+    @Override
     public String name() {
         return name;
     }

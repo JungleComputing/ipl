@@ -28,7 +28,7 @@ import org.objectweb.asm.tree.ClassNode;
 
 public class ASMWrapper implements ByteCodeWrapper {
 
-    private HashMap<String, ASMClassInfo> javaClasses = new HashMap<String, ASMClassInfo>();
+    private HashMap<String, ASMClassInfo> javaClasses = new HashMap<>();
 
     public ASMWrapper(List<String> args) {
         // nothing for now.
@@ -60,8 +60,7 @@ public class ASMWrapper implements ByteCodeWrapper {
     }
 
     @Override
-    public ClassInfo parseInputStream(InputStream in, String fileName)
-            throws IOException {
+    public ClassInfo parseInputStream(InputStream in, String fileName) throws IOException {
         ClassNode n = new ClassNode(Opcodes.ASM4);
         ClassReader r = new ClassReader(in);
         r.accept(n, 0);

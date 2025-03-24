@@ -15,6 +15,8 @@
  */
 package ibis.ipl.examples;
 
+import java.io.IOException;
+
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -24,8 +26,6 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-
-import java.io.IOException;
 
 /**
  * Example of a client application. The server waits until a request comes in,
@@ -38,14 +38,13 @@ public class LatencyTest {
 
     static final int COUNT = 100000;
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.CLOSED_WORLD, IbisCapabilities.ELECTIONS_STRICT, IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.CLOSED_WORLD, IbisCapabilities.ELECTIONS_STRICT,
+            IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     /**
      * Port type used for sending a request to the server
      */
-    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_BYTE, PortType.RECEIVE_EXPLICIT,
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_BYTE, PortType.RECEIVE_EXPLICIT,
             PortType.CONNECTION_ONE_TO_ONE);
 
     private final Ibis myIbis;
@@ -58,8 +57,7 @@ public class LatencyTest {
     private LatencyTest() throws Exception {
         // Create an ibis instance.
         // Notice createIbis uses varargs for its parameters.
-        myIbis = IbisFactory.createIbis(ibisCapabilities, null,
-                portType);
+        myIbis = IbisFactory.createIbis(ibisCapabilities, null, portType);
 
         // Elect a server
         IbisIdentifier server = myIbis.registry().elect("Server");
@@ -81,22 +79,21 @@ public class LatencyTest {
 
         IbisIdentifier client = null;
         IbisIdentifier[] ibises = myIbis.registry().joinedIbises();
-        for(IbisIdentifier i : ibises) {
-            if(!i.equals(myIbis.identifier())) {
+        for (IbisIdentifier i : ibises) {
+            if (!i.equals(myIbis.identifier())) {
                 client = i;
                 break;
             }
         }
 
-        if(client == null) {
+        if (client == null) {
             System.err.println("eek");
             System.exit(1);
         }
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
-        receivePort = myIbis.createReceivePort(portType,
-                "server");
+        receivePort = myIbis.createReceivePort(portType, "server");
         // enable connections
         receivePort.enableConnections();
 
@@ -105,34 +102,33 @@ public class LatencyTest {
         // Create a send port for sending the request and connect.
         sendPort = myIbis.createSendPort(portType);
         sendPort.connect(client, "client");
-        
 
         // warmup
-        for(int i=0; i<COUNT; i++) {
+        for (int i = 0; i < COUNT; i++) {
             ReadMessage request = receivePort.receive();
             request.readByte();
             request.finish();
-           
+
             WriteMessage reply = sendPort.newMessage();
-            reply.writeByte((byte)1);
+            reply.writeByte((byte) 1);
             reply.finish();
         }
 
         // start test
         long start = System.nanoTime();
 
-        for(int i=0; i<COUNT; i++) {
+        for (int i = 0; i < COUNT; i++) {
             ReadMessage request = receivePort.receive();
             request.readByte();
             request.finish();
-           
+
             WriteMessage reply = sendPort.newMessage();
-            reply.writeByte((byte)1);
+            reply.writeByte((byte) 1);
             reply.finish();
         }
 
         long elapsed = System.nanoTime() - start;
-        double microsPerCall = (double) elapsed / (1000.0 * COUNT);
+        double microsPerCall = elapsed / (1000.0 * COUNT);
         System.err.println("roundtrip latency with downcalls = " + microsPerCall + " us / call");
 
         // Close receive port.
@@ -151,9 +147,9 @@ public class LatencyTest {
         receivePort.enableConnections();
 
         // warmup
-        for(int i=0; i<COUNT; i++) {
+        for (int i = 0; i < COUNT; i++) {
             WriteMessage request = sendPort.newMessage();
-            request.writeByte((byte)0);
+            request.writeByte((byte) 0);
             request.finish();
 
             ReadMessage reply = receivePort.receive();
@@ -162,16 +158,16 @@ public class LatencyTest {
         }
 
         // real test
-        for(int i=0; i<COUNT; i++) {
+        for (int i = 0; i < COUNT; i++) {
             WriteMessage request = sendPort.newMessage();
-            request.writeByte((byte)0);
+            request.writeByte((byte) 0);
             request.finish();
 
             ReadMessage reply = receivePort.receive();
             reply.readByte();
             reply.finish();
         }
-     
+
         // Close ports.
         sendPort.close();
         receivePort.close();

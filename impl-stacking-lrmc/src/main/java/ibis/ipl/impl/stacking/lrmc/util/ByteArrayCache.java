@@ -21,7 +21,7 @@ public class ByteArrayCache {
 
     private static final int DEFAULT_MAX = 100;
 
-    private LinkedList<byte[]> cache = new LinkedList<byte[]>();
+    private LinkedList<byte[]> cache = new LinkedList<>();
 
     private final int maxSize;
     private final int arraySize;

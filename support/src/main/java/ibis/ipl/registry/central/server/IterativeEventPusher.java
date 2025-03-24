@@ -15,15 +15,15 @@
  */
 package ibis.ipl.registry.central.server;
 
-import ibis.ipl.registry.central.Member;
-import ibis.util.ThreadPool;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ibis.ipl.registry.central.Member;
+import ibis.util.ThreadPool;
 
 /**
  * Sends events to clients from the server.
@@ -39,7 +39,7 @@ final class IterativeEventPusher implements Runnable {
 
         WorkQ(Member[] work) {
             // Arrays.asList list does not support remove, so do this "trick"
-            q = new LinkedList<Member>();
+            q = new LinkedList<>();
             q.addAll(Arrays.asList(work));
 
             count = this.q.size();
@@ -82,6 +82,7 @@ final class IterativeEventPusher implements Runnable {
             ThreadPool.createNew(this, "event pusher thread");
         }
 
+        @Override
         public void run() {
             while (true) {
                 Member work = workQ.next();
@@ -104,8 +105,7 @@ final class IterativeEventPusher implements Runnable {
         }
     }
 
-    private static final Logger logger =
-        LoggerFactory.getLogger(IterativeEventPusher.class);
+    private static final Logger logger = LoggerFactory.getLogger(IterativeEventPusher.class);
 
     private final Pool pool;
 
@@ -115,8 +115,7 @@ final class IterativeEventPusher implements Runnable {
 
     private final boolean useTree;
 
-    IterativeEventPusher(Pool pool, long timeout, boolean eventTriggersPush,
-            boolean useTree) {
+    IterativeEventPusher(Pool pool, long timeout, boolean eventTriggersPush, boolean useTree) {
         this.pool = pool;
         this.timeout = timeout;
         this.eventTriggersPush = eventTriggersPush;
@@ -125,6 +124,7 @@ final class IterativeEventPusher implements Runnable {
         ThreadPool.createNew(this, "event pusher scheduler thread");
     }
 
+    @Override
     public void run() {
         while (!pool.hasEnded()) {
             int eventTime = pool.getEventTime();
@@ -145,10 +145,8 @@ final class IterativeEventPusher implements Runnable {
             }
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("updating " + children.length
-        		+ " nodes in pool (pool size = " + pool.getSize()
-        		+ ") to event-time " + eventTime + " using tree: "
-        		+ useTree);
+                logger.debug("updating " + children.length + " nodes in pool (pool size = " + pool.getSize() + ") to event-time " + eventTime
+                        + " using tree: " + useTree);
             }
 
             WorkQ workQ = new WorkQ(children);
@@ -161,8 +159,7 @@ final class IterativeEventPusher implements Runnable {
             workQ.waitUntilDone();
 
             if (logger.isDebugEnabled()) {
-        	logger.debug("DONE updating nodes in pool to event-time "
-        		+ eventTime);
+                logger.debug("DONE updating nodes in pool to event-time " + eventTime);
             }
 
             pool.purgeHistory();

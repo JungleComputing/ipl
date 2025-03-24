@@ -16,7 +16,7 @@
 package ibis.ipl.registry.gossip;
 
 final class Protocol {
-    
+
     public static final int VIRTUAL_PORT = 303;
 
     // opcodes
@@ -33,8 +33,7 @@ final class Protocol {
 
     public static final int NR_OF_OPCODES = 5;
 
-    public static final String[] OPCODE_NAMES =
-        { "ARRG_GOSSIP", "SIGNAL", "LEAVE", "GOSSIP", "PING" };
+    public static final String[] OPCODE_NAMES = { "ARRG_GOSSIP", "SIGNAL", "LEAVE", "GOSSIP", "PING" };
 
     // replies
 

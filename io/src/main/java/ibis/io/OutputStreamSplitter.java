@@ -17,18 +17,17 @@
 
 package ibis.io;
 
-import ibis.util.ThreadPool;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import ibis.util.ThreadPool;
+
 /**
- * Contract: write to multiple outputstreams.
- * when an exception occurs, store it and continue.
- * when the data is written to all streams, throw one large exception
- * that contains all previous exceptions.
- * This way, even when one of the streams dies, the rest will receive the data.
+ * Contract: write to multiple outputstreams. when an exception occurs, store it
+ * and continue. when the data is written to all streams, throw one large
+ * exception that contains all previous exceptions. This way, even when one of
+ * the streams dies, the rest will receive the data.
  **/
 public final class OutputStreamSplitter extends OutputStream {
 
@@ -39,7 +38,7 @@ public final class OutputStreamSplitter extends OutputStream {
     private SplitterException savedException = null;
     private long bytesWritten = 0;
 
-    ArrayList<OutputStream> out = new ArrayList<OutputStream>();
+    ArrayList<OutputStream> out = new ArrayList<>();
 
     private int numSenders = 0;
 
@@ -56,6 +55,7 @@ public final class OutputStreamSplitter extends OutputStream {
             this.index = index;
         }
 
+        @Override
         public void run() {
             doWrite(buf, offset, len, index);
             finish();
@@ -69,6 +69,7 @@ public final class OutputStreamSplitter extends OutputStream {
             this.index = index;
         }
 
+        @Override
         public void run() {
             doFlush(index);
             finish();
@@ -82,6 +83,7 @@ public final class OutputStreamSplitter extends OutputStream {
             this.index = index;
         }
 
+        @Override
         public void run() {
             doClose(index);
             finish();
@@ -92,9 +94,9 @@ public final class OutputStreamSplitter extends OutputStream {
         try {
             OutputStream o = out.get(index);
             if (o != null) {
-        	o.write(buf, offset, len);
+                o.write(buf, offset, len);
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             addException(e, index);
         }
     }
@@ -103,9 +105,9 @@ public final class OutputStreamSplitter extends OutputStream {
         try {
             OutputStream o = out.get(index);
             if (o != null) {
-        	o.flush();
+                o.flush();
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             addException(e, index);
         }
     }
@@ -114,9 +116,9 @@ public final class OutputStreamSplitter extends OutputStream {
         try {
             OutputStream o = out.get(index);
             if (o != null) {
-        	o.close();
+                o.close();
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             addException(e, index);
         }
     }
@@ -152,16 +154,16 @@ public final class OutputStreamSplitter extends OutputStream {
 
     public synchronized void remove(OutputStream s) throws IOException {
 
-	while (numSenders != 0) {
-	    try {
-		wait();
-	    } catch(Exception e) {
-		// Ignored
-	    }
-	}
-        
+        while (numSenders != 0) {
+            try {
+                wait();
+            } catch (Exception e) {
+                // Ignored
+            }
+        }
+
         int i = out.indexOf(s);
-        
+
         if (i == -1) {
             throw new IOException("Removing unknown stream from splitter.");
         }
@@ -169,13 +171,14 @@ public final class OutputStreamSplitter extends OutputStream {
         out.remove(i);
     }
 
+    @Override
     public void write(int b) throws IOException {
 
-        synchronized(this) {
+        synchronized (this) {
             while (numSenders != 0) {
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // Ignored
                 }
             }
@@ -186,10 +189,10 @@ public final class OutputStreamSplitter extends OutputStream {
 
         for (int i = 0; i < out.size(); i++) {
             try {
-        	OutputStream o = out.get(i);
-        	if (o != null) {
-        	    o.write(b);
-        	}
+                OutputStream o = out.get(i);
+                if (o != null) {
+                    o.write(b);
+                }
             } catch (IOException e2) {
                 if (savedException == null) {
                     savedException = new SplitterException();
@@ -202,13 +205,13 @@ public final class OutputStreamSplitter extends OutputStream {
             }
         }
 
-        synchronized(this) {
+        synchronized (this) {
             numSenders--;
             notifyAll();
         }
 
         if (savedException != null) {
-            if (! saveException) {
+            if (!saveException) {
                 SplitterException e = savedException;
                 savedException = null;
                 throw e;
@@ -217,18 +220,20 @@ public final class OutputStreamSplitter extends OutputStream {
 
     }
 
+    @Override
     public void write(byte[] b) throws IOException {
         write(b, 0, b.length);
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException {
         if (out.size() > 0) {
             bytesWritten += len * out.size();
-            synchronized(this) {
+            synchronized (this) {
                 while (numSenders != 0) {
                     try {
                         wait();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // Ignored
                     }
                 }
@@ -243,13 +248,14 @@ public final class OutputStreamSplitter extends OutputStream {
         }
     }
 
+    @Override
     public void flush() throws IOException {
         if (out.size() > 0) {
-            synchronized(this) {
+            synchronized (this) {
                 while (numSenders != 0) {
                     try {
                         wait();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // Ignored
                     }
                 }
@@ -264,14 +270,15 @@ public final class OutputStreamSplitter extends OutputStream {
         }
     }
 
+    @Override
     public void close() throws IOException {
 
         if (out.size() > 0) {
-            synchronized(this) {
+            synchronized (this) {
                 while (numSenders != 0) {
                     try {
                         wait();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // Ignored
                     }
                 }
@@ -302,11 +309,11 @@ public final class OutputStreamSplitter extends OutputStream {
     }
 
     private void runThread(Runnable r, String name) {
-        synchronized(this) {
+        synchronized (this) {
             while (numSenders >= MAXTHREADS) {
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // Ignored
                 }
             }
@@ -316,12 +323,12 @@ public final class OutputStreamSplitter extends OutputStream {
     }
 
     private void done() throws IOException {
-        synchronized(this) {
+        synchronized (this) {
             numSenders--;
             while (numSenders != 0) {
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // Ignored
                 }
             }
@@ -337,7 +344,7 @@ public final class OutputStreamSplitter extends OutputStream {
                     }
                 }
 
-                if (! saveException) {
+                if (!saveException) {
                     SplitterException e = savedException;
                     savedException = null;
                     throw e;

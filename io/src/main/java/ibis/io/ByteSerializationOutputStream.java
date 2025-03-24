@@ -36,70 +36,78 @@ public class ByteSerializationOutputStream implements SerializationOutput {
     /**
      * Constructor.
      *
-     * @param s
-     *            the underlying <code>OutputStream</code>
-     * @exception java.io.IOException
-     *                is thrown when an IO error occurs.
+     * @param s the underlying <code>OutputStream</code>
+     * @exception java.io.IOException is thrown when an IO error occurs.
      */
-    public ByteSerializationOutputStream(DataOutputStream s)
-            throws IOException {
+    public ByteSerializationOutputStream(DataOutputStream s) throws IOException {
         out = s;
     }
 
     /**
      * Constructor, may be used when this class is sub-classed.
-     * 
-     * @throws IOException
-     *             on I/O error
+     *
+     * @throws IOException on I/O error
      */
     protected ByteSerializationOutputStream() throws IOException {
         out = null;
     }
 
+    @Override
     public String serializationImplName() {
         return "byte";
     }
 
+    @Override
     public boolean reInitOnNewConnection() {
         return false;
     }
 
+    @Override
     public void writeBoolean(boolean value) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeByte(byte value) throws IOException {
         out.write(value);
     }
 
+    @Override
     public void writeChar(char value) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeShort(short value) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeInt(int value) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeLong(long value) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeFloat(float value) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeDouble(double value) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 
         /*
@@ -112,82 +120,102 @@ public class ByteSerializationOutputStream implements SerializationOutput {
         }
     }
 
+    @Override
     public void writeArray(short[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(char[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(int[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(long[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(float[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(double[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(Object[] ref, int off, int len) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeArray(boolean[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(byte[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(short[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(char[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(int[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(long[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(float[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(double[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void writeArray(Object[] ref) throws IOException {
         writeArray(ref, 0, ref.length);
     }
 
+    @Override
     public void statistics() {
         // no statistics
     }
 
+    @Override
     public void reset() throws IOException {
         // does nothing.
     }
 
+    @Override
     public void reset(boolean cleartypes) throws IOException {
         // does nothing.
     }
 
+    @Override
     public void flush() throws IOException {
         out.flush();
         // No need to call out.finish() here, since
@@ -195,27 +223,33 @@ public class ByteSerializationOutputStream implements SerializationOutput {
         // require this.
     }
 
+    @Override
     public void close() throws IOException {
         flush();
     }
 
+    @Override
     public void realClose() throws IOException {
         close();
         out.close();
     }
 
+    @Override
     public void setReplacer(Replacer replacer) throws IOException {
         throw new IOException("no replacer allowed in byte serialization");
     }
 
+    @Override
     public void writeObject(Object obj) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeString(String obj) throws IOException {
         throw new IOException("Illegal data type written");
     }
 
+    @Override
     public void writeByteBuffer(ByteBuffer value) throws IOException {
         out.writeByteBuffer(value);
     }

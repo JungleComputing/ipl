@@ -17,9 +17,6 @@
 
 package ibis.io.nio;
 
-import ibis.io.IOProperties;
-import ibis.io.SimpleLittleConversion;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -28,6 +25,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+
+import ibis.io.IOProperties;
+import ibis.io.SimpleLittleConversion;
 
 public final class NioWrapLittleConversion extends SimpleLittleConversion {
 
@@ -65,11 +65,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         doubleBuffer = byteBuffer.asDoubleBuffer();
     }
 
+    @Override
     public void char2byte(char[] src, int off, int len, byte[] dst, int off2) {
 
         if (len > (BUFFER_SIZE / 2)) {
-            CharBuffer buffer = ByteBuffer.wrap(dst, off2, len * 2)
-                    .order(order).asCharBuffer();
+            CharBuffer buffer = ByteBuffer.wrap(dst, off2, len * 2).order(order).asCharBuffer();
             buffer.put(src, off, len);
         } else {
             charBuffer.clear();
@@ -80,12 +80,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2char(byte[] src, int index_src, char[] dst, int index_dst, int len) {
 
         if (len > (BUFFER_SIZE / 2)) {
-            CharBuffer buffer = ByteBuffer.wrap(src, index_src, len * 2).order(
-                    order).asCharBuffer();
+            CharBuffer buffer = ByteBuffer.wrap(src, index_src, len * 2).order(order).asCharBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -96,12 +95,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void short2byte(short[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
 
         if (len > (BUFFER_SIZE / 2)) {
-            ShortBuffer buffer = ByteBuffer.wrap(dst, off2, len * 2).order(
-                    order).asShortBuffer();
+            ShortBuffer buffer = ByteBuffer.wrap(dst, off2, len * 2).order(order).asShortBuffer();
             buffer.put(src, off, len);
         } else {
             shortBuffer.clear();
@@ -112,12 +110,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2short(byte[] src, int index_src, short[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2short(byte[] src, int index_src, short[] dst, int index_dst, int len) {
 
         if (len > (BUFFER_SIZE / 2)) {
-            ShortBuffer buffer = ByteBuffer.wrap(src, index_src, len * 2)
-                    .order(order).asShortBuffer();
+            ShortBuffer buffer = ByteBuffer.wrap(src, index_src, len * 2).order(order).asShortBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -129,11 +126,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
 
     }
 
+    @Override
     public void int2byte(int[] src, int off, int len, byte[] dst, int off2) {
 
         if (len > (BUFFER_SIZE / 4)) {
-            IntBuffer buffer = ByteBuffer.wrap(dst, off2, len * 4).order(order)
-                    .asIntBuffer();
+            IntBuffer buffer = ByteBuffer.wrap(dst, off2, len * 4).order(order).asIntBuffer();
             buffer.put(src, off, len);
         } else {
             intBuffer.clear();
@@ -144,12 +141,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2int(byte[] src, int index_src, int[] dst, int index_dst, int len) {
 
         if (len > (BUFFER_SIZE / 4)) {
-            IntBuffer buffer = ByteBuffer.wrap(src, index_src, len * 4).order(
-                    order).asIntBuffer();
+            IntBuffer buffer = ByteBuffer.wrap(src, index_src, len * 4).order(order).asIntBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -160,11 +156,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
+    @Override
     public void long2byte(long[] src, int off, int len, byte[] dst, int off2) {
 
         if (len > (BUFFER_SIZE / 8)) {
-            LongBuffer buffer = ByteBuffer.wrap(dst, off2, len * 8)
-                    .order(order).asLongBuffer();
+            LongBuffer buffer = ByteBuffer.wrap(dst, off2, len * 8).order(order).asLongBuffer();
             buffer.put(src, off, len);
         } else {
             longBuffer.clear();
@@ -175,12 +171,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst,
-            int len) {
+    @Override
+    public void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len) {
 
         if (len > (BUFFER_SIZE / 8)) {
-            LongBuffer buffer = ByteBuffer.wrap(src, index_src, len * 8).order(
-                    order).asLongBuffer();
+            LongBuffer buffer = ByteBuffer.wrap(src, index_src, len * 8).order(order).asLongBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -191,12 +186,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void float2byte(float[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
 
         if (len > (BUFFER_SIZE / 4)) {
-            FloatBuffer buffer = ByteBuffer.wrap(dst, off2, len * 4).order(
-                    order).asFloatBuffer();
+            FloatBuffer buffer = ByteBuffer.wrap(dst, off2, len * 4).order(order).asFloatBuffer();
             buffer.put(src, off, len);
         } else {
             floatBuffer.clear();
@@ -207,12 +201,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2float(byte[] src, int index_src, float[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2float(byte[] src, int index_src, float[] dst, int index_dst, int len) {
 
         if (len > (BUFFER_SIZE / 4)) {
-            FloatBuffer buffer = ByteBuffer.wrap(src, index_src, len * 4)
-                    .order(order).asFloatBuffer();
+            FloatBuffer buffer = ByteBuffer.wrap(src, index_src, len * 4).order(order).asFloatBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();
@@ -223,12 +216,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst,
-            int off2) {
+    @Override
+    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
 
         if (len > (BUFFER_SIZE / 8)) {
-            DoubleBuffer buffer = ByteBuffer.wrap(dst, off2, len * 8).order(
-                    order).asDoubleBuffer();
+            DoubleBuffer buffer = ByteBuffer.wrap(dst, off2, len * 8).order(order).asDoubleBuffer();
             buffer.put(src, off, len);
         } else {
             doubleBuffer.clear();
@@ -239,12 +231,11 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void byte2double(byte[] src, int index_src, double[] dst,
-            int index_dst, int len) {
+    @Override
+    public void byte2double(byte[] src, int index_src, double[] dst, int index_dst, int len) {
 
         if (len > (BUFFER_SIZE / 8)) {
-            DoubleBuffer buffer = ByteBuffer.wrap(src, index_src, len * 8)
-                    .order(order).asDoubleBuffer();
+            DoubleBuffer buffer = ByteBuffer.wrap(src, index_src, len * 8).order(order).asDoubleBuffer();
             buffer.get(dst, index_dst, len);
         } else {
             byteBuffer.clear();

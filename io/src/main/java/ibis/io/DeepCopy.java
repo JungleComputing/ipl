@@ -22,13 +22,12 @@ import java.nio.ByteBuffer;
 import java.util.Hashtable;
 
 /**
- * Exports a single static method that creates a deep copy of any
- * serializable object.
+ * Exports a single static method that creates a deep copy of any serializable
+ * object.
  */
 public class DeepCopy {
 
-    private static final String serialization
-            = IOProperties.properties.getProperty(IOProperties.s_deepcopy_ser, "ibis");
+    private static final String serialization = IOProperties.properties.getProperty(IOProperties.s_deepcopy_ser, "ibis");
 
     /** Prevent creation of a DeepCopy object. */
     private DeepCopy() {
@@ -49,22 +48,22 @@ public class DeepCopy {
         private boolean[] boolean_store = new boolean[BUFSIZ];
 
         /** Char storage. */
-        private char[] char_store = new char[BUFSIZ/2];
+        private char[] char_store = new char[BUFSIZ / 2];
 
         /** Short storage. */
-        private short[] short_store = new short[BUFSIZ/2];
+        private short[] short_store = new short[BUFSIZ / 2];
 
         /** Int storage. */
-        private int[] int_store = new int[BUFSIZ/4];
+        private int[] int_store = new int[BUFSIZ / 4];
 
         /** Float storage. */
-        private float[] float_store = new float[BUFSIZ/4];
+        private float[] float_store = new float[BUFSIZ / 4];
 
         /** Long storage. */
-        private long[] long_store = new long[BUFSIZ/8];
+        private long[] long_store = new long[BUFSIZ / 8];
 
         /** Double storage. */
-        private double[] double_store = new double[BUFSIZ/8];
+        private double[] double_store = new double[BUFSIZ / 8];
 
         /** Current byte input index. */
         private int byte_in;
@@ -147,11 +146,11 @@ public class DeepCopy {
         }
 
         synchronized int get() {
-            while (! closed && byte_len == 0) {
+            while (!closed && byte_len == 0) {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -178,7 +177,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -200,7 +199,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -222,7 +221,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -244,7 +243,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -266,7 +265,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -288,7 +287,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -310,7 +309,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -332,7 +331,7 @@ public class DeepCopy {
                 in_waiters++;
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // nothing
                 }
                 in_waiters--;
@@ -540,7 +539,7 @@ public class DeepCopy {
 
         synchronized int get(byte[] a, int off, int len) {
             int cnt = 0;
-            while (len != 0 && ! closed) {
+            while (len != 0 && !closed) {
                 while (byte_len == 0) {
                     in_waiters++;
                     try {
@@ -578,7 +577,6 @@ public class DeepCopy {
             if (closed && cnt == 0) {
                 return -1;
             }
-
 
             return cnt;
         }
@@ -904,7 +902,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = byte_store.length - ob;
                     System.arraycopy(a, off, byte_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, byte_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, byte_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -914,7 +912,6 @@ public class DeepCopy {
                 }
             }
         }
-
 
         synchronized void putSlice(byte[] a, int off, int len) {
             // System.out.println("putSlice-byte " + len);
@@ -942,7 +939,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = byte_store.length - ob;
                     System.arraycopy(a, off, byte_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, byte_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, byte_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -979,7 +976,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = boolean_store.length - ob;
                     System.arraycopy(a, off, boolean_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, boolean_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, boolean_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -1016,7 +1013,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = char_store.length - ob;
                     System.arraycopy(a, off, char_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, char_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, char_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -1053,7 +1050,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = short_store.length - ob;
                     System.arraycopy(a, off, short_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, short_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, short_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -1090,7 +1087,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = int_store.length - ob;
                     System.arraycopy(a, off, int_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, int_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, int_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -1127,7 +1124,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = float_store.length - ob;
                     System.arraycopy(a, off, float_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, float_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, float_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -1164,7 +1161,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = long_store.length - ob;
                     System.arraycopy(a, off, long_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, long_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, long_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -1201,7 +1198,7 @@ public class DeepCopy {
                 } else {
                     int sz1 = double_store.length - ob;
                     System.arraycopy(a, off, double_store, ob, sz1);
-                    System.arraycopy(a, off+sz1, double_store, 0, sz - sz1);
+                    System.arraycopy(a, off + sz1, double_store, 0, sz - sz1);
                 }
                 len -= sz;
                 off += sz;
@@ -1220,111 +1217,137 @@ public class DeepCopy {
         public StoreArrayInputStream(Store buf) {
             this.buf = buf;
         }
-        
+
+        @Override
         public int bufferSize() {
             return Store.BUFSIZ;
         }
-        
+
+        @Override
         public void reset() {
             buf.reset();
         }
 
+        @Override
         public byte readByte() {
             return buf.getByte();
         }
 
+        @Override
         public boolean readBoolean() {
             return buf.getBoolean();
         }
 
+        @Override
         public char readChar() {
             return buf.getChar();
         }
 
+        @Override
         public short readShort() {
             return buf.getShort();
         }
 
+        @Override
         public int readInt() {
             return buf.getInt();
         }
 
+        @Override
         public long readLong() {
             return buf.getLong();
         }
 
+        @Override
         public float readFloat() {
             return buf.getFloat();
         }
 
+        @Override
         public double readDouble() {
             return buf.getDouble();
         }
 
+        @Override
         public void readArray(boolean[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public void readArray(byte[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public void readArray(short[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public void readArray(char[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public void readArray(int[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public void readArray(long[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public void readArray(float[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public void readArray(double[] a, int off, int len) {
             buf.getSlice(a, off, len);
         }
 
+        @Override
         public int read() {
             return buf.get();
         }
 
+        @Override
         public int read(byte[] b) {
             return buf.get(b, 0, b.length);
         }
 
+        @Override
         public int read(byte[] b, int off, int len) {
             return buf.get(b, off, len);
         }
-        
+
+        @Override
         public void readByteBuffer(ByteBuffer b) {
             byte[] f = new byte[b.limit() - b.position()];
             readArray(f, 0, f.length);
             b.put(f);
         }
 
+        @Override
         public long bytesRead() {
             return 0L;
         }
 
+        @Override
         public void resetBytesRead() {
-        	// not implemented
+            // not implemented
         }
 
+        @Override
         public int available() {
             return 0;
         }
 
+        @Override
         public void close() {
-        	// nothing here
+            // nothing here
         }
     }
 
@@ -1336,119 +1359,147 @@ public class DeepCopy {
             this.buf = buf;
         }
 
+        @Override
         public int bufferSize() {
             return Store.BUFSIZ;
         }
-        
+
+        @Override
         public void writeByte(byte b) {
             buf.putByte(b);
         }
 
+        @Override
         public void writeBoolean(boolean b) {
             buf.putBoolean(b);
         }
 
+        @Override
         public void writeChar(char b) {
             buf.putChar(b);
         }
 
+        @Override
         public void writeShort(short b) {
             buf.putShort(b);
         }
 
+        @Override
         public void writeInt(int b) {
             buf.putInt(b);
         }
 
+        @Override
         public void writeFloat(float b) {
             buf.putFloat(b);
         }
 
+        @Override
         public void writeLong(long b) {
             buf.putLong(b);
         }
 
+        @Override
         public void writeDouble(double b) {
             buf.putDouble(b);
         }
 
+        @Override
         public void write(int b) {
             buf.put(b);
         }
 
+        @Override
         public void write(byte[] b) {
             buf.put(b, 0, b.length);
         }
 
+        @Override
         public void write(byte[] b, int off, int len) {
             buf.put(b, off, len);
         }
 
+        @Override
         public void writeArray(boolean[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeArray(byte[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeArray(short[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeArray(char[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeArray(int[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeArray(long[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeArray(float[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeArray(double[] a, int off, int len) {
             buf.putSlice(a, off, len);
         }
 
+        @Override
         public void writeByteBuffer(ByteBuffer b) {
             byte[] f = new byte[b.limit() - b.position()];
             b.get(f);
             writeArray(f, 0, f.length);
         }
 
+        @Override
         public void flush() {
-        	// nothing to flush
+            // nothing to flush
         }
 
+        @Override
         public boolean finished() {
             return true;
         }
 
+        @Override
         public void finish() {
-        	// nothing to finish
+            // nothing to finish
         }
 
+        @Override
         public void close() {
             buf.close();
         }
 
+        @Override
         public long bytesWritten() {
             return 0;
         }
 
+        @Override
         public void resetBytesWritten() {
-        	// not implemented
+            // not implemented
         }
     }
 
     /**
      * Creates and returns a deep copy of the specified object.
+     * 
      * @param o the object to be copied
      * @return the copy.
      */
@@ -1458,15 +1509,14 @@ public class DeepCopy {
         StoreArrayOutputStream output = new StoreArrayOutputStream(store);
 
         final Object oc = o;
-        
+
         try {
 
-            final SerializationInput ser_input = SerializationFactory
-                    .createSerializationInput(serialization, input, null);
-            final SerializationOutput ser_output = SerializationFactory
-                    .createSerializationOutput(serialization, output, null);
+            final SerializationInput ser_input = SerializationFactory.createSerializationInput(serialization, input, null);
+            final SerializationOutput ser_output = SerializationFactory.createSerializationOutput(serialization, output, null);
 
             Thread writer = new Thread("DeepCopy writer") {
+                @Override
                 public void run() {
                     // System.out.println("Writer started ...");
                     try {
@@ -1483,7 +1533,7 @@ public class DeepCopy {
             writer.start();
 
             return (Serializable) ser_input.readObject();
-        } catch(Exception e) {
+        } catch (Exception e) {
             // Should not happen
             throw new Error("Got exception: ", e);
         }
@@ -1491,10 +1541,11 @@ public class DeepCopy {
 
     /**
      * A little testing ...
+     * 
      * @param args ignored.
      */
     public static void main(String[] args) {
-        Hashtable<String, Hashtable<?,?>> h = new Hashtable<String, Hashtable<?,?>>();
+        Hashtable<String, Hashtable<?, ?>> h = new Hashtable<>();
         String[] strings = new String[10];
 
         for (int i = 0; i < strings.length; i++) {
@@ -1502,10 +1553,10 @@ public class DeepCopy {
             h.put(strings[i], h);
         }
 
-        Hashtable<?,?> hcp = (Hashtable<?,?>) deepCopy(h);
+        Hashtable<?, ?> hcp = (Hashtable<?, ?>) deepCopy(h);
 
         for (int i = 0; i < strings.length; i++) {
-            Hashtable<?,?> o = (Hashtable<?,?>) hcp.get(strings[i]);
+            Hashtable<?, ?> o = (Hashtable<?, ?>) hcp.get(strings[i]);
             if (o != hcp) {
                 System.out.println("Error " + i);
                 System.exit(1);

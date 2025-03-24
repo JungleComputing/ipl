@@ -29,8 +29,7 @@ import org.slf4j.LoggerFactory;
  * and arrays of basic types. It also serves as a base type for Ibis
  * serialization.
  */
-public class DataSerializationOutputStream
-        extends ByteSerializationOutputStream {
+public class DataSerializationOutputStream extends ByteSerializationOutputStream {
 
     private static final boolean DEBUG = IOProperties.DEBUG;
 
@@ -39,17 +38,13 @@ public class DataSerializationOutputStream
     private static final int ARRAY_BUFFER_SIZE = IOProperties.ARRAY_BUFFER_SIZE;
 
     /** When true, no buffering in this layer. */
-    private static final boolean NO_ARRAY_BUFFERS = IOProperties.properties
-            .getBooleanProperty(IOProperties.s_no_array_buffers);
+    private static final boolean NO_ARRAY_BUFFERS = IOProperties.properties.getBooleanProperty(IOProperties.s_no_array_buffers);
 
-    private static Logger logger = LoggerFactory
-            .getLogger(DataSerializationOutputStream.class);
+    private static Logger logger = LoggerFactory.getLogger(DataSerializationOutputStream.class);
 
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_DATA_SERIALIZATION = IOProperties.properties
-            .getBooleanProperty(IOProperties.s_timer_data)
-            || IOProperties.properties
-                    .getBooleanProperty(IOProperties.s_timer_ibis);
+    private static final boolean TIME_DATA_SERIALIZATION = IOProperties.properties.getBooleanProperty(IOProperties.s_timer_data)
+            || IOProperties.properties.getBooleanProperty(IOProperties.s_timer_ibis);
 
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = Constants.TYPE_BOOLEAN;
@@ -97,8 +92,8 @@ public class DataSerializationOutputStream
     private int double_index;
 
     /**
-     * Register how often we need to acquire a new set of primitive array
-     * buffers. private int unfinished;
+     * Register how often we need to acquire a new set of primitive array buffers.
+     * private int unfinished;
      *
      * { Runtime.getRuntime().addShutdownHook(new Thread() { public void run() {
      * logger.info(DataSerializationOutputStream.this + ": unfinished calls " +
@@ -147,32 +142,22 @@ public class DataSerializationOutputStream
     /**
      * Constructor with a <code>DataOutputStream</code>.
      *
-     * @param out
-     *            the underlying <code>DataOutputStream</code>
-     * @exception IOException
-     *                gets thrown when an IO error occurs.
+     * @param out the underlying <code>DataOutputStream</code>
+     * @exception IOException gets thrown when an IO error occurs.
      */
-    public DataSerializationOutputStream(DataOutputStream out)
-            throws IOException {
+    public DataSerializationOutputStream(DataOutputStream out) throws IOException {
         super(out);
         int bufferSize = out.bufferSize();
         if (bufferSize <= 0) {
             bufferSize = IOProperties.TYPED_BUFFER_SIZE;
         }
-        BYTE_BUFFER_SIZE = DataSerializationInputStream
-                .typedBufferSize(bufferSize, Constants.SIZEOF_BYTE);
-        CHAR_BUFFER_SIZE = DataSerializationInputStream
-                .typedBufferSize(bufferSize, Constants.SIZEOF_CHAR);
-        SHORT_BUFFER_SIZE = DataSerializationInputStream
-                .typedBufferSize(bufferSize, Constants.SIZEOF_SHORT);
-        INT_BUFFER_SIZE = DataSerializationInputStream
-                .typedBufferSize(bufferSize, Constants.SIZEOF_INT);
-        LONG_BUFFER_SIZE = DataSerializationInputStream
-                .typedBufferSize(bufferSize, Constants.SIZEOF_LONG);
-        FLOAT_BUFFER_SIZE = DataSerializationInputStream
-                .typedBufferSize(bufferSize, Constants.SIZEOF_FLOAT);
-        DOUBLE_BUFFER_SIZE = DataSerializationInputStream
-                .typedBufferSize(bufferSize, Constants.SIZEOF_DOUBLE);
+        BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_BYTE);
+        CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_CHAR);
+        SHORT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_SHORT);
+        INT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_INT);
+        LONG_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_LONG);
+        FLOAT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_FLOAT);
+        DOUBLE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_DOUBLE);
 
         if (!NO_ARRAY_BUFFERS) {
             initArrays();
@@ -187,9 +172,8 @@ public class DataSerializationOutputStream
 
     /**
      * Constructor, may be used when this class is sub-classed.
-     * 
-     * @exception IOException
-     *                gets thrown when an IO error occurs.
+     *
+     * @exception IOException gets thrown when an IO error occurs.
      */
     protected DataSerializationOutputStream() throws IOException {
         super();
@@ -219,26 +203,20 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a boolean array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a boolean array in the "array cache". If the cache is full it
+     * is written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayBoolean(boolean[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayBoolean(boolean[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < IOProperties.SMALL_ARRAY_BOUND
-                / Constants.SIZEOF_BOOLEAN) {
+        } else if (len < IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BOOLEAN) {
             /* Maybe lift the check from the writeBoolean? */
             for (int i = offset; i < offset + len; i++) {
                 writeBoolean(ref[i]);
@@ -249,8 +227,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayBoolean: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + Constants.TYPE_BOOLEAN);
+                logger.debug("writeArrayBoolean: " + ref + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_BOOLEAN);
             }
             array[array_index].type = Constants.TYPE_BOOLEAN;
             array[array_index].offset = offset;
@@ -263,22 +240,17 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a byte array in the "array cache". If the cache is full it
-     * is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a byte array in the "array cache". If the cache is full it is
+     * written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayByte(byte[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayByte(byte[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
@@ -291,8 +263,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayByte: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + Constants.TYPE_BYTE);
+                logger.debug("writeArrayByte: " + ref + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_BYTE);
             }
             array[array_index].type = Constants.TYPE_BYTE;
             array[array_index].offset = offset;
@@ -330,22 +301,17 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a char array in the "array cache". If the cache is full it
-     * is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a char array in the "array cache". If the cache is full it is
+     * written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayChar(char[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayChar(char[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_CHAR) {
@@ -358,9 +324,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayChar: " + new String(ref) + " offset: "
-                        + offset + " len: " + len + " type: "
-                        + Constants.TYPE_CHAR);
+                logger.debug("writeArrayChar: " + new String(ref) + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_CHAR);
             }
             array[array_index].type = Constants.TYPE_CHAR;
             array[array_index].offset = offset;
@@ -373,22 +337,17 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a short array in the "array cache". If the cache is full it
-     * is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a short array in the "array cache". If the cache is full it is
+     * written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayShort(short[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayShort(short[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_SHORT) {
@@ -401,8 +360,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayShort: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + Constants.TYPE_SHORT);
+                logger.debug("writeArrayShort: " + ref + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_SHORT);
             }
             array[array_index].type = Constants.TYPE_SHORT;
             array[array_index].offset = offset;
@@ -415,22 +373,17 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a int array in the "array cache". If the cache is full it
-     * is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a int array in the "array cache". If the cache is full it is
+     * written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayInt(int[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayInt(int[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_INT) {
@@ -443,8 +396,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayInt: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + Constants.TYPE_INT);
+                logger.debug("writeArrayInt: " + ref + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_INT);
             }
             array[array_index].type = Constants.TYPE_INT;
             array[array_index].offset = offset;
@@ -457,26 +409,20 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a long array in the "array cache". If the cache is full it
-     * is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a long array in the "array cache". If the cache is full it is
+     * written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayLong(long[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayLong(long[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < IOProperties.SMALL_ARRAY_BOUND
-                / Constants.SIZEOF_LONG) {
+        } else if (len < IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_LONG) {
             for (int i = offset; i < offset + len; i++) {
                 writeLong(ref[i]);
             }
@@ -486,8 +432,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayLong: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + Constants.TYPE_LONG);
+                logger.debug("writeArrayLong: " + ref + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_LONG);
             }
             array[array_index].type = Constants.TYPE_LONG;
             array[array_index].offset = offset;
@@ -500,22 +445,17 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a float array in the "array cache". If the cache is full it
-     * is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a float array in the "array cache". If the cache is full it is
+     * written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayFloat(float[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayFloat(float[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_FLOAT) {
@@ -528,8 +468,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayFloat: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + Constants.TYPE_FLOAT);
+                logger.debug("writeArrayFloat: " + ref + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_FLOAT);
             }
             array[array_index].type = Constants.TYPE_FLOAT;
             array[array_index].offset = offset;
@@ -542,22 +481,17 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a double array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream. This method is public because it
-     * gets called from rewritten code.
+     * Method to put a double array in the "array cache". If the cache is full it is
+     * written to the arrayOutputStream. This method is public because it gets
+     * called from rewritten code.
      *
-     * @param ref
-     *            the array to be written
-     * @param offset
-     *            the offset at which to start
-     * @param len
-     *            number of elements to write
+     * @param ref    the array to be written
+     * @param offset the offset at which to start
+     * @param len    number of elements to write
      *
-     * @exception IOException
-     *                on IO error.
+     * @exception IOException on IO error.
      */
-    public void writeArrayDouble(double[] ref, int offset, int len)
-            throws IOException {
+    public void writeArrayDouble(double[] ref, int offset, int len) throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_DOUBLE) {
@@ -570,8 +504,7 @@ public class DataSerializationOutputStream
                 internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("writeArrayDouble: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + Constants.TYPE_DOUBLE);
+                logger.debug("writeArrayDouble: " + ref + " offset: " + offset + " len: " + len + " type: " + Constants.TYPE_DOUBLE);
             }
             array[array_index].type = Constants.TYPE_DOUBLE;
             array[array_index].offset = offset;
@@ -590,8 +523,7 @@ public class DataSerializationOutputStream
     /**
      * Flushes everything collected sofar.
      *
-     * @exception IOException
-     *                on an IO error.
+     * @exception IOException on an IO error.
      */
     @Override
     public void flush() throws IOException {
@@ -613,8 +545,8 @@ public class DataSerializationOutputStream
             flushBuffers();
 
             /*
-             * Retain the order in which the arrays were pushed. This costs a
-             * cast at receive time.
+             * Retain the order in which the arrays were pushed. This costs a cast at
+             * receive time.
              */
             for (int i = 0; i < array_index; i++) {
                 ArrayDescriptor a = array[i];
@@ -694,10 +626,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a boolean value to the accumulator.
      *
-     * @param value
-     *            The boolean value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The boolean value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeBoolean(boolean value) throws IOException {
@@ -723,10 +653,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a byte value to the accumulator.
      *
-     * @param value
-     *            The byte value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The byte value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeByte(byte value) throws IOException {
@@ -752,10 +680,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a char value to the accumulator.
      *
-     * @param value
-     *            The char value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The char value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeChar(char value) throws IOException {
@@ -781,10 +707,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a short value to the accumulator.
      *
-     * @param value
-     *            The short value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The short value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeShort(short value) throws IOException {
@@ -810,10 +734,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a int value to the accumulator.
      *
-     * @param value
-     *            The int value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The int value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeInt(int value) throws IOException {
@@ -829,8 +751,7 @@ public class DataSerializationOutputStream
             int_buffer[int_index++] = value;
         }
         if (DEBUG && logger.isDebugEnabled()) {
-            logger.debug("wrote int[HEX] " + value + "[0x"
-                    + Integer.toHexString(value) + "]");
+            logger.debug("wrote int[HEX] " + value + "[0x" + Integer.toHexString(value) + "]");
         }
         if (TIME_DATA_SERIALIZATION) {
             timer.stop();
@@ -840,10 +761,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a long value to the accumulator.
      *
-     * @param value
-     *            The long value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The long value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeLong(long value) throws IOException {
@@ -869,10 +788,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a float value to the accumulator.
      *
-     * @param value
-     *            The float value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The float value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeFloat(float value) throws IOException {
@@ -898,10 +815,8 @@ public class DataSerializationOutputStream
     /**
      * Writes a double value to the accumulator.
      *
-     * @param value
-     *            The double value to write.
-     * @exception IOException
-     *                on IO error.
+     * @param value The double value to write.
+     * @exception IOException on IO error.
      */
     @Override
     public void writeDouble(double value) throws IOException {
@@ -1029,8 +944,7 @@ public class DataSerializationOutputStream
     /**
      * Flush the primitive arrays.
      *
-     * @exception IOException
-     *                is thrown when any <code>writeArray</code> throws it.
+     * @exception IOException is thrown when any <code>writeArray</code> throws it.
      */
     private void flushBuffers() throws IOException {
         indices_short[TYPE_ARRAY] = (short) array_index;
@@ -1053,8 +967,7 @@ public class DataSerializationOutputStream
             logger.debug("writing doubles " + double_index);
         }
 
-        out.writeArray(indices_short, Constants.BEGIN_TYPES,
-                Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES);
+        out.writeArray(indices_short, Constants.BEGIN_TYPES, Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES);
 
         if (byte_index > 0) {
             out.writeArray(byte_buffer, 0, byte_index);

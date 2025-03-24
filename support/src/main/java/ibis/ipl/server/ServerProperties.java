@@ -15,16 +15,16 @@
  */
 package ibis.ipl.server;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import ibis.ipl.IbisFactory;
 import ibis.ipl.registry.Registry;
 import ibis.util.TypedProperties;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * Properties valid for the Ibis server.
- * 
+ *
  * @ibis.experimental
  */
 public final class ServerProperties {
@@ -73,31 +73,20 @@ public final class ServerProperties {
         implementationVersion = version;
     }
 
-    private static final String[][] propertiesList = new String[][] {
-            { HUB_ADDRESSES, null, "String: comma-separated list of hub addresses." },
+    private static final String[][] propertiesList = new String[][] { { HUB_ADDRESSES, null, "String: comma-separated list of hub addresses." },
 
-            { START_HUB, "true",
-                    "Boolean: if true, also start a hub at the server." },
+            { START_HUB, "true", "Boolean: if true, also start a hub at the server." },
 
-            { HUB_ONLY, "false",
-                    "Boolean: if true, only start a hub, not the rest of the server." },
+            { HUB_ONLY, "false", "Boolean: if true, only start a hub, not the rest of the server." },
 
-            { HUB_ADDRESS_FILE, null,
-                    "String: file where the address of the hub is printed to (and deleted on exit)." },
+            { HUB_ADDRESS_FILE, null, "String: file where the address of the hub is printed to (and deleted on exit)." },
 
-            { PORT, Integer.toString(DEFAULT_PORT),
-                    "Integer: port to which the server binds." },
+            { PORT, Integer.toString(DEFAULT_PORT), "Integer: port to which the server binds." },
 
-            { PRINT_EVENTS, "false",
-                    "Boolean: if true, events of services are printed to standard out." },
-            { PRINT_ERRORS, "false",
-                    "Boolean: if true, details of errors (like stacktraces) are printed." },
-            { PRINT_STATS, "false",
-                    "Boolean: if true, statistics are printed to standard out regularly." },
-            {
-                    REMOTE,
-                    "false",
-                    "Boolean: If true, the server listens to stdin for commands and responds on stdout." },
+            { PRINT_EVENTS, "false", "Boolean: if true, events of services are printed to standard out." },
+            { PRINT_ERRORS, "false", "Boolean: if true, details of errors (like stacktraces) are printed." },
+            { PRINT_STATS, "false", "Boolean: if true, statistics are printed to standard out regularly." },
+            { REMOTE, "false", "Boolean: If true, the server listens to stdin for commands and responds on stdout." },
 
             { VIZ_INFO, null, "String: info for smartsockets visualization." },
 
@@ -116,7 +105,7 @@ public final class ServerProperties {
     }
 
     public static Map<String, String> getDescriptions() {
-        Map<String, String> result = new LinkedHashMap<String, String>();
+        Map<String, String> result = new LinkedHashMap<>();
 
         for (String[] element : propertiesList) {
             result.put(element[0], element[2]);

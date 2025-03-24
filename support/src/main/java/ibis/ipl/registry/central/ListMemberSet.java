@@ -15,8 +15,6 @@
  */
 package ibis.ipl.registry.central;
 
-import ibis.ipl.impl.IbisIdentifier;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -25,6 +23,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 
+import ibis.ipl.impl.IbisIdentifier;
+
 public final class ListMemberSet implements MemberSet {
 
     private final ArrayList<Member> list;
@@ -32,18 +32,21 @@ public final class ListMemberSet implements MemberSet {
     private final Random random;
 
     public ListMemberSet() {
-        list = new ArrayList<Member>();
+        list = new ArrayList<>();
         random = new Random();
     }
 
+    @Override
     public int size() {
         return list.size();
     }
 
+    @Override
     public void add(Member member) {
         list.add(member);
     }
 
+    @Override
     public Member remove(IbisIdentifier identifier) {
         String ID = identifier.getID();
         for (int i = 0; i < list.size(); i++) {
@@ -55,41 +58,44 @@ public final class ListMemberSet implements MemberSet {
         return null;
     }
 
+    @Override
     public boolean contains(IbisIdentifier identifier) {
         String ID = identifier.getID();
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getID().equals(ID)) {
+        for (Member element : list) {
+            if (element.getID().equals(ID)) {
                 return true;
             }
         }
         return false;
     }
 
+    @Override
     public boolean contains(Member member) {
         return contains(member.getIbis());
     }
 
+    @Override
     public Member get(IbisIdentifier identifier) {
         String ID = identifier.getID();
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getID().equals(ID)) {
-                return list.get(i);
+        for (Member element : list) {
+            if (element.getID().equals(ID)) {
+                return element;
             }
         }
         return null;
     }
-    
+
+    @Override
     public Member get(String name) {
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getIbis().name().equals(name)) {
-                return list.get(i);
+        for (Member element : list) {
+            if (element.getIbis().name().equals(name)) {
+                return element;
             }
         }
         return null;
     }
 
-    
-
+    @Override
     public int getMinimumTime() {
         if (list.isEmpty()) {
             return -1;
@@ -97,14 +103,15 @@ public final class ListMemberSet implements MemberSet {
 
         int minimum = list.get(0).getCurrentTime();
 
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getCurrentTime() < minimum) {
-                minimum = list.get(i).getCurrentTime();
+        for (Member element : list) {
+            if (element.getCurrentTime() < minimum) {
+                minimum = element.getCurrentTime();
             }
         }
         return minimum;
     }
 
+    @Override
     public Member getLeastRecentlySeen() {
         if (list.isEmpty()) {
             return null;
@@ -121,6 +128,7 @@ public final class ListMemberSet implements MemberSet {
         return oldest;
     }
 
+    @Override
     public Member get(int index) {
         if (index >= list.size()) {
             return null;
@@ -128,6 +136,7 @@ public final class ListMemberSet implements MemberSet {
         return list.get(index);
     }
 
+    @Override
     public Member getRandom() {
         if (list.isEmpty()) {
             return null;
@@ -135,8 +144,9 @@ public final class ListMemberSet implements MemberSet {
         return list.get(random.nextInt(size()));
     }
 
+    @Override
     public Member[] getRandom(int size) {
-        ArrayList<Member> result = new ArrayList<Member>();
+        ArrayList<Member> result = new ArrayList<>();
         BitSet added = new BitSet();
 
         if (size > list.size()) {
@@ -158,51 +168,55 @@ public final class ListMemberSet implements MemberSet {
         return result.toArray(new Member[0]);
     }
 
+    @Override
     public Member[] asArray() {
         return list.toArray(new Member[0]);
     }
 
+    @Override
     public void init(DataInputStream in) throws IOException {
         int nrOfMembers = in.readInt();
-        
+
         if (nrOfMembers < 0) {
             throw new IOException("negative list size recieved" + nrOfMembers);
         }
-        
+
         for (int i = 0; i < nrOfMembers; i++) {
             list.add(new Member(in));
         }
     }
 
+    @Override
     public void writeTo(DataOutputStream out) throws IOException {
         out.writeInt(list.size());
-        for (Member member: list) {
+        for (Member member : list) {
             member.writeTo(out);
         }
     }
 
+    @Override
     public List<Event> getJoinEvents() {
-        ArrayList<Event> result = new ArrayList<Event>();
-        
-        for(Member member: list) {
+        ArrayList<Event> result = new ArrayList<>();
+
+        for (Member member : list) {
             result.add(member.getEvent());
         }
-        
+
         return result;
-        
+
     }
 
     /**
      * List does not have parents/children
      */
+    @Override
     public Member[] getChildren(IbisIdentifier ibis) {
         return new Member[0];
     }
 
+    @Override
     public Member[] getRootChildren() {
         return asArray();
     }
-    
-    
 
 }

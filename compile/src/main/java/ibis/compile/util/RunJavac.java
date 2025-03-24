@@ -34,16 +34,15 @@ public class RunJavac {
 
         if (javahome.endsWith("jre")) {
             // IBM java does this
-            javahome = javahome.substring(0, javahome.length()-4);
+            javahome = javahome.substring(0, javahome.length() - 4);
         }
 
-        compiler = new String[] {
-            javahome + filesep + "bin" + filesep + "javac",
-            "-classpath", javapath + pathsep };
+        compiler = new String[] { javahome + filesep + "bin" + filesep + "javac", "-classpath", javapath + pathsep };
     }
 
     /**
      * Sets the compiler.
+     * 
      * @param c compiler name plus options
      */
     public static void setCompiler(String[] c) {
@@ -51,13 +50,13 @@ public class RunJavac {
     }
 
     /**
-     * Runs the Java compiler with the specified options on the specified
-     * class.
+     * Runs the Java compiler with the specified options on the specified class.
+     * 
      * @param compilerArgs the compiler arguments
-     * @param verbose if <code>true</code>, prints the compilation command on
-     *   standard output
+     * @param verbose      if <code>true</code>, prints the compilation command on
+     *                     standard output
      * @return <code>true</code> if the exit status of the compiler is 0,
-     *   <code>false</code> otherwise.
+     *         <code>false</code> otherwise.
      */
     public static boolean runJavac(String[] compilerArgs, boolean verbose) {
         try {
@@ -72,8 +71,8 @@ public class RunJavac {
 
             if (verbose) {
                 System.out.print("Running: ");
-                for (int i = 0; i < cmd.length; i++) {
-                    System.out.print(cmd[i] + " ");
+                for (String element : cmd) {
+                    System.out.print(element + " ");
                 }
                 System.out.println("");
             }

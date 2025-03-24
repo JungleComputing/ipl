@@ -15,6 +15,10 @@
  */
 package ibis.ipl.impl.stacking.lrmc;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
+
 import ibis.io.SerializationInput;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
@@ -22,10 +26,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.lrmc.io.LrmcInputStream;
 import ibis.util.ThreadPool;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ReadOnlyBufferException;
 
 public class LrmcReadMessage implements ReadMessage {
 
@@ -41,18 +41,18 @@ public class LrmcReadMessage implements ReadMessage {
         this.om = om;
         this.stream = stream;
     }
-    
+
     void setInUpcall(boolean val) {
         inUpcall = val;
     }
 
     protected final void checkNotFinished() throws IOException {
         if (isFinished) {
-            throw new IOException(
-                    "Operating on a message that was already finished");
+            throw new IOException("Operating on a message that was already finished");
         }
     }
 
+    @Override
     public SendPortIdentifier origin() {
         int source = om.bin.getInputStream().getSource();
         IbisIdentifier id = om.lrmc.ibis.getId(source);
@@ -64,147 +64,166 @@ public class LrmcReadMessage implements ReadMessage {
         return in.available();
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         checkNotFinished();
         return in.readBoolean();
     }
 
+    @Override
     public byte readByte() throws IOException {
         checkNotFinished();
         return in.readByte();
     }
 
+    @Override
     public char readChar() throws IOException {
         checkNotFinished();
         return in.readChar();
     }
 
+    @Override
     public short readShort() throws IOException {
         checkNotFinished();
         return in.readShort();
     }
 
+    @Override
     public int readInt() throws IOException {
         checkNotFinished();
         return in.readInt();
     }
 
+    @Override
     public long readLong() throws IOException {
         checkNotFinished();
         return in.readLong();
     }
 
+    @Override
     public float readFloat() throws IOException {
         checkNotFinished();
         return in.readFloat();
     }
 
+    @Override
     public double readDouble() throws IOException {
         checkNotFinished();
         return in.readDouble();
     }
 
+    @Override
     public String readString() throws IOException {
         checkNotFinished();
         return in.readString();
     }
 
+    @Override
     public Object readObject() throws IOException, ClassNotFoundException {
         checkNotFinished();
         return in.readObject();
     }
 
+    @Override
     public void readArray(boolean[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(byte[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(char[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(short[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(int[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(long[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(float[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(double[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
-    public void readArray(Object[] destination) throws IOException,
-            ClassNotFoundException {
+    @Override
+    public void readArray(Object[] destination) throws IOException, ClassNotFoundException {
         readArray(destination, 0, destination.length);
     }
 
-    public void readArray(boolean[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(boolean[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(byte[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(byte[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(char[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(char[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(short[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(short[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(int[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(int[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(long[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(long[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(float[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(float[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(double[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(double[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(Object[] destination, int offset, int size)
-            throws IOException, ClassNotFoundException {
+    @Override
+    public void readArray(Object[] destination, int offset, int size) throws IOException, ClassNotFoundException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
+    @Override
     public long bytesRead() throws IOException {
         long cnt = om.bin.bytesRead();
         long retval = cnt - count;
@@ -212,19 +231,22 @@ public class LrmcReadMessage implements ReadMessage {
         return retval;
     }
 
+    @Override
     public int remaining() throws IOException {
-        
-        if (isFinished) { 
+
+        if (isFinished) {
             return 0;
         }
-        
+
         return om.bin.available();
     }
 
+    @Override
     public int size() throws IOException {
         return om.bin.bufferSize();
     }
-    
+
+    @Override
     public long finish() throws IOException {
         if (!isFinished) {
             long retval = om.finalizeRead(stream);
@@ -238,6 +260,7 @@ public class LrmcReadMessage implements ReadMessage {
         throw new IOException("ReadMessage already finished");
     }
 
+    @Override
     public void finish(IOException exception) {
         if (!isFinished) {
             isFinished = true;
@@ -249,21 +272,21 @@ public class LrmcReadMessage implements ReadMessage {
         }
     }
 
+    @Override
     public ReceivePort localPort() {
         return om.receivePort;
     }
 
+    @Override
     public long sequenceNumber() {
         // Not supported.
         return 0;
     }
 
-    public void readByteBuffer(ByteBuffer value) throws IOException,
-	    ReadOnlyBufferException {
+    @Override
+    public void readByteBuffer(ByteBuffer value) throws IOException, ReadOnlyBufferException {
         checkNotFinished();
-        in.readByteBuffer(value);	
+        in.readByteBuffer(value);
     }
-
-  
 
 }

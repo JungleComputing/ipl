@@ -15,6 +15,8 @@
  */
 package ibis.ipl.impl.stacking.lrmc;
 
+import java.io.IOException;
+
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.io.SerializationOutput;
@@ -28,8 +30,6 @@ import ibis.ipl.impl.stacking.lrmc.io.MessageReceiver;
 import ibis.ipl.impl.stacking.lrmc.util.Message;
 import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
 import ibis.util.TypedProperties;
-
-import java.io.IOException;
 
 // TODO find a way to share destination arrays in messages --Rob
 
@@ -67,12 +67,10 @@ public class Multicaster implements MessageReceiver {
     LrmcSendPort sendPort = null;
     LrmcReceivePort receivePort = null;
 
-    public Multicaster(LrmcIbis ibis, PortType type, String name)
-            throws IOException {
+    public Multicaster(LrmcIbis ibis, PortType type, String name) throws IOException {
         TypedProperties tp = new TypedProperties(ibis.properties());
         this.MESSAGE_SIZE = tp.getIntProperty("lrmc.messageSize", 8 * 1024);
-        this.MESSAGE_CACHE_SIZE = tp.getIntProperty("lrmc.messageCacheSize",
-                1500);
+        this.MESSAGE_CACHE_SIZE = tp.getIntProperty("lrmc.messageCacheSize", 1500);
 
         cache = new MessageCache(MESSAGE_CACHE_SIZE, MESSAGE_SIZE);
 
@@ -96,8 +94,7 @@ public class Multicaster implements MessageReceiver {
         } else {
             serialization = "byte";
         }
-        sout = SerializationFactory.createSerializationOutput(serialization,
-                bout, ibis.properties());
+        sout = SerializationFactory.createSerializationOutput(serialization, bout, ibis.properties());
         sin = SerializationFactory.createSerializationInput(serialization, bin, ibis.properties());
         portType = type;
         this.name = name;
@@ -108,10 +105,12 @@ public class Multicaster implements MessageReceiver {
         cache.setDestinationSize(dest.length);
     }
 
+    @Override
     public void gotDone(int id) {
         // nothing
     }
 
+    @Override
     public boolean gotMessage(Message m) {
 
         LrmcInputStream tmp;
@@ -237,7 +236,7 @@ public class Multicaster implements MessageReceiver {
             done();
         }
     }
-    
+
     public void removeSendPort() {
         sendPort = null;
         if (receivePort == null) {

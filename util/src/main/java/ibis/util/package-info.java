@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The ibis.util package provides several utilities that may be useful
- * for Ibis applications.
+ * The ibis.util package provides several utilities that may be useful for Ibis
+ * applications.
  */
 package ibis.util;

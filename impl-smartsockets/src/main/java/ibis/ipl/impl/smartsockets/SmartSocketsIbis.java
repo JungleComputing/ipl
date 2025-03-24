@@ -17,6 +17,17 @@
 
 package ibis.ipl.impl.smartsockets;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.SocketTimeoutException;
+import java.util.HashMap;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.ipl.AlreadyConnectedException;
@@ -46,28 +57,15 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.SocketTimeoutException;
-import java.util.HashMap;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
-        Runnable, SmartSocketsProtocol {
+public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements Runnable, SmartSocketsProtocol {
 
     private static final String PORT_PROPERTY = "ibis.local.port";
-    
+
     private static final String KEEP_ALIVE_PROPERTY = "ibis.ipl.impl.smartsockets.keepalive";
-    
+
     private static final String SOCKET_TIMEOUT_PROPERTY = "ibis.ipl.impl.smartsockets.sotimeout";
 
-    static final Logger logger = LoggerFactory
-            .getLogger(SmartSocketsIbis.class);
+    static final Logger logger = LoggerFactory.getLogger(SmartSocketsIbis.class);
 
     private VirtualSocketFactory factory;
 
@@ -76,23 +74,20 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     private VirtualSocketAddress myAddress;
 
     private boolean quiting = false;
-    
+
     private boolean keepAlive = false;
-    
+
     private int soTimeout = -1;
 
-    private HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress>();
+    private HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress> addresses = new HashMap<>();
 
-    private final HashMap<String, Object> lightConnection = new HashMap<String, Object>();
+    private final HashMap<String, Object> lightConnection = new HashMap<>();
 
-    private final HashMap<String, Object> directConnection = new HashMap<String, Object>();
+    private final HashMap<String, Object> directConnection = new HashMap<>();
 
-    public SmartSocketsIbis(RegistryEventHandler registryEventHandler,
-            IbisCapabilities capabilities, Credentials credentials,
-            byte[] applicationTag, PortType[] types, Properties userProperties,
-            IbisStarter starter) throws IbisCreationFailedException {
-        super(registryEventHandler, capabilities, credentials, applicationTag,
-                types, userProperties, starter);
+    public SmartSocketsIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, Credentials credentials, byte[] applicationTag,
+            PortType[] types, Properties userProperties, IbisStarter starter) throws IbisCreationFailedException {
+        super(registryEventHandler, capabilities, credentials, applicationTag, types, userProperties, starter);
 
         lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");
 
@@ -103,25 +98,23 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         // result in a direct connection...
         directConnection.put("connect.module.allow", "ConnectModule(Direct)");
 
-        this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
-                new String[] { KEEP_ALIVE_PROPERTY, SOCKET_TIMEOUT_PROPERTY }, null, true);
+        this.properties.checkProperties("ibis.ipl.impl.smartsockets.", new String[] { KEEP_ALIVE_PROPERTY, SOCKET_TIMEOUT_PROPERTY }, null, true);
 
         keepAlive = this.properties.getBooleanProperty(KEEP_ALIVE_PROPERTY, false);
         soTimeout = this.properties.getIntProperty(SOCKET_TIMEOUT_PROPERTY, -1);
         Runnable r = new Runnable() {
+            @Override
             public void run() {
                 try {
                     ServiceLink sl = factory.getServiceLink();
                     if (sl != null) {
                         String colorString = "";
                         if (properties.getProperty(IbisProperties.LOCATION_COLOR) != null) {
-                            colorString = "^"
-                                    + properties
-                                    .getProperty(IbisProperties.LOCATION_COLOR);
+                            colorString = "^" + properties.getProperty(IbisProperties.LOCATION_COLOR);
                         }
 
-                        sl.registerProperty("smartsockets.viz", "I^" + ident.name() + "^" + ident.name()
-                                + "," + ident.location().toString() + colorString);
+                        sl.registerProperty("smartsockets.viz",
+                                "I^" + ident.name() + "^" + ident.name() + "," + ident.location().toString() + colorString);
 
                     }
                 } catch (Throwable e) {
@@ -129,18 +122,19 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 }
             }
         };
-        
+
         ThreadPool.createNew(r, "Color setter");
 
         // Create a new accept thread
         ThreadPool.createNew(this, "SmartSocketsIbis Accept Thread");
     }
 
+    @Override
     protected byte[] getData() throws IOException {
         String clientID = this.properties.getProperty(ID_PROPERTY);
 
         int port = this.properties.getIntProperty(PORT_PROPERTY, 0);
-        
+
         Client client = Client.getOrCreateClient(clientID, properties, port);
         factory = client.getFactory();
 
@@ -156,13 +150,13 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     }
 
     /*
-     * // NOTE: this is wrong ? Even though the ibis has left, the
-     * IbisIdentifier may still be floating around in the system... We should
-     * just have some timeout on the cache entries instead...
-     * 
+     * // NOTE: this is wrong ? Even though the ibis has left, the IbisIdentifier
+     * may still be floating around in the system... We should just have some
+     * timeout on the cache entries instead...
+     *
      * public void left(ibis.ipl.IbisIdentifier id) { super.left(id);
      * synchronized(addresses) { addresses.remove(id); } }
-     * 
+     *
      * public void died(ibis.ipl.IbisIdentifier id) { super.died(id);
      * synchronized(addresses) { addresses.remove(id); } }
      */
@@ -171,9 +165,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         return factory.getServiceLink();
     }
 
-    VirtualSocket connect(SmartSocketsSendPort sp,
-            ibis.ipl.impl.ReceivePortIdentifier rip, int timeout,
-            boolean fillTimeout) throws IOException {
+    VirtualSocket connect(SmartSocketsSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip, int timeout, boolean fillTimeout) throws IOException {
 
         IbisIdentifier id = (IbisIdentifier) rip.ibisIdentifier();
         String name = rip.name();
@@ -182,8 +174,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         synchronized (addresses) {
             idAddr = addresses.get(id);
             if (idAddr == null) {
-                idAddr = VirtualSocketAddress.fromBytes(id
-                        .getImplementationData(), 0);
+                idAddr = VirtualSocketAddress.fromBytes(id.getImplementationData(), 0);
                 addresses.put(id, idAddr);
             }
         }
@@ -191,8 +182,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         long startTime = System.currentTimeMillis();
 
         if (logger.isDebugEnabled()) {
-            logger.debug("--> Creating socket for connection to " + name
-                    + " at " + idAddr);
+            logger.debug("--> Creating socket for connection to " + name + " at " + idAddr);
         }
 
         PortType sendPortType = sp.getPortType();
@@ -207,20 +197,19 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
                 if (sp.getPortType().hasCapability(PortType.CONNECTION_LIGHT)) {
                     h = lightConnection;
-                } else if (sp.getPortType().hasCapability(
-                        PortType.CONNECTION_DIRECT)) {
+                } else if (sp.getPortType().hasCapability(PortType.CONNECTION_DIRECT)) {
                     h = directConnection;
                 }
 
                 /*
                  * Map<String, String> properties = sp.managementProperties();
-                 * 
+                 *
                  * if (properties != null) {
-                 * 
+                 *
                  * if (h == null) { h = new HashMap<String, Object>(); }
-                 * 
+                 *
                  * h.putAll(properties); }
-                 * 
+                 *
                  * if (logger.isDebugEnabled()) {
                  * logger.debug("Creating connection with properties " + h); }
                  */
@@ -241,9 +230,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                         if (logger.isDebugEnabled()) {
                             logger.debug("Setting KeepAlive");
                         }
-                	s.setKeepAlive(true);
-                    } catch(Throwable e) {
-                	logger.info("Could not set KeepAlive", e);
+                        s.setKeepAlive(true);
+                    } catch (Throwable e) {
+                        logger.info("Could not set KeepAlive", e);
                     }
                 }
                 if (soTimeout > 0) {
@@ -252,13 +241,12 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                             logger.debug("Setting soTimeout");
                         }
                         s.setSoTimeout(soTimeout);
-                    } catch(Throwable e) {
+                    } catch (Throwable e) {
                         logger.info("Could not set SoTimeout", e);
                     }
                 }
 
-                out = new DataOutputStream(
-                        new BufferedArrayOutputStream(s.getOutputStream()));
+                out = new DataOutputStream(new BufferedArrayOutputStream(s.getOutputStream()));
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
@@ -277,8 +265,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                     if (logger.isDebugEnabled()) {
                         logger.debug("Connection refused: already connected");
                     }
-                    throw new AlreadyConnectedException("Already connected",
-                            rip);
+                    throw new AlreadyConnectedException("Already connected", rip);
                 case ReceivePort.TYPE_MISMATCH:
                     // Read receiveport type from input, to produce a
                     // better error message.
@@ -288,44 +275,33 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                     CapabilitySet s2 = sendPortType.unmatchedCapabilities(rtp);
                     String message = "";
                     if (s1.size() != 0) {
-                        message = message
-                                + "\nUnmatched receiveport capabilities: "
-                                + s1.toString() + ".";
+                        message = message + "\nUnmatched receiveport capabilities: " + s1.toString() + ".";
                     }
                     if (s2.size() != 0) {
-                        message = message
-                                + "\nUnmatched sendport capabilities: "
-                                + s2.toString() + ".";
+                        message = message + "\nUnmatched sendport capabilities: " + s2.toString() + ".";
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("Connection refused: " + message);
                     }
-                    throw new PortMismatchException(
-                            "Cannot connect ports of different port types."
-                                    + message, rip);
+                    throw new PortMismatchException("Cannot connect ports of different port types." + message, rip);
                 case ReceivePort.DENIED:
                     if (logger.isDebugEnabled()) {
                         logger.debug("Connection denied");
                     }
-                    throw new ConnectionRefusedException(
-                            "Receiver denied connection", rip);
+                    throw new ConnectionRefusedException("Receiver denied connection", rip);
                 case ReceivePort.NO_MANY_TO_X:
                     if (logger.isDebugEnabled()) {
                         logger.debug("Connection refused: already connected and no ManyToXXX");
                     }
-                    throw new ConnectionRefusedException(
-                            "Receiver already has a connection and neither ManyToOne not ManyToMany "
-                                    + "is set", rip);
+                    throw new ConnectionRefusedException("Receiver already has a connection and neither ManyToOne not ManyToMany " + "is set", rip);
                 case ReceivePort.NOT_PRESENT:
                 case ReceivePort.DISABLED:
                     // and try again if we did not reach the timeout...
-                    if (timeout > 0
-                            && System.currentTimeMillis() > startTime + timeout) {
+                    if (timeout > 0 && System.currentTimeMillis() > startTime + timeout) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Connection timed out");
                         }
-                        throw new ConnectionTimedOutException(
-                                "Could not connect", rip);
+                        throw new ConnectionTimedOutException("Could not connect", rip);
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("Connection retrying ...");
@@ -371,6 +347,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         } while (true);
     }
 
+    @Override
     protected void quit() {
         try {
             quiting = true;
@@ -385,13 +362,12 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
         boolean keepAlive = this.keepAlive;
         int soTimeout = this.soTimeout;
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("--> SmartSocketsIbis got connection request from " + s);
         }
- 
-        BufferedArrayInputStream bais = 
-            new BufferedArrayInputStream(s.getInputStream());
+
+        BufferedArrayInputStream bais = new BufferedArrayInputStream(s.getInputStream());
 
         DataInputStream in = new DataInputStream(bais);
         OutputStream out = s.getOutputStream();
@@ -414,16 +390,15 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
             in.close();
             s.close();
             return;
-            
+
         }
 
-        synchronized(rp) {
+        synchronized (rp) {
             result = rp.connectionAllowed(send, sp);
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("--> S RP = " + name + ": "
-                    + ReceivePort.getString(result));
+            logger.debug("--> S RP = " + name + ": " + ReceivePort.getString(result));
         }
 
         try {
@@ -434,7 +409,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 dout.flush();
             }
             out.flush();
-        } catch(IOException e) {
+        } catch (IOException e) {
             // If we cannot write the result back, we must notify the system that
             // the connection is to be removed.
             if (logger.isDebugEnabled()) {
@@ -460,7 +435,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                         logger.debug("Setting soTimeout");
                     }
                     s.setSoTimeout(soTimeout);
-                } catch(Throwable e) {
+                } catch (Throwable e) {
                     logger.info("Could not set SoTimeout", e);
                 }
             }
@@ -470,11 +445,11 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                         logger.debug("Setting KeepAlive");
                     }
                     s.setKeepAlive(true);
-                } catch(Throwable e) {
+                } catch (Throwable e) {
                     logger.info("Could not set KeepAlive", e);
                 }
             }
-            
+
             rp.connect(send, s, bais);
             if (logger.isDebugEnabled()) {
                 logger.debug("--> S connect done ");
@@ -486,6 +461,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         }
     }
 
+    @Override
     public void run() {
         // This thread handles incoming connection request from the
         // connect(SmartSocketsSendPort) call.
@@ -544,8 +520,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 } catch (Throwable e2) {
                     // ignored
                 }
-                logger.error("EEK: SmartSocketsIbis:run: got exception "
-                        + "(closing this socket only: ", e);
+                logger.error("EEK: SmartSocketsIbis:run: got exception " + "(closing this socket only: ", e);
             }
         }
     }
@@ -558,8 +533,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         }
     }
 
-    protected ibis.ipl.SendPort doCreateSendPort(PortType tp, String nm,
-            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+    @Override
+    protected ibis.ipl.SendPort doCreateSendPort(PortType tp, String nm, SendPortDisconnectUpcall cU, Properties props) throws IOException {
 
         if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) {
             return new SmartSocketsUltraLightSendPort(this, tp, nm, props);
@@ -585,8 +560,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         return new SmartSocketsSendPort(this, tp, nm, cU, props);
     }
 
-    protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp, String nm,
-            MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
+    @Override
+    protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp, String nm, MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
 
         if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) {

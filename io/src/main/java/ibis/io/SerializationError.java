@@ -21,7 +21,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 public class SerializationError extends Error {
-    /** 
+    /**
      * Generated
      */
     private static final long serialVersionUID = 8658882919059316317L;
@@ -45,14 +45,17 @@ public class SerializationError extends Error {
         this.cause = cause;
     }
 
+    @Override
     public Throwable initCause(Throwable t) {
         return cause = t;
     }
 
+    @Override
     public Throwable getCause() {
         return cause;
     }
 
+    @Override
     public String getMessage() {
         String res = super.getMessage();
         if (cause != null) {
@@ -62,6 +65,7 @@ public class SerializationError extends Error {
         return res;
     }
 
+    @Override
     public void printStackTrace(PrintWriter s) {
         if (cause != null) {
             cause.printStackTrace(s);
@@ -70,6 +74,7 @@ public class SerializationError extends Error {
         super.printStackTrace(s);
     }
 
+    @Override
     public void printStackTrace(PrintStream s) {
         if (cause != null) {
             cause.printStackTrace(s);

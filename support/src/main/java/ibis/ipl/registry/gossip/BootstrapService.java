@@ -15,6 +15,13 @@
  */
 package ibis.ipl.registry.gossip;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.ipl.server.ServerProperties;
 import ibis.ipl.server.Service;
@@ -25,23 +32,13 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class BootstrapService implements Service, Runnable {
-
-
 
     private static final int CONNECTION_BACKLOG = 50;
 
     static final int MAX_THREADS = 50;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(BootstrapService.class);
+    private static final Logger logger = LoggerFactory.getLogger(BootstrapService.class);
 
     private final VirtualServerSocket serverSocket;
 
@@ -63,30 +60,28 @@ public class BootstrapService implements Service, Runnable {
 
     private int maxNrOfThreads = 0;
 
-    public BootstrapService(TypedProperties properties,
-            VirtualSocketFactory socketFactory) throws IOException {
+    public BootstrapService(TypedProperties properties, VirtualSocketFactory socketFactory) throws IOException {
         this.socketFactory = socketFactory;
 
-        printErrors = properties
-                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors = properties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
-        //printEvents = properties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        // printEvents = properties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        keepStatistics = properties
-                .getBooleanProperty(RegistryProperties.STATISTICS);
+        keepStatistics = properties.getBooleanProperty(RegistryProperties.STATISTICS);
 
-        arrgs = new HashMap<String, ARRG>();
+        arrgs = new HashMap<>();
 
-        serverSocket = socketFactory.createServerSocket(Protocol.VIRTUAL_PORT,
-            CONNECTION_BACKLOG, null);
+        serverSocket = socketFactory.createServerSocket(Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
 
         createThread();
     }
 
+    @Override
     public String getServiceName() {
         return "bootstrap";
     }
 
+    @Override
     public synchronized void end(long deadline) {
         ended = true;
 
@@ -117,9 +112,7 @@ public class BootstrapService implements Service, Runnable {
                 statistics.setID("server", poolName);
                 statistics.startWriting(60000);
             }
-            result = new ARRG(serverSocket.getLocalSocketAddress(), true,
-                    new VirtualSocketAddress[0], null, poolName, socketFactory,
-                    null);
+            result = new ARRG(serverSocket.getLocalSocketAddress(), true, new VirtualSocketAddress[0], null, poolName, socketFactory, null);
             result.start();
             arrgs.put(poolName, result);
 
@@ -167,15 +160,16 @@ public class BootstrapService implements Service, Runnable {
         notifyAll();
     }
 
+    @Override
     public void run() {
         Connection connection = null;
         try {
             if (logger.isDebugEnabled()) {
-        	logger.debug("accepting connection");
+                logger.debug("accepting connection");
             }
             connection = new Connection(serverSocket);
             if (logger.isDebugEnabled()) {
-        	logger.debug("connection accepted");
+                logger.debug("connection accepted");
             }
         } catch (IOException e) {
             if (hasEnded()) {
@@ -206,15 +200,13 @@ public class BootstrapService implements Service, Runnable {
             byte magic = connection.in().readByte();
 
             if (magic != Protocol.MAGIC_BYTE) {
-                throw new IOException(
-                        "Invalid header byte in accepting connection");
+                throw new IOException("Invalid header byte in accepting connection");
             }
 
             opcode = connection.in().readByte();
 
             if (logger.isDebugEnabled()) {
-                logger.debug("got request, opcode = "
-                        + Protocol.opcodeString(opcode));
+                logger.debug("got request, opcode = " + Protocol.opcodeString(opcode));
             }
 
             switch (opcode) {
@@ -229,8 +221,7 @@ public class BootstrapService implements Service, Runnable {
 
                 Statistics statistics = arrg.getStatistics();
                 if (statistics != null) {
-                    statistics.add(opcode, System.currentTimeMillis() - start,
-                        connection.read(), connection.written(), true);
+                    statistics.add(opcode, System.currentTimeMillis() - start, connection.read(), connection.written(), true);
                 }
                 break;
             default:
@@ -254,13 +245,14 @@ public class BootstrapService implements Service, Runnable {
         threadEnded();
     }
 
+    @Override
     public String toString() {
         return "Bootstrap service on virtual port " + Protocol.VIRTUAL_PORT;
     }
 
     public Map<String, String> getStats() {
         // no statistics
-        return new HashMap<String, String>();
+        return new HashMap<>();
     }
 
 }

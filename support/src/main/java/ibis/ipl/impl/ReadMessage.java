@@ -54,25 +54,25 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         this.before = info.bytesRead();
     }
 
+    @Override
     public ibis.ipl.ReceivePort localPort() {
         return info.port;
     }
 
     /**
-     * May be called by an implementation to allow for detection of finish()
-     * calls within an upcall.
-     * 
-     * @param val
-     *            the value to set.
+     * May be called by an implementation to allow for detection of finish() calls
+     * within an upcall.
+     *
+     * @param val the value to set.
      */
     public void setInUpcall(boolean val) {
         inUpcall = val;
     }
 
     /**
-     * May be called by an implementation to allow for detection of finish()
-     * calls within an upcall.
-     * 
+     * May be called by an implementation to allow for detection of finish() calls
+     * within an upcall.
+     *
      * @return whether we are in an upcall
      */
     public boolean getInUpcall() {
@@ -80,24 +80,27 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
     }
 
     /**
-     * May be called by an implementation to allow for detection of finish()
-     * calls within an upcall.
-     * 
+     * May be called by an implementation to allow for detection of finish() calls
+     * within an upcall.
+     *
      * @return whether finish was called from upcall
      */
     public boolean finishCalledInUpcall() {
         return finishCalledFromUpcall;
     }
 
+    @Override
     public long bytesRead() {
         long after = info.bytesRead();
         return after - before;
     }
 
+    @Override
     public int remaining() throws IOException {
         return -1;
     }
 
+    @Override
     public int size() throws IOException {
         return -1;
     }
@@ -112,11 +115,11 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     protected final void checkNotFinished() throws IOException {
         if (isFinished) {
-            throw new IOException(
-                    "Operating on a message that was already finished");
+            throw new IOException("Operating on a message that was already finished");
         }
     }
 
+    @Override
     public ibis.ipl.SendPortIdentifier origin() {
         return info.origin;
     }
@@ -126,143 +129,161 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         return in.available();
     }
 
+    @Override
     public boolean readBoolean() throws IOException {
         checkNotFinished();
         return in.readBoolean();
     }
 
+    @Override
     public byte readByte() throws IOException {
         checkNotFinished();
         return in.readByte();
     }
 
+    @Override
     public char readChar() throws IOException {
         checkNotFinished();
         return in.readChar();
     }
 
+    @Override
     public short readShort() throws IOException {
         checkNotFinished();
         return in.readShort();
     }
 
+    @Override
     public int readInt() throws IOException {
         checkNotFinished();
         return in.readInt();
     }
 
+    @Override
     public long readLong() throws IOException {
         checkNotFinished();
         return in.readLong();
     }
 
+    @Override
     public float readFloat() throws IOException {
         checkNotFinished();
         return in.readFloat();
     }
 
+    @Override
     public double readDouble() throws IOException {
         checkNotFinished();
         return in.readDouble();
     }
 
+    @Override
     public String readString() throws IOException {
         checkNotFinished();
         return in.readString();
     }
 
+    @Override
     public Object readObject() throws IOException, ClassNotFoundException {
         checkNotFinished();
         return in.readObject();
     }
 
+    @Override
     public void readArray(boolean[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(byte[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(char[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(short[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(int[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(long[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(float[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
+    @Override
     public void readArray(double[] destination) throws IOException {
         readArray(destination, 0, destination.length);
     }
 
-    public void readArray(Object[] destination)
-            throws IOException, ClassNotFoundException {
+    @Override
+    public void readArray(Object[] destination) throws IOException, ClassNotFoundException {
         readArray(destination, 0, destination.length);
     }
 
-    public void readArray(boolean[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(boolean[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(byte[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(byte[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(char[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(char[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(short[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(short[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(int[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(int[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(long[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(long[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(float[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(float[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(double[] destination, int offset, int size)
-            throws IOException {
+    @Override
+    public void readArray(double[] destination, int offset, int size) throws IOException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
 
-    public void readArray(Object[] destination, int offset, int size)
-            throws IOException, ClassNotFoundException {
+    @Override
+    public void readArray(Object[] destination, int offset, int size) throws IOException, ClassNotFoundException {
         checkNotFinished();
         in.readArray(destination, offset, size);
     }
@@ -271,14 +292,15 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         sequenceNr = s;
     }
 
+    @Override
     public long sequenceNumber() {
         if (!info.port.type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
-            throw new IbisConfigurationException(
-                    "No COMMUNICATION_NUMBERED " + "specified in port type");
+            throw new IbisConfigurationException("No COMMUNICATION_NUMBERED " + "specified in port type");
         }
         return sequenceNr;
     }
 
+    @Override
     public long finish() throws IOException {
         checkNotFinished();
         in.clear();
@@ -294,6 +316,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         return retval;
     }
 
+    @Override
     public void finish(IOException e) {
         if (isFinished) {
             return;
@@ -316,8 +339,8 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         }
     }
 
-    public void readByteBuffer(ByteBuffer value)
-            throws IOException, ReadOnlyBufferException {
+    @Override
+    public void readByteBuffer(ByteBuffer value) throws IOException, ReadOnlyBufferException {
         checkNotFinished();
         in.readByteBuffer(value);
     }

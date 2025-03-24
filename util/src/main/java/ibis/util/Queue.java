@@ -18,8 +18,8 @@
 package ibis.util;
 
 /**
- * A simple queue class. Objects can be enqueued, dequeued, or dequeued
- * with a deadline.
+ * A simple queue class. Objects can be enqueued, dequeued, or dequeued with a
+ * deadline.
  */
 public class Queue {
     static class QueueNode {
@@ -40,8 +40,9 @@ public class Queue {
     }
 
     /**
-     * Enqueues the specified object, and notifies: if there
-     * are threads waiting, a single one is notified.
+     * Enqueues the specified object, and notifies: if there are threads waiting, a
+     * single one is notified.
+     * 
      * @param o the object to be enqueued.
      */
     public synchronized void enqueue(Object o) {
@@ -60,8 +61,8 @@ public class Queue {
     }
 
     /**
-     * Dequeues the head of the queue. If the queue is empty it
-     * will wait until something is added to the queue.
+     * Dequeues the head of the queue. If the queue is empty it will wait until
+     * something is added to the queue.
      *
      * @return the dequeued object.
      */
@@ -70,14 +71,12 @@ public class Queue {
     }
 
     /**
-     * Dequeues the head of the queue. If the queue is empty it
-     * will wait until something is added to the queue, or the deadline
-     * has passed.
+     * Dequeues the head of the queue. If the queue is empty it will wait until
+     * something is added to the queue, or the deadline has passed.
      *
-     * @param deadline the deadline expressed in milliseconds 
-     *		   since 1-1-1970. a value of "0" will cause this
-     *		   function to wait forever, on -1 it will not wait 
-     *		   at all.
+     * @param deadline the deadline expressed in milliseconds since 1-1-1970. a
+     *                 value of "0" will cause this function to wait forever, on -1
+     *                 it will not wait at all.
      *
      * @return the dequeued object, or null if the deadline passed
      */
@@ -100,7 +99,7 @@ public class Queue {
                 try {
                     wait(deadline - time);
                 } catch (Exception e) {
-                    //IGNORE
+                    // IGNORE
                 }
             }
         }
@@ -117,6 +116,7 @@ public class Queue {
 
     /**
      * Returns the length of the queue.
+     * 
      * @return the length of the queue.
      */
     public synchronized int size() {

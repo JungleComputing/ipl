@@ -32,8 +32,8 @@ public class CheckNativeMethods {
 
         Method[] methods = clazz.getMethods();
 
-        for (int i = 0; i < methods.length; i++) {
-            if (methods[i].isNative()) {
+        for (Method method : methods) {
+            if (method.isNative()) {
                 if (first) {
                     first = false;
                 } else {
@@ -58,7 +58,7 @@ public class CheckNativeMethods {
         return s;
     }
 
-        @SuppressWarnings("unused")
+    @SuppressWarnings("unused")
     public static void main(String[] args) {
 
         JavaClass[] clazz = null;
@@ -66,8 +66,8 @@ public class CheckNativeMethods {
 
         if (false) {
             System.err.print("CheckNativeMethods arguments: ");
-            for (int i = 0; i < args.length; i++) {
-                System.err.print(args[i] + " ");
+            for (String arg : args) {
+                System.err.print(arg + " ");
             }
             System.err.println();
         }
@@ -80,8 +80,7 @@ public class CheckNativeMethods {
                 String filename = args[++i];
 
                 try {
-                    ClassParser p = new ClassParser(filename.replace('.',
-                            java.io.File.separatorChar));
+                    ClassParser p = new ClassParser(filename.replace('.', java.io.File.separatorChar));
                     clazz = increase_one(clazz);
                     clazz[clazz.length - 1] = p.parse();
                 } catch (Exception e) {
@@ -94,12 +93,11 @@ public class CheckNativeMethods {
                 int index = args[i].lastIndexOf('.');
                 try {
                     if (args[i].substring(index + 1).equals("class")) {
-                        clazz[clazz.length - 1]
-                              = Repository.lookupClass(args[i].substring(0, index));
+                        clazz[clazz.length - 1] = Repository.lookupClass(args[i].substring(0, index));
                     } else {
                         clazz[clazz.length - 1] = Repository.lookupClass(args[i]);
                     }
-                } catch(ClassNotFoundException e) {
+                } catch (ClassNotFoundException e) {
                     System.err.println("Error: class " + args[i] + " not found");
                     System.exit(1);
                 }
@@ -107,13 +105,12 @@ public class CheckNativeMethods {
         }
 
         if (clazz != null) {
-            for (int i = 0; i < clazz.length; i++) {
-                if (clazz[i] != null) {
+            for (JavaClass element : clazz) {
+                if (element != null) {
                     if (verbose) {
-                        System.err.println("Check class "
-                                + clazz[i].getClassName());
+                        System.err.println("Check class " + element.getClassName());
                     }
-                    checkNativeMethods(clazz[i]);
+                    checkNativeMethods(element);
                 }
             }
             System.out.println("");

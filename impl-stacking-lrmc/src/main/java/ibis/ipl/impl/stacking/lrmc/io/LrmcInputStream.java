@@ -15,9 +15,6 @@
  */
 package ibis.ipl.impl.stacking.lrmc.io;
 
-import ibis.ipl.impl.stacking.lrmc.util.Message;
-import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -25,16 +22,18 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.ipl.impl.stacking.lrmc.util.Message;
+import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
+
 //import mcast.lrm.ByteArrayCache;
 
 public class LrmcInputStream extends InputStream {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(LrmcInputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(LrmcInputStream.class);
 
     private final int source;
 
-    private final ArrayList<Message> queue = new ArrayList<Message>();
+    private final ArrayList<Message> queue = new ArrayList<>();
 
     private Message current = null;
 
@@ -82,8 +81,7 @@ public class LrmcInputStream extends InputStream {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Queued message " + m.id + "/" + m.num + "(" + m.len
-                    + ")");
+            logger.debug("Queued message " + m.id + "/" + m.num + "(" + m.len + ")");
         }
 
         return true;
@@ -108,8 +106,7 @@ public class LrmcInputStream extends InputStream {
         index = 0;
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Dequeued message " + current.id + "/" + current.num
-                    + "(" + current.len + ")");
+            logger.debug("Dequeued message " + current.id + "/" + current.num + "(" + current.len + ")");
         }
     }
 
@@ -128,9 +125,7 @@ public class LrmcInputStream extends InputStream {
                 // (this is more likely). To solve this, we simply drop the
                 // current packet and get a new one. We keep trying until we see
                 // a 'first packet'.
-                logger.info("___ Dropping packet " + current.id + "/"
-                        + current.num + " [" + current.len + "] "
-                        + "since it's not the first one!");
+                logger.info("___ Dropping packet " + current.id + "/" + current.num + " [" + current.len + "] " + "since it's not the first one!");
                 freeMessage();
                 getMessage();
                 if (current == null) {
@@ -145,16 +140,15 @@ public class LrmcInputStream extends InputStream {
             currentID = current.id;
             currentNum = 0;
             /*
-             * if (memoryUsage > highBound) { System.err.println("++++ Current
-             * memory usage " + (memoryUsage/1024) + " KB, series " +
-             * currentID);
-             * 
-             * lowBound = highBound; highBound += 1024*1024; } else if
-             * (memoryUsage < lowBound) {
-             * 
-             * System.err.println("---- Current memory usage " +
-             * (memoryUsage/1024) + " KB, series " + currentID);
-             * 
+             * if (memoryUsage > highBound) { System.err.println("++++ Current memory usage
+             * " + (memoryUsage/1024) + " KB, series " + currentID);
+             *
+             * lowBound = highBound; highBound += 1024*1024; } else if (memoryUsage <
+             * lowBound) {
+             *
+             * System.err.println("---- Current memory usage " + (memoryUsage/1024) +
+             * " KB, series " + currentID);
+             *
              * highBound = lowBound; lowBound -= 1024*1024; }
              */
         } else if (currentID != current.id || currentNum != current.num) {
@@ -173,9 +167,8 @@ public class LrmcInputStream extends InputStream {
             // the user that we cannot finish the current multicast. We will
             // process the current message when the user has handled the
             // exception and tries to receive again.
-            String tmp = "Inconsistency discovered in multicast packet series,"
-                    + " current series " + currentID + "/" + currentNum
-                    + " next packet " + current.id + "/" + current.num;
+            String tmp = "Inconsistency discovered in multicast packet series," + " current series " + currentID + "/" + currentNum + " next packet "
+                    + current.id + "/" + current.num;
 
             currentID = 0;
             throw new IOException(tmp);
@@ -186,8 +179,7 @@ public class LrmcInputStream extends InputStream {
         // Free the current message and updates the currentID if necessary
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Freed message " + current.id + "/" + current.num
-                    + " last = " + current.last);
+            logger.debug("Freed message " + current.id + "/" + current.num + " last = " + current.last);
         }
 
         if (current.last) {
@@ -204,6 +196,7 @@ public class LrmcInputStream extends InputStream {
         current = null;
     }
 
+    @Override
     public int read(byte b[], int off, int len) throws IOException {
 
         if (current == null) {
@@ -222,8 +215,7 @@ public class LrmcInputStream extends InputStream {
 
         if (leftover <= len) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Copying " + index + " " + current.buffer.length
-                        + " " + off + " " + leftover);
+                logger.debug("Copying " + index + " " + current.buffer.length + " " + off + " " + leftover);
             }
 
             System.arraycopy(current.buffer, index, b, off, leftover);
@@ -236,6 +228,7 @@ public class LrmcInputStream extends InputStream {
         }
     }
 
+    @Override
     public int read() throws IOException {
         // Ouch ... fortunately it's never used!
         byte[] tmp = new byte[1];

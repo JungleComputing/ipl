@@ -24,78 +24,74 @@ import ibis.ipl.IbisIdentifier;
 
 public class Example {
 
-	IbisCapabilities ibisCapabilities = new IbisCapabilities(
-			IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
-	private final Ibis myIbis;
+    private final Ibis myIbis;
 
-	public interface ExampleInterface {
-		
-		// Converts epoch time to date string.
-		public String millisToString(long millis) throws RemoteException, Exception;
-	}
+    public interface ExampleInterface {
 
-	public class ExampleClass implements ExampleInterface {
-		public String millisToString(long millis) throws RemoteException, Exception {
-			return "rpc example result = " + new Date(millis).toString();
-		}
-	}
+        // Converts epoch time to date string.
+        public String millisToString(long millis) throws RemoteException, Exception;
+    }
 
-	/**
-	 * Constructor. Actually does all the work too :)
-	 */
-	private Example() throws Exception {
-		// Create an ibis instance.
-		myIbis = IbisFactory.createIbis(ibisCapabilities, null,
-				RPC.rpcPortTypes);
+    public class ExampleClass implements ExampleInterface {
+        @Override
+        public String millisToString(long millis) throws RemoteException, Exception {
+            return "rpc example result = " + new Date(millis).toString();
+        }
+    }
 
-		// Elect a server
-		IbisIdentifier server = myIbis.registry().elect("Server");
+    /**
+     * Constructor. Actually does all the work too :)
+     */
+    private Example() throws Exception {
+        // Create an ibis instance.
+        myIbis = IbisFactory.createIbis(ibisCapabilities, null, RPC.rpcPortTypes);
 
-		// If I am the server, run server, else run client.
-		if (server.equals(myIbis.identifier())) {
-			server();
-		} else {
-			client(server);
-		}
+        // Elect a server
+        IbisIdentifier server = myIbis.registry().elect("Server");
 
-		// End ibis.
-		myIbis.end();
-	}
+        // If I am the server, run server, else run client.
+        if (server.equals(myIbis.identifier())) {
+            server();
+        } else {
+            client(server);
+        }
 
-	private void server() throws Exception {
+        // End ibis.
+        myIbis.end();
+    }
 
-		//create object we want to make remotely accessible
-		ExampleClass object = new ExampleClass();
+    private void server() throws Exception {
 
-		//make object remotely accessible
-		RemoteObject<ExampleInterface> remoteObject = RPC.exportObject(
-				ExampleInterface.class, object, "my great object", myIbis);
+        // create object we want to make remotely accessible
+        ExampleClass object = new ExampleClass();
 
-		//wait for a bit
-		Thread.sleep(100000);
+        // make object remotely accessible
+        RemoteObject<ExampleInterface> remoteObject = RPC.exportObject(ExampleInterface.class, object, "my great object", myIbis);
 
-		//cleanup, object no longer remotely accessible
-		remoteObject.unexport();
-	}
-	
-	private void client(IbisIdentifier server) throws Exception {
+        // wait for a bit
+        Thread.sleep(100000);
 
-		//create proxy to remote object
-		ExampleInterface interfaceObject = RPC.createProxy(
-				ExampleInterface.class, server, "my great object", myIbis);
+        // cleanup, object no longer remotely accessible
+        remoteObject.unexport();
+    }
 
-		//call remote object, print result
-		System.err.println(interfaceObject.millisToString(System.currentTimeMillis()));
+    private void client(IbisIdentifier server) throws Exception {
 
-	}
+        // create proxy to remote object
+        ExampleInterface interfaceObject = RPC.createProxy(ExampleInterface.class, server, "my great object", myIbis);
 
+        // call remote object, print result
+        System.err.println(interfaceObject.millisToString(System.currentTimeMillis()));
 
-	public static void main(String args[]) {
-		try {
-			new Example();
-		} catch (Exception e) {
-			e.printStackTrace(System.err);
-		}
-	}
+    }
+
+    public static void main(String args[]) {
+        try {
+            new Example();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+        }
+    }
 }

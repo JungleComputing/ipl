@@ -15,12 +15,12 @@
  */
 package ibis.ipl.impl.tcp;
 
-import ibis.util.IPUtils;
-
 import java.io.DataOutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import ibis.util.IPUtils;
 
 class IbisServerSocket {
 
@@ -38,8 +38,7 @@ class IbisServerSocket {
             Socket[] result = new Socket[b];
             result[0] = s;
             try {
-                InetSocketAddress local = new InetSocketAddress(
-                        IPUtils.getLocalHostAddress(), 0);
+                InetSocketAddress local = new InetSocketAddress(IPUtils.getLocalHostAddress(), 0);
                 n.bind(local);
                 IbisSocketAddress addr = new IbisSocketAddress(n.getLocalSocketAddress());
                 byte[] baddr = addr.toBytes();

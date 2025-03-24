@@ -48,7 +48,7 @@ public interface SerializationInput extends DataInput {
     /**
      * Returns true when the stream must be re-initialized when a connection is
      * added.
-     * 
+     *
      * @return true when the stream must be re-initialized when a connection is
      *         added.
      */
@@ -61,17 +61,16 @@ public interface SerializationInput extends DataInput {
 
     /**
      * Ibis serialization profits from an explicit clear of the object table, so
-     * that any stubs in it can be garbage-collected. This significantly reduces
-     * the number of connections kept alive.
+     * that any stubs in it can be garbage-collected. This significantly reduces the
+     * number of connections kept alive.
      */
     public void clear();
 
     /**
      * Returns the number of bytes that can be read without blocking.
-     * 
+     *
      * @return number of bytes available without blocking.
-     * @throws IOException
-     *             on I/O error
+     * @throws IOException on I/O error
      */
     public int available() throws IOException;
 
@@ -80,8 +79,7 @@ public interface SerializationInput extends DataInput {
      *
      * @return the string read.
      *
-     * @exception java.io.IOException
-     *                an error occurred
+     * @exception java.io.IOException an error occurred
      */
     public String readString() throws IOException;
 
@@ -90,59 +88,45 @@ public interface SerializationInput extends DataInput {
      *
      * @return the object read.
      *
-     * @exception java.io.IOException
-     *                an error occurred
-     * @exception ClassNotFoundException
-     *                is thrown when the class of a serialized object is not
-     *                found.
+     * @exception java.io.IOException    an error occurred
+     * @exception ClassNotFoundException is thrown when the class of a serialized
+     *                                   object is not found.
      */
     public Object readObject() throws IOException, ClassNotFoundException;
 
     /**
      * Reads an array of objects in place.
      *
-     * @param ref
-     *            array where the result is stored.
-     * @exception IOException
-     *                is thrown on an IO error.
-     * @exception ClassNotFoundException
-     *                is thrown when the class of a serialized object is not
-     *                found.
+     * @param ref array where the result is stored.
+     * @exception IOException            is thrown on an IO error.
+     * @exception ClassNotFoundException is thrown when the class of a serialized
+     *                                   object is not found.
      */
-    public void readArray(Object[] ref)
-            throws IOException, ClassNotFoundException;
+    public void readArray(Object[] ref) throws IOException, ClassNotFoundException;
 
     /**
      * Reads a slice of an array in place. No cycle checks are done.
      *
-     * @param ref
-     *            array in which the slice is stored
-     * @param off
-     *            offset where the slice starts
-     * @param len
-     *            length of the slice (the number of elements)
-     * @exception IOException
-     *                is thrown on an IO error.
-     * @exception ClassNotFoundException
-     *                is thrown when the class of a serialized object is not
-     *                found.
+     * @param ref array in which the slice is stored
+     * @param off offset where the slice starts
+     * @param len length of the slice (the number of elements)
+     * @exception IOException            is thrown on an IO error.
+     * @exception ClassNotFoundException is thrown when the class of a serialized
+     *                                   object is not found.
      */
-    public void readArray(Object[] ref, int off, int len)
-            throws IOException, ClassNotFoundException;
+    public void readArray(Object[] ref, int off, int len) throws IOException, ClassNotFoundException;
 
     /**
      * Closes this stream, but not the underlying streams.
-     * 
-     * @exception java.io.IOException
-     *                an error occurred
+     *
+     * @exception java.io.IOException an error occurred
      */
     public void close() throws IOException;
 
     /**
      * Closes this stream and the underlying streams.
-     * 
-     * @exception java.io.IOException
-     *                an error occurred
+     *
+     * @exception java.io.IOException an error occurred
      */
     public void realClose() throws IOException;
 }

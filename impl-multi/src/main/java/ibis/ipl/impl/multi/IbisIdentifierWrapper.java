@@ -26,12 +26,12 @@ final class IbisIdentifierWrapper implements Comparable<IbisIdentifierWrapper> {
         this.ibisName = ibisName;
     }
 
+    @Override
     public int compareTo(IbisIdentifierWrapper w) {
         int compare = this.ibisName.compareTo(w.ibisName);
         if (compare == 0) {
             return id.compareTo(w.id);
-        }
-        else {
+        } else {
             return compare;
         }
     }

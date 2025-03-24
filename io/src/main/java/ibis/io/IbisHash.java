@@ -22,21 +22,17 @@ import ibis.util.Timer;
 /**
  * A hash table that aims for speed for pairs (Object, int).
  *
- * Goodies that differ from java.util.Hashtable:
- * + The calls into this hash are not synchronized. The caller is
- *   responsible for locking the hash.
- * + Hash table size is always a power of two for fast modulo calculations.
+ * Goodies that differ from java.util.Hashtable: + The calls into this hash are
+ * not synchronized. The caller is responsible for locking the hash. + Hash
+ * table size is always a power of two for fast modulo calculations.
  */
 final class IbisHash {
 
-    private static final boolean ASSERTS
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_asserts);
+    private static final boolean ASSERTS = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_asserts);
 
-    private static final boolean STATS
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_stats);
+    private static final boolean STATS = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_stats);
 
-    private static final boolean TIMINGS
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_timings);
+    private static final boolean TIMINGS = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 
@@ -48,8 +44,8 @@ final class IbisHash {
     /* Choose this value between 1 and 3 */
     private static final int PRE_ALLOC_FACTOR = 1;
 
-    private static final int SHIFT1  = 5;
-    // private static final int SHIFT1  = 4;
+    private static final int SHIFT1 = 5;
+    // private static final int SHIFT1 = 4;
     private static final int SHIFT2 = 16;
 
     private Object[] dataBucket;
@@ -98,8 +94,7 @@ final class IbisHash {
             x <<= 1;
         }
         if (x != sz) {
-            System.err.println("Warning: Hash table size (" + sz
-                    + ") must be a power of two. Increment to " + x);
+            System.err.println("Warning: Hash table size (" + sz + ") must be a power of two. Increment to " + x);
             sz = x;
         }
 
@@ -115,12 +110,12 @@ final class IbisHash {
         }
 
         if (STATS || TIMINGS) {
-            Runtime.getRuntime().addShutdownHook(
-                    new Thread("IbisHash ShutdownHook") {
-                        public void run() {
-                            statistics();
-                        }
-                    });
+            Runtime.getRuntime().addShutdownHook(new Thread("IbisHash ShutdownHook") {
+                @Override
+                public void run() {
+                    statistics();
+                }
+            });
         }
     }
 
@@ -131,7 +126,7 @@ final class IbisHash {
     }
 
     private static final int hash_first(int b, int size) {
-        return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT2) - 1))) & (size-1);
+        return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT2) - 1))) & (size - 1);
     }
 
     private static final int hash_second(int b) {
@@ -195,8 +190,7 @@ final class IbisHash {
             if (result == 0) {
                 for (int i = offset; i < offset + size; i++) {
                     if (dataBucket[i] == ref) {
-                        System.err.println("CORRUPTED HASH: find returns "
-                                + "'no' but it's there in bucket[" + i + "]");
+                        System.err.println("CORRUPTED HASH: find returns " + "'no' but it's there in bucket[" + i + "]");
                     }
                 }
             }
@@ -229,10 +223,11 @@ final class IbisHash {
         Object[] old_data = dataBucket;
         int[] old_handle = handleBucket;
 
-        /* Only buy a new array when we really overflow.
-         * If the array we allocated previously still has enough
-         * free space, use first/last slice when we currently use
-         * last/first slice. */
+        /*
+         * Only buy a new array when we really overflow. If the array we allocated
+         * previously still has enough free space, use first/last slice when we
+         * currently use last/first slice.
+         */
         if (n + size > alloc_size) {
             // At least the new slice should fit.
             newBucketSet(PRE_ALLOC_FACTOR * n);
@@ -272,9 +267,8 @@ final class IbisHash {
         if (ASSERTS) {
             for (int i = old_offset; i < old_offset + old_size; i++) {
                 if (old_data[i] != null && find(old_data[i]) == 0) {
-                    System.err.println("CORRUPTED HASH after rebuild: "
-                            + "cannot find item[" + i + "] = "
-                            + Integer.toHexString(getHashCode(old_data[i])));
+                    System.err.println(
+                            "CORRUPTED HASH after rebuild: " + "cannot find item[" + i + "] = " + Integer.toHexString(getHashCode(old_data[i])));
                 }
                 old_data[i] = null;
             }
@@ -285,8 +279,7 @@ final class IbisHash {
                 }
             }
             if (cont != present) {
-                System.err.println("CORRUPTED HASH after rebuild: present "
-                        + present + " but contains " + cont);
+                System.err.println("CORRUPTED HASH after rebuild: present " + present + " but contains " + cont);
             }
         }
 
@@ -302,16 +295,15 @@ final class IbisHash {
     /**
      * Lazy insert (ref, handle) into the hash table.
      *
-     * @param  ref the object that is inserted
-     * @param  handle the (int valued) key
-     * @param  hashCode the hashCode of ref that may be kept over calls to the
-     * 		hash table
-     * @param  lazy if lazy is <code>true</code>, insert (ref, handle) only
-     * 		if ref is not yet present.
-     * @return if lazy is <code>true</code> and ref is already in the hash
-     * 		table, return the value of its stored handle and ignore
-     * 		parameter handle. Else, ref is inserted and the value of
-     * 		parameter handle is returned.
+     * @param ref      the object that is inserted
+     * @param handle   the (int valued) key
+     * @param hashCode the hashCode of ref that may be kept over calls to the hash
+     *                 table
+     * @param lazy     if lazy is <code>true</code>, insert (ref, handle) only if
+     *                 ref is not yet present.
+     * @return if lazy is <code>true</code> and ref is already in the hash table,
+     *         return the value of its stored handle and ignore parameter handle.
+     *         Else, ref is inserted and the value of parameter handle is returned.
      */
     private int put(Object ref, int handle, int hashCode, boolean lazy) {
 
@@ -345,8 +337,7 @@ final class IbisHash {
             if (lazy) {
                 for (int i = offset; i < offset + size; i++) {
                     if (dataBucket[i] == ref) {
-                        System.err.println("CORRUPTED HASH: lazyPut finds "
-                                + "'no' but it's there in bucket[" + i + "]");
+                        System.err.println("CORRUPTED HASH: lazyPut finds " + "'no' but it's there in bucket[" + i + "]");
                     }
                 }
             }
@@ -393,9 +384,8 @@ final class IbisHash {
     // synchronized
     final void clear() {
         /**
-         * The hash is between 1/4 and 1/2 full.
-         * Cleaning is most efficient by doing a swipe over
-         * the whole bucket array.
+         * The hash is between 1/4 and 1/2 full. Cleaning is most efficient by doing a
+         * swipe over the whole bucket array.
          */
 
         if (TIMINGS) {
@@ -427,21 +417,13 @@ final class IbisHash {
 
     final void statistics() {
         if (STATS) {
-            System.err.println(this + ":" + " alloc_size " + alloc_size
-                    + " contains " + contains + " finds " + finds
-                    + " rebuilds " + rebuilds + " new buckets " + new_buckets
-                    + " collisions " + collisions + " (rebuild "
-                    + rebuild_collisions + ")");
+            System.err.println(this + ":" + " alloc_size " + alloc_size + " contains " + contains + " finds " + finds + " rebuilds " + rebuilds
+                    + " new buckets " + new_buckets + " collisions " + collisions + " (rebuild " + rebuild_collisions + ")");
         }
         if (TIMINGS) {
-            System.err.println(this + " insert(" + t_insert.nrTimes() + ") "
-                    + Timer.format(t_insert.totalTimeVal()) + " find("
-                    + t_find.nrTimes() + ") "
-                    + Timer.format(t_find.totalTimeVal()) + " rebuild("
-                    + t_rebuild.nrTimes() + ") "
-                    + Timer.format(t_rebuild.totalTimeVal()) + " clear("
-                    + t_clear.nrTimes() + ") "
-                    + Timer.format(t_clear.totalTimeVal()));
+            System.err.println(this + " insert(" + t_insert.nrTimes() + ") " + Timer.format(t_insert.totalTimeVal()) + " find(" + t_find.nrTimes()
+                    + ") " + Timer.format(t_find.totalTimeVal()) + " rebuild(" + t_rebuild.nrTimes() + ") " + Timer.format(t_rebuild.totalTimeVal())
+                    + " clear(" + t_clear.nrTimes() + ") " + Timer.format(t_clear.totalTimeVal()));
         }
     }
 }

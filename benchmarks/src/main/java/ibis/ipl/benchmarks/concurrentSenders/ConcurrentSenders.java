@@ -15,6 +15,9 @@
  */
 package ibis.ipl.benchmarks.concurrentSenders;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /* $Id$ */
 
 import ibis.ipl.Ibis;
@@ -29,9 +32,6 @@ import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 class Sender extends Thread {
     int count, repeat;
 
@@ -42,11 +42,10 @@ class Sender extends Thread {
     boolean sendTree;
 
     IbisIdentifier master;
-    
+
     int me;
 
-    Sender(Ibis ibis, PortType t, int count, int repeat, boolean sendTree,
-            IbisIdentifier master, int me) {
+    Sender(Ibis ibis, PortType t, int count, int repeat, boolean sendTree, IbisIdentifier master, int me) {
         this.ibis = ibis;
         this.t = t;
         this.count = count;
@@ -56,6 +55,7 @@ class Sender extends Thread {
         this.me = me;
     }
 
+    @Override
     public void run() {
         DITree tree = null;
         try {
@@ -66,8 +66,7 @@ class Sender extends Thread {
             SendPort sport = ibis.createSendPort(t, "send port " + me);
             sport.connect(master, "receive port");
 
-            System.err.println(this
-                    + ": Connection established -- I'm a Sender");
+            System.err.println(this + ": Connection established -- I'm a Sender");
             long totalTime = System.currentTimeMillis();
 
             for (int r = 0; r < repeat; r++) {
@@ -91,14 +90,11 @@ class Sender extends Thread {
                 time = System.currentTimeMillis() - time;
 
                 double speed = (time * 1000.0) / count;
-                System.err.println("SENDER: " + count + " msgs took "
-                        + (time / 1000.0) + " seconds, time/msg = " + speed
-                        + " micros");
+                System.err.println("SENDER: " + count + " msgs took " + (time / 1000.0) + " seconds, time/msg = " + speed + " micros");
             }
 
             totalTime = System.currentTimeMillis() - totalTime;
-            System.err.println("SENDER: TOTAL TIME is " + (totalTime / 1000.0)
-                    + " seconds");
+            System.err.println("SENDER: TOTAL TIME is " + (totalTime / 1000.0) + " seconds");
 
             System.err.println("sender done, freeing sport");
             sport.close();
@@ -129,8 +125,7 @@ class Receiver implements MessageUpcall {
 
     int senders;
 
-    Receiver(Ibis ibis, PortType t, int count, int repeat, int senders,
-            boolean doFinish) {
+    Receiver(Ibis ibis, PortType t, int count, int repeat, int senders, boolean doFinish) {
         this.ibis = ibis;
         this.t = t;
         this.count = count;
@@ -146,8 +141,7 @@ class Receiver implements MessageUpcall {
             rport.enableMessageUpcalls();
             finish();
             time = System.currentTimeMillis() - time;
-            System.err.println("RECEIVEVER: " + count + " msgs took "
-                    + (time / 1000.0) + " seconds");
+            System.err.println("RECEIVEVER: " + count + " msgs took " + (time / 1000.0) + " seconds");
 
             System.err.println("receiver done, freeing rport");
             rport.close();
@@ -160,8 +154,9 @@ class Receiver implements MessageUpcall {
         }
     }
 
+    @Override
     public void upcall(ReadMessage readMessage) {
-        //		System.err.println("Got readMessage!!");
+        // System.err.println("Got readMessage!!");
 
         try {
             readMessage.readObject();
@@ -247,14 +242,10 @@ class ConcurrentSenders {
         }
 
         try {
-            IbisCapabilities sp = new IbisCapabilities(
-                    IbisCapabilities.CLOSED_WORLD,
-                    IbisCapabilities.ELECTIONS_STRICT);
+            IbisCapabilities sp = new IbisCapabilities(IbisCapabilities.CLOSED_WORLD, IbisCapabilities.ELECTIONS_STRICT);
 
-            PortType t = new PortType(PortType.SERIALIZATION_OBJECT,
-                    PortType.COMMUNICATION_RELIABLE,
-                    PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
-                    PortType.CONNECTION_MANY_TO_ONE);
+            PortType t = new PortType(PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
+                    PortType.RECEIVE_EXPLICIT, PortType.CONNECTION_MANY_TO_ONE);
 
             ibis = IbisFactory.createIbis(sp, null, t);
 

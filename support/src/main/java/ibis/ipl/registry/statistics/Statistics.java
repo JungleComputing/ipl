@@ -37,8 +37,7 @@ public final class Statistics implements Runnable {
 
     public static final int VERSION = 1;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(Statistics.class);
+    private static final Logger logger = LoggerFactory.getLogger(Statistics.class);
 
     private final long start;
 
@@ -84,8 +83,8 @@ public final class Statistics implements Runnable {
         bytesIn = new long[opcodes.length];
         bytesOut = new long[opcodes.length];
 
-        poolSizeHistory = new LinkedList<DataPoint>();
-        electionEventHistory = new LinkedList<DataPoint>();
+        poolSizeHistory = new LinkedList<>();
+        electionEventHistory = new LinkedList<>();
 
         currentPoolSize = 0;
 
@@ -104,8 +103,7 @@ public final class Statistics implements Runnable {
             int version = in.readInt();
 
             if (version != VERSION) {
-                throw new IOException(
-                        "cannot read statistics file version: " + version);
+                throw new IOException("cannot read statistics file version: " + version);
             }
 
             start = in.readLong();
@@ -135,16 +133,15 @@ public final class Statistics implements Runnable {
                 bytesOut[i] = in.readLong();
             }
 
-            poolSizeHistory = new LinkedList<DataPoint>();
-            electionEventHistory = new LinkedList<DataPoint>();
+            poolSizeHistory = new LinkedList<>();
+            electionEventHistory = new LinkedList<>();
 
             int nrOfSizeDataPoints = in.readInt();
             if (nrOfSizeDataPoints < 0) {
                 throw new IOException("negative list size");
             }
             for (int i = 0; i < nrOfSizeDataPoints; i++) {
-                poolSizeHistory
-                        .add(new DataPoint(in.readLong(), in.readLong()));
+                poolSizeHistory.add(new DataPoint(in.readLong(), in.readLong()));
             }
 
             int nrOfElectionDataPoints = in.readInt();
@@ -153,8 +150,7 @@ public final class Statistics implements Runnable {
             }
 
             for (int i = 0; i < nrOfElectionDataPoints; i++) {
-                electionEventHistory
-                        .add(new DataPoint(in.readLong(), in.readLong()));
+                electionEventHistory.add(new DataPoint(in.readLong(), in.readLong()));
             }
 
             currentPoolSize = in.readInt();
@@ -219,8 +215,7 @@ public final class Statistics implements Runnable {
 
             // write data to file
 
-            file = new File("statistics" + File.separator + poolName
-                    + File.separator + id);
+            file = new File("statistics" + File.separator + poolName + File.separator + id);
 
             if (logger.isDebugEnabled()) {
                 logger.debug("writing statistics to: " + file);
@@ -245,8 +240,7 @@ public final class Statistics implements Runnable {
         }
     }
 
-    public synchronized void add(byte opcode, long time, long bytesReceived,
-            long bytesSend, boolean incoming) {
+    public synchronized void add(byte opcode, long time, long bytesReceived, long bytesSend, boolean incoming) {
         if (opcode >= opcodes.length) {
             logger.error("unknown opcode in handling stats: " + opcode);
         }
@@ -276,11 +270,7 @@ public final class Statistics implements Runnable {
             }
         }
 
-        if (poolSizeHistory.size() > 0) {
-            return false;
-        }
-
-        if (electionEventHistory.size() > 0) {
+        if ((poolSizeHistory.size() > 0) || (electionEventHistory.size() > 0)) {
             return false;
         }
 
@@ -301,23 +291,18 @@ public final class Statistics implements Runnable {
         // long totalTraffic = 0;
 
         out.format("#communication statistics\n");
-        out.format(
-                "#TYPE                  IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
-        out.format(
-                "#                                                                (sec)       (ms)\n");
+        out.format("#TYPE                  IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
+        out.format("#                                                                (sec)       (ms)\n");
         for (byte i = 0; i < opcodes.length; i++) {
             // totalTraffic += bytesIn[i] + bytesOut[i];
 
-            double average = totalTimes[i]
-                    / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
-            if (incomingRequestCounter[i] == 0
-                    && outgoingRequestCounter[i] == 0) {
+            double average = totalTimes[i] / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
+            if (incomingRequestCounter[i] == 0 && outgoingRequestCounter[i] == 0) {
                 average = 0;
             }
 
-            out.format("#%-20s %9d %9d %8d %9d %10.2f %10.2f\n", opcodes[i],
-                    incomingRequestCounter[i], outgoingRequestCounter[i],
-                    bytesIn[i], bytesOut[i], totalTimes[i] / 1000.0, average);
+            out.format("#%-20s %9d %9d %8d %9d %10.2f %10.2f\n", opcodes[i], incomingRequestCounter[i], outgoingRequestCounter[i], bytesIn[i],
+                    bytesOut[i], totalTimes[i] / 1000.0, average);
         }
         out.format("#distance from server: %d Ms\n", offset);
     }
@@ -333,8 +318,7 @@ public final class Statistics implements Runnable {
 
     public synchronized void newPoolSize(int poolSize) {
         if (!poolSizeHistory.isEmpty()) {
-            long lastPoolSize = poolSizeHistory.get(poolSizeHistory.size() - 1)
-                    .getValue();
+            long lastPoolSize = poolSizeHistory.get(poolSizeHistory.size() - 1).getValue();
 
             if (poolSize == lastPoolSize) {
                 // ignore this update, value equal to last
@@ -350,8 +334,7 @@ public final class Statistics implements Runnable {
     }
 
     public synchronized void electionEvent() {
-        electionEventHistory
-                .add(new DataPoint(electionEventHistory.size() + 1));
+        electionEventHistory.add(new DataPoint(electionEventHistory.size() + 1));
     }
 
     public synchronized long getStartTime() {
@@ -362,8 +345,7 @@ public final class Statistics implements Runnable {
         long result = start;
 
         if (poolSizeHistory.size() > 0) {
-            long time = poolSizeHistory.get(poolSizeHistory.size() - 1)
-                    .getTime();
+            long time = poolSizeHistory.get(poolSizeHistory.size() - 1).getTime();
 
             if (time > result) {
                 result = time;
@@ -371,8 +353,7 @@ public final class Statistics implements Runnable {
         }
 
         if (electionEventHistory.size() > 0) {
-            long time = electionEventHistory
-                    .get(electionEventHistory.size() - 1).getTime();
+            long time = electionEventHistory.get(electionEventHistory.size() - 1).getTime();
 
             if (time > result) {
                 result = time;
@@ -409,7 +390,7 @@ public final class Statistics implements Runnable {
 
     /**
      * Total data sent/received by the registry (in Mib)
-     * 
+     *
      * @return total data amount
      */
     public synchronized double totalTraffic() {
@@ -445,6 +426,7 @@ public final class Statistics implements Runnable {
         ThreadPool.createNew(this, "statistics writer");
     }
 
+    @Override
     public void run() {
         while (true) {
             write();
@@ -470,8 +452,8 @@ public final class Statistics implements Runnable {
     public static void main(String[] args) throws IOException {
         Formatter formatter = new Formatter(System.out);
 
-        for (int i = 0; i < args.length; i++) {
-            File file = new File(args[i]);
+        for (String arg : args) {
+            File file = new File(arg);
 
             Statistics statistics = new Statistics(file);
 
@@ -483,7 +465,7 @@ public final class Statistics implements Runnable {
     }
 
     public synchronized Map<String, String> getMap() {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
 
         result.put("ibis.id", id);
         result.put("pool.name", poolName);
@@ -503,8 +485,7 @@ public final class Statistics implements Runnable {
             totalBytesOut += bytesOut[i];
         }
 
-        double averageRequestTime = totalTime
-                / (totalInRequests + totalOutRequests);
+        double averageRequestTime = totalTime / (totalInRequests + totalOutRequests);
 
         result.put("average.request.time", averageRequestTime + "");
         result.put("incoming.requests", totalInRequests + "");

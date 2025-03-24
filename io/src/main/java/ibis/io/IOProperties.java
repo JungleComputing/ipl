@@ -48,8 +48,7 @@ public final class IOProperties {
 
     static final String s_stats_written = PREFIX + "stats.written";
 
-    static final String s_serialization_default = PREFIX
-            + "serialization.object.default";
+    static final String s_serialization_default = PREFIX + "serialization.object.default";
 
     static final String s_classloader = PREFIX + "serialization.classloader";
 
@@ -86,83 +85,49 @@ public final class IOProperties {
     static final String s_deepcopy_ser = PREFIX + "deepcopy.serialization";
 
     private static final String[][] propertiesList = new String[][] {
-            { PROPERTIES_FILE, PROPERTIES_FILENAME,
-                    "String: determines the file name of the Ibis IO properties "
-                            + "file" },
-            { s_stats_nonrewritten, "false",
-                    "Boolean: if true, print non-rewritten object statistics" },
-            { s_stats_written, "false",
-                    "Boolean: if true, print statistics about objects written" },
-            { s_classloader, null,
-                    "String: the name of a classloader to be used when a class "
-                            + "cannot be found" },
-            { s_timer_data, "false",
-                    "Boolean: if true, enables data serialization timers" },
-            { s_timer_ibis, "false",
-                    "Boolean: if true, enables ibis serialization timers" },
-            { s_no_array_buffers, "false",
-                    "Boolean: if true, leaves all buffering of Ibis serialization "
-                            + "to the layers below it" },
-            { s_conversion, "hybrid",
-                    "String: determines the conversion used" },
-            { s_buffer_size, "8192",
-                    "Integer: determines the size of the buffers used in Ibis "
-                            + "serialization" },
-            { s_typed_buffer_size, "8192",
-                    "Integer: determines the size of the typed buffers used "
-                            + "in Ibis data serialization streams" },
-            { s_conversion_buf_size, "8192",
-                    "Integer: determines the size of the conversion buffers "
-                            + "used in Ibis serialization" },
-            { s_array_buffer, "32",
-                    "Integer: determines the size of the buffer for arrays" },
-            { s_debug, "false", "Boolean: if true, enables log4j calls" },
-            { s_asserts, "false", "Boolean: if true, enables some assertions" },
+            { PROPERTIES_FILE, PROPERTIES_FILENAME, "String: determines the file name of the Ibis IO properties " + "file" },
+            { s_stats_nonrewritten, "false", "Boolean: if true, print non-rewritten object statistics" },
+            { s_stats_written, "false", "Boolean: if true, print statistics about objects written" },
+            { s_classloader, null, "String: the name of a classloader to be used when a class " + "cannot be found" },
+            { s_timer_data, "false", "Boolean: if true, enables data serialization timers" },
+            { s_timer_ibis, "false", "Boolean: if true, enables ibis serialization timers" },
+            { s_no_array_buffers, "false", "Boolean: if true, leaves all buffering of Ibis serialization " + "to the layers below it" },
+            { s_conversion, "hybrid", "String: determines the conversion used" },
+            { s_buffer_size, "8192", "Integer: determines the size of the buffers used in Ibis " + "serialization" },
+            { s_typed_buffer_size, "8192", "Integer: determines the size of the typed buffers used " + "in Ibis data serialization streams" },
+            { s_conversion_buf_size, "8192", "Integer: determines the size of the conversion buffers " + "used in Ibis serialization" },
+            { s_array_buffer, "32", "Integer: determines the size of the buffer for arrays" },
+            { s_debug, "false", "Boolean: if true, enables log4j calls" }, { s_asserts, "false", "Boolean: if true, enables some assertions" },
             { s_small_array_bound, "256",
-                    "Integer: determines the bound beyond which arrays of a "
-                            + "basic type are written as an array instead of as "
+                    "Integer: determines the bound beyond which arrays of a " + "basic type are written as an array instead of as "
                             + "individual elements" },
-            { s_hash_asserts, "false",
-                    "Boolean: if true, enables some assertions in the ibis hash" },
-            { s_hash_stats, "false",
-                    "Boolean: if true, enables statistics in the ibis hash" },
-            { s_hash_timings, "false",
-                    "Boolean: if true, enables various timers in the ibis hash" },
+            { s_hash_asserts, "false", "Boolean: if true, enables some assertions in the ibis hash" },
+            { s_hash_stats, "false", "Boolean: if true, enables statistics in the ibis hash" },
+            { s_hash_timings, "false", "Boolean: if true, enables various timers in the ibis hash" },
             { s_hash_resize, "100",
-                    "Integer: determines the fill-percentage before the ibis hash "
-                            + " is resized; choose between 50 and 200; larger values "
+                    "Integer: determines the fill-percentage before the ibis hash " + " is resized; choose between 50 and 200; larger values "
                             + " mean more chaining but a smaller hash size" },
-            { s_serialization_default, "ibis",
-                    "String: either \"ibis\" or \"sun\", determines the default object serialization" },
-            { s_deepcopy_ser, "ibis",
-                    "String: determines the serialization used for DeepCopy" } };
+            { s_serialization_default, "ibis", "String: either \"ibis\" or \"sun\", determines the default object serialization" },
+            { s_deepcopy_ser, "ibis", "String: determines the serialization used for DeepCopy" } };
 
     static {
         properties = new TypedProperties(getDefaultProperties());
-        properties.checkProperties(PREFIX,
-                getPropertyNames().toArray(new String[0]), null, true);
+        properties.checkProperties(PREFIX, getPropertyNames().toArray(new String[0]), null, true);
     }
 
-    public static final boolean DEBUG = properties.getBooleanProperty(s_debug,
-            false);
+    public static final boolean DEBUG = properties.getBooleanProperty(s_debug, false);
 
-    public static final boolean ASSERTS = properties
-            .getBooleanProperty(s_asserts, false);
+    public static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, false);
 
-    public static final int SMALL_ARRAY_BOUND = properties
-            .getIntProperty(s_small_array_bound, 256); // byte
+    public static final int SMALL_ARRAY_BOUND = properties.getIntProperty(s_small_array_bound, 256); // byte
 
-    public static final int BUFFER_SIZE = properties
-            .getIntProperty(s_buffer_size, 8 * 1024);
+    public static final int BUFFER_SIZE = properties.getIntProperty(s_buffer_size, 8 * 1024);
 
-    public static final int TYPED_BUFFER_SIZE = properties
-            .getIntProperty(s_typed_buffer_size, 8 * 1024);
+    public static final int TYPED_BUFFER_SIZE = properties.getIntProperty(s_typed_buffer_size, 8 * 1024);
 
-    public static final int ARRAY_BUFFER_SIZE = properties
-            .getIntProperty(s_array_buffer, 32);
+    public static final int ARRAY_BUFFER_SIZE = properties.getIntProperty(s_array_buffer, 32);
 
-    public static final int CONVERSION_BUFFER_SIZE = properties
-            .getIntProperty(s_conversion_buf_size, 32 * 1024);
+    public static final int CONVERSION_BUFFER_SIZE = properties.getIntProperty(s_conversion_buf_size, 32 * 1024);
 
     /**
      * Returns the hard-coded Ibis IO properties.
@@ -187,7 +152,7 @@ public final class IOProperties {
      * @return the name/description map.
      */
     public static Map<String, String> getDescriptions() {
-        Map<String, String> result = new LinkedHashMap<String, String>();
+        Map<String, String> result = new LinkedHashMap<>();
 
         for (String[] element : propertiesList) {
             result.put(element[0], element[2]);
@@ -198,11 +163,11 @@ public final class IOProperties {
 
     /**
      * Returns a list of recognized properties.
-     * 
+     *
      * @return the list of recognized properties
      */
     public static List<String> getPropertyNames() {
-        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<String> result = new ArrayList<>();
         for (String[] element : propertiesList) {
             result.add(element[0]);
         }
@@ -268,8 +233,7 @@ public final class IOProperties {
                     // If we fail to load the user specified file,
                     // we give an error, since only the default file
                     // may fail silently.
-                    System.err.println("User specified preferences \"" + file
-                            + "\" not found!");
+                    System.err.println("User specified preferences \"" + file + "\" not found!");
                 }
             }
         }

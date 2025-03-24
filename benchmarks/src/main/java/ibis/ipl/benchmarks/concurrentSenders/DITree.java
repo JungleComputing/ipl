@@ -17,7 +17,6 @@ package ibis.ipl.benchmarks.concurrentSenders;
 
 /* $Id$ */
 
-
 import java.io.Serializable;
 
 public final class DITree implements Serializable {
@@ -48,4 +47,3 @@ public final class DITree implements Serializable {
         }
     }
 }
-
