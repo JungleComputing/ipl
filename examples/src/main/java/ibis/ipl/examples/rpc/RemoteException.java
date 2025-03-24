@@ -13,17 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ibis.ipl.impl;
+package ibis.ipl.examples.rpc;
 
-public interface IbisMBean {
-	
-	public String getIdentifier();
-	public long getOutgoingMessageCount();
-	public long getBytesWritten();
-	public long getBytesSend();
-	public long getIncomingMessageCount();
-	public long getBytesReceived();
-	public long getBytesRead();
-	
+import ibis.ipl.IbisIOException;
+
+public class RemoteException extends IbisIOException {
+
+    private static final long serialVersionUID = 1L;
+
+	public RemoteException() {
+	super();
+    }
+
+    public RemoteException(String message) {
+	super(message);
+    }
+
+    public RemoteException(Throwable cause) {
+	super(cause);
+    }
+
+    public RemoteException(String message, Throwable cause) {
+	super(message, cause);
+    }
 
 }
