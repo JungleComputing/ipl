@@ -51,7 +51,7 @@ compileJava {
 
 artifacts {
     archives javadocJar
-    archives sourcesJar
+	archives sourcesJar
 }
 
 tasks.withType(Jar) {

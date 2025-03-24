@@ -429,6 +429,11 @@ public class Ibisc {
             System.out.println(
                     "Ibisc: applying rewriter " + ic.getClass().getName()
                             + " to " + allClasses.size() + " classes.");
+
+            for(String s : allClasses.keySet()) {
+                System.out.println("rewriting class: " + s);
+            }
+            
             ic.processClasses(allClasses);
             if (verify) {
                 // Verify after each component.

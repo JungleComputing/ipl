@@ -121,11 +121,15 @@ public class ASMRepository implements Opcodes {
 
     public static boolean implementationOf(ClassNode clazz,
             String type) throws ClassNotFoundException {
+    	System.out.println("implementationOf class: " + clazz.name + " type: " + type);
         List<String> interfaces = clazz.interfaces;
-        for (String i : interfaces) {
+        for (String i : interfaces) { 
             if (i.equals(type)) {
                 return true;
             }
+         // FIXME: huge bug: the interface might extend the interface we are looking for!
+            @@@
+            
         }
         if (clazz.name.equals("java/lang/Object")) {
             return false;

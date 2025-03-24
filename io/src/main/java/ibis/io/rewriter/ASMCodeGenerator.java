@@ -93,6 +93,7 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
     }
 
     ASMCodeGenerator(ASMIOGenerator generator, ClassNode cl) {
+    	System.out.println("code gen ctor for: " + cl.name);
         this.generator = generator;
         clazz = cl;
         if (clazz.superName != null) {
@@ -1397,11 +1398,11 @@ class ASMCodeGenerator implements ASMRewriterConstants, Opcodes {
 
     void generateCode() {
         /* Generate code inside the methods */
-        if (generator.isVerbose()) {
+//        if (generator.isVerbose()) {
             System.out.println(
                     "  Generating method code class for class : " + clazz.name);
             System.out.println("    Number of fields " + fields.size());
-        }
+//        }
 
         int dpth = getClassDepth(clazz);
 

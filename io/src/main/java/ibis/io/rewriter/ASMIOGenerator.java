@@ -172,9 +172,12 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
             }
             else {
                 if (ASMSerializationInfo.isSerializable(cl)) {
+                	System.out.println("XXX class " + cl.name + " is serializable");
                     if (! ASMSerializationInfo.isIbisSerializable(cl)) {
                         addClass(cl);
                     }
+                } else {
+                	System.out.println("XXX class " + cl.name + " is NOT serializable");
                 }
             }
         }
@@ -196,23 +199,23 @@ public class ASMIOGenerator extends ibis.compile.IbiscComponent implements ASMRe
             }
         }
 
-        if (verbose) {
+//        if (verbose) {
             System.out.println("Ibisc: IOGenerator rewriting classes");
-        }
+        //}
 
         /* Sort target_classes. Super classes first.  */
         do_sort_classes(target_classes);
 
         for (int i = 0; i < target_classes.size(); i++) {
             ClassNode clazz = target_classes.get(i);
-            if (verbose) {
+            //if (verbose) {
                 System.out.println("Target Class: " + clazz.name);
-            }
+            //}
             if ((clazz.access & ACC_INTERFACE) != ACC_INTERFACE) {
-                if (!silent) {
+//                if (!silent) {
                     System.out.println("  Rewrite class : "
                             + clazz.name);
-                }
+  //              }
                 if (useJME()) {
                     // TODO new JMECodeGenerator(this, clazz).generateCode();
                 }
