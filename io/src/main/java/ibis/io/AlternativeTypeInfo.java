@@ -406,7 +406,6 @@ final class AlternativeTypeInfo {
 		if (t == null) {
 			t = new AlternativeTypeInfo(type);
 			alternativeTypes.put(type, t);
-			System.err.println("created alternative type info for class: "+ type);
 		}
 
 		return t;
